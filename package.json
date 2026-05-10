@@ -1,0 +1,17 @@
+{
+  "name": "ninewood",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w server && npm run build -w client",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w client",
+    "typecheck:server": "npm run typecheck -w server",
+    "typecheck:client": "npm run typecheck -w client"
+  },
+  "workspaces": ["server", "client"],
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

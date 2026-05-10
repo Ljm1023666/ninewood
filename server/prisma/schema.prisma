@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ──
+
+enum CertLevel {
+  NONE     // 0
+  BASIC    // 1
+  INTERMEDIATE // 2
+  ADVANCED     // 3
+  MASTER       // 4
+}
+
+enum ServiceType {
+  ONLINE
+  OFFLINE
+}
+
+enum DemandStatus {
+  PENDING
+  FROZEN
+  COMPLETED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  WAITING_REVIEW
+  COMPLETED
+  DISPUTED
+}
+
+enum CircleType {
+  PRIVATE
+  PUBLIC
+}
+
+enum CircleStatus {
+  ACTIVE
+  WARNING
+  DEFUNCT
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum DepositStatus {
+  PENDING
+  REFUNDED
+  FORFEITED
+}
+
+enum ComplaintStatus {
+  PENDING
+  UPHELD
+  DISMISSED
+}
+
+enum MessageType {
+  TEXT
+  SYSTEM
+}
+
+// ── Models ──
+
+model User {
+  id                String    @id @default(uuid())
+  phone             String    @unique
+  nickname          String
+  avatarUrl         String?
+  coverUrl          String?
+  cityCode          String?
+  certificationLevel CertLevel @default(NONE)
+  snatchCredits     Int       @default(3)
+  creditScore       Int       @default(60)
+  completedOrders   Int       @default(0)
+  role              String    @default("USER")
+  passwordHash      String?
+  bio               String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  demands          Demand[]
+  applications    DemandApplication[]
+  providerOrders  Order[]         @relation("Provider")
+  requesterOrders Order[]         @relation("Requester")
+  ownedCircles    Circle[]        @relation("CircleOwner")
+  memberships     CircleMember[]
+  deposits        Deposit[]
+  sentComplaints  Complaint[]     @relation("Complainant")
+  receivedComplaints Complaint[]  @relation("Respondent")
+  sentMessages    Message[]       @relation("Sender")
+  receivedMessages Message[]      @relation("Receiver")
+  shorts          Short[]
+  following       Follow[]        @relation("Following")
+  followers       Follow[]        @relation("Followers")
+
+  @@index([cityCode])
+  @@index([certificationLevel])
+}
+
+model Demand {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  minPrice       Decimal      @db.Decimal(10, 2)
+  category       String
+  serviceType    ServiceType
+  locationLat    Float?
+  locationLng    Float?
+  cityCode       String?
+  expireAt       DateTime
+  status         DemandStatus @default(PENDING)
+  circleId       String?
+  circle         Circle?      @relation(fields: [circleId], references: [id], onDelete: SetNull)
+  mediaUrls      Json         @default("[]")
+  applicantCount Int          @default(0)
+  isExample      Boolean      @default(false)
+  isPublic       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+
+  applications   DemandApplication[]
+  orders         Order[]
+
+  @@index([userId])
+  @@index([cityCode])
+  @@index([status])
+  @@index([expireAt])
+  @@index([circleId])
+  @@index([category])
+  @@index([isExample])
+}
+
+model DemandApplication {
+  id         String            @id @default(uuid())
+  demandId   String
+  demand     Demand            @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerPrice Decimal?          @db.Decimal(10, 2)
+  message    String?
+  isSnatched Boolean           @default(false)
+  status     ApplicationStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+
+  @@unique([demandId, userId])
+  @@index([userId])
+  @@index([demandId])
+  @@index([status])
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  demandId     String
+  demand       Demand      @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  providerId   String
+  provider     User        @relation("Provider", fields: [providerId], references: [id])
+  requesterId  String
+  requester    User        @relation("Requester", fields: [requesterId], references: [id])
+  agreedPrice  Decimal     @db.Decimal(10, 2)
+  status       OrderStatus @default(PENDING)
+  paidAt       DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime    @default(now())
+
+  messages      Message[]
+
+  @@index([demandId])
+  @@index([providerId])
+  @@index([requesterId])
+  @@index([status])
+}
+
+model Circle {
+  id          String       @id @default(uuid())
+  name        String
+  type        CircleType
+  ownerId     String
+  owner       User         @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  cityCode    String?
+  inviteCode  String?      @unique
+  coverUrl    String?
+  memberCount Int          @default(1)
+  activeScore Float        @default(0)
+  status      CircleStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+
+  members     CircleMember[]
+  demands     Demand[]
+
+  @@index([ownerId])
+  @@index([cityCode])
+  @@index([status])
+}
+
+model CircleMember {
+  circleId String
+  circle   Circle      @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     MemberRole  @default(MEMBER)
+  joinedAt DateTime    @default(now())
+
+  @@id([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+}
+
+model Deposit {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Decimal       @db.Decimal(10, 2)
+  demandIds Json
+  status    DepositStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Complaint {
+  id         String          @id @default(uuid())
+  fromUserId String
+  fromUser   User            @relation("Complainant", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User            @relation("Respondent", fields: [toUserId], references: [id], onDelete: Cascade)
+  demandId   String
+  reason     String
+  status     ComplaintStatus @default(PENDING)
+  result     String?
+  createdAt  DateTime        @default(now())
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([demandId])
+}
+
+model Message {
+  id         String      @id @default(uuid())
+  fromUserId String
+  fromUser   User        @relation("Sender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User        @relation("Receiver", fields: [toUserId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?      @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  content    String
+  type       MessageType @default(TEXT)
+  isRead     Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([orderId])
+  @@index([createdAt])
+}
+
+model Short {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mediaUrl    String
+  coverUrl    String?
+  description String?
+  tags        Json     @default("[]")
+  likeCount   Int      @default(0)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
