@@ -8,16 +8,16 @@ import { prisma } from '../lib/prisma.js';
 export const authRouter = Router();
 
 const sendCodeSchema = z.object({
-  phone: z.string().regex(/^\d{1,2}$/, '请输入有效的手机号'),
+  phone: z.string().regex(/^\d{11}$/, '请输入有效的手机号'),
 });
 
 const registerSchema = z.object({
-  phone: z.string().regex(/^\d{1,2}$/),
+  phone: z.string().regex(/^\d{11}$/),
   code: z.string().length(6),
 });
 
 const loginSchema = z.object({
-  phone: z.string().regex(/^\d{1,2}$/),
+  phone: z.string().regex(/^\d{11}$/),
   password: z.string().min(1),
 });
 
