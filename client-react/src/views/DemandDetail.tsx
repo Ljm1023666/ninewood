@@ -189,17 +189,30 @@ export default function DemandDetail() {
   }, [loading, demand?.id, currentIdx])
 
   const goNext = useCallback(() => {
-    if (currentIdx >= allDemands.length - 1) return
+    if (allDemands.length < 2) return
     setDirection(1)
-    const next = allDemands[currentIdx + 1]
+    if (currentIdx >= allDemands.length - 1) {
+      const next = allDemands[0]!
+      setCurrentIdx(0)
+      navigate(`/demands/${next.id}`, { replace: true })
+      return
+    }
+    const next = allDemands[currentIdx + 1]!
     setCurrentIdx(currentIdx + 1)
     navigate(`/demands/${next.id}`, { replace: true })
   }, [currentIdx, allDemands, navigate])
 
   const goPrev = useCallback(() => {
-    if (currentIdx <= 0) return
+    if (allDemands.length < 2) return
     setDirection(-1)
-    const prev = allDemands[currentIdx - 1]
+    if (currentIdx <= 0) {
+      const last = allDemands.length - 1
+      const prev = allDemands[last]!
+      setCurrentIdx(last)
+      navigate(`/demands/${prev.id}`, { replace: true })
+      return
+    }
+    const prev = allDemands[currentIdx - 1]!
     setCurrentIdx(currentIdx - 1)
     navigate(`/demands/${prev.id}`, { replace: true })
   }, [currentIdx, allDemands, navigate])
@@ -215,8 +228,9 @@ export default function DemandDetail() {
   }
   if (!demand) return null
 
-  const hasPrev = currentIdx > 0
-  const hasNext = currentIdx < allDemands.length - 1
+  const canSwipeCycle = allDemands.length > 1
+  const hasPrev = canSwipeCycle
+  const hasNext = canSwipeCycle
 
   return (
     <div className="relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">

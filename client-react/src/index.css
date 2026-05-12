@@ -129,60 +129,7 @@ html, body {
   background-clip: text;
 }
 
-/* 页面光晕 */
-.page-glow {
-  position: fixed; top: 0; left: 0; right: 0; height: 100vh;
-  pointer-events: none; z-index: 0; overflow: hidden;
-}
-.page-glow::before {
-  content: '';
-  position: absolute; top: -20%; left: -10%;
-  width: 60%; height: 60%;
-  background: radial-gradient(ellipse,
-    rgb(102 126 234 / 0.06) 0%,
-    transparent 70%);
-  animation: glow-drift 20s ease-in-out infinite alternate;
-}
-.page-glow::after {
-  content: '';
-  position: absolute; bottom: -10%; right: -10%;
-  width: 50%; height: 50%;
-  background: radial-gradient(ellipse,
-    rgb(118 75 162 / 0.05) 0%,
-    transparent 70%);
-  animation: glow-drift 25s ease-in-out infinite alternate-reverse;
-}
-:root[data-appearance='light'] .page-glow::before {
-  background: radial-gradient(ellipse,
-    rgb(102 126 234 / 0.12) 0%,
-    transparent 72%);
-}
-:root[data-appearance='light'] .page-glow::after {
-  background: radial-gradient(ellipse,
-    rgb(118 75 162 / 0.1) 0%,
-    transparent 72%);
-}
-@keyframes glow-drift {
-  0%   { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(5%, 5%) scale(1.1); }
-}
-
-/* 移动端：全屏光晕动画占合成层，易掉帧，改为静态 */
-@media (max-width: 767px) {
-  .page-glow::before,
-  .page-glow::after {
-    animation: none;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .page-glow::before,
-  .page-glow::after {
-    animation: none;
-  }
-}
-
+/* 原 page-glow：视口/主栏右下角径向渐变在宽屏或缩放时易从内容两侧露出，已移除；主栏底色见 Layout <main class="bg-background"> */
 /* 移动端：LiquidGlass 位移滤镜极耗 GPU，仅保留轻量 backdrop-blur */
 @media (max-width: 767px) {
   .liquid-glass-fx-layer {
