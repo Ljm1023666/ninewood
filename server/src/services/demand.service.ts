@@ -220,21 +220,29 @@ export const demandService = {
         createdAt: d.createdAt,
       }));
 
-      return { demands: result, total, page, totalPages: Math.ceil(total / limit) };
+      return {
+        demands: result,
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      };
     }
 
-    // Non-geo query: standard Prisma
-    let demands = await prisma.demand.findMany({
+    // Non-geo：用 count + skip/take，total 与列表一致（避免误以为接口只返回「内存里的几条」）
+    const total = await prisma.demand.count({ where });
+    const demands = await prisma.demand.findMany({
       where,
       include: {
         user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } },
         _count: { select: { applications: true } },
       },
       orderBy,
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    // Map results
-    const result = demands.map((d) => ({
+    const paged = demands.map((d) => ({
       id: d.id,
       title: d.title,
       minPrice: Number(d.minPrice),
@@ -251,10 +259,13 @@ export const demandService = {
       createdAt: d.createdAt,
     }));
 
-    const total = result.length;
-    const paged = result.slice((page - 1) * limit, page * limit);
-
-    return { demands: paged, total, page, totalPages: Math.ceil(total / limit) };
+    return {
+      demands: paged,
+      total,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    };
   },
 
   async getById(demandId: string, userId?: string) {

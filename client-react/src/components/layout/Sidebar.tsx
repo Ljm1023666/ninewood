@@ -1,9 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useThemeStore } from '@/stores/theme'
 import { useUserStore } from '@/stores/user'
 import { useChatStore } from '@/stores/chat'
-import { Home, FileText, Compass, Users, Search, MessageCircle, User, Sun, Moon, LogOut } from 'lucide-react'
+import { Home, FileText, Compass, Users, Search, MessageCircle, User, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ThemeToggleButton } from '@/components/ui/theme-toggle'
 
 const navItems = [
   { path: '/', icon: Home, label: '发现' },
@@ -16,10 +16,8 @@ const navItems = [
 ]
 
 export default function Sidebar() {
-  const themeStore = useThemeStore()
   const logout = useUserStore((s) => s.logout)
   const unreadCount = useChatStore((s) => s.unreadCount)
-  const isDark = themeStore.current.dark
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -65,13 +63,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto flex flex-col gap-0.5 max-md:hidden">
-        <button
-          onClick={() => themeStore.toggleDarkMode()}
-          className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg text-text-secondary hover:bg-accent/10 hover:text-text-primary transition-all duration-300"
-        >
-          {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          <span className="text-[10px] mt-0.5">主题</span>
-        </button>
+        <ThemeToggleButton />
         <button
           onClick={handleLogout}
           className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg text-text-secondary hover:bg-accent/10 hover:text-text-primary transition-all duration-300"

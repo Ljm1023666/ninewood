@@ -375,7 +375,7 @@ export function InteractiveProductCard({
             <h3
               className={cn(
                 'text-2xl font-bold leading-tight',
-                isDark ? 'text-white' : 'text-text-primary [text-shadow:0_0_2px_rgba(255,255,255,0.95),0_1px_3px_rgba(0,0,0,0.35)]',
+                isDark ? 'text-white' : 'text-text-primary [text-shadow:none]',
               )}
             >
               {title}
@@ -384,7 +384,7 @@ export function InteractiveProductCard({
               <p
                 className={cn(
                   'mt-1 line-clamp-4 text-sm leading-relaxed',
-                  isDark ? 'text-white/70' : 'text-text-primary [text-shadow:0_0_2px_rgba(255,255,255,0.95),0_1px_3px_rgba(0,0,0,0.4)]',
+                  isDark ? 'text-white/70' : 'text-text-primary [text-shadow:none]',
                 )}
               >
                 {description}
@@ -417,7 +417,7 @@ export function InteractiveProductCard({
           <div
             className={cn(
               'text-3xl font-extrabold',
-              isDark ? 'text-white drop-shadow-lg' : 'text-text-primary [text-shadow:0_0_2px_rgba(255,255,255,0.95),0_1px_3px_rgba(0,0,0,0.4)]',
+              isDark ? 'text-white drop-shadow-lg' : 'text-text-primary [text-shadow:none]',
             )}
           >
             {price}

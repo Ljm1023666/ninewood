@@ -7,7 +7,7 @@ import { ToastContainer } from '@/components/ui/confirm-dialog'
 import { GlassFilter } from '@/components/ui/liquid-glass'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { useUserStore } from '@/stores/user'
-import { isDemandDetailRoute } from '@/utils/user-cover-presets'
+import { isDemandDetailRoute, suppressLayoutAmbient } from '@/utils/user-cover-presets'
 import { userApi } from '@/api/user'
 import { ChevronLeft } from 'lucide-react'
 
@@ -20,6 +20,7 @@ export default function Layout() {
   const layoutAmbientUserId = useMemo(() => {
     const p = location.pathname
     if (isDemandDetailRoute(p)) return null
+    if (suppressLayoutAmbient(p)) return null
     const m = p.match(/^\/profile\/([^/]+)\/?$/)
     if (m) return m[1]
     return me?.id
@@ -88,11 +89,10 @@ export default function Layout() {
       <ToastContainer />
       <Sidebar />
 
-      <main className="flex flex-1 flex-col min-w-0 min-h-0 relative isolate overflow-hidden">
+      <main className="relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
         {layoutAmbientUserId !== null && (
           <UserCoverAmbientBg userId={layoutAmbientUserId ?? undefined} coverUrl={ambientCoverUrl} />
         )}
-        <div className="page-glow" aria-hidden="true" />
 
         {showBack && (
           <button
@@ -107,11 +107,9 @@ export default function Layout() {
           </button>
         )}
 
-        {/* 主栏：w-full 占满侧栏右侧区域；max-w + mx-auto 在超宽屏上居中封顶；子页面内的 max-w-* mx-auto 才能相对整栏居中 */}
-        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col max-md:pb-[calc(var(--mobile-tabbar-h)+env(safe-area-inset-bottom,0px))]">
-          <div className="mx-auto flex h-full min-h-0 min-w-0 w-full max-w-[90rem] flex-1 flex-col [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:flex-1">
-            <Outlet />
-          </div>
+        {/* 主栏内容区：横向铺满 flex-1 区域，不在此层做 max-w 封顶（否则超宽屏右侧整段空白）；单页可读宽度由各路由内 max-w-* 自控 */}
+        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col max-md:pb-[calc(var(--mobile-tabbar-h)+env(safe-area-inset-bottom,0px))] [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:flex-1">
+          <Outlet />
         </div>
       </main>
     </div>
