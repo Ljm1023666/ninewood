@@ -107,9 +107,9 @@ export default function Layout() {
           </button>
         )}
 
-        {/* 主栏：块级 mx-auto + max-w，避免 flex items-center 把子项挤成「贴左一条」 */}
-        <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col box-border max-md:pb-[calc(var(--mobile-tabbar-h)+env(safe-area-inset-bottom,0px))]">
-          <div className="relative mx-auto flex h-full min-h-0 w-full max-w-[90rem] min-w-0 flex-1 flex-col [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:w-full [&>*]:flex-1">
+        {/* 主栏：w-full 占满侧栏右侧区域；max-w + mx-auto 在超宽屏上居中封顶；子页面内的 max-w-* mx-auto 才能相对整栏居中 */}
+        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col max-md:pb-[calc(var(--mobile-tabbar-h)+env(safe-area-inset-bottom,0px))]">
+          <div className="mx-auto flex h-full min-h-0 min-w-0 w-full max-w-[90rem] flex-1 flex-col [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:flex-1">
             <Outlet />
           </div>
         </div>

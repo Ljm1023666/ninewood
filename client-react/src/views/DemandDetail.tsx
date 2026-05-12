@@ -1,122 +1,255 @@
-import { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
-import { motion } from 'motion/react'
+import { useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'motion/react'
 import { demandApi } from '@/api/demand'
 import { InteractiveProductCard } from '@/components/ui/interactive-product-card'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 
-const statusLabel: Record<string, string> = { PENDING: '进行中', FROZEN: '已冻结', COMPLETED: '已完成', CLOSED: '已关闭' }
+/** 浏览器解码缓存，减轻滑到下一张时首帧白屏 */
+function preloadImageSrc(url: string | undefined | null) {
+  const s = typeof url === 'string' ? url.trim() : ''
+  if (!s || s.startsWith('data:')) return
+  const img = new Image()
+  img.decoding = 'async'
+  img.src = s
+}
+
+function collectDemandImageUrls(d: { userId?: string; user?: { avatarUrl?: string }; mediaUrls?: string[] }) {
+  const urls: string[] = []
+  urls.push(publisherUserCoverPreset(d.userId))
+  const av = d.user?.avatarUrl
+  if (av?.trim()) urls.push(av.trim())
+  else urls.push('/favicon.svg')
+  const media = (d.mediaUrls || []).filter((u) => /\.(jpg|jpeg|png|gif|webp)/i.test(u)).slice(0, 2)
+  urls.push(...media)
+  return urls
+}
+
+/** 省流 / 弱网：少拉邻居；好网：多预取一层 */
+function neighborRadius(): number {
+  if (typeof navigator === 'undefined') return 1
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
+  if (c?.saveData) return 0
+  const et = c?.effectiveType
+  if (et === 'slow-2g' || et === '2g') return 0
+  if (et === '3g') return 1
+  return 2
+}
+
+function scheduleIdle(cb: () => void, timeoutMs: number) {
+  if (typeof requestIdleCallback !== 'undefined') {
+    const id = requestIdleCallback(cb, { timeout: timeoutMs })
+    return () => cancelIdleCallback(id)
+  }
+  const t = window.setTimeout(cb, Math.min(320, timeoutMs))
+  return () => clearTimeout(t)
+}
 
 function pageShell(inner: ReactNode) {
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col items-center justify-center overflow-y-auto thin-scroll bg-bg-primary px-6 py-12">
-      {inner}
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="relative z-10 mx-auto flex w-full max-w-lg shrink-0 flex-col items-center self-center px-6 py-12">
+        {inner}
+      </div>
     </div>
   )
 }
 
+function attachmentCount(d: { mediaUrls?: string[] }) {
+  const urls = d.mediaUrls
+  if (!urls?.length) return 1
+  return Math.max(1, urls.filter((url) => /\.(jpg|jpeg|png|gif|webp)/i.test(url)).length)
+}
+
 export default function DemandDetail() {
   const { id } = useParams<{ id: string }>()
-  const [demand, setDemand] = useState<any>(null)
+  const navigate = useNavigate()
+
+  const [allDemands, setAllDemands] = useState<any[]>([])
+  const [currentIdx, setCurrentIdx] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [direction, setDirection] = useState(0)
+
+  const allDemandsRef = useRef(allDemands)
+  allDemandsRef.current = allDemands
+  /** 本页已发起过详情预拉的 id（避免重复请求） */
+  const prefetchedDetailIdsRef = useRef<Set<string>>(new Set())
+
+  const demand = allDemands[currentIdx] || null
 
   const publisherCoverUrl = useMemo(() => {
-    const fromProfile = (demand?.user?.coverUrl as string | undefined)?.trim()
-    if (fromProfile) return fromProfile
-    return publisherUserCoverPreset(demand?.userId)
-  }, [demand?.userId, demand?.user?.coverUrl])
+    if (!demand) return publisherUserCoverPreset(undefined)
+    return publisherUserCoverPreset(demand.userId)
+  }, [demand?.userId])
 
-  const imageAttachmentCount = useMemo(() => {
-    const urls = demand?.mediaUrls as string[] | undefined
-    if (!urls?.length) return 1
-    return Math.max(1, urls.filter((url) => /\.(jpg|jpeg|png|gif|webp)/i.test(url)).length)
-  }, [demand?.mediaUrls])
+  const imageAttachmentCount = useMemo(() => attachmentCount(demand || {}), [demand?.mediaUrls])
 
   const cardDescription = useMemo(() => {
     if (!demand) return ''
-    const parts = [
-      demand.category,
-      demand.serviceType === 'ONLINE' ? '线上' : '线下',
-      statusLabel[demand.status] || demand.status,
-    ].filter(Boolean)
-    const head = parts.join(' · ')
-    const desc = (demand.description as string)?.trim()
-    if (!desc) return head
-    return `${head}${head ? '\n' : ''}${desc}`
+    return ((demand.description as string) || '').trim()
   }, [demand])
 
-  const fetchDemand = useCallback(async () => {
+  const fetchAll = useCallback(async () => {
     if (!id) return
     setLoading(true)
     setError('')
     try {
-      const r = await demandApi.get(id)
-      setDemand(r.data.data)
+      const [listRes, detailRes] = await Promise.all([
+        demandApi.list({ limit: 50 }),
+        demandApi.get(id),
+      ])
+      const rawList = (listRes.data.data?.demands || listRes.data.data?.items || []) as any[]
+      const detail = detailRes.data.data
+      if (!detail) throw new Error('需求不存在')
+
+      let idx = rawList.findIndex((d: any) => d.id === id)
+      if (idx === -1) { rawList.unshift(detail); idx = 0 }
+      else { rawList[idx] = detail }
+
+      setAllDemands(rawList)
+      setCurrentIdx(idx)
     } catch (e: any) {
-      setError(e.response?.data?.message || '加载失败')
+      setError(e.response?.data?.message || e.message || '加载失败')
     } finally {
       setLoading(false)
     }
   }, [id])
 
-  useEffect(() => {
-    fetchDemand()
-  }, [fetchDemand])
+  useEffect(() => { fetchAll() }, [fetchAll])
 
-  if (loading) {
-    return pageShell(<p className="text-sm text-text-muted">加载中...</p>)
-  }
+  /** 路由或整页重载完成后重置预取记录，避免串单 */
+  useEffect(() => {
+    if (loading || !id) return
+    prefetchedDetailIdsRef.current.clear()
+    prefetchedDetailIdsRef.current.add(id)
+  }, [id, loading])
+
+  /** 空闲时预拉相邻详情 + 解码关键图（手机弱网自动缩小半径） */
+  useEffect(() => {
+    if (loading || !demand?.id) return
+    const list = allDemandsRef.current
+    if (!list.length) return
+    const idx = currentIdx
+    const r = neighborRadius()
+    const ids: string[] = []
+    const saveData =
+      typeof navigator !== 'undefined' &&
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true
+
+    if (saveData) {
+      if (idx < list.length - 1) ids.push(list[idx + 1]!.id)
+    } else {
+      for (let d = 1; d <= r + 1; d++) {
+        if (idx - d >= 0) ids.push(list[idx - d]!.id)
+        if (idx + d < list.length) ids.push(list[idx + d]!.id)
+      }
+    }
+
+    const cancel = scheduleIdle(() => {
+      for (const nid of ids) {
+        if (prefetchedDetailIdsRef.current.has(nid)) continue
+        prefetchedDetailIdsRef.current.add(nid)
+        demandApi
+          .get(nid)
+          .then((res) => {
+            const detail = res.data.data as Record<string, unknown> | undefined
+            if (!detail) {
+              prefetchedDetailIdsRef.current.delete(nid)
+              return
+            }
+            collectDemandImageUrls(detail as any).forEach(preloadImageSrc)
+            setAllDemands((prev) => {
+              const i = prev.findIndex((x: { id: string }) => x.id === nid)
+              if (i === -1) return prev
+              const copy = [...prev]
+              copy[i] = { ...copy[i], ...detail }
+              return copy
+            })
+          })
+          .catch(() => {
+            prefetchedDetailIdsRef.current.delete(nid)
+          })
+      }
+
+      if (saveData) {
+        collectDemandImageUrls(list[idx] as any).forEach(preloadImageSrc)
+        if (idx + 1 < list.length) collectDemandImageUrls(list[idx + 1] as any).forEach(preloadImageSrc)
+      } else {
+        for (let d = -r - 1; d <= r + 1; d++) {
+          const j = idx + d
+          if (j < 0 || j >= list.length) continue
+          collectDemandImageUrls(list[j] as any).forEach(preloadImageSrc)
+        }
+      }
+    }, 2000)
+
+    return cancel
+  }, [loading, demand?.id, currentIdx])
+
+  const goNext = useCallback(() => {
+    if (currentIdx >= allDemands.length - 1) return
+    setDirection(1)
+    const next = allDemands[currentIdx + 1]
+    setCurrentIdx(currentIdx + 1)
+    navigate(`/demands/${next.id}`, { replace: true })
+  }, [currentIdx, allDemands, navigate])
+
+  const goPrev = useCallback(() => {
+    if (currentIdx <= 0) return
+    setDirection(-1)
+    const prev = allDemands[currentIdx - 1]
+    setCurrentIdx(currentIdx - 1)
+    navigate(`/demands/${prev.id}`, { replace: true })
+  }, [currentIdx, allDemands, navigate])
+
+  if (loading) return pageShell(<p className="text-sm text-text-muted">加载中...</p>)
   if (error) {
     return pageShell(
       <div className="flex flex-col items-center gap-3 text-center">
         <p className="text-sm text-text-muted">{error}</p>
-        <button type="button" onClick={fetchDemand} className="text-sm font-semibold text-accent">
-          重试
-        </button>
+        <button type="button" onClick={fetchAll} className="text-sm font-semibold text-accent">重试</button>
       </div>,
     )
   }
   if (!demand) return null
 
-  return (
-    <div className="relative isolate flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto thin-scroll bg-bg-primary pb-8">
-      <UserCoverAmbientBg userId={demand.userId} coverUrl={demand.user?.coverUrl} />
+  const hasPrev = currentIdx > 0
+  const hasNext = currentIdx < allDemands.length - 1
 
-      <motion.div
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-6 md:px-8 md:py-10"
-      >
-        <div className="mb-5 flex flex-wrap items-center justify-center gap-2 md:mb-8">
-          {demand.isExample && (
-            <span className="rounded px-2 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-400">示例需求</span>
-          )}
-          <span
-            className={`rounded px-2 py-0.5 text-xs font-semibold ${demand.serviceType === 'ONLINE' ? 'bg-blue-500/15 text-blue-400' : 'bg-emerald-500/15 text-emerald-400'}`}
+  return (
+    <div className="relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+      <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherCoverUrl} />
+
+      <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col items-stretch justify-center overflow-y-auto py-6">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={demand.id}
+            custom={direction}
+            initial={{ opacity: 0, y: direction * 64 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -direction * 64 }}
+            transition={{ duration: 0.52, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="flex w-full min-w-0 flex-col items-center px-3"
           >
-            {demand.serviceType === 'ONLINE' ? '线上' : '线下'}
-          </span>
-          <span className="rounded bg-bg-secondary px-2 py-0.5 text-xs font-semibold text-text-muted">{demand.category}</span>
-          <span className="rounded bg-bg-secondary px-2 py-0.5 text-xs font-semibold text-text-muted">
-            {statusLabel[demand.status] || demand.status}
-          </span>
-        </div>
-        <InteractiveProductCard
-          imageUrl={publisherCoverUrl}
-          logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
-          title={demand.title}
-          description={cardDescription}
-          price={`¥${demand.minPrice}`}
-          avatarTo={demand.userId ? `/profile/${demand.userId}` : undefined}
-          avatarLabel={demand.user?.nickname ? `查看 ${demand.user.nickname} 的主页` : '查看发布者主页'}
-          dotCount={Math.min(imageAttachmentCount, 6)}
-          activeDotIndex={0}
-          className="w-full max-w-[min(100%,338px)] shadow-[var(--shadow-lg)] ring-1 ring-border/40 md:max-w-[416px]"
-        />
-      </motion.div>
+          <InteractiveProductCard
+            imageUrl={publisherCoverUrl}
+            logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
+            title={demand.title}
+            description={cardDescription}
+            price={`¥${demand.minPrice}`}
+            avatarTo={demand.userId ? `/profile/${demand.userId}` : undefined}
+            avatarLabel={demand.user?.nickname ? `查看 ${demand.user.nickname} 的主页` : '查看发布者主页'}
+            dotCount={Math.min(imageAttachmentCount, 6)}
+            activeDotIndex={0}
+            onSwipeNext={hasNext ? goNext : undefined}
+            onSwipePrev={hasPrev ? goPrev : undefined}
+            className="shadow-[var(--shadow-lg)] ring-1 ring-border/40"
+          />
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
