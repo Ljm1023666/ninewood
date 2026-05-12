@@ -13,6 +13,7 @@ export interface User {
   creditScore: number
   completedOrders?: number
   createdAt?: string
+  bio?: string | null
 }
 
 interface UserState {
@@ -22,6 +23,8 @@ interface UserState {
   isLoggedIn: boolean
   init: () => Promise<void>
   setAuth: (data: { user: User; token: string }) => void
+  /** 与服务器同步当前用户（昵称/简介等更新后调用） */
+  refreshUser: () => Promise<void>
   sendCode: (phone: string) => Promise<void>
   logout: () => void
 }
@@ -50,6 +53,17 @@ export const useUserStore = create<UserState>((set, get) => ({
   setAuth(data) {
     localStorage.setItem('token', data.token)
     set({ token: data.token, user: data.user })
+  },
+
+  async refreshUser() {
+    const { token } = get()
+    if (!token) return
+    try {
+      const res = await authApi.getMe()
+      set({ user: res.data.data })
+    } catch {
+      /* 保持原 user，由拦截器处理 401 */
+    }
   },
 
   async sendCode(phone) {

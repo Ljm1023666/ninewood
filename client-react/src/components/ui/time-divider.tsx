@@ -1,5 +1,6 @@
 import { formatChatTime } from '@/utils/time'
 import { cn } from '@/lib/utils'
+import { useThemeStore } from '@/stores/theme'
 
 interface TimeDividerProps {
   timestamp: string
@@ -8,6 +9,7 @@ interface TimeDividerProps {
 }
 
 export function TimeDivider({ timestamp, prevTimestamp, className }: TimeDividerProps) {
+  const isDark = useThemeStore((s) => s.current.dark)
   if (!timestamp) return null
   const prev = prevTimestamp ? new Date(prevTimestamp).getTime() : 0
   const curr = new Date(timestamp).getTime()
@@ -16,7 +18,10 @@ export function TimeDivider({ timestamp, prevTimestamp, className }: TimeDivider
 
   return (
     <div className={cn('flex items-center justify-center py-3', className)}>
-      <span className="text-xs text-neutral-500 bg-black/40 px-3 py-1 rounded-full border border-white/5">
+      <span className={cn(
+        'text-xs px-3 py-1 rounded-full border',
+        isDark ? 'text-neutral-500 bg-black/40 border-white/5' : 'text-text-muted bg-black/[0.06] border-black/[0.08]',
+      )}>
         {formatChatTime(timestamp)}
       </span>
     </div>

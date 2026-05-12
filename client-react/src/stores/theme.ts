@@ -59,10 +59,10 @@ const presets: Record<string, ThemeConfig> = {
   light: {
     name: 'light', dark: false,
     primaryStart: '#667eea', primaryEnd: '#764ba2',
-    bgPrimary: '#f4f5f8', bgSecondary: '#ebecef', bgTertiary: '#e0e2e8',
-    bgCard: '#ffffff',
-    textPrimary: '#12121c', textSecondary: '#3d4054', textMuted: '#65677d',
-    borderColor: 'rgba(55, 55, 80, 0.12)',
+    bgPrimary: '#edf1f7', bgSecondary: '#e3e9f2', bgTertiary: '#d8dfeb',
+    bgCard: 'rgba(255, 255, 255, 0.68)',
+    textPrimary: '#111827', textSecondary: '#334155', textMuted: '#64748b',
+    borderColor: 'rgba(30, 41, 59, 0.14)',
   },
 }
 

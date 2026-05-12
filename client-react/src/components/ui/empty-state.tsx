@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { useThemeStore } from '@/stores/theme'
 
 const ICON_VARIANTS = {
   left: {
@@ -80,6 +81,7 @@ export function EmptyState({
   const desc = message || d.message
   const icons = iconMap[type] || iconMap.demand
   const isError = variant === 'error'
+  const isDark = useThemeStore((s) => s.current.dark)
 
   return (
     <div className={cn('flex flex-col items-center justify-center py-16 px-6 text-center', className)}>
@@ -96,7 +98,11 @@ export function EmptyState({
               'w-11 h-11 rounded-xl flex items-center justify-center border transition-colors duration-300',
               isError
                 ? 'bg-red-500/10 border-red-500/20 text-red-400'
-                : 'bg-white/[0.06] border-white/10 text-neutral-400',
+                : cn(
+                    isDark
+                      ? 'bg-white/[0.06] border-white/10 text-neutral-400'
+                      : 'bg-black/[0.04] border-black/[0.08] text-text-muted',
+                  ),
             )}
           >
             {icons[i]}
@@ -108,7 +114,7 @@ export function EmptyState({
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-lg font-semibold text-neutral-100 mb-2"
+        className={cn('text-lg font-semibold mb-2', isDark ? 'text-neutral-100' : 'text-text-primary')}
       >
         {title}
       </motion.h3>
@@ -132,7 +138,12 @@ export function EmptyState({
             'px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300',
             isError
               ? 'bg-red-500/15 text-red-300 border border-red-500/20 hover:bg-red-500/25'
-              : 'bg-white/[0.07] text-white border border-white/10 hover:bg-white/[0.12] hover:border-white/20',
+              : cn(
+                    'border',
+                    isDark
+                      ? 'bg-white/[0.07] text-white border-white/10 hover:bg-white/[0.12] hover:border-white/20'
+                      : 'bg-black/[0.06] text-text-primary border-black/[0.08] hover:bg-black/[0.1] hover:border-black/[0.15]',
+                  ),
           )}
         >
           {actionLabel || d.action}

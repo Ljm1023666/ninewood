@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Eye, EyeOff, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
 import { authApi } from '@/api/auth'
 
 export default function LoginPage() {
@@ -19,6 +20,22 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const isDark = useThemeStore((s) => s.current.dark)
+  // 浅色/深色模式适配
+  const tPrimary = isDark ? 'text-white' : 'text-text-primary'
+  const tSecondary = isDark ? 'text-white/70' : 'text-text-secondary'
+  const tMuted = isDark ? 'text-white/50' : 'text-text-muted'
+  const tFaint = isDark ? 'text-white/30' : 'text-text-muted'
+  const tDim = isDark ? 'text-white/25' : 'text-text-muted'
+  const sDefault = isDark ? 'bg-white/[0.06]' : 'bg-black/[0.04]'
+  const sRaised = isDark ? 'bg-white/10' : 'bg-black/[0.06]'
+  const sElevated = isDark ? 'bg-white/15' : 'bg-black/[0.08]'
+  const sLowest = isDark ? 'bg-white/[0.04]' : 'bg-black/[0.02]'
+  const bDefault = isDark ? 'border-white/10' : 'border-black/[0.08]'
+  const inputCls = isDark
+    ? 'border-white/10 bg-white/[0.06] text-white placeholder:text-white/25 focus:border-white/30 focus:bg-white/[0.1] focus:ring-white/10'
+    : 'border-black/[0.08] bg-black/[0.04] text-text-primary placeholder:text-text-muted focus:border-black/[0.15] focus:bg-black/[0.06] focus:ring-black/[0.06]'
 
   useEffect(() => {
     if (countdown <= 0) return
@@ -93,22 +110,22 @@ export default function LoginPage() {
           >
             {/* Logo */}
             <div className="mb-6 flex items-center justify-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${sRaised} backdrop-blur-sm`}>
                 <Sparkles className="h-5 w-5 text-violet-400" />
               </div>
-              <span className="text-xl font-bold text-white cyber-glow">九木</span>
+              <span className={`text-xl font-bold ${tPrimary} cyber-glow`}>九木</span>
             </div>
 
             {/* Tab 切换 */}
-            <div className="mb-8 flex gap-1 rounded-xl bg-white/[0.06] p-1 backdrop-blur-sm">
+            <div className={`mb-8 flex gap-1 rounded-xl ${sDefault} p-1 backdrop-blur-sm`}>
               <button
                 type="button"
                 onClick={() => { setIsLogin(true); setError('') }}
                 className={cn(
                   'flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-300',
                   isLogin
-                    ? 'bg-white/15 text-white shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]'
-                    : 'text-white/50 hover:text-white/70',
+                    ? cn(sElevated, tPrimary, isDark && 'shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]')
+                    : cn(tMuted, `hover:${tPrimary}`),
                 )}
               >
                 登录
@@ -119,8 +136,8 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-300',
                   !isLogin
-                    ? 'bg-white/15 text-white shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]'
-                    : 'text-white/50 hover:text-white/70',
+                    ? cn(sElevated, tPrimary, isDark && 'shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]')
+                    : cn(tMuted, `hover:${tPrimary}`),
                 )}
               >
                 注册
@@ -129,10 +146,10 @@ export default function LoginPage() {
 
             {/* 标题 */}
             <div className="mb-8 text-center">
-              <h1 className="mb-2 text-2xl font-bold tracking-tight text-white">
+              <h1 className={`mb-2 text-2xl font-bold tracking-tight ${tPrimary}`}>
                 {isLogin ? '欢迎回来' : '创建账号'}
               </h1>
-              <p className="text-sm text-white/50">
+              <p className={`text-sm ${tMuted}`}>
                 {isLogin ? '请输入手机号与密码' : '验证手机号完成注册'}
               </p>
             </div>
@@ -140,7 +157,7 @@ export default function LoginPage() {
             {/* 表单 */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="phone" className="mb-1.5 block text-sm font-medium text-white/70">
+                <label htmlFor="phone" className={`mb-1.5 block text-sm font-medium ${tSecondary}`}>
                   手机号
                 </label>
                 <input
@@ -153,13 +170,13 @@ export default function LoginPage() {
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   required
                   placeholder="请输入手机号"
-                  className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-4 text-white placeholder:text-white/25 outline-none backdrop-blur-sm transition-all duration-300 focus:border-white/30 focus:bg-white/[0.1] focus:ring-2 focus:ring-white/10"
+                  className={`h-12 w-full rounded-xl border ${inputCls} px-4 outline-none backdrop-blur-sm transition-all duration-300 focus:ring-2`}
                 />
               </div>
 
               {!isLogin && (
                 <div>
-                  <label htmlFor="code" className="mb-1.5 block text-sm font-medium text-white/70">
+                  <label htmlFor="code" className={`mb-1.5 block text-sm font-medium ${tSecondary}`}>
                     验证码
                   </label>
                   <div className="flex gap-2">
@@ -171,7 +188,7 @@ export default function LoginPage() {
                       maxLength={6}
                       onChange={(e) => setCode(e.target.value)}
                       placeholder="6位验证码"
-                      className="h-12 flex-1 rounded-xl border border-white/10 bg-white/[0.06] px-4 text-white placeholder:text-white/25 outline-none backdrop-blur-sm transition-all duration-300 focus:border-white/30 focus:bg-white/[0.1] focus:ring-2 focus:ring-white/10"
+                      className={`h-12 flex-1 rounded-xl border ${inputCls} px-4 outline-none backdrop-blur-sm transition-all duration-300 focus:ring-2`}
                     />
                     <button
                       type="button"
@@ -180,8 +197,8 @@ export default function LoginPage() {
                       className={cn(
                         'h-12 shrink-0 rounded-xl px-4 text-sm font-medium transition-all duration-300',
                         countdown > 0 || phone.length !== 11
-                          ? 'bg-white/[0.04] text-white/25 cursor-not-allowed'
-                          : 'bg-white/10 text-white hover:bg-white/15 active:scale-95',
+                          ? cn(sLowest, tDim, 'cursor-not-allowed')
+                          : cn(sRaised, tPrimary, 'hover:bg-white/15 active:scale-95'),
                       )}
                     >
                       {countdown > 0 ? `${countdown}s` : '获取验证码'}
@@ -192,7 +209,7 @@ export default function LoginPage() {
 
               {isLogin && (
                 <div>
-                  <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-white/70">
+                  <label htmlFor="password" className={`mb-1.5 block text-sm font-medium ${tSecondary}`}>
                     密码
                   </label>
                   <div className="relative">
@@ -203,12 +220,12 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="请输入密码"
-                      className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] pr-12 pl-4 text-white placeholder:text-white/25 outline-none backdrop-blur-sm transition-all duration-300 focus:border-white/30 focus:bg-white/[0.1] focus:ring-2 focus:ring-white/10"
+                      className={`h-12 w-full rounded-xl border ${inputCls} pr-12 pl-4 outline-none backdrop-blur-sm transition-all duration-300 focus:ring-2`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition-colors hover:text-white/60"
+                      className={cn('absolute right-3 top-1/2 -translate-y-1/2 transition-colors', tFaint, `hover:${tSecondary}`)}
                       aria-label={showPassword ? '隐藏密码' : '显示密码'}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -221,7 +238,12 @@ export default function LoginPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300"
+                  className="rounded-xl p-3 text-sm font-medium"
+                  style={{
+                    color: 'var(--error-color)',
+                    background: 'color-mix(in srgb, var(--error-color) 10%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--error-color) 20%, transparent)',
+                  }}
                 >
                   {error}
                 </motion.div>
@@ -236,7 +258,7 @@ export default function LoginPage() {
                   'h-12 w-full rounded-xl text-base font-semibold transition-all duration-300',
                   canSubmit
                     ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40'
-                    : 'bg-white/[0.06] text-white/25 cursor-not-allowed',
+                    : cn(sDefault, tDim, 'cursor-not-allowed'),
                 )}
               >
                 {isLoading ? '请稍候…' : isLogin ? '登录' : '注册并登录'}
@@ -244,7 +266,7 @@ export default function LoginPage() {
             </form>
 
             {/* 底部提示 */}
-            <p className="mt-6 text-center text-xs text-white/30">
+            <p className={`mt-6 text-center text-xs ${tFaint}`}>
               测试账号：13800000001～13800000020，密码均为 1
             </p>
           </LiquidGlassCard>

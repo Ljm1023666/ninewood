@@ -64,7 +64,7 @@ authRouter.get('/me', authMiddleware, async (req: Request, res: Response) => {
     select: {
       id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, cityCode: true,
       certificationLevel: true, snatchCredits: true, creditScore: true,
-      completedOrders: true, createdAt: true,
+      completedOrders: true, createdAt: true, bio: true,
     },
   });
   if (!user) return fail(res, '用户不存在', 404);

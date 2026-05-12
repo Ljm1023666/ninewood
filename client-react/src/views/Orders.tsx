@@ -24,7 +24,8 @@ export default function Orders() {
   useEffect(() => { fetchOrders() }, [role])
 
   return (
-    <div className="h-full overflow-y-auto thin-scroll p-5 max-w-3xl mx-auto">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
       <div className="flex gap-2 mb-4">
         {[{ value: '', label: '全部' }, { value: 'provider', label: '我接的单' }, { value: 'requester', label: '我发的单' }].map(t => (
           <button key={t.value} onClick={() => setRole(t.value)} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${role === t.value ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}>{t.label}</button>
@@ -39,8 +40,9 @@ export default function Orders() {
             <div className="flex justify-between mt-2 text-[13px] text-text-secondary"><span>¥{o.agreedPrice}</span><span>{o.provider?.nickname} → {o.requester?.nickname}</span></div>
           </div>
         ))}
-        {!loading && orders.length === 0 && <div className="text-center py-16 text-text-muted text-sm">暂无订单</div>}
+        {!loading && orders.length === 0 && <div className="py-16 text-center text-sm text-text-muted">暂无订单</div>}
       </div>
+    </div>
     </div>
   )
 }
