@@ -131,7 +131,8 @@ export default function ChatDetail() {
   const emojis = ['😀','😂','🤣','😍','🥰','😎','🤩','👍','🙏','💪','🔥','🎉','❤','💔','🎨','💻','📱','💰','⭐','✅','❌','🤝','🍳','🚗','☕','📖','🎵','🌙','✨','🎂']
 
   return (
-    <div className="flex flex-col h-full bg-bg-primary">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-3xl shrink-0 flex-col self-center">
       <ChatNavBar nickname={peerNickname} />
 
       {/* 消息列表 */}
@@ -216,6 +217,7 @@ export default function ChatDetail() {
 
         <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={onFileChange} />
         <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={onFileChange} />
+      </div>
       </div>
     </div>
   )

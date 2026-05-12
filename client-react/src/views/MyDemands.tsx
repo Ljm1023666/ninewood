@@ -29,7 +29,8 @@ export default function MyDemands() {
   async function doDelete() { if (!deleteId) return; try { await demandApi.deleteDemand(deleteId); setDeleteId(null); fetchData() } catch {} }
 
   return (
-    <div className="h-full overflow-y-auto thin-scroll bg-bg-primary p-5 max-w-3xl mx-auto">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
       <div className="flex gap-2 mb-4">
         {[{ k: 'demands' as const, l: '我的需求' }, { k: 'applications' as const, l: '我的申请' }].map(t => <button key={t.k} onClick={() => setTab(t.k)} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === t.k ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}>{t.l}</button>)}
       </div>
@@ -51,6 +52,7 @@ export default function MyDemands() {
         {!loading && ((tab === 'demands' && demands.length === 0) || (tab === 'applications' && applications.length === 0)) && <div className="text-center py-16 text-text-muted text-sm">暂无数据</div>}
       </div>
 
+      </div>
       <ConfirmDialog open={!!deleteId} title="删除需求" message="确定删除这个需求吗？" confirmLabel="删除" onConfirm={doDelete} onCancel={() => setDeleteId(null)} />
     </div>
   )

@@ -14,6 +14,7 @@ const CircleDetail = lazy(() => import('@/views/CircleDetail'))
 const Shorts = lazy(() => import('@/views/Shorts'))
 const Search = lazy(() => import('@/views/Search'))
 const CertCenter = lazy(() => import('@/views/CertCenter'))
+const CertIntro = lazy(() => import('@/views/CertIntro'))
 const Orders = lazy(() => import('@/views/Orders'))
 const OrderDetail = lazy(() => import('@/views/OrderDetail'))
 const Payment = lazy(() => import('@/views/Payment'))
@@ -22,7 +23,11 @@ const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="flex items-center justify-center h-full"><span className="loader" /></div>}>{children}</Suspense>
+  return (
+    <Suspense fallback={<div className="flex h-full min-h-0 w-full min-w-0 items-center justify-center"><span className="loader" /></div>}>
+      {children}
+    </Suspense>
+  )
 }
 
 function AuthGuard() {
@@ -69,6 +74,7 @@ export const router = createBrowserRouter([
           { path: 'shorts', element: <LazyLoad><Shorts /></LazyLoad> },
           { path: 'search', element: <LazyLoad><Search /></LazyLoad> },
           { path: 'cert-center', element: <LazyLoad><CertCenter /></LazyLoad> },
+          { path: 'cert-intro', element: <LazyLoad><CertIntro /></LazyLoad> },
         ],
       },
     ],

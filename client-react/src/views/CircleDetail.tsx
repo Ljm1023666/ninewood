@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { circleApi } from '@/api/circle'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
+import { cn } from '@/lib/utils'
 import { User } from 'lucide-react'
 
 const roleLabel: Record<string, string> = { OWNER: '圈主', ADMIN: '管理', MEMBER: '成员' }
@@ -11,6 +13,7 @@ export default function CircleDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const userId = useUserStore((s) => s.user?.id)
+  const isDark = useThemeStore((s) => s.current.dark)
   const [circle, setCircle] = useState<any>(null)
   const [demands, setDemands] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,16 +36,33 @@ export default function CircleDetail() {
 
   useEffect(() => { fetchAll() }, [id])
 
-  if (loading) return <div className="text-center py-16 text-text-muted text-sm">加载中...</div>
-  if (error) return <div className="text-center py-16"><p className="text-text-muted text-sm">{error}</p><button onClick={fetchAll} className="mt-3 text-accent text-sm">重试</button></div>
+  if (loading) {
+    return (
+      <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+        <div className="flex flex-1 items-center justify-center py-16 text-sm text-text-muted">加载中...</div>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+        <div className="flex flex-1 flex-col items-center justify-center py-16">
+          <p className="text-sm text-text-muted">{error}</p>
+          <button type="button" onClick={fetchAll} className="mt-3 text-sm text-accent">
+            重试
+          </button>
+        </div>
+      </div>
+    )
+  }
   if (!circle) return null
 
   const st = statusMap[circle.status] || statusMap.ACTIVE
 
   return (
-    <div className="h-full overflow-y-auto thin-scroll bg-bg-primary max-w-4xl mx-auto">
-      <div className="max-w-[560px] mx-auto p-4">
-        <div className="w-full h-[180px] rounded-2xl bg-cover bg-center relative mb-4" style={circle.coverUrl ? { backgroundImage: `url(${circle.coverUrl})` } : { background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))' }}>
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="relative z-10 box-border flex w-full max-w-[560px] shrink-0 self-center flex-col p-4">
+        <div className="w-full h-[180px] rounded-2xl bg-cover bg-center relative mb-4" style={circle.coverUrl ? { backgroundImage: `url(${circle.coverUrl})` } : isDark ? { background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))' } : { background: 'linear-gradient(135deg, rgba(0,0,0,0.04), rgba(0,0,0,0.01))' }}>
           <span className={`absolute top-3 right-3 px-3 py-1 rounded-md text-[10px] font-bold tracking-[1px] backdrop-blur ${st.cls}`}>{st.label}</span>
         </div>
         <div className="text-center pb-5">
@@ -62,7 +82,7 @@ export default function CircleDetail() {
         {showMembers && circle.members && <div className="rounded-xl overflow-hidden border border-border mb-6 bg-card">
           {circle.members.map((m: any) => (
             <div key={m.userId} onClick={() => navigate(`/profile/${m.userId}`)} className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer hover:bg-bg-secondary border-t border-border first:border-t-0">
-              <div className="w-[34px] h-[34px] rounded-[10px] overflow-hidden flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-white/8 to-white/[0.03] flex-shrink-0">
+              <div className={cn('w-[34px] h-[34px] rounded-[10px] overflow-hidden flex items-center justify-center text-sm font-bold flex-shrink-0', isDark ? 'text-white bg-gradient-to-br from-white/8 to-white/[0.03]' : 'text-text-primary bg-gradient-to-br from-black/[0.06] to-black/[0.02]')}>
                 {m.user?.avatarUrl ? <img src={m.user.avatarUrl} className="w-full h-full object-cover" /> : m.user?.nickname?.charAt(0)}
               </div>
               <div className="flex-1"><span className="text-sm">{m.user?.nickname}</span></div>

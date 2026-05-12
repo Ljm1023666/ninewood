@@ -15,12 +15,31 @@ export default function Payment() {
   }
 
   return (
-    <div className="h-full flex items-center justify-center bg-bg-primary p-6">
-      <div className="text-center max-w-sm w-full">
-        {paid ? <div className="animate-fadeIn"><div className="text-5xl mb-4">✅</div><h1 className="text-2xl font-black mb-2">支付成功</h1><p className="text-text-muted text-sm">即将跳转...</p></div> : <div>
-          <div className="text-5xl mb-4">💳</div><h1 className="text-2xl font-black mb-2">模拟支付</h1><p className="text-text-muted text-sm mb-8">模拟支付页面</p>
-          <button onClick={pay} disabled={loading} className="w-full py-3.5 rounded-xl bg-[var(--primary-gradient)] text-white font-bold text-sm disabled:opacity-40">{loading ? '处理中...' : '确认支付'}</button>
-        </div>}
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-6">
+        <div className="w-full max-w-sm shrink-0 text-center">
+          {paid ? (
+            <div className="animate-fadeIn">
+              <div className="mb-4 text-5xl">✅</div>
+              <h1 className="mb-2 text-2xl font-black">支付成功</h1>
+              <p className="text-sm text-text-muted">即将跳转...</p>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 text-5xl">💳</div>
+              <h1 className="mb-2 text-2xl font-black">模拟支付</h1>
+              <p className="mb-8 text-sm text-text-muted">模拟支付页面</p>
+              <button
+                type="button"
+                onClick={pay}
+                disabled={loading}
+                className="w-full rounded-xl bg-[var(--primary-gradient)] py-3.5 text-sm font-bold text-white disabled:opacity-40"
+              >
+                {loading ? '处理中...' : '确认支付'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

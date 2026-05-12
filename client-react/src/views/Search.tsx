@@ -19,27 +19,80 @@ export default function Search() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-bg-primary">
-      <div className="flex gap-2 px-4 py-3 items-center border-b border-border">
-        <div className="flex-1 flex items-center gap-2 bg-bg-secondary rounded-lg px-3 py-2">
-          <SearchIcon size={16} className="text-text-muted flex-shrink-0" />
-          <input value={keyword} onChange={e => setKeyword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} placeholder="搜索用户昵称或手机号" autoFocus className="flex-1 bg-transparent border-none outline-none text-text-primary text-[15px] placeholder:text-text-muted" />
-          {keyword && <button onClick={() => { setKeyword(''); setResults([]); setSearched(false) }} className="text-text-muted"><X size={14} /></button>}
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-3xl shrink-0 flex-col self-center">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <div className="flex flex-1 items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
+            <SearchIcon size={16} className="flex-shrink-0 text-text-muted" />
+            <input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="搜索用户昵称或手机号"
+              autoFocus
+              className="flex-1 border-none bg-transparent text-[15px] text-text-primary outline-none placeholder:text-text-muted"
+            />
+            {keyword && (
+              <button
+                type="button"
+                aria-label="清空"
+                onClick={() => {
+                  setKeyword('')
+                  setResults([])
+                  setSearched(false)
+                }}
+                className="text-text-muted"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleSearch}
+            className="rounded-lg bg-[var(--primary-gradient)] px-4 py-2 text-sm font-semibold text-white"
+          >
+            搜索
+          </button>
         </div>
-        <button onClick={handleSearch} className="px-4 py-2 rounded-lg bg-[var(--primary-gradient)] text-white text-sm font-semibold">搜索</button>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        {loading && <p className="text-center py-16 text-text-muted text-sm">搜索中...</p>}
-        {searched && !loading && (results.length === 0 ? <p className="text-center py-16 text-text-muted text-sm">未找到相关用户</p> :
-          results.map((u: any) => (
-            <div key={u.id} onClick={() => navigate(`/profile/${u.id}`)} className="flex gap-3 px-5 py-3.5 items-center cursor-pointer hover:bg-bg-secondary">
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-lg font-bold flex-shrink-0 overflow-hidden" style={{ background: certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280' }}>
-                {u.avatarUrl ? <img src={u.avatarUrl} className="w-full h-full object-cover" /> : u.nickname?.charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0"><div className="text-[15px] font-medium">{u.nickname}</div>{u.bio && <div className="text-xs text-text-muted mt-0.5 truncate">{u.bio.slice(0, 40)}</div>}</div>
-              {u.certificationLevel !== 'NONE' && <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: certColor[u.certificationLevel as keyof typeof certColor] }}>{certLabel[u.certificationLevel as keyof typeof certLabel]}</span>}
-            </div>
-          )))}
+        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto">
+          {loading && <p className="py-16 text-center text-sm text-text-muted">搜索中...</p>}
+          {searched &&
+            !loading &&
+            (results.length === 0 ? (
+              <p className="py-16 text-center text-sm text-text-muted">未找到相关用户</p>
+            ) : (
+              results.map((u: any) => (
+                <div
+                  key={u.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/profile/${u.id}`)}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/profile/${u.id}`)}
+                  className="flex cursor-pointer items-center gap-3 px-4 py-3.5 hover:bg-bg-secondary sm:px-5"
+                >
+                  <div
+                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-lg font-bold text-white"
+                    style={{ background: certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280' }}
+                  >
+                    {u.avatarUrl ? <img src={u.avatarUrl} className="h-full w-full object-cover" alt="" /> : u.nickname?.charAt(0)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[15px] font-medium">{u.nickname}</div>
+                    {u.bio && <div className="mt-0.5 truncate text-xs text-text-muted">{u.bio.slice(0, 40)}</div>}
+                  </div>
+                  {u.certificationLevel !== 'NONE' && (
+                    <span
+                      className="flex-shrink-0 text-[11px] font-semibold"
+                      style={{ color: certColor[u.certificationLevel as keyof typeof certColor] }}
+                    >
+                      {certLabel[u.certificationLevel as keyof typeof certLabel]}
+                    </span>
+                  )}
+                </div>
+              ))
+            ))}
+        </div>
       </div>
     </div>
   )

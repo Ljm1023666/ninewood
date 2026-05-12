@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { useThemeStore } from '@/stores/theme'
 
 interface MessageBubbleProps {
   content: string
@@ -22,10 +23,12 @@ export function MessageBubble({
   hideAvatar,
   className,
 }: MessageBubbleProps) {
+  const isDark = useThemeStore((s) => s.current.dark)
+
   if (type === 'SYSTEM') {
     return (
       <div className="flex justify-center py-2">
-        <span className="text-xs text-neutral-500 bg-white/5 px-3 py-1 rounded-full">{content}</span>
+        <span className={cn('text-xs px-3 py-1 rounded-full', isDark ? 'text-neutral-500 bg-white/5' : 'text-text-muted bg-black/[0.04]')}>{content}</span>
       </div>
     )
   }
@@ -43,7 +46,7 @@ export function MessageBubble({
     >
       {/* Avatar */}
       {!isMine && !hideAvatar && (
-        <div className="w-8 h-8 rounded-full bg-white/10 overflow-hidden shrink-0">
+        <div className={cn('w-8 h-8 rounded-full overflow-hidden shrink-0', isDark ? 'bg-white/10' : 'bg-black/[0.06]')}>
           {avatarUrl ? (
             <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -60,7 +63,7 @@ export function MessageBubble({
           'max-w-[70%] px-4 py-2.5 rounded-2xl text-sm',
           isMine
             ? 'bg-blue-600/80 text-white rounded-br-md'
-            : 'bg-white/[0.06] text-neutral-200 rounded-bl-md',
+            : cn('rounded-bl-md', isDark ? 'bg-white/[0.06] text-neutral-200' : 'bg-black/[0.05] text-text-primary'),
         )}
       >
         {isImage ? (

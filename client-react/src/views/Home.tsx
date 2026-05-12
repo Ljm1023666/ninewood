@@ -80,10 +80,10 @@ export default function Home() {
   return (
     <div
       ref={scrollRef}
-      className="thin-scroll h-full min-h-0 w-full overflow-y-auto bg-background text-foreground"
+      className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background text-foreground"
     >
       {/* items-stretch：子项默认拉满栏宽；标题区等用内部 items-center / text-center 居中，避免整列被压成左对齐窄条 */}
-      <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch px-4 pb-8 pt-6 sm:px-6">
+      <div className="relative z-10 box-border mx-auto flex w-full max-w-3xl shrink-0 flex-col items-stretch self-center px-4 pb-8 pt-6 sm:px-6">
         <div className="mb-6 flex w-full flex-col items-center text-center">
           <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">发现</h1>
           <p className="mt-2 max-w-lg text-sm leading-relaxed text-text-secondary sm:text-[15px]">

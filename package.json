@@ -3,14 +3,15 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:electron": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"bash scripts/electron-dev.sh\"",
     "dev:server": "npm run dev -w server",
-    "dev:client": "npm run dev -w client",
-    "build": "npm run build -w server && npm run build -w client",
-    "typecheck": "npm run typecheck -w server && npm run typecheck -w client",
+    "dev:client": "npm run dev -w client-react",
+    "build": "npm run build -w server && npm run build -w client-react",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w client-react",
     "typecheck:server": "npm run typecheck -w server",
-    "typecheck:client": "npm run typecheck -w client"
+    "typecheck:client": "npm run typecheck -w client-react"
   },
-  "workspaces": ["server", "client"],
+  "workspaces": ["server", "client-react"],
   "devDependencies": {
     "concurrently": "^9.1.2"
   }

@@ -43,8 +43,9 @@ export default function OrderDetail() {
   }
 
   return (
-    <div className="h-full overflow-y-auto thin-scroll max-w-3xl mx-auto p-5">
-      <div className="max-w-[500px] mx-auto glass p-6 rounded-xl">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
+      <div className="glass mx-auto w-full max-w-[500px] shrink-0 self-center rounded-xl p-6">
         <button onClick={() => navigate(-1)} className="text-text-muted text-sm mb-3 hover:text-text-secondary">← 返回</button>
         <h2 className="mb-4 text-lg font-bold">{order.demand?.title}</h2>
         <div className="mb-4"><span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${statusTheme(s)}`}>{statusLabel[s] || s}</span></div>
@@ -75,9 +76,11 @@ export default function OrderDetail() {
               <textarea value={partial.description} onChange={e => setPartial({ ...partial, description: e.target.value })} placeholder="说明剩余部分" rows={2} className="bg-card border border-border rounded-lg px-4 py-2.5 text-text-primary text-sm outline-none resize-none" />
               <button onClick={() => act(() => orderApi.partial(order.id, partial.newPrice, partial.description), '部分完成已提交')} className="w-full py-2.5 rounded-lg bg-[var(--primary-gradient)] text-white font-semibold text-sm">提交</button>
             </div>
-          </div>
         </div>
+      </div>
       )}
+
+      </div>
     </div>
   )
 }

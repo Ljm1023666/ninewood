@@ -24,14 +24,15 @@ export default function CertCenter() {
   const currentColor = (certColor as any)[certStatus?.certificationLevel] || '#6b7280'
 
   return (
-    <div className="h-full overflow-y-auto thin-scroll bg-bg-primary max-w-4xl mx-auto pb-12">
-      <section className="pt-20 px-7 pb-8 md:pt-[100px] md:px-10 md:pb-10">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="relative z-10 box-border flex w-full max-w-4xl shrink-0 flex-col self-center px-5 pb-12 md:px-10">
+      <section className="pt-20 pb-8 md:pt-[100px] md:pb-10">
         <span className="text-xs font-bold tracking-[6px] text-text-muted block mb-3">CERTIFICATION</span>
         <h1 className="text-[32px] font-black tracking-[1px] md:text-[42px]">认证中心</h1>
       </section>
 
       {certStatus && (
-        <section className="relative mx-5 mb-8 p-7 rounded-[20px] bg-card border border-border overflow-hidden">
+        <section className="relative mb-8 overflow-hidden rounded-[20px] border border-border bg-card p-7">
           <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 30% 20%, ${currentColor}18 0%, transparent 60%)` }} />
           <div className="relative z-[1]">
             <div className="inline-block px-6 py-2.5 rounded-full text-[15px] font-extrabold text-white tracking-[3px] mb-6" style={{ background: currentColor }}>
@@ -63,7 +64,7 @@ export default function CertCenter() {
         </section>
       )}
 
-      <section className="px-5 pb-8">
+      <section className="pb-8">
         <h2 className="text-lg font-extrabold tracking-[2px] mb-5">认证路径</h2>
         <div className="flex flex-col">
           {steps.map((step, idx) => {
@@ -87,7 +88,8 @@ export default function CertCenter() {
           })}
         </div>
       </section>
-      <Link to="/intro" className="block mx-5 p-4 rounded-xl border border-border text-center text-sm text-accent font-semibold hover:bg-card">了解认证体系 →</Link>
+      <Link to="/intro" className="mb-4 block rounded-xl border border-border p-4 text-center text-sm font-semibold text-accent hover:bg-card">了解认证体系 →</Link>
+      </div>
     </div>
   )
 }

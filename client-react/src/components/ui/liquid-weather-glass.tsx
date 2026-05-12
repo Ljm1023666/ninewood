@@ -1,13 +1,15 @@
 import {
   useId,
   useState,
+  useEffect,
   type CSSProperties,
   type HTMLAttributes,
   type MouseEvent,
   type ReactNode,
 } from 'react'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '@/lib/utils'
+import { useThemeStore } from '@/stores/theme'
 
 type BlurIntensity = 'sm' | 'md' | 'lg' | 'xl'
 type ShadowIntensity = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -34,7 +36,7 @@ const blurClasses: Record<BlurIntensity, string> = {
   xl: 'backdrop-blur-xl',
 }
 
-const shadowStyles: Record<ShadowIntensity, string> = {
+const shadowStylesDark: Record<ShadowIntensity, string> = {
   none: 'inset 0 0 0 0 rgba(255, 255, 255, 0)',
   xs: 'inset 1px 1px 1px 0 rgba(255, 255, 255, 0.3), inset -1px -1px 1px 0 rgba(255, 255, 255, 0.3)',
   sm: 'inset 2px 2px 2px 0 rgba(255, 255, 255, 0.35), inset -2px -2px 2px 0 rgba(255, 255, 255, 0.35)',
@@ -43,13 +45,31 @@ const shadowStyles: Record<ShadowIntensity, string> = {
   xl: 'inset 6px 6px 6px 0 rgba(255, 255, 255, 0.55), inset -6px -6px 6px 0 rgba(255, 255, 255, 0.55)',
 }
 
-const glowStyles: Record<GlowIntensity, string> = {
+const shadowStylesLight: Record<ShadowIntensity, string> = {
+  none: '0 0 0 0 rgba(0, 0, 0, 0)',
+  xs: '0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)',
+  sm: '0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.06)',
+  md: '0 4px 8px rgba(0, 0, 0, 0.06), 0 8px 16px rgba(0, 0, 0, 0.06)',
+  lg: '0 8px 16px rgba(0, 0, 0, 0.06), 0 16px 32px rgba(0, 0, 0, 0.08)',
+  xl: '0 12px 24px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(0, 0, 0, 0.1)',
+}
+
+const glowStylesDark: Record<GlowIntensity, string> = {
   none: '0 4px 4px rgba(0, 0, 0, 0.05), 0 0 12px rgba(0, 0, 0, 0.05)',
   xs: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 16px rgba(255, 255, 255, 0.05)',
   sm: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 24px rgba(255, 255, 255, 0.1)',
   md: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 32px rgba(255, 255, 255, 0.15)',
   lg: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 40px rgba(255, 255, 255, 0.2)',
   xl: '0 4px 4px rgba(0, 0, 0, 0.15), 0 0 12px rgba(0, 0, 0, 0.08), 0 0 48px rgba(255, 255, 255, 0.25)',
+}
+
+const glowStylesLight: Record<GlowIntensity, string> = {
+  none: '0 0 0 rgba(0, 0, 0, 0)',
+  xs: '0 1px 2px rgba(0, 0, 0, 0.04)',
+  sm: '0 2px 6px rgba(0, 0, 0, 0.06)',
+  md: '0 4px 12px rgba(0, 0, 0, 0.06)',
+  lg: '0 6px 18px rgba(0, 0, 0, 0.08)',
+  xl: '0 8px 24px rgba(0, 0, 0, 0.1)',
 }
 
 export function LiquidGlassCard({
@@ -70,6 +90,19 @@ export function LiquidGlassCard({
   const { style: propStyle, ...rest } = props
   const [isExpanded, setIsExpanded] = useState(false)
   const filterId = useId().replace(/:/g, '')
+  const reduceMotion = useReducedMotion()
+  const isDark = useThemeStore((s) => s.current.dark)
+  const shadowStyle = (isDark ? shadowStylesDark : shadowStylesLight)[shadowIntensity]
+  const glowStyle = (isDark ? glowStylesDark : glowStylesLight)[glowIntensity]
+  const [coarsePointer, setCoarsePointer] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const sync = () => setCoarsePointer(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+  const skipHoverTapScale = Boolean(reduceMotion || coarsePointer)
 
   const handleToggleExpansion = (e: MouseEvent<HTMLDivElement>) => {
     if (!expandable) return
@@ -109,7 +142,7 @@ export function LiquidGlassCard({
   const layers = (
     <>
       <div
-        className={cn('absolute inset-0 z-0', blurClasses[blurIntensity])}
+        className={cn('liquid-glass-fx-layer absolute inset-0 z-0', blurClasses[blurIntensity])}
         style={{
           borderRadius,
           filter: `url(#${filterId})`,
@@ -117,11 +150,11 @@ export function LiquidGlassCard({
       />
       <div
         className="absolute inset-0 z-10"
-        style={{ borderRadius, boxShadow: glowStyles[glowIntensity] }}
+        style={{ borderRadius, boxShadow: glowStyle }}
       />
       <div
         className="absolute inset-0 z-20"
-        style={{ borderRadius, boxShadow: shadowStyles[shadowIntensity] }}
+        style={{ borderRadius, boxShadow: shadowStyle }}
       />
       <div className="relative z-30">{children}</div>
     </>
@@ -166,9 +199,9 @@ export function LiquidGlassCard({
         dragConstraints={draggable ? ({ left: 0, right: 0, top: 0, bottom: 0 } as const) : undefined}
         dragElastic={draggable ? 0.3 : undefined}
         dragTransition={draggable ? { bounceStiffness: 300, bounceDamping: 10, power: 0.3 } : undefined}
-        whileDrag={draggable ? { scale: 1.02 } : undefined}
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.98 }}
+        whileDrag={draggable && !skipHoverTapScale ? { scale: 1.02 } : undefined}
+        whileHover={skipHoverTapScale ? undefined : { scale: 1.01 }}
+        whileTap={skipHoverTapScale ? undefined : { scale: 0.98 }}
         {...rest}
       >
         {layers}

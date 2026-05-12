@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useThemeStore } from '@/stores/theme'
+import { cn } from '@/lib/utils'
 
 const tiers = [
   { level: 'NONE', title: '未认证', subtitle: '从这里出发', desc: '注册即享基础服务，浏览需求、发布需求，开启你的九木之旅。', color: '#6b7280', tag: '起步' },
@@ -10,13 +12,19 @@ const tiers = [
 
 export default function Intro() {
   const navigate = useNavigate()
+  const isDark = useThemeStore((s) => s.current.dark)
   const [activeTier, setActiveTier] = useState(0)
   const t = tiers[activeTier]
 
   return (
     <div className="fixed inset-0 overflow-y-auto bg-bg-primary text-text-primary">
       {/* Back button */}
-      <button onClick={() => navigate(-1)} className="fixed top-3 left-3 z-[100] w-10 h-10 flex items-center justify-center bg-black/35 border border-white/10 rounded-full text-white backdrop-blur-lg hover:bg-white/10">
+      <button onClick={() => navigate(-1)} className={cn(
+        'fixed top-3 left-3 z-[100] w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-lg border',
+        isDark
+          ? 'bg-black/35 border-white/10 text-white hover:bg-white/10'
+          : 'bg-white/60 border-black/[0.08] text-text-primary hover:bg-white/80',
+      )}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
 
@@ -33,7 +41,7 @@ export default function Intro() {
         <div className="flex rounded-xl overflow-hidden border border-border mb-6">
           {tiers.map((tier, idx) => (
             <button key={tier.level} onClick={() => setActiveTier(idx)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 px-2 border-none text-[13px] font-semibold tracking-[1px] transition-all duration-[0.25s] ${activeTier === idx ? 'bg-card text-white' : 'bg-transparent text-text-muted'}`}>
+              className={cn('flex-1 flex items-center justify-center gap-1.5 py-3 px-2 border-none text-[13px] font-semibold tracking-[1px] transition-all duration-[0.25s]', activeTier === idx ? cn('bg-card', isDark ? 'text-white' : 'text-text-primary') : 'bg-transparent text-text-muted')}>
               <span className="w-2 h-2 rounded-full" style={{ background: tier.color }} />{tier.tag}
             </button>
           ))}

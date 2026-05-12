@@ -54,14 +54,21 @@ export default function Settings() {
   }
 
   return (
-    <div className="relative z-[1] flex min-h-full w-full flex-col items-center overflow-y-auto thin-scroll">
+    <div className="relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto thin-scroll">
       <div
         className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${heroBackgroundUrl})` }}
       />
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-black/50 via-bg-primary/85 to-bg-primary" />
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b',
+          current.dark
+            ? 'from-black/50 via-bg-primary/85 to-bg-primary'
+            : 'from-white/25 via-bg-primary/38 to-bg-primary/82',
+        )}
+      />
 
-      <div className="relative z-10 box-border w-[min(100%,36rem)] shrink-0 px-4 pb-28 pt-14 md:px-6 md:pt-16">
+      <div className="relative z-10 box-border w-full max-w-[36rem] shrink-0 self-center px-4 pb-28 pt-14 md:px-6 md:pt-16">
         <div className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">账户</p>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-white drop-shadow-sm">设置</h1>

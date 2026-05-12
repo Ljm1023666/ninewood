@@ -26,7 +26,7 @@ export const userService = {
       data,
       select: {
         id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, cityCode: true,
-        certificationLevel: true, snatchCredits: true, creditScore: true, bio: true,
+        certificationLevel: true, snatchCredits: true, creditScore: true, bio: true, completedOrders: true,
       },
     });
   },
