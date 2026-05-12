@@ -52,12 +52,8 @@ export default function DemandCreate() {
       className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary"
       onSubmit={handleCreate}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto thin-scroll">
-        <div className="relative z-10 mx-auto box-border w-full max-w-lg shrink-0 self-center px-5 pb-32 pt-5">
-          <div className="flex items-center gap-3 mb-6">
-            {[1, 2, 3].map(i => <div key={i} className={cn('w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold', i === 1 ? cn('bg-[var(--primary-gradient)]', isDark ? 'text-white' : 'text-text-primary') : 'bg-card border border-border text-text-secondary')}>{i}</div>)}
-          </div>
-
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto thin-scroll bg-bg-primary">
+        <div className="relative z-10 mx-auto box-border flex w-[min(100%,48rem)] max-w-full shrink-0 flex-col px-4 pb-32 pt-6 sm:px-6">
           {atLimit && (
             <div
               className="px-4 py-2 rounded-xl mb-3 text-[13px] text-center font-semibold"
@@ -120,8 +116,8 @@ export default function DemandCreate() {
         </div>
       </div>
 
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-bg-primary/90 backdrop-blur-md border-t border-border" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
-        <div className="relative z-10 mx-auto w-full max-w-lg shrink-0 px-5 pb-2">
+      <div className="sticky bottom-0 left-0 right-0 z-[2] w-full min-w-0 shrink-0 border-t border-border bg-bg-primary/90 px-4 pt-4 backdrop-blur-md sm:px-6" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="relative z-10 mx-auto w-[min(100%,48rem)] max-w-full shrink-0 pb-2">
           <button type="submit" disabled={!canSubmit} className={cn('w-full py-3 rounded-xl bg-[var(--primary-gradient)] text-[15px] font-bold disabled:opacity-30 disabled:cursor-not-allowed', isDark ? 'text-white' : 'text-text-primary')}>
             {submitting ? '发布中...' : atLimit ? '已达上限' : '发布需求'}
           </button>

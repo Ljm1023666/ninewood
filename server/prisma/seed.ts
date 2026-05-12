@@ -38,7 +38,24 @@ const demandTemplates = [
   { title: '健身私教课', desc: '需要一位健身教练指导减脂，每周3次，每次1小时', price: 180, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.94, lng: 116.33 },
   { title: '小程序前端开发', desc: '需要一个微信小程序的前端页面，包含用户登录和商品列表', price: 800, cat: '技术开发', type: 'ONLINE' as const },
   { title: '证件照拍摄', desc: '需要专业证件照拍摄，白底和蓝底各一组，精修出片', price: 100, cat: '设计', type: 'OFFLINE' as const, lat: 39.91, lng: 116.39 },
+  { title: '宠物代遛', desc: '工作日白天金毛一条，需要附近靠谱人士代遛一小时，自备牵引绳', price: 45, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.88, lng: 116.42 },
+  { title: '婚礼跟妆', desc: '户外草坪婚礼，需要跟妆师跟全程，含补妆和换造型', price: 1200, cat: '设计', type: 'OFFLINE' as const, lat: 31.23, lng: 121.47 },
+  { title: '吉他上门教学', desc: '零基础想学弹唱，每周一次，每次45分钟，家里有吉他', price: 160, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.92, lng: 116.35 },
+  { title: '旧衣改裁', desc: '两条牛仔裤改短改瘦，希望当天可取，可送到你工作室', price: 80, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.89, lng: 116.37 },
+  { title: '雅思口语陪练', desc: '目标6.5，需要母语级陪练每周两次，线上视频即可', price: 220, cat: '教育培训', type: 'ONLINE' as const },
+  { title: '办公室开荒保洁', desc: '新租写字楼约200㎡，玻璃地毯深度清洁，周末作业', price: 900, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.96, lng: 116.30 },
+  { title: '短视频剪辑', desc: '探店素材约15条，需要快节奏字幕+配乐，交付1080p', price: 600, cat: '设计', type: 'ONLINE' as const },
+  { title: '甲醛检测', desc: '新房入住前做一次甲醛与TVOC检测，需要出具简易报告', price: 280, cat: '咨询服务', type: 'OFFLINE' as const, lat: 40.00, lng: 116.28 },
+  { title: '闲置手机回收估价', desc: 'iPhone 13 128G 无拆修，希望上门验机当面打款', price: 1800, cat: '维修服务', type: 'OFFLINE' as const, lat: 39.91, lng: 116.40 },
+  { title: '多肉组盆造景', desc: '阳台花架需要一组北欧风多肉拼盘，含盆与土', price: 320, cat: '家政服务', type: 'OFFLINE' as const, lat: 24.99, lng: 102.72 },
+  { title: '民宿空间摄影', desc: '共8间房，需要自然光+补光各一套图，用于平台头图', price: 1500, cat: '设计', type: 'OFFLINE' as const, lat: 30.25, lng: 120.17 },
+  { title: '城市骑行向导', desc: '周末半天带骑友走长安街沿线经典路线，需熟悉路况与补给点', price: 200, cat: '咨询服务', type: 'OFFLINE' as const, lat: 39.90, lng: 116.39 },
 ];
+
+/** 13800000001 起，idx 为 0-based */
+function phoneFromUserIndex(idx: number) {
+  return `138000000${String(idx + 1).padStart(2, '0')}`;
+}
 
 async function main() {
   // Clean existing data
@@ -62,7 +79,8 @@ async function main() {
   for (let i = 0; i < testUsers.length; i++) {
     const u = testUsers[i];
     const avatarNum = String(i + 1).padStart(2, '0');
-    const coverNum = i < 5 ? String(i + 1).padStart(2, '0') : null;
+    // 前 14 个用户配完整个人中心背景图（与 avatar_xx / cover_xx 资源一一对应）
+    const coverNum = i < 14 ? String(i + 1).padStart(2, '0') : null;
     const user = await prisma.user.create({
       data: {
         phone: u.phone,
@@ -81,13 +99,20 @@ async function main() {
     users[u.phone] = user.id;
   }
 
-  // Create 10 real demands spread across users (some pending, some completed)
+  /** 发现页只展示 PENDING，多造几条在架需求；少量 COMPLETED 保留订单演示 */
+  const TOTAL_DEMANDS = 22;
+  const COMPLETED_WITH_ORDER = 4;
+
   const demandIds: string[] = [];
-  for (let i = 0; i < 10; i++) {
-    const t = demandTemplates[i];
-    const posterPhone = `138000000${String((i % 10) + 1).padStart(2, '0')}`;
+  for (let i = 0; i < TOTAL_DEMANDS; i++) {
+    const t = demandTemplates[i % demandTemplates.length];
+    // 发布者在前 14 个「带头图封面」的用户之间轮换，便于滑动时看到不同背景
+    const posterIdx = i % 14;
+    const posterPhone = phoneFromUserIndex(posterIdx);
     const posterId = users[posterPhone];
     if (!posterId) continue;
+
+    const isCompleted = i < COMPLETED_WITH_ORDER;
 
     const d = await prisma.demand.create({
       data: {
@@ -99,22 +124,23 @@ async function main() {
         serviceType: t.type,
         locationLat: t.lat || null,
         locationLng: t.lng || null,
-        cityCode: testUsers[i % 10].cityCode,
+        cityCode: testUsers[posterIdx].cityCode,
         expireAt: future,
-        status: i < 5 ? 'COMPLETED' : 'PENDING',
-        applicantCount: i < 5 ? 1 : 0,
+        status: isCompleted ? 'COMPLETED' : 'PENDING',
+        applicantCount: isCompleted ? 1 : 0,
       },
     });
     demandIds.push(d.id);
 
-    // For completed demands (i < 5), create order with another user as provider
-    if (i < 5) {
-      const providerPhone = `138000000${String(((i + 5) % 10) + 11).padStart(2, '0')}`;
+    if (isCompleted) {
+      let providerIdx = (posterIdx + 10) % testUsers.length;
+      if (providerIdx === posterIdx) providerIdx = (providerIdx + 1) % testUsers.length;
+      const providerPhone = phoneFromUserIndex(providerIdx);
       const providerId = users[providerPhone];
       if (!providerId) continue;
 
       // Create accepted application
-      const app = await prisma.demandApplication.create({
+      await prisma.demandApplication.create({
         data: {
           demandId: d.id,
           userId: providerId,
@@ -196,8 +222,8 @@ async function main() {
   }
 
   console.log('=== Seed Complete ===');
-  console.log(`20 test users created (phone 13800000001-13800000020, password 1)`);
-  console.log(`10 demands (5 COMPLETED with orders, 5 PENDING)`);
+  console.log(`20 test users (phone 13800000001-13800000020, password 1); 前14位有个人中心 coverUrl`);
+  console.log(`${TOTAL_DEMANDS} demands (${COMPLETED_WITH_ORDER} COMPLETED with orders, ${TOTAL_DEMANDS - COMPLETED_WITH_ORDER} PENDING in feed)`);
   console.log(`1 public circle with 4 members`);
   console.log(`6 shorts for casual explore feed`);
   console.log(`SMS code: 123456`);
