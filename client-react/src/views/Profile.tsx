@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -10,8 +10,23 @@ import { certLabel, certColor } from '@/constants/cert'
 import { FollowList } from '@/components/ui/follow-list'
 import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import { AcetFavouriteButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { toast } from '@/components/ui/confirm-dialog'
-import { Settings, Edit3, MessageCircle, UserPlus, UserCheck, Award, FileText, ShoppingBag, Star, TrendingUp, Zap, Users, ShieldCheck } from 'lucide-react'
+import {
+  Settings,
+  Edit3,
+  MessageCircle,
+  UserPlus,
+  UserCheck,
+  Award,
+  FileText,
+  ShoppingBag,
+  Star,
+  TrendingUp,
+  Zap,
+  Users,
+  ShieldCheck,
+} from 'lucide-react'
 
 const PROFILE_HERO_FALLBACK =
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80'
@@ -31,7 +46,9 @@ export default function Profile() {
   const isDark = useThemeStore((s) => s.current.dark)
 
   // 浅色/深色模式适配
-  const cardSurface = isDark ? 'text-white bg-white/[0.08]' : 'text-text-primary bg-bg-card'
+  const cardSurface = isDark
+    ? 'text-white bg-white/[0.08]'
+    : 'text-text-primary bg-bg-card'
   const textMuted = isDark ? 'text-white/60' : 'text-text-muted'
   const textSecondary = isDark ? 'text-white/75' : 'text-text-secondary'
   const textSubtle = isDark ? 'text-white/55' : 'text-text-muted'
@@ -46,7 +63,11 @@ export default function Profile() {
   }, [displayUser])
 
   // ===== 封面开场动画 =====
-  const [intro, setIntro] = useState({ show: false, shrink: false, entering: false })
+  const [intro, setIntro] = useState({
+    show: false,
+    shrink: false,
+    entering: false,
+  })
   useEffect(() => {
     if (!displayUser) return
     // 他人主页只播一次（session 级别）
@@ -56,17 +77,25 @@ export default function Profile() {
       sessionStorage.setItem(key, '1')
     }
     setIntro({ show: true, shrink: false, entering: true })
-    const t1 = setTimeout(() => setIntro(p => ({ ...p, entering: false })), 700)
+    const t1 = setTimeout(
+      () => setIntro((p) => ({ ...p, entering: false })),
+      700,
+    )
     const t2 = setTimeout(() => {
-      setIntro(p => (p.show ? { ...p, shrink: true } : p))
+      setIntro((p) => (p.show ? { ...p, shrink: true } : p))
     }, 1700)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+    // 只按用户 id 触发开场动画，避免资料字段变化导致动画重复播放
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayUser?.id])
 
   function handleIntroClick() {
     if (!intro.show) return
     if (!intro.shrink) {
-      setIntro(p => ({ ...p, shrink: true }))
+      setIntro((p) => ({ ...p, shrink: true }))
     } else {
       hideIntro()
     }
@@ -82,10 +111,15 @@ export default function Profile() {
     const t = setTimeout(hideIntro, 900)
     return () => clearTimeout(t)
   }, [intro.shrink])
-  const [followCounts, setFollowCounts] = useState({ following: 0, followers: 0 })
+  const [followCounts, setFollowCounts] = useState({
+    following: 0,
+    followers: 0,
+  })
   const [isFollowing, setIsFollowing] = useState(false)
   const [certStatus, setCertStatus] = useState<any>(null)
-  const [showFollow, setShowFollow] = useState<'followers' | 'following' | null>(null)
+  const [showFollow, setShowFollow] = useState<
+    'followers' | 'following' | null
+  >(null)
   const [editing, setEditing] = useState(false)
   const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
@@ -93,35 +127,68 @@ export default function Profile() {
   // 认证进度
   const promo = certStatus?.promotion
   const promoProgress = promo ? Math.round(promo.progress * 100) : 0
-  const promoColor = promo ? certColor[promo.next as keyof typeof certColor] || '#f59e0b' : '#f59e0b'
-  const ringR = 38; const ringC = 2 * Math.PI * ringR; const ringOff = ringC - (ringC * promoProgress) / 100
+  const promoColor = promo
+    ? certColor[promo.next as keyof typeof certColor] || '#f59e0b'
+    : '#f59e0b'
 
-  useEffect(() => { loadUser() }, [id])
-
-  async function loadUser() {
+  const loadUser = useCallback(async () => {
     setLoading(true)
     try {
       if (isMe) {
-        try { const r = await userApi.certStatus(); setCertStatus(r.data.data) } catch {}
+        try {
+          const r = await userApi.certStatus()
+          setCertStatus(r.data.data)
+        } catch {
+          /* noop */
+        }
       } else if (id) {
-        const r = await userApi.get(id); setUser(r.data.data)
+        const r = await userApi.get(id)
+        setUser(r.data.data)
       }
       const tid = id || myUser?.id
       if (tid) {
-        const [fr, fer] = await Promise.all([userApi.following(tid), userApi.followers(tid)])
-        setFollowCounts({ following: fr.data.data?.total || 0, followers: fer.data.data?.total || 0 })
-        if (!isMe) setIsFollowing(fer.data.data?.items?.some((u: any) => u.id === myUser?.id) || false)
+        const [fr, fer] = await Promise.all([
+          userApi.following(tid),
+          userApi.followers(tid),
+        ])
+        setFollowCounts({
+          following: fr.data.data?.total || 0,
+          followers: fer.data.data?.total || 0,
+        })
+        if (!isMe)
+          setIsFollowing(
+            fer.data.data?.items?.some((u: any) => u.id === myUser?.id) ||
+              false,
+          )
       }
-    } catch {} finally { setLoading(false) }
-  }
+    } catch {
+      /* noop */
+    } finally {
+      setLoading(false)
+    }
+  }, [id, isMe, myUser?.id])
+
+  useEffect(() => {
+    loadUser()
+  }, [loadUser])
 
   async function handleFollow() {
     if (!displayUser?.id) return
     try {
-      if (isFollowing) { await userApi.unfollow(displayUser.id); setFollowCounts(p => ({ ...p, followers: Math.max(0, p.followers - 1) })) }
-      else { await userApi.follow(displayUser.id); setFollowCounts(p => ({ ...p, followers: p.followers + 1 })) }
+      if (isFollowing) {
+        await userApi.unfollow(displayUser.id)
+        setFollowCounts((p) => ({
+          ...p,
+          followers: Math.max(0, p.followers - 1),
+        }))
+      } else {
+        await userApi.follow(displayUser.id)
+        setFollowCounts((p) => ({ ...p, followers: p.followers + 1 }))
+      }
       setIsFollowing(!isFollowing)
-    } catch {}
+    } catch {
+      /* noop */
+    }
   }
 
   async function saveProfile() {
@@ -140,7 +207,12 @@ export default function Profile() {
     }
   }
 
-  if (loading && !displayUser) return <div className="flex items-center justify-center h-full"><span className="loader" /></div>
+  if (loading && !displayUser)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span className="loader" />
+      </div>
+    )
 
   return (
     <>
@@ -161,7 +233,11 @@ export default function Profile() {
                 initial={intro.entering ? { x: '8%', opacity: 0.7 } : false}
                 animate={
                   intro.shrink
-                    ? { left: 'var(--sidebar-w)', width: 'calc(100vw - var(--sidebar-w))', height: 'calc((100vw - var(--sidebar-w)) * 9 / 16)' }
+                    ? {
+                        left: 'var(--sidebar-w)',
+                        width: 'calc(100vw - var(--sidebar-w))',
+                        height: 'calc((100vw - var(--sidebar-w)) * 9 / 16)',
+                      }
                     : { x: 0, opacity: 1 }
                 }
                 transition={
@@ -171,13 +247,17 @@ export default function Profile() {
                 }
                 className="absolute top-0 left-0 w-screen h-screen bg-cover bg-center shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
                 style={{
-                  backgroundImage: displayUser?.coverUrl ? `url(${displayUser.coverUrl})` : `linear-gradient(180deg, ${color}44, var(--bg-primary))`,
+                  backgroundImage: displayUser?.coverUrl
+                    ? `url(${displayUser.coverUrl})`
+                    : `linear-gradient(180deg, ${color}44, var(--bg-primary))`,
                 }}
               />
 
               {/* 昵称 + 提示 */}
               <motion.div
-                animate={intro.shrink ? { opacity: 0, y: 12 } : { opacity: 1, y: 0 }}
+                animate={
+                  intro.shrink ? { opacity: 0, y: 12 } : { opacity: 1, y: 0 }
+                }
                 transition={{ duration: 0.38 }}
                 className="absolute inset-x-4 z-10 text-center pointer-events-none"
                 style={{ bottom: '60%' }}
@@ -242,10 +322,16 @@ export default function Profile() {
                   'flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl font-bold shadow-lg',
                   isDark ? 'border-white/25' : 'border-black/[0.08]',
                 )}
-                style={{ boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)` }}
+                style={{
+                  boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)`,
+                }}
               >
                 {displayUser?.avatarUrl ? (
-                  <img src={displayUser.avatarUrl} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={displayUser.avatarUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   (displayUser?.nickname || '?')[0]
                 )}
@@ -265,11 +351,17 @@ export default function Profile() {
                     )}
                   />
                 ) : (
-                  <h2 className="truncate text-lg font-extrabold tracking-tight drop-shadow-sm">{displayUser?.nickname}</h2>
+                  <h2 className="truncate text-lg font-extrabold tracking-tight drop-shadow-sm">
+                    {displayUser?.nickname}
+                  </h2>
                 )}
                 <span
                   className="mt-1 inline-block rounded px-2 py-0.5 text-[10px] font-semibold"
-                  style={{ color: isDark ? '#fff' : color, border: `1px solid ${color}66`, background: `${color}22` }}
+                  style={{
+                    color: isDark ? '#fff' : color,
+                    border: `1px solid ${color}66`,
+                    background: `${color}22`,
+                  }}
                 >
                   {certLabel[level]}
                 </span>
@@ -319,7 +411,9 @@ export default function Profile() {
                 </button>
               </div>
             ) : (
-              <p className={`mt-3 text-xs leading-relaxed ${textSecondary}`}>{displayUser?.bio || '这个人很懒，什么都没写...'}</p>
+              <p className={`mt-3 text-xs leading-relaxed ${textSecondary}`}>
+                {displayUser?.bio || '这个人很懒，什么都没写...'}
+              </p>
             )}
 
             <div className="mt-4 flex gap-2">
@@ -343,33 +437,30 @@ export default function Profile() {
                 </button>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={handleFollow}
-                    className={cn(
-                      'flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-bold transition-all',
-                      isFollowing
-                        ? cn(
-                            'border',
-                            isDark
-                              ? 'border-white/25 bg-white/10 text-white'
-                              : 'border-black/[0.08] bg-black/[0.04] text-text-primary',
-                          )
-                        : 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/25',
-                    )}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserCheck size={15} />
-                        已关注
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus size={15} />
-                        关注
-                      </>
-                    )}
-                  </button>
+                  {isFollowing ? (
+                    <button
+                      type="button"
+                      onClick={handleFollow}
+                      className={cn(
+                        'flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-bold transition-all',
+                        isDark
+                          ? 'border-white/25 bg-white/10 text-white'
+                          : 'border-black/[0.08] bg-black/[0.04] text-text-primary',
+                      )}
+                    >
+                      <UserCheck size={15} />
+                      已关注
+                    </button>
+                  ) : (
+                    <AcetFavouriteButton
+                      type="button"
+                      onClick={handleFollow}
+                      className="flex flex-1 items-center justify-center gap-1.5 !rounded-xl !py-2.5 !text-sm font-bold"
+                    >
+                      <UserPlus size={15} />
+                      关注
+                    </AcetFavouriteButton>
+                  )}
                   <button
                     type="button"
                     onClick={() => navigate(`/messages/${displayUser?.id}`)}
@@ -402,7 +493,9 @@ export default function Profile() {
                 onClick={() => setShowFollow('following')}
                 className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
               >
-                <span className="text-2xl font-extrabold tabular-nums">{followCounts.following}</span>
+                <span className="text-2xl font-extrabold tabular-nums">
+                  {followCounts.following}
+                </span>
                 <span className={`text-xs ${textMuted}`}>关注</span>
               </button>
             </LiquidGlassCard>
@@ -420,7 +513,9 @@ export default function Profile() {
                 onClick={() => setShowFollow('followers')}
                 className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
               >
-                <span className="text-2xl font-extrabold tabular-nums">{followCounts.followers}</span>
+                <span className="text-2xl font-extrabold tabular-nums">
+                  {followCounts.followers}
+                </span>
                 <span className={`text-xs ${textMuted}`}>粉丝</span>
               </button>
             </LiquidGlassCard>
@@ -435,13 +530,23 @@ export default function Profile() {
             >
               <div className="flex flex-col items-center gap-1">
                 <ShieldCheck size={22} style={{ color }} />
-                <span className="text-xs font-bold" style={{ color }}>{certLabel[level]}</span>
+                <span className="text-xs font-bold" style={{ color }}>
+                  {certLabel[level]}
+                </span>
                 {promo && (
                   <div className="mt-1 w-full">
-                    <div className={cn('h-1 overflow-hidden rounded-full', isDark ? 'bg-white/10' : 'bg-black/[0.06]')}>
+                    <div
+                      className={cn(
+                        'h-1 overflow-hidden rounded-full',
+                        isDark ? 'bg-white/10' : 'bg-black/[0.06]',
+                      )}
+                    >
                       <div
                         className="h-full rounded-full transition-[width_0.8s]"
-                        style={{ width: `${promoProgress}%`, background: promoColor }}
+                        style={{
+                          width: `${promoProgress}%`,
+                          background: promoColor,
+                        }}
                       />
                     </div>
                   </div>
@@ -449,7 +554,6 @@ export default function Profile() {
               </div>
             </LiquidGlassCard>
           </div>
-
 
           <LiquidGlassCard
             draggable={true}
@@ -460,13 +564,32 @@ export default function Profile() {
           >
             <div className="grid grid-cols-2 gap-2">
               {[
-                { icon: Star, label: '信誉积分', value: user?.creditScore || certStatus?.creditScore || 60, c: '#34d399' },
-                { icon: Zap, label: '本月抢单', value: `${user?.snatchCredits || certStatus?.snatchCredits || 0}/3`, c: '#f87171' },
-                { icon: TrendingUp, label: '完成订单', value: user?.completedOrders || certStatus?.completedOrders || 0, c: color },
+                {
+                  icon: Star,
+                  label: '信誉积分',
+                  value: user?.creditScore || certStatus?.creditScore || 60,
+                  c: '#34d399',
+                },
+                {
+                  icon: Zap,
+                  label: '本月抢单',
+                  value: `${user?.snatchCredits || certStatus?.snatchCredits || 0}/3`,
+                  c: '#f87171',
+                },
+                {
+                  icon: TrendingUp,
+                  label: '完成订单',
+                  value:
+                    user?.completedOrders || certStatus?.completedOrders || 0,
+                  c: color,
+                },
                 {
                   icon: Users,
                   label: '关注/粉丝比',
-                  value: followCounts.followers > 0 ? `${Math.round((followCounts.following / Math.max(followCounts.followers, 1)) * 100)}%` : '0%',
+                  value:
+                    followCounts.followers > 0
+                      ? `${Math.round((followCounts.following / Math.max(followCounts.followers, 1)) * 100)}%`
+                      : '0%',
                   c: '#c4b5fd',
                 },
               ].map((item, i) => (
@@ -474,7 +597,9 @@ export default function Profile() {
                   key={i}
                   className={cn(
                     'flex items-center gap-2.5 rounded-xl border p-3',
-                    isDark ? 'border-white/10 bg-white/5' : 'border-black/[0.06] bg-black/[0.02]',
+                    isDark
+                      ? 'border-white/10 bg-white/5'
+                      : 'border-black/[0.06] bg-black/[0.02]',
                   )}
                 >
                   <div
@@ -485,7 +610,9 @@ export default function Profile() {
                   </div>
                   <div className="min-w-0">
                     <p className={`text-[10px] ${textSubtle}`}>{item.label}</p>
-                    <p className="truncate text-sm font-extrabold tabular-nums">{item.value}</p>
+                    <p className="truncate text-sm font-extrabold tabular-nums">
+                      {item.value}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -514,8 +641,13 @@ export default function Profile() {
                     onClick={() => navigate(item.path)}
                     className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
                   >
-                    <item.icon size={18} className={isDark ? 'text-white/90' : 'text-text-primary'} />
-                    <span className={`text-[10px] ${textMuted}`}>{item.label}</span>
+                    <item.icon
+                      size={18}
+                      className={isDark ? 'text-white/90' : 'text-text-primary'}
+                    />
+                    <span className={`text-[10px] ${textMuted}`}>
+                      {item.label}
+                    </span>
                   </button>
                 </LiquidGlassCard>
               ))}
@@ -525,7 +657,12 @@ export default function Profile() {
       </div>
 
       {displayUser?.id && (
-        <FollowList visible={showFollow !== null} userId={displayUser.id} mode={showFollow || 'followers'} onClose={() => setShowFollow(null)} />
+        <FollowList
+          visible={showFollow !== null}
+          userId={displayUser.id}
+          mode={showFollow || 'followers'}
+          onClose={() => setShowFollow(null)}
+        />
       )}
     </>
   )

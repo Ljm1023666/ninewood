@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
+/* 字体在 index.html 中通过 <link> 加载，避免出现在 @import tailwindcss 之后的 @import（违反 CSS 规则顺序） */
+
 /* ── 设计 Token（迁移自 Vue global.css）── */
 :root {
   --sidebar-w: 72px;
-  /* 与 Sidebar 底栏高度一致，主内容区 mobile padding-bottom 复用 */
-  --mobile-tabbar-h: 64px;
   --content-max-w: 720px;
   --primary-start: #667eea;
   --primary-end: #764ba2;
@@ -32,8 +32,8 @@
   --glow-primary: 0 0 30px rgba(102, 126, 234, 0.25);
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
-  --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-family: 'Montserrat', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Roboto Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
 /* ── Tailwind 主题扩展 ── */
@@ -64,8 +64,26 @@
   --color-input: var(--border-color);
   --color-ring: var(--accent-color);
   --color-muted: var(--bg-secondary);
+  /* shadcn sidebar / chat-template 依赖 */
+  --color-secondary: var(--bg-card);
+  --color-secondary-foreground: var(--text-secondary);
+  --color-sidebar: var(--bg-primary);
+  --color-sidebar-foreground: var(--text-primary);
+  --color-sidebar-accent: rgba(255, 255, 255, 0.06);
+  --color-sidebar-accent-foreground: var(--text-primary);
+  --color-sidebar-border: var(--border-color);
   --radius-default: var(--radius);
   --radius-sm: var(--radius-sm);
+
+  @keyframes shimmer {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  --animate-shimmer: shimmer 2s linear infinite;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -130,14 +148,6 @@ html, body {
 }
 
 /* 原 page-glow：视口/主栏右下角径向渐变在宽屏或缩放时易从内容两侧露出，已移除；主栏底色见 Layout <main class="bg-background"> */
-/* 移动端：LiquidGlass 位移滤镜极耗 GPU，仅保留轻量 backdrop-blur */
-@media (max-width: 767px) {
-  .liquid-glass-fx-layer {
-    filter: none !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    backdrop-filter: blur(8px) !important;
-  }
-}
 
 /* ── 动画 ── */
 @keyframes fadeUp {
@@ -152,6 +162,204 @@ html, body {
   0% { background-position: -200px 0; }
   100% { background-position: calc(200px + 100%) 0; }
 }
+/* 翻面卡片背面：金额红色流光（InteractiveProductCard） */
+@keyframes flip-card-price-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+.flip-card-back-price {
+  display: inline-block;
+  background-image: linear-gradient(
+    105deg,
+    #991b1b 0%,
+    #dc2626 22%,
+    #f87171 44%,
+    #fecaca 50%,
+    #f87171 56%,
+    #dc2626 78%,
+    #991b1b 100%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: flip-card-price-shimmer 3.2s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-back-price {
+    animation: none;
+    background: none;
+    color: rgb(220 38 38);
+    -webkit-text-fill-color: currentColor;
+    background-clip: border-box;
+  }
+}
+
+/* 翻面卡片正面：标题条底色（分档色相内渐变流光）；标题纯色；圆点流光（InteractiveProductCard） */
+@keyframes flip-card-text-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+.flip-card-front-dot {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+}
+.flip-card-front-dot-shine {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background-image: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.52) 45%,
+    rgba(255, 255, 255, 0.14) 100%
+  );
+  background-size: 220% 100%;
+  animation: flip-card-text-shimmer 2.2s linear infinite;
+}
+.flip-card-front-dot[data-active="false"] .flip-card-front-dot-shine {
+  opacity: 0.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-front-dot-shine {
+    animation: none;
+    background: rgba(255, 255, 255, 0.92);
+    background-image: none;
+  }
+  .flip-card-front-dot[data-active="false"] .flip-card-front-dot-shine {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.38);
+  }
+}
+
+/* 色条与极光叠层：flip-card-title-bar-pan（-200%→200%，高光从左往右）；圆点仍用 flip-card-text-shimmer */
+@keyframes flip-card-title-bar-pan {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+.flip-card-title-bar-shimmer {
+  background-size: 200% 100%;
+  animation: flip-card-title-bar-pan 3.8s linear infinite;
+}
+.flip-card-title-bar-shimmer--green {
+  background-image: linear-gradient(
+    90deg,
+    #14532d 0%,
+    #166534 22%,
+    #15803d 50%,
+    #166534 78%,
+    #14532d 100%
+  );
+}
+.flip-card-title-bar-shimmer--blue {
+  background-image: linear-gradient(
+    90deg,
+    #1e3a8a 0%,
+    #1d4ed8 24%,
+    #2563eb 50%,
+    #1d4ed8 76%,
+    #1e3a8a 100%
+  );
+}
+.flip-card-title-bar-shimmer--violet {
+  background-image: linear-gradient(
+    90deg,
+    #4c1d95 0%,
+    #6d28d9 24%,
+    #7c3aed 50%,
+    #6d28d9 76%,
+    #4c1d95 100%
+  );
+}
+.flip-card-title-bar-shimmer--orange {
+  background-image: linear-gradient(
+    90deg,
+    #7c2d12 0%,
+    #c2410c 24%,
+    #ea580c 50%,
+    #c2410c 76%,
+    #7c2d12 100%
+  );
+}
+.flip-card-title-bar-shimmer--red {
+  background-image: linear-gradient(
+    90deg,
+    #7f1d1d 0%,
+    #b91c1c 24%,
+    #dc2626 50%,
+    #b91c1c 76%,
+    #7f1d1d 100%
+  );
+}
+.flip-card-title-bar-shimmer--gold {
+  background-image: linear-gradient(
+    90deg,
+    #78350f 0%,
+    #92400e 22%,
+    #b45309 50%,
+    #92400e 78%,
+    #78350f 100%
+  );
+}
+/* 叠层仅用深靛辅色扫光，避免出现浅青/发白感 */
+.flip-card-title-bar-aurora-sheen {
+  background-image: linear-gradient(
+    100deg,
+    rgba(49, 46, 129, 0) 0%,
+    rgba(55, 48, 163, 0.18) 22%,
+    rgba(67, 56, 202, 0.2) 50%,
+    rgba(55, 48, 163, 0.18) 78%,
+    rgba(49, 46, 129, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: flip-card-title-bar-pan 2.85s linear infinite;
+  mix-blend-mode: multiply;
+  opacity: 0.38;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-title-bar-shimmer {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  .flip-card-title-bar-shimmer--green {
+    background-image: linear-gradient(90deg, #22c55e, #16a34a);
+  }
+  .flip-card-title-bar-shimmer--blue {
+    background-image: linear-gradient(90deg, #3b82f6, #2563eb);
+  }
+  .flip-card-title-bar-shimmer--violet {
+    background-image: linear-gradient(90deg, #8b5cf6, #7c3aed);
+  }
+  .flip-card-title-bar-shimmer--orange {
+    background-image: linear-gradient(90deg, #f97316, #ea580c);
+  }
+  .flip-card-title-bar-shimmer--red {
+    background-image: linear-gradient(90deg, #ef4444, #dc2626);
+  }
+  .flip-card-title-bar-shimmer--gold {
+    background-image: linear-gradient(90deg, #ca8a04, #92400e);
+  }
+  .flip-card-title-bar-aurora-sheen {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 @keyframes spotlight {
   0% { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
   100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
@@ -180,10 +388,58 @@ html, body {
 }
 
 /* 发光搜索框右侧 conic 慢旋（伪元素需带 translate 保持居中） */
+@keyframes shimmer {
+  from { background-position: 0 0; }
+  to { background-position: -200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes voice-wave {
+  from { height: 4px; }
+  to { height: 24px; }
+}
+
 @keyframes glowing-search-conic-spin {
   from { transform: translate(-50%, -50%) rotate(90deg); }
   to { transform: translate(-50%, -50%) rotate(450deg); }
 }
 .glowing-search-conic-spin::before {
   animation: glowing-search-conic-spin 12s linear infinite;
+}
+
+/* ── InfoCard 演示（/info-card）：--ic-* 避免覆盖全局 --font-family / --border-color ── */
+html[data-appearance="light"] {
+  --ic-border-1: #ff5613;
+  --ic-border-2: #9f4eff;
+  --ic-border-3: #2196f3;
+  --ic-border-bg: #f5f5f5;
+  --ic-card-bg: #fff;
+  --ic-shadow: #e0e0e0;
+  --ic-text: #242424;
+  --ic-hover-text-1: #000;
+  --ic-hover-text-2: #fff;
+  --ic-hover-text-3: #fff;
+  --ic-font-mono: "Roboto Mono", ui-monospace, monospace;
+  --ic-font-rtl: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --ic-pattern-1: rgba(200, 200, 200, 0.1);
+  --ic-pattern-2: rgba(220, 220, 220, 0.1);
+}
+
+html[data-appearance="dark"] {
+  --ic-border-1: #daff3e;
+  --ic-border-2: #9f4eff;
+  --ic-border-3: #2196f3;
+  --ic-border-bg: #242424;
+  --ic-card-bg: #000;
+  --ic-shadow: #242424;
+  --ic-text: #f5f5f5;
+  --ic-hover-text-1: #242424;
+  --ic-hover-text-2: #000;
+  --ic-hover-text-3: #242424;
+  --ic-font-mono: "Roboto Mono", ui-monospace, monospace;
+  --ic-font-rtl: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --ic-pattern-1: rgba(230, 230, 230, 0.15);
+  --ic-pattern-2: rgba(240, 240, 240, 0.15);
 }

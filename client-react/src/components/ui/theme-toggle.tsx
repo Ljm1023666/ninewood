@@ -7,7 +7,16 @@ const DURATION = 550
 
 function MoonIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
   )
@@ -15,7 +24,16 @@ function MoonIcon() {
 
 function SunIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="4" />
       <line x1="12" y1="1" x2="12" y2="3" />
       <line x1="12" y1="21" x2="12" y2="23" />
@@ -43,12 +61,15 @@ export function ThemeToggleButton() {
   useEffect(() => {
     if (phase !== 'idle') return
     const presets: Record<string, string> = {
-      cyberpunk: '#0a0a1a', ocean: '#0a1628', sunset: '#1a0f0a',
-      forest: '#0a1a0f', crimson: '#1a0a0a',
+      cyberpunk: '#0a0a1a',
+      ocean: '#0a1628',
+      sunset: '#1a0f0a',
+      forest: '#0a1a0f',
+      crimson: '#1a0a0a',
     }
     curtainColorRef.current = isDark
       ? '#edf1f7'
-      : (presets[themeStore.lastDarkPreset] || '#0a0a1a')
+      : presets[themeStore.lastDarkPreset] || '#0a0a1a'
   }, [isDark, phase, themeStore.lastDarkPreset])
 
   const handleToggle = useCallback(() => {
@@ -73,7 +94,10 @@ export function ThemeToggleButton() {
           background: curtainColorRef.current,
           transformOrigin: 'top',
           transform: phase === 'falling' ? 'scaleY(1)' : 'scaleY(0)',
-          transition: phase !== 'idle' ? `transform ${DURATION}ms cubic-bezier(0.76,0,0.24,1)` : 'none',
+          transition:
+            phase !== 'idle'
+              ? `transform ${DURATION}ms cubic-bezier(0.76,0,0.24,1)`
+              : 'none',
           zIndex: 9997,
           pointerEvents: 'none',
         }}
@@ -82,7 +106,10 @@ export function ThemeToggleButton() {
       <button
         onClick={handleToggle}
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => { setHovered(false); setPressed(false) }}
+        onMouseLeave={() => {
+          setHovered(false)
+          setPressed(false)
+        }}
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
         className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-all duration-300"

@@ -105,43 +105,52 @@ export const demandService = {
   }) {
     const page = params.page || 1;
     const limit = params.limit || 20;
-    const where: any = { status: 'PENDING' };
 
     const publisherFilter =
       params.publisherId &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(params.publisherId)
         ? params.publisherId
         : undefined;
-    if (publisherFilter) where.userId = publisherFilter;
 
-    if (params.serviceType) where.serviceType = params.serviceType;
-    if (params.category) where.category = params.category;
-    if (params.minPrice) where.minPrice = { ...(where.minPrice || {}), gte: params.minPrice };
-    if (params.maxPrice) where.minPrice = { ...(where.minPrice || {}), lte: params.maxPrice };
-    if (params.excludeExample) where.isExample = false;
-    if (params.keyword) {
-      where.OR = [
-        { title: { contains: params.keyword, mode: 'insensitive' } },
-        { description: { contains: params.keyword, mode: 'insensitive' } },
-      ];
+    const keywordTrimmed = params.keyword?.trim();
+    const serviceTypeOk =
+      params.serviceType === 'ONLINE' || params.serviceType === 'OFFLINE' ? params.serviceType : undefined;
+
+    const and: any[] = [{ status: 'PENDING' as const }];
+    if (publisherFilter) and.push({ userId: publisherFilter });
+    if (serviceTypeOk) and.push({ serviceType: serviceTypeOk as ServiceType });
+    if (params.category) and.push({ category: params.category });
+
+    const minPriceRange: { gte?: number; lte?: number } = {};
+    if (params.minPrice != null && !Number.isNaN(params.minPrice)) minPriceRange.gte = params.minPrice;
+    if (params.maxPrice != null && !Number.isNaN(params.maxPrice)) minPriceRange.lte = params.maxPrice;
+    if (Object.keys(minPriceRange).length) and.push({ minPrice: minPriceRange });
+
+    if (params.excludeExample) and.push({ isExample: false });
+    if (keywordTrimmed) {
+      and.push({
+        OR: [
+          { title: { contains: keywordTrimmed, mode: 'insensitive' } },
+          { description: { contains: keywordTrimmed, mode: 'insensitive' } },
+        ],
+      });
     }
+
+    if (params.userId) {
+      and.push({
+        OR: [
+          { isPublic: true },
+          { circle: { members: { some: { userId: params.userId } } } },
+          { isPublic: false, createdAt: { lt: new Date(Date.now() - 15 * 60 * 1000) } },
+        ],
+      });
+    } else {
+      and.push({ isPublic: true });
+    }
+
+    const where: any = { AND: and };
 
     const orderBy: any = { createdAt: 'desc' };
-
-    // Visibility: public only, or circle-internal for members
-    if (params.userId) {
-      where.AND = [
-        {
-          OR: [
-            { isPublic: true },
-            { circle: { members: { some: { userId: params.userId } } } },
-            { isPublic: false, createdAt: { lt: new Date(Date.now() - 15 * 60 * 1000) } },
-          ],
-        },
-      ];
-    } else {
-      where.isPublic = true;
-    }
 
     const hasGeo = !!(params.lat && params.lng && params.distance);
     const publisherSql = publisherFilter ? `AND d."userId" = '${publisherFilter}'` : '';
@@ -150,7 +159,7 @@ export const demandService = {
       // PostgreSQL-level haversine: push distance calc + filter to DB
       const raw = await prisma.$queryRawUnsafe<any[]>(`
         SELECT d.*,
-          u."nickname", u."avatarUrl", u."certificationLevel",
+          u."nickname", u."avatarUrl", u."coverUrl", u."certificationLevel",
           COALESCE((SELECT COUNT(*) FROM "DemandApplication" WHERE "demandId" = d.id), 0)::int AS "applicantCount",
           6371 * 2 * ASIN(SQRT(
             POWER(SIN((${params.lat} - d."locationLat") * PI() / 180 / 2), 2) +
@@ -188,6 +197,7 @@ export const demandService = {
           ${publisherSql}
           ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
           ${params.category ? `AND d."category" = '${params.category}'` : ''}
+          ${params.keyword ? `AND (d."title" ILIKE '%${params.keyword}%' OR d."description" ILIKE '%${params.keyword}%')` : ''}
           AND (
             d."serviceType" = 'ONLINE'
             OR (
@@ -214,7 +224,13 @@ export const demandService = {
         distance: d.distanceKm ? Math.round(Number(d.distanceKm) * 10) / 10 : null,
         createdAgo: formatCreatedAgo(d.createdAt),
         isExample: d.isExample,
-        user: { id: d.userId, nickname: d.nickname, avatarUrl: d.avatarUrl, certificationLevel: d.certificationLevel },
+        user: {
+          id: d.userId,
+          nickname: d.nickname,
+          avatarUrl: d.avatarUrl,
+          coverUrl: d.coverUrl,
+          certificationLevel: d.certificationLevel,
+        },
         mediaUrls: d.mediaUrls,
         isSnatched: false,
         createdAt: d.createdAt,
@@ -234,7 +250,15 @@ export const demandService = {
     const demands = await prisma.demand.findMany({
       where,
       include: {
-        user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } },
+        user: {
+          select: {
+            id: true,
+            nickname: true,
+            avatarUrl: true,
+            coverUrl: true,
+            certificationLevel: true,
+          },
+        },
         _count: { select: { applications: true } },
       },
       orderBy,

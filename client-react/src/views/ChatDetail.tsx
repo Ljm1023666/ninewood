@@ -1,21 +1,34 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import {
+  Brush,
+  Camera,
+  ChartBarIncreasing,
+  ChevronLeft,
+  File,
+  Image,
+  Mic,
+  Paperclip,
+  Send,
+  Smile,
+  UserRound,
+} from 'lucide-react'
 import { useUserStore } from '@/stores/user'
-import { useChatStore } from '@/stores/chat'
+import { useChatStore, type ChatMessage } from '@/stores/chat'
 import { messageApi } from '@/api/message'
 import { userApi } from '@/api/user'
-import { ChatNavBar } from '@/components/ui/chat-navbar'
 import { TimeDivider } from '@/components/ui/time-divider'
 import { MessageBubble } from '@/components/ui/message-bubble'
 import { ActionSheet } from '@/components/ui/action-sheet'
-
-type ChatMessage = {
-  id?: string; content: string; type?: string
-  senderId?: string; receiverId?: string; fromUserId?: string; toUserId?: string
-  fromUser?: { nickname: string; avatarUrl?: string }
-  toUser?: { nickname: string; avatarUrl?: string }
-  createdAt: string
-}
+import { TemplateChatRightShell } from '@/components/ui/chat-template'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export default function ChatDetail() {
   const { userId } = useParams<{ userId: string }>()
@@ -27,33 +40,101 @@ export default function ChatDetail() {
   const myId = userStore.user?.id || ''
 
   // 过滤出当前对话的消息
-  const messages = chatStore.messages.filter((m: ChatMessage) =>
-    ((m.senderId || m.fromUserId) === myId && (m.receiverId || m.toUserId) === peerId) ||
-    ((m.senderId || m.fromUserId) === peerId && (m.receiverId || m.toUserId) === myId)
+  const messages = chatStore.messages.filter(
+    (m: ChatMessage) =>
+      ((m.senderId || m.fromUserId) === myId &&
+        (m.receiverId || m.toUserId) === peerId) ||
+      ((m.senderId || m.fromUserId) === peerId &&
+        (m.receiverId || m.toUserId) === myId),
   )
 
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
-  const [peerUser, setPeerUser] = useState<{ nickname: string; avatarUrl: string | null } | null>(null)
+  const [isRecording, setIsRecording] = useState(false)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const voiceChunksRef = useRef<Blob[]>([])
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mr = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' })
+      mediaRecorderRef.current = mr
+      voiceChunksRef.current = []
+
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) voiceChunksRef.current.push(e.data)
+      }
+
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop())
+        const blob = new Blob(voiceChunksRef.current, { type: 'audio/webm' })
+        if (blob.size < 100) return
+        const fd = new FormData()
+        fd.append('toUserId', peerId)
+        fd.append('file', blob, `voice-${Date.now()}.webm`)
+        fd.append('content', '')
+        try {
+          await messageApi.sendForm(fd)
+          await chatStore.fetchMessages(peerId)
+          setTimeout(() => scrollBottom(true), 100)
+        } catch {
+          /* noop */
+        }
+      }
+
+      mr.start()
+      setIsRecording(true)
+    } catch {
+      setIsVoiceMode(false)
+      setIsRecording(false)
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop()
+    }
+    setIsRecording(false)
+  }
+  const [peerUser, setPeerUser] = useState<{
+    nickname: string
+    avatarUrl: string | null
+  } | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval>>()
-  const [pollActive, setPollActive] = useState(false)
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const connected = chatStore.connected
+  const fetchMessages = chatStore.fetchMessages
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current)
+      pollRef.current = undefined
+    }
+  }, [])
+
+  const startPolling = useCallback(() => {
+    if (pollRef.current || connected) return
+    pollRef.current = setInterval(() => fetchMessages(peerId), 10000)
+  }, [connected, fetchMessages, peerId])
 
   // 取对端用户信息
   useEffect(() => {
     if (!peerId) return
-    userApi.get(peerId).then(r => setPeerUser(r.data.data)).catch(() => setPeerUser(null))
-    chatStore.fetchMessages(peerId)
-    if (!chatStore.connected) startPolling()
+    userApi
+      .get(peerId)
+      .then((r) => setPeerUser(r.data.data))
+      .catch(() => setPeerUser(null))
+    fetchMessages(peerId)
+    if (!connected) startPolling()
     return () => stopPolling()
-  }, [peerId])
+  }, [peerId, connected, fetchMessages, startPolling, stopPolling])
 
   // 防止跟自己聊天
   useEffect(() => {
     if (peerId === myId) navigate('/messages', { replace: true })
-  }, [peerId, myId])
+  }, [peerId, myId, navigate])
 
   // 消息变化自动滚底
   useEffect(() => {
@@ -62,26 +143,19 @@ export default function ChatDetail() {
 
   // socket 连接变化
   useEffect(() => {
-    if (chatStore.connected) stopPolling()
+    if (connected) stopPolling()
     else if (peerId) startPolling()
-  }, [chatStore.connected])
-
-  function startPolling() {
-    if (pollActive || chatStore.connected) return
-    setPollActive(true)
-    pollRef.current = setInterval(() => chatStore.fetchMessages(peerId), 10000)
-  }
-  function stopPolling() {
-    setPollActive(false)
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = undefined }
-  }
+  }, [connected, peerId, startPolling, stopPolling])
 
   const peerNickname = peerUser?.nickname || '聊天'
 
   function scrollBottom(force = false) {
     const el = listRef.current
     if (!el) return
-    if (force) { el.scrollTop = el.scrollHeight; return }
+    if (force) {
+      el.scrollTop = el.scrollHeight
+      return
+    }
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120
     if (atBottom) el.scrollTop = el.scrollHeight
   }
@@ -91,10 +165,14 @@ export default function ChatDetail() {
     if (!text) return
     try {
       const res = await messageApi.send(peerId, text)
-      useChatStore.setState((s) => ({ messages: [...s.messages, res.data.data] }))
+      useChatStore.setState((s) => ({
+        messages: [...s.messages, res.data.data],
+      }))
       setInput('')
       setTimeout(() => scrollBottom(true), 100)
-    } catch {}
+    } catch {
+      /* noop */
+    }
   }
 
   // 文件选择
@@ -107,19 +185,28 @@ export default function ChatDetail() {
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (f) {
-      setUploadFile(f); setUploadPreview(URL.createObjectURL(f)); setUploadIsVideo(f.type.startsWith('video/'))
+      setUploadFile(f)
+      setUploadPreview(URL.createObjectURL(f))
+      setUploadIsVideo(f.type.startsWith('video/'))
     }
   }
 
   async function sendFile() {
     if (!uploadFile) return
     try {
-      const fd = new FormData(); fd.append('toUserId', peerId); fd.append('file', uploadFile); fd.append('content', '')
+      const fd = new FormData()
+      fd.append('toUserId', peerId)
+      fd.append('file', uploadFile)
+      fd.append('content', '')
       await messageApi.sendForm(fd)
-      setUploadFile(null); setUploadPreview(''); setUploadIsVideo(false)
+      setUploadFile(null)
+      setUploadPreview('')
+      setUploadIsVideo(false)
       await chatStore.fetchMessages(peerId)
       setTimeout(() => scrollBottom(true), 100)
-    } catch {}
+    } catch {
+      /* noop */
+    }
   }
 
   function onSheetSelect(action: string) {
@@ -128,97 +215,281 @@ export default function ChatDetail() {
     if (action === 'video') videoInputRef.current?.click()
   }
 
-  const emojis = ['😀','😂','🤣','😍','🥰','😎','🤩','👍','🙏','💪','🔥','🎉','❤','💔','🎨','💻','📱','💰','⭐','✅','❌','🤝','🍳','🚗','☕','📖','🎵','🌙','✨','🎂']
+  const emojis = [
+    '😀',
+    '😂',
+    '🤣',
+    '😍',
+    '🥰',
+    '😎',
+    '🤩',
+    '👍',
+    '🙏',
+    '💪',
+    '🔥',
+    '🎉',
+    '❤',
+    '💔',
+    '🎨',
+    '💻',
+    '📱',
+    '💰',
+    '⭐',
+    '✅',
+    '❌',
+    '🤝',
+    '🍳',
+    '🚗',
+    '☕',
+    '📖',
+    '🎵',
+    '🌙',
+    '✨',
+    '🎂',
+  ]
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
-      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-3xl shrink-0 flex-col self-center">
-      <ChatNavBar nickname={peerNickname} />
-
-      {/* 消息列表 */}
-      <div ref={listRef} className="flex-1 overflow-y-auto thin-scroll py-2 flex flex-col">
-        {messages.map((m: ChatMessage, idx: number) => (
-          <div key={m.id || m.createdAt}>
-            <TimeDivider timestamp={m.createdAt} prevTimestamp={idx > 0 ? messages[idx - 1].createdAt : null} />
-            <MessageBubble
-              content={m.content}
-              isMine={(m.senderId || m.fromUserId) === myId}
-              type={m.type}
-              nickname={peerNickname}
-              avatarUrl={peerUser?.avatarUrl || ''}
-              hideAvatar={idx < messages.length - 1 && (messages[idx + 1]?.senderId || messages[idx + 1]?.fromUserId) === (m.senderId || m.fromUserId)}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* 图片预览条 */}
-      {uploadPreview && (
-        <div className="flex gap-2 items-center px-4 py-2 border-t border-border bg-bg-secondary">
-          {uploadIsVideo ? <video src={uploadPreview} controls muted className="w-16 h-16 rounded-md object-cover" />
-            : <img src={uploadPreview} className="w-16 h-16 rounded-md object-cover" />}
-          <button onClick={sendFile} className="text-sm px-3 py-1.5 rounded-md bg-[var(--primary-gradient)] text-white font-semibold">发送</button>
-          <button onClick={() => { setUploadFile(null); setUploadPreview(''); setUploadIsVideo(false) }} className="text-sm text-text-muted">取消</button>
-        </div>
-      )}
-
-      {/* Emoji 面板 */}
-      {showEmoji && !showSheet && (
-        <div className="flex flex-wrap gap-0.5 px-3 py-2.5 border-t border-border bg-card max-h-[200px] overflow-y-auto">
-          {emojis.map((e) => (
-            <span key={e} onClick={() => { setInput(input + e); setShowEmoji(false) }} className="text-[28px] cursor-pointer px-2 py-1.5 rounded-md hover:bg-bg-tertiary">{e}</span>
+    <TemplateChatRightShell
+      embedInLayout
+      currentChat={{
+        name: peerNickname,
+        message: '',
+        image: peerUser?.avatarUrl?.trim() || '',
+      }}
+      avatarFallback={peerNickname.slice(0, 2)}
+      headerLeading={
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          className="shrink-0"
+          aria-label="返回会话列表"
+          onClick={() => navigate('/messages')}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+      }
+      middle={
+        <div
+          ref={listRef}
+          className="thin-scroll flex min-h-0 flex-1 flex-col overflow-y-auto bg-bg-primary px-2 py-2"
+        >
+          {messages.map((m: ChatMessage, idx: number) => (
+            <div key={m.id || m.createdAt}>
+              <TimeDivider
+                timestamp={m.createdAt}
+                prevTimestamp={idx > 0 ? messages[idx - 1].createdAt : null}
+              />
+              <MessageBubble
+                content={m.content}
+                isMine={(m.senderId || m.fromUserId) === myId}
+                type={m.type}
+                nickname={peerNickname}
+                avatarUrl={peerUser?.avatarUrl || ''}
+                hideAvatar={
+                  idx < messages.length - 1 &&
+                  (messages[idx + 1]?.senderId ||
+                    messages[idx + 1]?.fromUserId) ===
+                    (m.senderId || m.fromUserId)
+                }
+              />
+            </div>
           ))}
         </div>
-      )}
+      }
+      inputRow={
+        <>
+          {uploadPreview ? (
+            <div className="flex shrink-0 items-center gap-2 border-t border-border bg-bg-secondary px-3 py-2">
+              {uploadIsVideo ? (
+                <video
+                  src={uploadPreview}
+                  controls
+                  muted
+                  className="h-16 w-16 rounded-md object-cover"
+                />
+              ) : (
+                <img
+                  src={uploadPreview}
+                  alt=""
+                  className="h-16 w-16 rounded-md object-cover"
+                />
+              )}
+              <button
+                type="button"
+                onClick={sendFile}
+                className="rounded-md bg-[var(--primary-gradient)] px-3 py-1.5 text-sm font-semibold text-white"
+              >
+                发送
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadFile(null)
+                  setUploadPreview('')
+                  setUploadIsVideo(false)
+                }}
+                className="text-sm text-text-muted"
+              >
+                取消
+              </button>
+            </div>
+          ) : null}
 
-      <ActionSheet visible={showSheet} onClose={() => setShowSheet(false)} onSelect={onSheetSelect} />
+          {showEmoji && !showSheet ? (
+            <div className="max-h-[200px] shrink-0 overflow-y-auto border-t border-border bg-card px-3 py-2">
+              <div className="flex flex-wrap gap-0.5">
+                {emojis.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => {
+                      setInput(input + e)
+                      setShowEmoji(false)
+                    }}
+                    className="cursor-pointer rounded-md px-2 py-1.5 text-[28px] hover:bg-bg-tertiary"
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
-      {/* 输入栏 */}
-      <div className="flex gap-1 items-center px-2.5 py-2 bg-card border-t border-border">
-        <button onClick={() => setIsVoiceMode(!isVoiceMode)} className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-transparent border-none text-text-secondary cursor-pointer rounded-full hover:bg-bg-tertiary">
-          {isVoiceMode ? <span className="text-lg">🎤</span> : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="1" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/>
-            </svg>
-          )}
-        </button>
+          <ActionSheet
+            visible={showSheet}
+            onClose={() => setShowSheet(false)}
+            onSelect={onSheetSelect}
+          />
 
-        {isVoiceMode ? (
-          <div className="flex-1 h-9 flex items-center justify-center bg-bg-secondary rounded-lg text-text-secondary text-sm font-semibold cursor-pointer select-none active:bg-bg-tertiary">
-            按住 说话
+          <div className="flex h-12 shrink-0 items-center gap-0.5 border-t border-border bg-card px-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              onClick={() => {
+                setShowEmoji(!showEmoji)
+                setShowSheet(false)
+              }}
+              title="表情"
+            >
+              <Smile className="h-5 w-5" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" type="button" title="附件">
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => imageInputRef.current?.click()}>
+                  <Image className="mr-2 h-4 w-4" /> 照片与视频
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => videoInputRef.current?.click()}>
+                  <Camera className="mr-2 h-4 w-4" /> 视频
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => imageInputRef.current?.click()}>
+                  <File className="mr-2 h-4 w-4" /> 文件
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <UserRound className="mr-2 h-4 w-4" /> 联系人
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ChartBarIncreasing className="mr-2 h-4 w-4" /> 投票
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Brush className="mr-2 h-4 w-4" /> 画板
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {isVoiceMode ? (
+              <div
+                onPointerDown={(e) => {
+                  e.preventDefault()
+                  void startRecording()
+                }}
+                onPointerUp={() => stopRecording()}
+                onPointerLeave={() => stopRecording()}
+                onContextMenu={(e) => e.preventDefault()}
+                className={`flex h-9 min-w-0 flex-1 cursor-pointer select-none items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
+                  isRecording
+                    ? 'bg-[var(--error-color)]/20 text-[var(--error-color)]'
+                    : 'bg-bg-secondary text-text-secondary active:bg-bg-tertiary'
+                }`}
+              >
+                {isRecording ? '松开 发送' : '按住 说话'}
+              </div>
+            ) : (
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void send()
+                }}
+                placeholder="输入消息…"
+                className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 text-[15px] text-text-primary shadow-none focus-visible:ring-0"
+              />
+            )}
+
+            {!input.trim() ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                title="更多"
+                onClick={() => {
+                  setShowSheet(!showSheet)
+                  setShowEmoji(false)
+                }}
+              >
+                <span className="text-lg leading-none">＋</span>
+              </Button>
+            ) : null}
+
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              title="发送"
+              onClick={() => void send()}
+              disabled={!input.trim()}
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              title={isVoiceMode ? '键盘输入' : '语音'}
+              onClick={() => {
+                setIsVoiceMode(!isVoiceMode)
+                setShowEmoji(false)
+                setShowSheet(false)
+              }}
+            >
+              <Mic className="h-5 w-5" />
+            </Button>
           </div>
-        ) : (
-          <div className="flex-1 min-w-0">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') send() }}
-              placeholder="输入消息..."
-              className="w-full h-9 px-3 bg-bg-secondary border-none rounded-[18px] text-text-primary text-[15px] outline-none placeholder:text-text-muted"
-            />
-          </div>
-        )}
 
-        <button onClick={() => { setShowEmoji(!showEmoji); setShowSheet(false) }} className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-transparent border-none text-text-secondary cursor-pointer rounded-full hover:bg-bg-tertiary">
-          <span className="text-[17px]">😊</span>
-        </button>
-
-        {input.trim() ? (
-          <button onClick={send} className="h-9 px-[18px] flex-shrink-0 bg-[var(--success-color)] border-none rounded-md text-black text-sm font-semibold cursor-pointer hover:opacity-85 transition-opacity">
-            发送
-          </button>
-        ) : (
-          <button onClick={() => { setShowSheet(!showSheet); setShowEmoji(false) }} className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-transparent border-none text-text-secondary cursor-pointer rounded-full hover:bg-bg-tertiary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-          </button>
-        )}
-
-        <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={onFileChange} />
-        <input ref={videoInputRef} type="file" accept="video/*" hidden onChange={onFileChange} />
-      </div>
-      </div>
-    </div>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={onFileChange}
+          />
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            hidden
+            onChange={onFileChange}
+          />
+        </>
+      }
+    />
   )
 }

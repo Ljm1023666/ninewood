@@ -6,11 +6,23 @@ import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
 import { useThemeStore } from '@/stores/theme'
 import { certLabel, certColor, certGlow } from '@/constants/cert'
 import { cn } from '@/lib/utils'
-import { ShieldCheck, Star, Zap, Users, Award, ArrowRight, ChevronDown } from 'lucide-react'
+import { AcetGradientButton } from '@/components/ui/tailwindcss-buttons-variants'
+import {
+  ShieldCheck,
+  Star,
+  Zap,
+  Users,
+  Award,
+  ArrowRight,
+  ChevronDown,
+} from 'lucide-react'
 
 const levels = ['NONE', 'BASIC', 'INTERMEDIATE', 'ADVANCED', 'MASTER'] as const
 
-const levelInfo: Record<string, { req: string; perks: string[]; desc: string }> = {
+const levelInfo: Record<
+  string,
+  { req: string; perks: string[]; desc: string }
+> = {
   NONE: {
     req: '注册即获得',
     desc: '新用户的起点，可以浏览需求和发布需求，开始你的服务平台之旅。',
@@ -29,12 +41,23 @@ const levelInfo: Record<string, { req: string; perks: string[]; desc: string }> 
   ADVANCED: {
     req: '完成 50 笔订单 + 信誉 ≥ 80',
     desc: '高级服务者，获得平台信任背书。享受更高的曝光率和更多特权。',
-    perks: ['抢单额度提升（每月5次）', '首页推荐位', '申请公开圈子', '高级认证标识'],
+    perks: [
+      '抢单额度提升（每月5次）',
+      '首页推荐位',
+      '申请公开圈子',
+      '高级认证标识',
+    ],
   },
   MASTER: {
     req: '完成 100 笔订单 + 信誉 ≥ 90',
     desc: '平台顶级服务者，行业标杆。享有全平台最高权重和最完整的权限体系。',
-    perks: ['无限抢单次数', '全站置顶推荐', '创建公开圈子免审核', '专属客服通道', '大师徽章展示'],
+    perks: [
+      '无限抢单次数',
+      '全站置顶推荐',
+      '创建公开圈子免审核',
+      '专属客服通道',
+      '大师徽章展示',
+    ],
   },
 }
 
@@ -46,7 +69,10 @@ export default function CertIntro() {
   const tMuted = isDark ? 'text-white/50' : 'text-text-muted'
   const tFaint = isDark ? 'text-white/30' : 'text-text-muted'
   const heroRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  })
   const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
   const heroY = useTransform(scrollYProgress, [0, 0.6], [0, -60])
   const heroScale = useTransform(scrollYProgress, [0, 0.6], [1, 0.9])
@@ -64,11 +90,20 @@ export default function CertIntro() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className={cn('mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm backdrop-blur-sm', isDark ? 'border-white/10 bg-white/5 text-white/60' : 'border-black/[0.08] bg-black/[0.04] text-text-secondary')}>
+          <div
+            className={cn(
+              'mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm backdrop-blur-sm',
+              isDark
+                ? 'border-white/10 bg-white/5 text-white/60'
+                : 'border-black/[0.08] bg-black/[0.04] text-text-secondary',
+            )}
+          >
             <ShieldCheck size={16} className="text-amber-400" />
             认证体系
           </div>
-          <h1 className={`mb-4 text-4xl font-black tracking-tight ${tPrimary} md:text-5xl`}>
+          <h1
+            className={`mb-4 text-4xl font-black tracking-tight ${tPrimary} md:text-5xl`}
+          >
             层层进阶
             <br />
             <span className="cyber-glow">解锁更多能力</span>
@@ -96,12 +131,28 @@ export default function CertIntro() {
           const targetScale = 1 - (levels.length - i) * 0.03
 
           return (
-            <CardSticky key={level} index={i} incrementY={20} incrementZ={15 - i * 2}>
-              <div style={{ transform: `scale(${targetScale})`, transformOrigin: 'center top' }}>
+            <CardSticky
+              key={level}
+              index={i}
+              incrementY={20}
+              incrementZ={15 - i * 2}
+            >
+              <div
+                style={{
+                  transform: `scale(${targetScale})`,
+                  transformOrigin: 'center top',
+                }}
+              >
                 <LiquidGlassCard
                   draggable
                   shadowIntensity="sm"
-                  glowIntensity={level === 'MASTER' ? 'lg' : level === 'ADVANCED' ? 'md' : 'sm'}
+                  glowIntensity={
+                    level === 'MASTER'
+                      ? 'lg'
+                      : level === 'ADVANCED'
+                        ? 'md'
+                        : 'sm'
+                  }
                   borderRadius="24px"
                   className={`relative overflow-visible p-6 ${tPrimary}`}
                 >
@@ -131,12 +182,21 @@ export default function CertIntro() {
                       <h2 className="text-xl font-extrabold" style={{ color }}>
                         {certLabel[level]}
                       </h2>
-                      <p className={cn('text-xs', isDark ? 'text-white/40' : 'text-text-muted')}>{info.req}</p>
+                      <p
+                        className={cn(
+                          'text-xs',
+                          isDark ? 'text-white/40' : 'text-text-muted',
+                        )}
+                      >
+                        {info.req}
+                      </p>
                     </div>
                   </div>
 
                   {/* 描述 */}
-                  <p className={`mb-5 text-sm leading-relaxed ${tSecondary}`}>{info.desc}</p>
+                  <p className={`mb-5 text-sm leading-relaxed ${tSecondary}`}>
+                    {info.desc}
+                  </p>
 
                   {/* 权限列表 */}
                   <div className="space-y-2">
@@ -147,23 +207,41 @@ export default function CertIntro() {
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ delay: j * 0.1 }}
                         viewport={{ once: true }}
-                        className={cn('flex items-center gap-2.5 rounded-xl p-2.5', isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]')}
+                        className={cn(
+                          'flex items-center gap-2.5 rounded-xl p-2.5',
+                          isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]',
+                        )}
                       >
                         <div
                           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
                           style={{ background: `${color}18`, color }}
                         >
-                          {j === 0 ? <Zap size={13} /> : j === 1 ? <Star size={13} /> : j === 2 ? <Users size={13} /> : <Award size={13} />}
+                          {j === 0 ? (
+                            <Zap size={13} />
+                          ) : j === 1 ? (
+                            <Star size={13} />
+                          ) : j === 2 ? (
+                            <Users size={13} />
+                          ) : (
+                            <Award size={13} />
+                          )}
                         </div>
-                        <span className={cn('text-sm', isDark ? 'text-white/80' : 'text-text-primary')}>{perk}</span>
+                        <span
+                          className={cn(
+                            'text-sm',
+                            isDark ? 'text-white/80' : 'text-text-primary',
+                          )}
+                        >
+                          {perk}
+                        </span>
                       </motion.div>
                     ))}
                   </div>
                 </LiquidGlassCard>
               </div>
             </CardSticky>
-          )}
-        )}
+          )
+        })}
 
         {/* 底部：前往认证中心 */}
         <CardSticky index={levels.length} incrementY={20} incrementZ={0}>
@@ -176,16 +254,17 @@ export default function CertIntro() {
           >
             <Award size={40} className="mx-auto mb-4 text-amber-400" />
             <h2 className="mb-2 text-xl font-bold">准备好了吗？</h2>
-            <p className={`mb-6 text-sm ${tMuted}`}>前往认证中心查看你的当前进度</p>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+            <p className={`mb-6 text-sm ${tMuted}`}>
+              前往认证中心查看你的当前进度
+            </p>
+            <AcetGradientButton
+              type="button"
               onClick={() => navigate('/cert-center')}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25"
+              className="inline-flex items-center gap-2 !rounded-xl !px-6 !py-3 !text-sm font-semibold"
             >
               进入认证中心
               <ArrowRight size={16} />
-            </motion.button>
+            </AcetGradientButton>
           </LiquidGlassCard>
         </CardSticky>
       </ContainerScroll>

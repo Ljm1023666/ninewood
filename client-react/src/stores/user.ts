@@ -33,7 +33,9 @@ export const useUserStore = create<UserState>((set, get) => ({
   user: null,
   token: localStorage.getItem('token'),
   ready: false,
-  get isLoggedIn() { return !!get().token },
+  get isLoggedIn() {
+    return !!get().token
+  },
 
   async init() {
     const { token } = get()

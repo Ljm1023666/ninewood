@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { orderApi } from '@/api/order'
+import { AcetNextBlueButton } from '@/components/ui/tailwindcss-buttons-variants'
 
 export default function Payment() {
   const { id } = useParams<{ id: string }>()
@@ -9,9 +10,15 @@ export default function Payment() {
   const [loading, setLoading] = useState(false)
 
   async function pay() {
-    if (!id || loading) return; setLoading(true)
-    try { await orderApi.prepay(id); setPaid(true); setTimeout(() => navigate(`/orders/${id}`), 1500) }
-    catch { setLoading(false) }
+    if (!id || loading) return
+    setLoading(true)
+    try {
+      await orderApi.prepay(id)
+      setPaid(true)
+      setTimeout(() => navigate(`/orders/${id}`), 1500)
+    } catch {
+      setLoading(false)
+    }
   }
 
   return (
@@ -29,14 +36,14 @@ export default function Payment() {
               <div className="mb-4 text-5xl">💳</div>
               <h1 className="mb-2 text-2xl font-black">模拟支付</h1>
               <p className="mb-8 text-sm text-text-muted">模拟支付页面</p>
-              <button
+              <AcetNextBlueButton
                 type="button"
                 onClick={pay}
                 disabled={loading}
-                className="w-full rounded-xl bg-[var(--primary-gradient)] py-3.5 text-sm font-bold text-white disabled:opacity-40"
+                className="w-full !rounded-xl !py-3.5 !text-sm font-bold disabled:!opacity-40"
               >
                 {loading ? '处理中...' : '确认支付'}
-              </button>
+              </AcetNextBlueButton>
             </div>
           )}
         </div>

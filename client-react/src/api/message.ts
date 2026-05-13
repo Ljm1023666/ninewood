@@ -11,7 +11,9 @@ export const messageApi = {
     return api.post('/messages/send', { toUserId, content })
   },
   sendForm(formData: FormData) {
-    return api.post('/messages/send', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    return api.post('/messages/send', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
   },
   notifications(page = 1) {
     return api.get('/messages/notifications', { params: { page } })

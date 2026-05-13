@@ -1,7 +1,6 @@
 import {
   useId,
   useState,
-  useEffect,
   type CSSProperties,
   type HTMLAttributes,
   type MouseEvent,
@@ -15,7 +14,10 @@ type BlurIntensity = 'sm' | 'md' | 'lg' | 'xl'
 type ShadowIntensity = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 type GlowIntensity = 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
-export interface LiquidGlassCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> {
+export interface LiquidGlassCardProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+> {
   children: ReactNode
   draggable?: boolean
   expandable?: boolean
@@ -92,17 +94,11 @@ export function LiquidGlassCard({
   const filterId = useId().replace(/:/g, '')
   const reduceMotion = useReducedMotion()
   const isDark = useThemeStore((s) => s.current.dark)
-  const shadowStyle = (isDark ? shadowStylesDark : shadowStylesLight)[shadowIntensity]
+  const shadowStyle = (isDark ? shadowStylesDark : shadowStylesLight)[
+    shadowIntensity
+  ]
   const glowStyle = (isDark ? glowStylesDark : glowStylesLight)[glowIntensity]
-  const [coarsePointer, setCoarsePointer] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(pointer: coarse)')
-    const sync = () => setCoarsePointer(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [])
-  const skipHoverTapScale = Boolean(reduceMotion || coarsePointer)
+  const skipHoverTapScale = Boolean(reduceMotion)
 
   const handleToggleExpansion = (e: MouseEvent<HTMLDivElement>) => {
     if (!expandable) return
@@ -142,7 +138,10 @@ export function LiquidGlassCard({
   const layers = (
     <>
       <div
-        className={cn('liquid-glass-fx-layer absolute inset-0 z-0', blurClasses[blurIntensity])}
+        className={cn(
+          'liquid-glass-fx-layer absolute inset-0 z-0',
+          blurClasses[blurIntensity],
+        )}
         style={{
           borderRadius,
           filter: `url(#${filterId})`,
@@ -162,7 +161,10 @@ export function LiquidGlassCard({
 
   return (
     <>
-      <svg className="pointer-events-none absolute h-0 w-0 overflow-hidden" aria-hidden>
+      <svg
+        className="pointer-events-none absolute h-0 w-0 overflow-hidden"
+        aria-hidden
+      >
         <defs>
           <filter
             id={filterId}
@@ -193,13 +195,25 @@ export function LiquidGlassCard({
         className={baseClassName}
         style={{ ...baseStyle, ...propStyle }}
         variants={containerVariants}
-        animate={expandable ? (isExpanded ? 'expanded' : 'collapsed') : undefined}
+        animate={
+          expandable ? (isExpanded ? 'expanded' : 'collapsed') : undefined
+        }
         onClick={expandable ? handleToggleExpansion : undefined}
         drag={draggable}
-        dragConstraints={draggable ? ({ left: 0, right: 0, top: 0, bottom: 0 } as const) : undefined}
+        dragConstraints={
+          draggable
+            ? ({ left: 0, right: 0, top: 0, bottom: 0 } as const)
+            : undefined
+        }
         dragElastic={draggable ? 0.3 : undefined}
-        dragTransition={draggable ? { bounceStiffness: 300, bounceDamping: 10, power: 0.3 } : undefined}
-        whileDrag={draggable && !skipHoverTapScale ? { scale: 1.02 } : undefined}
+        dragTransition={
+          draggable
+            ? { bounceStiffness: 300, bounceDamping: 10, power: 0.3 }
+            : undefined
+        }
+        whileDrag={
+          draggable && !skipHoverTapScale ? { scale: 1.02 } : undefined
+        }
         whileHover={skipHoverTapScale ? undefined : { scale: 1.01 }}
         whileTap={skipHoverTapScale ? undefined : { scale: 0.98 }}
         {...rest}

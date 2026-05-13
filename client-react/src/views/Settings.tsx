@@ -5,7 +5,17 @@ import { useUserStore } from '@/stores/user'
 import { cn } from '@/lib/utils'
 import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
-import { Moon, Sun, Palette, Check, ChevronRight, LogOut, Award, UserRound } from 'lucide-react'
+import {
+  Moon,
+  Sun,
+  Palette,
+  Check,
+  ChevronRight,
+  LogOut,
+  Award,
+  UserRound,
+  Sparkles,
+} from 'lucide-react'
 
 const themeNames: Record<string, string> = {
   cyberpunk: '赛博朋克',
@@ -28,7 +38,10 @@ export default function Settings() {
   const darkMode = themeStore.darkMode
 
   const heroBackgroundUrl = useMemo(
-    () => user?.coverUrl || publisherUserCoverPreset(user?.id) || SETTINGS_HERO_FALLBACK,
+    () =>
+      user?.coverUrl ||
+      publisherUserCoverPreset(user?.id) ||
+      SETTINGS_HERO_FALLBACK,
     [user?.coverUrl, user?.id],
   )
 
@@ -70,8 +83,12 @@ export default function Settings() {
 
       <div className="relative z-10 box-border w-full max-w-[36rem] shrink-0 self-center px-4 pb-28 pt-14 md:px-6 md:pt-16">
         <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">账户</p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-white drop-shadow-sm">设置</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+            账户
+          </p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-white drop-shadow-sm">
+            设置
+          </h1>
           <p className="mt-1 text-sm text-white/65">外观与常用入口</p>
         </div>
 
@@ -84,7 +101,9 @@ export default function Settings() {
         >
           <div className="mb-4 flex items-center gap-2 text-white/80">
             <Palette className="h-4 w-4 shrink-0" aria-hidden />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-white/55">外观</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-white/55">
+              外观
+            </h2>
           </div>
 
           <p className="mb-2 text-[11px] text-white/50">显示模式</p>
@@ -129,11 +148,19 @@ export default function Settings() {
                   className={cn(
                     'relative rounded-xl border p-3 text-left transition-all',
                     'border-white/12 bg-white/5 hover:border-white/25 hover:bg-white/10',
-                    active && 'border-white/45 bg-white/15 ring-1 ring-white/30',
+                    active &&
+                      'border-white/45 bg-white/15 ring-1 ring-white/30',
                   )}
                 >
-                  <div className={cn('mb-2 h-9 rounded-lg bg-gradient-to-br shadow-inner', preset.gradient)} />
-                  <span className="text-[11px] font-medium text-white/85">{themeNames[preset.name]}</span>
+                  <div
+                    className={cn(
+                      'mb-2 h-9 rounded-lg bg-gradient-to-br shadow-inner',
+                      preset.gradient,
+                    )}
+                  />
+                  <span className="text-[11px] font-medium text-white/85">
+                    {themeNames[preset.name]}
+                  </span>
                   {active && (
                     <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-emerald-600 shadow">
                       <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
@@ -152,7 +179,9 @@ export default function Settings() {
           borderRadius="16px"
           className="mb-4 p-2 text-white bg-white/[0.08]"
         >
-          <p className="px-3 pb-2 pt-2 text-[11px] font-bold uppercase tracking-wider text-white/50">快捷入口</p>
+          <p className="px-3 pb-2 pt-2 text-[11px] font-bold uppercase tracking-wider text-white/50">
+            快捷入口
+          </p>
           <button
             type="button"
             onClick={() => navigate('/profile')}
@@ -161,7 +190,9 @@ export default function Settings() {
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
               <UserRound className="h-5 w-5 text-white/90" aria-hidden />
             </span>
-            <span className="flex-1 text-sm font-semibold text-white/95">个人主页</span>
+            <span className="flex-1 text-sm font-semibold text-white/95">
+              个人主页
+            </span>
             <ChevronRight className="h-4 w-4 text-white/40" aria-hidden />
           </button>
           <button
@@ -172,7 +203,22 @@ export default function Settings() {
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
               <Award className="h-5 w-5 text-white/90" aria-hidden />
             </span>
-            <span className="flex-1 text-sm font-semibold text-white/95">认证中心</span>
+            <span className="flex-1 text-sm font-semibold text-white/95">
+              认证中心
+            </span>
+            <ChevronRight className="h-4 w-4 text-white/40" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/ui/tailwind-buttons')}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/10"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
+              <Sparkles className="h-5 w-5 text-white/90" aria-hidden />
+            </span>
+            <span className="flex-1 text-sm font-semibold text-white/95">
+              Tailwind 按钮样式库
+            </span>
             <ChevronRight className="h-4 w-4 text-white/40" aria-hidden />
           </button>
         </LiquidGlassCard>
@@ -194,7 +240,9 @@ export default function Settings() {
           </button>
         </LiquidGlassCard>
 
-        <p className="mt-8 text-center text-xs text-white/40">九木平台 v1.0.0</p>
+        <p className="mt-8 text-center text-xs text-white/40">
+          九木平台 v1.0.0
+        </p>
       </div>
     </div>
   )

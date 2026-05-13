@@ -8,7 +8,9 @@ export const demandApi = {
     return api.get(`/demands/${id}`)
   },
   create(formData: FormData) {
-    return api.post('/demands', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    return api.post('/demands', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
   },
   apply(id: string, data: { offerPrice?: number; message?: string }) {
     return api.post(`/demands/${id}/apply`, data)

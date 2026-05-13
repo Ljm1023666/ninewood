@@ -90,8 +90,8 @@ class WebGLRenderer {
   buffer: WebGLBuffer | null = null
   scale: number
   shaderSource: string
-  move = [0, 0]
-  mouse = [0, 0]
+  move: [number, number] = [0, 0]
+  mouse: [number, number] = [0, 0]
   pointers = [0, 0]
   pointerCount = 0
 
@@ -125,9 +125,18 @@ class WebGLRenderer {
 
   reset() {
     const gl = this.gl
-    if (this.program && !gl.getProgramParameter(this.program, gl.DELETE_STATUS)) {
-      if (this.vs) { gl.detachShader(this.program, this.vs); gl.deleteShader(this.vs) }
-      if (this.fs) { gl.detachShader(this.program, this.fs); gl.deleteShader(this.fs) }
+    if (
+      this.program &&
+      !gl.getProgramParameter(this.program, gl.DELETE_STATUS)
+    ) {
+      if (this.vs) {
+        gl.detachShader(this.program, this.vs)
+        gl.deleteShader(this.vs)
+      }
+      if (this.fs) {
+        gl.detachShader(this.program, this.fs)
+        gl.deleteShader(this.fs)
+      }
       gl.deleteProgram(this.program)
     }
   }
@@ -164,7 +173,10 @@ class WebGLRenderer {
     ;(p as any).pointers = gl.getUniformLocation(p, 'pointers')
   }
 
-  updateScale(s: number) { this.scale = s; this.gl.viewport(0, 0, this.canvas.width * s, this.canvas.height * s) }
+  updateScale(s: number) {
+    this.scale = s
+    this.gl.viewport(0, 0, this.canvas.width * s, this.canvas.height * s)
+  }
 
   render(now = 0) {
     const gl = this.gl
@@ -188,8 +200,8 @@ class PointerHandler {
   scale: number
   active = false
   pointers = new Map<number, number[]>()
-  lastCoords = [0, 0]
-  moves = [0, 0]
+  lastCoords: [number, number] = [0, 0]
+  moves: [number, number] = [0, 0]
 
   constructor(el: HTMLCanvasElement, scale: number) {
     this.scale = scale
@@ -217,9 +229,19 @@ class PointerHandler {
     })
   }
 
-  get count() { return this.pointers.size }
-  get coords() { return this.pointers.size > 0 ? Array.from(this.pointers.values()).flat() : [0, 0] }
-  get first() { return this.pointers.values().next().value || this.lastCoords }
+  get count() {
+    return this.pointers.size
+  }
+  get coords() {
+    return this.pointers.size > 0
+      ? Array.from(this.pointers.values()).flat()
+      : [0, 0]
+  }
+  get first(): [number, number] {
+    const v = this.pointers.values().next().value
+    if (v && v.length >= 2) return [v[0]!, v[1]!]
+    return this.lastCoords
+  }
 }
 
 function useShaderBackground() {
@@ -280,11 +302,19 @@ const iconColors = ['text-yellow-300', 'text-orange-300', 'text-amber-300']
 
 // ---- Hero Component ----
 
-const Hero: React.FC<HeroProps> = ({ trustBadge, headline, subtitle, buttons, className = '' }) => {
+const Hero: React.FC<HeroProps> = ({
+  trustBadge,
+  headline,
+  subtitle,
+  buttons,
+  className = '',
+}) => {
   const canvasRef = useShaderBackground()
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden bg-black ${className}`}>
+    <div
+      className={`relative w-full h-screen overflow-hidden bg-black ${className}`}
+    >
       {/* Animations — React 19 supports <style> in JSX */}
       <style>{`
         @keyframes hero-fade-in-down {
@@ -331,7 +361,9 @@ const Hero: React.FC<HeroProps> = ({ trustBadge, headline, subtitle, buttons, cl
               {trustBadge.icons && (
                 <div className="flex">
                   {trustBadge.icons.map((icon, i) => (
-                    <span key={i} className={iconColors[i % 3]}>{icon}</span>
+                    <span key={i} className={iconColors[i % 3]}>
+                      {icon}
+                    </span>
                   ))}
                 </div>
               )}

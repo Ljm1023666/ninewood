@@ -7,7 +7,10 @@ import { ToastContainer } from '@/components/ui/confirm-dialog'
 import { GlassFilter } from '@/components/ui/liquid-glass'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { useUserStore } from '@/stores/user'
-import { isDemandDetailRoute, suppressLayoutAmbient } from '@/utils/user-cover-presets'
+import {
+  isDemandDetailRoute,
+  suppressLayoutAmbient,
+} from '@/utils/user-cover-presets'
 import { userApi } from '@/api/user'
 import { ChevronLeft } from 'lucide-react'
 
@@ -27,7 +30,9 @@ export default function Layout() {
   }, [location.pathname, me?.id])
 
   /** 他人主页：拉取封面供 Layout 氛围层使用（自己用 store 即可） */
-  const [profileOtherCoverUrl, setProfileOtherCoverUrl] = useState<string | null | undefined>(undefined)
+  const [profileOtherCoverUrl, setProfileOtherCoverUrl] = useState<
+    string | null | undefined
+  >(undefined)
 
   useEffect(() => {
     if (layoutAmbientUserId === null) {
@@ -39,6 +44,7 @@ export default function Layout() {
       return
     }
     setProfileOtherCoverUrl(undefined)
+    if (typeof layoutAmbientUserId !== 'string') return
     let cancelled = false
     userApi
       .get(layoutAmbientUserId)
@@ -73,6 +79,8 @@ export default function Layout() {
   // Tab 根路由不显示全局返回（避免挡标题）；聊天会话 /messages/:id 也不显示（顶栏已有返回）
   const hideGlobalBack =
     p === '/' ||
+    p === '/discover' ||
+    p === '/ui/tailwind-buttons' ||
     p === '/demands/create' ||
     p === '/shorts' ||
     p === '/circles' ||
@@ -82,25 +90,41 @@ export default function Layout() {
     p === '/profile' ||
     p === '/profile/'
   const showBack = !hideGlobalBack
+  /** 需求详情页 3D 翻面会略超出卡片盒模型；全站 main 的 overflow-hidden 会裁掉透视溢出，仅在此路由放宽 */
+  const demandDetail3dOverflow = isDemandDetailRoute(p)
 
   return (
-    <div className="flex h-screen w-full min-w-0 overflow-hidden">
+    <div
+      className={
+        demandDetail3dOverflow
+          ? 'flex h-screen w-full min-w-0 overflow-visible'
+          : 'flex h-screen w-full min-w-0 overflow-hidden'
+      }
+    >
       <GlassFilter />
       <ToastContainer />
       <Sidebar />
 
-      <main className="relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
+      <main
+        className={
+          demandDetail3dOverflow
+            ? 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-visible bg-background'
+            : 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background'
+        }
+      >
         {layoutAmbientUserId !== null && (
-          <UserCoverAmbientBg userId={layoutAmbientUserId ?? undefined} coverUrl={ambientCoverUrl} />
+          <UserCoverAmbientBg
+            userId={layoutAmbientUserId ?? undefined}
+            coverUrl={ambientCoverUrl}
+          />
         )}
 
         {showBack && (
           <button
             onClick={() => navigate(-1)}
-            className="fixed top-3.5 left-[86px] z-[999] w-9 h-9 flex items-center justify-center
-              bg-card/80 backdrop-blur-md border border-border rounded-xl
-              text-text-secondary hover:text-text-primary hover:border-accent
-              shadow-md transition-all duration-200 max-md:left-3 max-md:top-3"
+            className="fixed left-[86px] top-3.5 z-[999] flex h-9 w-9 items-center justify-center rounded-xl
+              border border-border bg-card/80 text-text-secondary shadow-md backdrop-blur-md
+              transition-all duration-200 hover:border-accent hover:text-text-primary"
             aria-label="返回"
           >
             <ChevronLeft size={20} />
@@ -108,7 +132,7 @@ export default function Layout() {
         )}
 
         {/* 主栏内容区：横向铺满 flex-1 区域，不在此层做 max-w 封顶（否则超宽屏右侧整段空白）；单页可读宽度由各路由内 max-w-* 自控 */}
-        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col max-md:pb-[calc(var(--mobile-tabbar-h)+env(safe-area-inset-bottom,0px))] [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:flex-1">
+        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:flex-1">
           <Outlet />
         </div>
       </main>
