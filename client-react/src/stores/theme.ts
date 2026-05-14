@@ -112,14 +112,21 @@ function applyTheme(config: ThemeConfig) {
   root.style.setProperty('--bg-secondary', config.bgSecondary)
   root.style.setProperty('--bg-tertiary', config.bgTertiary)
   root.style.setProperty('--bg-card', config.bgCard)
-  root.style.setProperty('--text-primary', config.textPrimary)
-  root.style.setProperty('--text-secondary', config.textSecondary)
-  root.style.setProperty('--text-muted', config.textMuted)
   root.style.setProperty('--border-color', config.borderColor)
   root.style.setProperty(
     '--primary-gradient',
     `linear-gradient(135deg, ${config.primaryStart}, ${config.primaryEnd})`,
   )
+  // 正文色与皮肤色相解耦：浅色模式统一深色字，深色模式统一浅色字
+  if (config.dark) {
+    root.style.setProperty('--text-primary', '#f4f4f5')
+    root.style.setProperty('--text-secondary', '#d4d4d8')
+    root.style.setProperty('--text-muted', '#a1a1aa')
+  } else {
+    root.style.setProperty('--text-primary', '#171717')
+    root.style.setProperty('--text-secondary', '#404040')
+    root.style.setProperty('--text-muted', '#737373')
+  }
   // 浅色模式提高金额对比度；暗色保持琥珀色可读性
   if (config.dark) {
     root.style.setProperty('--price-foreground', '#fbbf24')

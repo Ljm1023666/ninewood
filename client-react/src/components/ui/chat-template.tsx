@@ -41,7 +41,6 @@ import {
   Camera,
   ChartBarIncreasing,
   ChevronUp,
-  Compass,
   File,
   Image,
   ListFilter,
@@ -73,6 +72,8 @@ export type TemplateContact = {
   message: string
   image: string
   unreadCount?: number
+  /** 'user' | 'merge'，用于区分群聊与会话 */
+  type?: 'user' | 'merge'
 }
 
 export const DEFAULT_CONTACT_LIST: TemplateContact[] = [
@@ -181,7 +182,6 @@ export const DEFAULT_CONTACT_LIST: TemplateContact[] = [
 const menuItems = [
   { title: '消息', to: '/messages', icon: MessageCircle },
   { title: '找人', to: '/search', icon: Users },
-  { title: '探索', to: '/shorts', icon: Compass },
 ]
 
 export type HomeProps = {
@@ -238,28 +238,56 @@ export function TemplateChatRightShell({
         ) : null}
         <Avatar className="size-12 shrink-0">
           <AvatarImage src={currentChat?.image} />
-          <AvatarFallback className="text-xs font-semibold">{fb}</AvatarFallback>
+          <AvatarFallback className="text-xs font-semibold">
+            {fb}
+          </AvatarFallback>
         </Avatar>
-        <button
-          type="button"
-          onClick={onProfileClick}
-          className="ml-2 min-w-0 flex-1 cursor-pointer text-left hover:opacity-80"
-        >
-          <CardTitle className="truncate text-base font-semibold text-text-primary">
-            {currentChat?.name || ' '}
-          </CardTitle>
-          <CardDescription className="text-xs text-text-muted">
-            查看主页
-          </CardDescription>
-        </button>
+        {onProfileClick ? (
+          <button
+            type="button"
+            onClick={onProfileClick}
+            className="ml-2 min-w-0 flex-1 cursor-pointer text-left hover:opacity-80"
+          >
+            <CardTitle className="truncate text-base font-semibold text-text-primary">
+              {currentChat?.name || ' '}
+            </CardTitle>
+            <CardDescription className="text-xs text-text-muted">
+              查看主页
+            </CardDescription>
+          </button>
+        ) : (
+          <div className="ml-2 min-w-0 flex-1">
+            <CardTitle className="truncate text-base font-semibold text-text-primary">
+              {currentChat?.name || ' '}
+            </CardTitle>
+          </div>
+        )}
         <div className="flex shrink-0 justify-end gap-0.5">
-          <Button variant="ghost" size="icon" type="button" title="视频通话" onClick={() => toast('视频通话暂未开放')}>
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            title="视频通话"
+            onClick={() => toast('视频通话暂未开放')}
+          >
             <Video className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" type="button" title="语音通话" onClick={() => toast('语音通话暂未开放')}>
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            title="语音通话"
+            onClick={() => toast('语音通话暂未开放')}
+          >
             <Phone className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" type="button" title="搜索聊天记录" onClick={() => toast('搜索暂未开放')}>
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            title="搜索聊天记录"
+            onClick={() => toast('搜索暂未开放')}
+          >
             <Search className="h-5 w-5" />
           </Button>
         </div>
@@ -331,7 +359,12 @@ export function TemplateChatInputRow({
       <Button variant="ghost" size="icon" type="button" onClick={onSendClick}>
         <Send />
       </Button>
-      <Button variant="ghost" size="icon" type="button" onClick={() => toast('语音输入暂未开放')}>
+      <Button
+        variant="ghost"
+        size="icon"
+        type="button"
+        onClick={() => toast('语音输入暂未开放')}
+      >
         <Mic />
       </Button>
     </div>
@@ -415,7 +448,9 @@ function LeftChatListPanel({
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onClick={() => setFilter(filter === 'unread' ? 'all' : 'unread')}
+                    onClick={() =>
+                      setFilter(filter === 'unread' ? 'all' : 'unread')
+                    }
                   >
                     <MessageSquareDot />
                     未读
@@ -439,15 +474,14 @@ function LeftChatListPanel({
 
         <ScrollArea className="min-h-0 flex-1">
           {filtered.map(({ contact, origIndex }) => {
-            const selected =
-              !!contact.id && contact.id === selectedContactId
+            const selected = !!contact.id && contact.id === selectedContactId
             return (
               <button
                 key={contact.id ?? `${contact.name}-${origIndex}`}
                 type="button"
                 onClick={() => onPick(contact, origIndex)}
                 className={cn(
-                  'w-full border-l-2 border-transparent px-3 py-2.5 text-left transition-colors',
+                  'w-full border-l-2 border-transparent px-3 py-3 text-left transition-colors',
                   'hover:bg-accent/10',
                   selected &&
                     'border-[var(--primary-start)] bg-accent/15 shadow-[inset_3px_0_0_var(--primary-start)]',
@@ -455,10 +489,18 @@ function LeftChatListPanel({
               >
                 <div className="flex flex-row items-center gap-3">
                   <Avatar className="size-12 shrink-0">
-                    <AvatarImage src={contact.image} />
-                    <AvatarFallback>
-                      {contact.name?.charAt(0) ?? '?'}
-                    </AvatarFallback>
+                    {contact.type === 'merge' ? (
+                      <AvatarFallback className="bg-[var(--primary-start)]/15 text-[var(--primary-start)]">
+                        <Users className="h-5 w-5" />
+                      </AvatarFallback>
+                    ) : (
+                      <>
+                        <AvatarImage src={contact.image} />
+                        <AvatarFallback>
+                          {contact.name?.charAt(0) ?? '?'}
+                        </AvatarFallback>
+                      </>
+                    )}
                   </Avatar>
                   <div className="min-w-0 flex-1 space-y-1">
                     <CardTitle className="truncate text-[15px] font-semibold leading-tight text-text-primary">
@@ -630,7 +672,7 @@ export function Home({
         selectedContactId={selectedContactId}
         embedInLayout={embedInLayout}
         onNewChat={() => navigateTo('/search')}
-        onNavigateToSearch={() => navigateTo('/search')}
+        onNavigateToSearch={() => navigateTo('/messages/new-group')}
       />
 
       <ResizableHandle />

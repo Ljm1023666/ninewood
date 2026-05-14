@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { authService } from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { success, fail } from '../utils/response.js';
-import { prisma } from '../lib/prisma.js';
 
 export const authRouter = Router();
 
@@ -59,14 +58,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
 
 // GET /api/auth/me
 authRouter.get('/me', authMiddleware, async (req: Request, res: Response) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.user!.userId },
-    select: {
-      id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, cityCode: true,
-      certificationLevel: true, snatchCredits: true, creditScore: true,
-      completedOrders: true, createdAt: true, bio: true,
-    },
-  });
+  const user = await authService.me(req.user!.userId);
   if (!user) return fail(res, '用户不存在', 404);
   success(res, user);
 });

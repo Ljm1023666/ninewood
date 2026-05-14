@@ -115,7 +115,7 @@ function EyeBall({
   return (
     <div
       ref={eyeRef}
-      className="flex items-center justify-center rounded-full transition-all duration-150"
+      className="flex items-center justify-center rounded-full transition-[height,transform] duration-150"
       style={{
         width: `${size}px`,
         height: isBlinking ? '2px' : `${size}px`,

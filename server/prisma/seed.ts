@@ -99,20 +99,404 @@ async function main() {
     users[u.phone] = user.id;
   }
 
-  /** 发现页只展示 PENDING，多造几条在架需求；少量 COMPLETED 保留订单演示 */
-  const TOTAL_DEMANDS = 22;
+  /* 发现页展示 PENDING；前几条 COMPLETED 保留订单演示；其余批量在架需求 */
+  const TOTAL_DEMANDS = 1000;
   const COMPLETED_WITH_ORDER = 4;
+  const PENDING_TOTAL = TOTAL_DEMANDS - COMPLETED_WITH_ORDER;
 
-  const demandIds: string[] = [];
-  for (let i = 0; i < TOTAL_DEMANDS; i++) {
-    const t = demandTemplates[i % demandTemplates.length];
-    // 发布者在前 14 个「带头图封面」的用户之间轮换，便于滑动时看到不同背景
+  /** 低价多、高价少：各档数量之和须等于 PENDING_TOTAL */
+  const PRICE_PYRAMID = [
+    { count: 420, min: 38, max: 188 },
+    { count: 280, min: 188, max: 880 },
+    { count: 150, min: 880, max: 4200 },
+    { count: 90, min: 4200, max: 16500 },
+    { count: 40, min: 16500, max: 58000 },
+    { count: 15, min: 58000, max: 195000 },
+    { count: 1, min: 198000, max: 360000 },
+  ] as const;
+
+  const pyramidSum = PRICE_PYRAMID.reduce((a, r) => a + r.count, 0);
+  if (pyramidSum !== PENDING_TOTAL) {
+    throw new Error(`PRICE_PYRAMID counts sum ${pyramidSum} !== PENDING_TOTAL ${PENDING_TOTAL}`);
+  }
+
+  function pyramidBand(slot: number) {
+    let start = 0;
+    for (let ti = 0; ti < PRICE_PYRAMID.length; ti++) {
+      const row = PRICE_PYRAMID[ti]!;
+      if (slot < start + row.count) {
+        return { tier: ti, min: row.min, max: row.max, local: slot - start };
+      }
+      start += row.count;
+    }
+    const last = PRICE_PYRAMID[PRICE_PYRAMID.length - 1]!;
+    return { tier: PRICE_PYRAMID.length - 1, min: last.min, max: last.max, local: 0 };
+  }
+
+  /** 可复现的 [0,1) 伪随机，避免 seed 每次跑数据飘太多 */
+  function det01(salt: number) {
+    let x = (salt >>> 0) ^ 0xdeadbeef;
+    x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
+    x = Math.imul(x ^ (x >>> 15), 0x846ca68b);
+    return (x >>> 0) / 4294967296;
+  }
+
+  function priceInPyramidSlot(slot: number) {
+    const { min, max } = pyramidBand(slot);
+    return Math.round(min + det01(slot * 977 + 13331) * (max - min));
+  }
+
+  const PREFIX = ['', '同城', '上门', '企业', '加急', '周末', '远程', '专线'] as const;
+  const CORE: [string, string][] = [
+    ['深度保洁', '家政服务'],
+    ['开荒保洁', '家政服务'],
+    ['月嫂陪护', '家政服务'],
+    ['搬家搬运', '家政服务'],
+    ['油烟机清洗', '家政服务'],
+    ['空调清洗', '家政服务'],
+    ['收纳整理', '家政服务'],
+    ['钟点工', '家政服务'],
+    ['手机换屏', '维修服务'],
+    ['电脑清灰', '维修服务'],
+    ['数据恢复', '维修服务'],
+    ['网络布线', '维修服务'],
+    ['打印机维修', '维修服务'],
+    ['家电维修', '维修服务'],
+    ['监控安装', '技术开发'],
+    ['NAS组网', '技术开发'],
+    ['小程序开发', '技术开发'],
+    ['企业官网', '技术开发'],
+    ['后台接口', '技术开发'],
+    ['UI设计', '设计'],
+    ['电商主图', '设计'],
+    ['短视频剪辑', '设计'],
+    ['平面物料', '设计'],
+    ['LOGO升级', '设计'],
+    ['活动策划', '咨询服务'],
+    ['品牌定位', '咨询服务'],
+    ['合同审查', '法律法务'],
+    ['劳动仲裁', '法律法务'],
+    ['商标注册', '法律法务'],
+    ['代账报税', '财务税务'],
+    ['审计配合', '财务税务'],
+    ['雅思口语', '教育培训'],
+    ['考研数学', '教育培训'],
+    ['公考面试', '教育培训'],
+    ['钢琴陪练', '教育培训'],
+    ['健身私教', '健身运动'],
+    ['瑜伽上门', '健身运动'],
+    ['婚礼跟拍', '婚庆摄影'],
+    ['证件照精修', '婚庆摄影'],
+    ['宠物寄养', '宠物服务'],
+    ['训犬指导', '宠物服务'],
+    ['同城跑腿', '同城跑腿'],
+    ['代驾', '汽车服务'],
+    ['年检代办', '汽车服务'],
+    ['验房', '房产相关'],
+    ['租房保洁', '房产相关'],
+    ['除甲醛检测', '环保检测'],
+    ['开锁换锁', '维修服务'],
+    ['管道疏通', '维修服务'],
+    ['心理咨询', '心理咨询'],
+    ['留学文书', '留学出国'],
+    ['同声翻译', '翻译语言'],
+    ['年会布置', '企业服务'],
+    ['仓储分拣', '仓储物流'],
+    ['跨境拍摄', '电商运营'],
+    ['直播代运营', '电商运营'],
+    ['私域搭建', '电商运营'],
+    ['农机检修', '三农服务'],
+    ['茶艺体验', '茶艺文化'],
+    ['潜水体验', '旅游出行'],
+    ['陪诊取药', '医疗健康'],
+    ['慢病饮食指导', '医疗健康'],
+    ['小儿推拿', '医疗健康'],
+    ['针灸推拿', '医疗健康'],
+    ['主持司仪', '婚庆摄影'],
+    ['化妆跟妆', '婚庆摄影'],
+    ['家庭私厨', '美食餐饮'],
+    ['团建拓展', '企业服务'],
+    ['猎头寻访', '企业服务'],
+    ['社保代缴', '企业服务'],
+    ['ISO体系辅导', '咨询服务'],
+    ['高企材料', '咨询服务'],
+    ['专利撰写', '法律法务'],
+    ['软著加急', '法律法务'],
+    ['配音配乐', '设计'],
+    ['三维建模', '设计'],
+    ['室内效果图', '设计'],
+    ['工装施工图', '设计'],
+    ['弱电智能化', '技术开发'],
+    ['服务器上架', '技术开发'],
+    ['渗透测试', '技术开发'],
+    ['等保整改', '技术开发'],
+    ['跨境电商申诉', '电商运营'],
+    ['独立站搭建', '电商运营'],
+    ['Shopify装修', '电商运营'],
+    ['红酒侍酒', '美食餐饮'],
+    ['法餐家宴', '美食餐饮'],
+    ['烘焙私教', '教育培训'],
+    ['游泳私教', '健身运动'],
+    ['羽毛球陪练', '健身运动'],
+    ['网球陪练', '健身运动'],
+    ['吉他入门', '教育培训'],
+    ['古筝陪练', '教育培训'],
+    ['日语口语', '教育培训'],
+    ['韩语入门', '教育培训'],
+    ['西语翻译', '翻译语言'],
+    ['同传设备租', '翻译语言'],
+    ['展会搭建', '企业服务'],
+    ['灯光音响', '婚庆摄影'],
+    ['航拍测绘', '设计'],
+    ['企业宣传片', '设计'],
+    ['绿植租摆', '家政服务'],
+    ['大理石结晶', '家政服务'],
+    ['外墙清洗', '家政服务'],
+    ['地毯清洗', '家政服务'],
+    ['沙发护理', '家政服务'],
+    ['床垫除螨', '家政服务'],
+    ['净水换芯', '维修服务'],
+    ['地暖清洗', '维修服务'],
+    ['智能门锁安装', '维修服务'],
+    ['充电桩报装', '汽车服务'],
+    ['汽车美容', '汽车服务'],
+    ['四轮定位', '汽车服务'],
+    ['钣金喷漆', '汽车服务'],
+    ['道路救援', '汽车服务'],
+    ['新车装潢', '汽车服务'],
+    ['法拍尽调', '房产相关'],
+    ['民宿代运营', '房产相关'],
+    ['商铺转让', '房产相关'],
+    ['商标注册驳回', '法律法务'],
+    ['专利申请加快', '法律法务'],
+    ['离婚财产分割', '法律法务'],
+    ['交通事故理赔', '法律法务'],
+    ['遗嘱公证咨询', '法律法务'],
+    ['股权设计', '财务税务'],
+    ['投融资对接', '财务税务'],
+    ['跨境收款合规', '财务税务'],
+    ['亚马逊申诉', '电商运营'],
+    ['TikTok起号', '电商运营'],
+    ['小红书运营', '电商运营'],
+    ['信息流投放', '电商运营'],
+    ['SEO优化', '电商运营'],
+    ['SEM托管', '电商运营'],
+    ['客服外包', '企业服务'],
+    ['仓拣打包', '仓储物流'],
+    ['冷链城配', '仓储物流'],
+    ['报关清关', '仓储物流'],
+    ['研学导师', '教育培训'],
+    ['夏令营带队', '教育培训'],
+    ['围棋象棋陪练', '教育培训'],
+    ['马术体验', '旅游出行'],
+    ['滑雪教练', '旅游出行'],
+    ['潜水考证', '旅游出行'],
+    ['剧本杀主持', '影音娱乐'],
+    ['电竞陪练', '影音娱乐'],
+    ['游戏代练', '影音娱乐'],
+    ['汉服妆造', '婚庆摄影'],
+    ['宝宝百天照', '婚庆摄影'],
+    ['形象照拍摄', '婚庆摄影'],
+    ['企业团险', '咨询服务'],
+    ['个人养老金规划', '咨询服务'],
+    ['港股打新指导', '咨询服务'],
+    ['房贷降息置换', '咨询服务'],
+    ['公积金提取咨询', '咨询服务'],
+    ['落户积分规划', '咨询服务'],
+    ['学区政策解读', '咨询服务'],
+    ['白蚁防治', '家政服务'],
+    ['四害消杀', '家政服务'],
+    ['石材打蜡', '家政服务'],
+    ['泳池水质维护', '家政服务'],
+    ['有机蔬菜配送', '三农服务'],
+    ['大棚温控改造', '三农服务'],
+    ['冷库维保', '维修服务'],
+    ['叉车考证培训', '教育培训'],
+    ['电工证复审', '教育培训'],
+    ['食品安全体系', '咨询服务'],
+    ['人力资源外包', '企业服务'],
+    ['劳务派遣对接', '企业服务'],
+    ['无形资产评估', '财务税务'],
+    ['软著加急办理', '法律法务'],
+    ['ICP备案咨询', '技术开发'],
+    ['等保测评陪同', '技术开发'],
+    ['大模型私有化部署', '技术开发'],
+    ['智能家居场景', '技术开发'],
+    ['家庭影院调校', '设计'],
+    ['钢琴搬运上楼', '家政服务'],
+    ['古董包装运输', '家政服务'],
+    ['艺术品装裱', '设计'],
+    ['老人手机教学', '教育培训'],
+    ['电脑病毒查杀', '维修服务'],
+    ['硬盘开盘恢复', '维修服务'],
+    ['K8s故障排查', '技术开发'],
+    ['CI/CD搭建', '技术开发'],
+    ['APP上架辅导', '技术开发'],
+    ['Flutter维护', '技术开发'],
+    ['钉钉流程配置', '企业服务'],
+    ['飞书审批流', '企业服务'],
+    ['企业微信存档', '企业服务'],
+    ['SQLServer迁移', '技术开发'],
+    ['Oracle调优', '技术开发'],
+    ['MongoDB分片', '技术开发'],
+    ['Redis哨兵', '技术开发'],
+    ['Kafka排查', '技术开发'],
+    ['ES检索优化', '技术开发'],
+    ['BI看板定制', '技术开发'],
+    ['PowerBI培训', '教育培训'],
+    ['SAP顾问驻场', '企业服务'],
+    ['用友实施', '企业服务'],
+    ['WMS上线', '技术开发'],
+    ['TMS对接', '技术开发'],
+    ['餐饮扫码点餐', '技术开发'],
+    ['美业预约系统', '技术开发'],
+    ['洗车会员系统', '技术开发'],
+    ['停车场道闸', '技术开发'],
+    ['光伏清洗', '环保检测'],
+    ['储能电站运维', '维修服务'],
+    ['电梯年检代办', '咨询服务'],
+    ['锅炉工证复审', '教育培训'],
+    ['无损检测UT', '维修服务'],
+    ['3D打印手板', '设计'],
+    ['CNC加工制图', '技术开发'],
+    ['机械装配指导', '维修服务'],
+    ['液压系统检修', '维修服务'],
+    ['空压机维保', '维修服务'],
+    ['冷水机组清洗', '维修服务'],
+    ['中央空调水处理', '维修服务'],
+    ['洁净室检测', '环保检测'],
+    ['实验室搬迁', '家政服务'],
+    ['环评验收陪同', '环保检测'],
+    ['排污许可证', '咨询服务'],
+    ['水土保持方案', '咨询服务'],
+    ['林地使用手续', '咨询服务'],
+    ['渔船检验代办', '咨询服务'],
+    ['游艇驾照培训', '教育培训'],
+    ['潜水OW考证', '教育培训'],
+    ['水肺装备保养', '维修服务'],
+    ['鱼缸造景维护', '家政服务'],
+    ['锦鲤病诊治', '宠物服务'],
+    ['猫疫苗驱虫', '宠物服务'],
+    ['犬行为纠正', '宠物服务'],
+    ['马房清理', '宠物服务'],
+    ['沙漠越野向导', '旅游出行'],
+    ['高原徒步保障', '旅游出行'],
+    ['雪山攀登协作', '旅游出行'],
+    ['攀岩保护员', '健身运动'],
+    ['蹦极地陪', '旅游出行'],
+    ['跳伞教练陪同', '旅游出行'],
+    ['滑翔伞旅飞', '旅游出行'],
+  ];
+
+  const syntheticCatalog = PREFIX.flatMap((p) =>
+    CORE.map(([name, cat]) => ({
+      title: `${p}${name}`,
+      cat,
+      desc: `${name}相关需求；时间与报价可商议。`,
+    })),
+  );
+
+  type DemandSeedRow = {
+    title: string;
+    desc: string;
+    price: number;
+    cat: string;
+  taxonomyLeafId: string;
+    type: 'ONLINE' | 'OFFLINE';
+    lat?: number;
+    lng?: number;
+  };
+
+const CATEGORY_TO_LEAVES: Record<string, readonly string[]> = {
+  '设计': ['on-d-logo', 'on-d-ui', 'on-d-pack', 'on-d-video', 'on-d-3d', 'on-d-photo', 'on-m-voice'],
+  '技术开发': ['on-t-web', 'on-t-mini', 'on-t-app', 'on-t-api', 'on-t-data', 'on-t-cloud', 'on-t-sec', 'off-r-net'],
+  '教育培训': ['on-e-lang', 'on-e-k12', 'on-e-cert', 'on-e-it', 'on-e-art', 'on-e-sport', 'off-b-train', 'off-s-interview'],
+  '咨询服务': ['on-p-strat', 'on-p-comp', 'on-m-copy', 'off-b-iso', 'off-f-org'],
+  '家政服务': ['off-l-daily', 'off-l-deep', 'off-l-acs', 'off-l-move', 'off-l-baby', 'off-he-pest', 'off-w-nail', 'off-w-skin', 'off-p-plant'],
+  '维修服务': ['off-r-phone', 'off-r-pc', 'off-r-appliance', 'off-r-plumb', 'off-r-lock', 'off-f-cold'],
+  '法律法务': ['on-p-law', 'on-p-ip'],
+  '财务税务': ['on-p-tax'],
+  '电商运营': ['on-ec-shop', 'on-ec-live', 'on-ec-seo', 'on-ec-pr', 'on-ec-cross'],
+  '健身运动': ['off-t-climb'],
+  '婚庆摄影': ['off-b-photo', 'off-w-photo', 'off-w-makeup', 'off-w-host', 'off-w-dress'],
+  '宠物服务': ['off-p-board', 'off-p-walk', 'off-p-train', 'off-p-vet', 'off-p-fish'],
+  '汽车服务': ['off-c-wash', 'off-c-beauty', 'off-c-repair', 'off-c-rescue', 'off-c-pile', 'off-c-driver', 'off-t-driver'],
+  '房产相关': ['off-he-check', 'off-he-rent', 'off-he-bnb', 'off-he-law'],
+  '环保检测': ['off-he-air'],
+  '心理咨询': ['off-h-psy'],
+  '留学出国': ['off-s-paper', 'off-s-visa'],
+  '翻译语言': ['off-lang-doc', 'off-lang-escort', 'off-lang-sim'],
+  '企业服务': ['on-p-hr', 'off-b-event', 'off-b-hr'],
+  '仓储物流': ['off-b-logi'],
+  '三农服务': ['off-f-machine', 'off-f-greenhouse'],
+  '茶艺文化': ['off-l-tea', 'off-tea-class', 'off-tea-party'],
+  '旅游出行': ['off-t-guide', 'off-t-ski', 'off-t-dive', 'off-t-camp'],
+  '医疗健康': ['off-h-clinic', 'off-h-massage', 'off-h-tcm', 'off-h-diet'],
+  '美食餐饮': ['off-l-chef', 'off-coffee'],
+};
+
+const ONLINE_LEAF_FALLBACK = ['on-d-logo', 'on-t-web', 'on-e-lang', 'on-p-law', 'on-ec-shop', 'on-m-game'] as const;
+const OFFLINE_LEAF_FALLBACK = ['off-l-daily', 'off-r-phone', 'off-h-clinic', 'off-c-wash', 'off-he-check', 'off-b-event', 'off-w-photo', 'off-p-board'] as const;
+
+function pickTaxonomyLeaf(cat: string, type: 'ONLINE' | 'OFFLINE', salt: number): string {
+  const leaves = CATEGORY_TO_LEAVES[cat];
+  if (leaves && leaves.length > 0) return leaves[salt % leaves.length]!;
+  const fallback = type === 'ONLINE' ? ONLINE_LEAF_FALLBACK : OFFLINE_LEAF_FALLBACK;
+  return fallback[salt % fallback.length]!;
+}
+
+  function demandRowForIndex(i: number): DemandSeedRow {
+    const base = demandTemplates[i % demandTemplates.length];
+    const isCompleted = i < COMPLETED_WITH_ORDER;
+    if (isCompleted) {
+      return {
+        title: base.title,
+        desc: base.desc,
+        price: base.price,
+        cat: base.cat,
+        taxonomyLeafId: pickTaxonomyLeaf(base.cat, base.type, i),
+        type: base.type,
+        lat: base.lat,
+        lng: base.lng,
+      };
+    }
+    const j = i - COMPLETED_WITH_ORDER;
+    const online = j % 2 === 0;
+    const band = pyramidBand(j);
+    const catIdx = (j * 13 + band.tier * 41) % syntheticCatalog.length;
+    const entry = syntheticCatalog[catIdx]!;
+    const price = priceInPyramidSlot(j);
+    const desc = `${entry.desc} 起标价 ¥${price}。`;
+    if (online) {
+      return {
+        title: entry.title,
+        desc,
+        price,
+        cat: entry.cat,
+        taxonomyLeafId: pickTaxonomyLeaf(entry.cat, 'ONLINE', j),
+        type: 'ONLINE',
+      };
+    }
+    const lat = 39.88 + (j % 14) * 0.015;
+    const lng = 116.32 + (j % 14) * 0.018;
+    return {
+      title: entry.title,
+      desc,
+      price,
+      cat: entry.cat,
+      taxonomyLeafId: pickTaxonomyLeaf(entry.cat, 'OFFLINE', j),
+      type: 'OFFLINE',
+      lat,
+      lng,
+    };
+  }
+
+  for (let i = 0; i < COMPLETED_WITH_ORDER; i++) {
+    const t = demandRowForIndex(i);
     const posterIdx = i % 14;
     const posterPhone = phoneFromUserIndex(posterIdx);
     const posterId = users[posterPhone];
     if (!posterId) continue;
-
-    const isCompleted = i < COMPLETED_WITH_ORDER;
 
     const d = await prisma.demand.create({
       data: {
@@ -121,59 +505,93 @@ async function main() {
         description: t.desc,
         minPrice: t.price,
         category: t.cat,
+        taxonomyLeafId: t.taxonomyLeafId,
         serviceType: t.type,
-        locationLat: t.lat || null,
-        locationLng: t.lng || null,
+        locationLat: t.lat ?? null,
+        locationLng: t.lng ?? null,
         cityCode: testUsers[posterIdx].cityCode,
         expireAt: future,
-        status: isCompleted ? 'COMPLETED' : 'PENDING',
-        applicantCount: isCompleted ? 1 : 0,
+        status: 'COMPLETED',
+        applicantCount: 1,
       },
     });
-    demandIds.push(d.id);
 
-    if (isCompleted) {
-      let providerIdx = (posterIdx + 10) % testUsers.length;
-      if (providerIdx === posterIdx) providerIdx = (providerIdx + 1) % testUsers.length;
-      const providerPhone = phoneFromUserIndex(providerIdx);
-      const providerId = users[providerPhone];
-      if (!providerId) continue;
+    let providerIdx = (posterIdx + 10) % testUsers.length;
+    if (providerIdx === posterIdx) providerIdx = (providerIdx + 1) % testUsers.length;
+    const providerPhone = phoneFromUserIndex(providerIdx);
+    const providerId = users[providerPhone];
+    if (!providerId) continue;
 
-      // Create accepted application
-      await prisma.demandApplication.create({
-        data: {
-          demandId: d.id,
-          userId: providerId,
-          offerPrice: t.price * 0.9,
-          message: `我做过类似的项目，可以高质量完成`,
-          isSnatched: i % 2 === 0,
-          status: 'ACCEPTED',
-        },
-      });
+    await prisma.demandApplication.create({
+      data: {
+        demandId: d.id,
+        userId: providerId,
+        offerPrice: t.price * 0.9,
+        message: `我做过类似的项目，可以高质量完成`,
+        isSnatched: i % 2 === 0,
+        status: 'ACCEPTED',
+      },
+    });
 
-      // Create completed order
-      await prisma.order.create({
-        data: {
-          demandId: d.id,
-          providerId,
-          requesterId: posterId,
-          agreedPrice: t.price * 0.9,
-          status: 'COMPLETED',
-          paidAt: new Date(now.getTime() - 3600000),
-          completedAt: now,
-        },
-      });
+    await prisma.order.create({
+      data: {
+        demandId: d.id,
+        providerId,
+        requesterId: posterId,
+        agreedPrice: t.price * 0.9,
+        status: 'COMPLETED',
+        paidAt: new Date(now.getTime() - 3600000),
+        completedAt: now,
+      },
+    });
 
-      // System message
-      await prisma.message.create({
-        data: {
-          fromUserId: posterId,
-          toUserId: providerId,
-          content: `订单完成：${t.title}，成交价 ¥${t.price * 0.9}`,
-          type: 'SYSTEM',
-        },
+    await prisma.message.create({
+      data: {
+        fromUserId: posterId,
+        toUserId: providerId,
+        content: `订单完成：${t.title}，成交价 ¥${t.price * 0.9}`,
+        type: 'SYSTEM',
+      },
+    });
+  }
+
+  const BATCH = 200;
+  for (let start = COMPLETED_WITH_ORDER; start < TOTAL_DEMANDS; start += BATCH) {
+    const end = Math.min(TOTAL_DEMANDS, start + BATCH);
+    const rows: import('@prisma/client').Prisma.DemandCreateManyInput[] = [];
+    for (let i = start; i < end; i++) {
+      const t = demandRowForIndex(i);
+      const posterIdx = i % 14;
+      const posterPhone = phoneFromUserIndex(posterIdx);
+      const posterId = users[posterPhone];
+      if (!posterId) continue;
+      rows.push({
+        userId: posterId,
+        title: t.title,
+        description: t.desc,
+        minPrice: t.price,
+        category: t.cat,
+        taxonomyLeafId: t.taxonomyLeafId,
+        serviceType: t.type,
+        locationLat: t.lat ?? null,
+        locationLng: t.lng ?? null,
+        cityCode: testUsers[posterIdx].cityCode,
+        expireAt: future,
+        status: 'PENDING',
+        applicantCount: 0,
+        isPublic: true,
+        mediaUrls: [],
       });
     }
+    if (rows.length) await prisma.demand.createMany({ data: rows });
+  }
+
+  const pendingAfter = await prisma.demand.count({ where: { status: 'PENDING' } });
+  const completedAfter = await prisma.demand.count({ where: { status: 'COMPLETED' } });
+  if (pendingAfter !== PENDING_TOTAL) {
+    throw new Error(
+      `Seed 校验失败：PENDING 应为 ${PENDING_TOTAL} 条，实际 ${pendingAfter} 条（COMPLETED=${completedAfter}）。请检查数据库连接或 createMany 报错。`,
+    );
   }
 
   // Create a sample circle with some users
@@ -223,7 +641,9 @@ async function main() {
 
   console.log('=== Seed Complete ===');
   console.log(`20 test users (phone 13800000001-13800000020, password 1); 前14位有个人中心 coverUrl`);
-  console.log(`${TOTAL_DEMANDS} demands (${COMPLETED_WITH_ORDER} COMPLETED with orders, ${TOTAL_DEMANDS - COMPLETED_WITH_ORDER} PENDING in feed)`);
+  console.log(
+    `${TOTAL_DEMANDS} demands (${COMPLETED_WITH_ORDER} COMPLETED with orders, ${TOTAL_DEMANDS - COMPLETED_WITH_ORDER} PENDING)；库内复查 PENDING=${pendingAfter}`,
+  );
   console.log(`1 public circle with 4 members`);
   console.log(`6 shorts for casual explore feed`);
   console.log(`SMS code: 123456`);

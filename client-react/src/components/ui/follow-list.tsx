@@ -173,7 +173,7 @@ export function FollowList({
                     <button
                       onClick={() => toggleFollow(u)}
                       className={cn(
-                        'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+                        'px-3 py-1.5 rounded-lg text-xs font-semibold transition-[color,background-color,border-color]',
                         u.isFollowing
                           ? cn(
                               'text-text-muted border',

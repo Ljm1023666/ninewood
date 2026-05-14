@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom'
 
 interface ChatNavBarProps {
   nickname: string
+  userId?: string
   className?: string
 }
 
-export function ChatNavBar({ nickname, className }: ChatNavBarProps) {
+export function ChatNavBar({ nickname, userId, className }: ChatNavBarProps) {
   const navigate = useNavigate()
   return (
     <div
@@ -28,9 +29,12 @@ export function ChatNavBar({ nickname, className }: ChatNavBarProps) {
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
-      <span className="text-base font-semibold text-text-primary max-w-[50%] overflow-hidden text-ellipsis whitespace-nowrap">
+      <button
+        onClick={() => userId && navigate(`/profile/${userId}`)}
+        className="text-base font-semibold text-text-primary max-w-[50%] overflow-hidden text-ellipsis whitespace-nowrap bg-transparent border-none cursor-pointer hover:underline"
+      >
         {nickname}
-      </span>
+      </button>
       <button className="w-10 h-10 flex items-center justify-center bg-transparent border-none text-text-primary cursor-pointer rounded-full hover:bg-bg-tertiary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="5" r="2" />

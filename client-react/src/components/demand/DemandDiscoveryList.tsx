@@ -16,6 +16,7 @@ export type DemandRow = {
   title: string
   minPrice: number
   category: string
+  taxonomyLeafId?: string | null
   serviceType: string
   applicantCount: number
   createdAgo?: string
@@ -28,9 +29,9 @@ export type DemandRow = {
   }
 }
 
-const PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 20
 
-function DemandCardInner({ d }: { d: DemandRow }) {
+export function DemandCardInner({ d }: { d: DemandRow }) {
   const isDark = useThemeStore((s) => s.current.dark)
   return (
     <div className="flex gap-3">
@@ -98,27 +99,52 @@ type ServiceFilter = 'ALL' | 'ONLINE' | 'OFFLINE'
 
 /** 与 URL / 首屏解析一致的 keyword + serviceType，驱动需求列表与分页 */
 export function DemandDiscoveryList({
+  listScope,
   keyword,
   serviceType,
   scrollRootRef,
   className,
+  interactionMode,
+  layoutVariant,
+  desktopGridRowCount,
+  onDesktopGridRowCountChange,
+  onDemandRowRecurse,
+  paginationMode = 'infinite',
+  pageSize = DEFAULT_PAGE_SIZE,
 }: {
+  listScope?: Record<string, string>
   keyword: string
   serviceType: ServiceFilter
   scrollRootRef: React.RefObject<HTMLElement | null>
   className?: string
+  interactionMode?: 'default' | 'cardPoolDesktop'
+  layoutVariant?: 'list' | 'grid'
+  desktopGridRowCount?: number
+  onDesktopGridRowCountChange?: (n: number) => void
+  onDemandRowRecurse?: (d: DemandRow) => void
+  paginationMode?: 'infinite' | 'paged'
+  pageSize?: number
 }) {
+  void interactionMode
+  void layoutVariant
+  void desktopGridRowCount
+  void onDesktopGridRowCountChange
+  void onDemandRowRecurse
   const navigate = useNavigate()
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   const fetchPage = useCallback(
     async (page: number) => {
       const kw = keyword.trim()
-      const r = await demandApi.list({
+      const apiParams: Record<string, string | number> = {
+        ...(listScope ?? {}),
         page,
-        limit: PAGE_SIZE,
-        ...(kw ? { keyword: kw } : {}),
-        ...(serviceType !== 'ALL' ? { serviceType } : {}),
+        limit: pageSize,
+      }
+      if (kw) apiParams.keyword = kw
+      if (serviceType !== 'ALL') apiParams.serviceType = serviceType
+      const r = await demandApi.list({
+        ...apiParams,
       })
       return r.data.data as {
         demands: DemandRow[]
@@ -127,11 +153,20 @@ export function DemandDiscoveryList({
         totalPages: number
       }
     },
-    [keyword, serviceType],
+    [keyword, serviceType, listScope, pageSize],
   )
 
-  const { items, loading, error, hasMore, loadMore } =
-    usePagination<DemandRow>(fetchPage)
+  const {
+    items,
+    loading,
+    error,
+    hasMore,
+    loadMore,
+    goToPage,
+    page,
+    totalPages,
+    totalCount,
+  } = usePagination<DemandRow>(fetchPage)
 
   const loadMoreRef = useRef(loadMore)
   const hasMoreRef = useRef(hasMore)
@@ -141,11 +176,16 @@ export function DemandDiscoveryList({
   loadingUiRef.current = loading
 
   useEffect(() => {
+    if (paginationMode === 'paged') {
+      void goToPage(1)
+      return
+    }
     void loadMore(true)
-  }, [keyword, serviceType, loadMore])
+  }, [keyword, serviceType, loadMore, goToPage, paginationMode])
 
   /** 勿把 loading/hasMore 放进依赖：否则会反复 disconnect 观察器，在 rootMargin 下 sentinel 常相交，导致连续 loadMore 拉完全部分页 */
   useLayoutEffect(() => {
+    if (paginationMode === 'paged') return
     const root = scrollRootRef.current
     const target = sentinelRef.current
     if (!root || !target) return
@@ -159,10 +199,11 @@ export function DemandDiscoveryList({
     )
     io.observe(target)
     return () => io.disconnect()
-  }, [scrollRootRef])
+  }, [scrollRootRef, paginationMode])
 
   /** loading 结束时 IntersectionObserver 可能因比例未变不发事件，补一次几何检测以继续翻页（仍受 usePagination 内 loadingRef 去重） */
   useEffect(() => {
+    if (paginationMode === 'paged') return
     if (loading || !hasMore) return
     let cancelled = false
     const id = requestAnimationFrame(() => {
@@ -173,8 +214,7 @@ export function DemandDiscoveryList({
       const rr = root.getBoundingClientRect()
       const tr = target.getBoundingClientRect()
       const margin = 48
-      const near =
-        tr.top <= rr.bottom + margin && tr.bottom >= rr.top - margin
+      const near = tr.top <= rr.bottom + margin && tr.bottom >= rr.top - margin
       if (near && hasMoreRef.current && !loadingUiRef.current)
         void loadMoreRef.current()
     })
@@ -182,7 +222,7 @@ export function DemandDiscoveryList({
       cancelled = true
       cancelAnimationFrame(id)
     }
-  }, [loading, hasMore, scrollRootRef])
+  }, [loading, hasMore, scrollRootRef, paginationMode])
 
   return (
     <div className={cn('flex w-full flex-col', className)}>
@@ -245,11 +285,45 @@ export function DemandDiscoveryList({
       {loading && items.length > 0 ? (
         <p className="py-6 text-center text-xs text-text-muted">加载更多…</p>
       ) : null}
-      {!hasMore && items.length > 0 ? (
+      {!hasMore && items.length > 0 && paginationMode === 'infinite' ? (
         <p className="py-6 text-center text-xs text-text-muted">没有更多了</p>
       ) : null}
 
-      <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
+      {paginationMode === 'paged' && totalPages > 1 ? (
+        <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
+          <span className="text-xs text-text-muted">
+            第 {page}/{totalPages} 页 · 共 {totalCount} 条
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={loading || page <= 1}
+              onClick={() => {
+                if (page > 1) void goToPage(page - 1)
+              }}
+            >
+              上一页
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={loading || page >= totalPages}
+              onClick={() => {
+                if (page < totalPages) void goToPage(page + 1)
+              }}
+            >
+              下一页
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {paginationMode === 'infinite' ? (
+        <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
+      ) : null}
     </div>
   )
 }

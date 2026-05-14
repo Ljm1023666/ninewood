@@ -75,7 +75,7 @@ const liquidbuttonVariants = cva(
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 text-xs gap-1.5 px-4 has-[>svg]:px-4',
+        sm: 'h-8 text-xs gap-2 px-4 has-[>svg]:px-4',
         lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
         xl: 'h-12 rounded-md px-8 has-[>svg]:px-6',
         xxl: 'h-14 rounded-md px-10 has-[>svg]:px-8',
@@ -148,7 +148,7 @@ function LiquidButton({
         )}
       >
         <div
-          className={`pointer-events-none absolute inset-0 z-0 transition-all ${GLASS_SHADOW}`}
+          className={`pointer-events-none absolute inset-0 z-0 transition-[box-shadow,opacity] duration-200 ease-out ${GLASS_SHADOW}`}
           style={{ borderRadius: 'inherit' }}
         />
         <div
@@ -177,7 +177,7 @@ function LiquidButton({
       {...props}
     >
       <div
-        className={`pointer-events-none absolute inset-0 z-0 transition-all ${GLASS_SHADOW}`}
+        className={`pointer-events-none absolute inset-0 z-0 transition-[box-shadow,opacity] duration-200 ease-out ${GLASS_SHADOW}`}
         style={{ borderRadius: 'inherit' }}
       />
       <div
@@ -294,8 +294,7 @@ function metalButtonVariants(
     innerStyle: {
       transition: t,
       transformOrigin: 'center center',
-      filter:
-        isHovered && !isPressed ? 'brightness(1.05)' : 'none',
+      filter: isHovered && !isPressed ? 'brightness(1.05)' : 'none',
     },
     button: cn(
       'relative z-10 m-[1px] inline-flex h-11 transform-gpu cursor-pointer items-center justify-center overflow-hidden rounded-[inherit] px-6 py-2 text-sm leading-none font-semibold will-change-transform outline-none',
@@ -307,8 +306,7 @@ function metalButtonVariants(
       transform: isPressed ? 'scale(0.97)' : 'scale(1)',
       transition: t,
       transformOrigin: 'center center',
-      filter:
-        isHovered && !isPressed ? 'brightness(1.02)' : 'none',
+      filter: isHovered && !isPressed ? 'brightness(1.02)' : 'none',
     },
   }
 }

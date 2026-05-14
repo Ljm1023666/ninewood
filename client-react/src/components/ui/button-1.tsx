@@ -234,7 +234,11 @@ const GradientSvg: React.FC<GradientSvgProps> = ({
                   offset: stopConfigs.map((c) => c.offset),
                   stopColor: stopConfigs.map((c) => c.stopColor),
                 }}
-                transition={{ duration: 0, ease: 'linear' as const, repeat: Infinity }}
+                transition={{
+                  duration: 0,
+                  ease: 'linear' as const,
+                  repeat: Infinity,
+                }}
               />
             </AnimatePresence>
           ))}
@@ -303,7 +307,7 @@ export function LiquidNavButton({
       to={to}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="relative flex min-h-[48px] w-12 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl transition-all duration-300"
+      className="relative flex min-h-[48px] w-12 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl transition-[color,background-color,box-shadow] duration-300"
     >
       {({ isActive }) => (
         <>
@@ -338,7 +342,7 @@ export function LiquidNavButton({
           >
             <div
               className={cn(
-                'transition-all duration-300',
+                'transition-[filter,opacity] duration-300',
                 isActive && 'drop-shadow-[0_0_6px_rgba(0,0,0,0.15)]',
               )}
             >
