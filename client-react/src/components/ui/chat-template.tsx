@@ -47,9 +47,7 @@ import {
   Menu,
   MessageCircle,
   MessageSquareDot,
-  Mic,
   Paperclip,
-  Phone,
   Search,
   Send,
   Settings,
@@ -59,11 +57,9 @@ import {
   User2,
   UserRound,
   Users,
-  Video,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { toast } from '@/components/ui/confirm-dialog'
 
 /** 与模板一致的联系人条目（应用侧可带 id 用于路由） */
 export type TemplateContact = {
@@ -262,35 +258,6 @@ export function TemplateChatRightShell({
             </CardTitle>
           </div>
         )}
-        <div className="flex shrink-0 justify-end gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            title="视频通话"
-            onClick={() => toast('视频通话暂未开放')}
-          >
-            <Video className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            title="语音通话"
-            onClick={() => toast('语音通话暂未开放')}
-          >
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            title="搜索聊天记录"
-            onClick={() => toast('搜索暂未开放')}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -302,7 +269,7 @@ export function TemplateChatRightShell({
   )
 }
 
-/** 与模板一致的输入条（图标 + 下拉 + Input + Send + Mic） */
+/** 与模板一致的输入条（图标 + 下拉 + Input + Send） */
 export function TemplateChatInputRow({
   inputProps,
   onSendClick,
@@ -358,14 +325,6 @@ export function TemplateChatInputRow({
       />
       <Button variant="ghost" size="icon" type="button" onClick={onSendClick}>
         <Send />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        type="button"
-        onClick={() => toast('语音输入暂未开放')}
-      >
-        <Mic />
       </Button>
     </div>
   )

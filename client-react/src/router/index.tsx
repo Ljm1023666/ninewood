@@ -4,8 +4,6 @@ import Layout from '@/components/layout/Layout'
 import Home from '@/views/Home'
 import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
-import SplineDemoPage from '@/views/SplineDemo'
-import InfoCardDemoPage from '@/views/InfoCardDemo'
 import LoginPage from '@/views/Login'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
@@ -92,8 +90,6 @@ export const router = createBrowserRouter([
             ),
           },
           { path: 'settings', element: <Settings /> },
-          { path: 'spline', element: <SplineDemoPage /> },
-          { path: 'info-card', element: <InfoCardDemoPage /> },
           {
             path: 'discover',
             element: (

@@ -2,7 +2,7 @@
 
 /* 字体在 index.html 中通过 <link> 加载，避免出现在 @import tailwindcss 之后的 @import（违反 CSS 规则顺序） */
 
-/* ── 设计 Token（迁移自 Vue global.css）── */
+/* ── 设计 Token（来自历史全局样式）── */
 :root {
   --sidebar-w: 72px;
   --content-max-w: 720px;
@@ -139,16 +139,16 @@ html, body {
 /* 玻璃态 */
 .glass {
   background: var(--bg-card);
-  backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
 }
 
 .glass-card {
   background: var(--bg-card);
-  backdrop-filter: blur(calc(var(--glass-blur) + 4px));
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  backdrop-filter: blur(calc(var(--glass-blur) + 4px));
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
@@ -199,8 +199,8 @@ html, body {
     #991b1b 100%
   );
   background-size: 220% 100%;
-  background-clip: text;
   -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
   animation: flip-card-price-shimmer 3.2s linear infinite;
@@ -387,7 +387,7 @@ html, body {
 .animate-slideLeft { animation: slideLeft 0.35s ease-out both; }
 .animate-slideRight { animation: slideRight 0.35s ease-out both; }
 
-/* Spline 加载器 */
+/* 通用加载器 */
 .loader {
   width: 48px;
   height: 48px;
@@ -424,7 +424,7 @@ html, body {
   animation: glowing-search-conic-spin 12s linear infinite;
 }
 
-/* ── InfoCard 演示（/info-card）：--ic-* 避免覆盖全局 --font-family / --border-color ── */
+/* ── InfoCard 主题变量：--ic-* 避免覆盖全局 --font-family / --border-color ── */
 html[data-appearance="light"] {
   --ic-border-1: #ff5613;
   --ic-border-2: #9f4eff;

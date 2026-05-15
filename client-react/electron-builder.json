@@ -1,0 +1,17 @@
+{
+  "appId": "com.ninewood.desktop",
+  "productName": "Ninewood",
+  "directories": {
+    "output": "release"
+  },
+  "files": ["dist/**/*", "electron/**/*", "package.json"],
+  "asar": true,
+  "win": {
+    "target": ["nsis"],
+    "artifactName": "${productName}-${version}-Setup-${arch}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  }
+}
