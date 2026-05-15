@@ -2,10 +2,7 @@ import { useState } from 'react'
 import { Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BlackScope } from '@/components/card-pool/types'
-import {
-  scopeTaxonomySpectrumStyle,
-  scopeTitle,
-} from '@/components/card-pool/scope'
+import { scopeTitle } from '@/components/card-pool/scope'
 
 interface TableDiscardProps {
   discard: BlackScope[]
@@ -36,7 +33,6 @@ export function TableDiscard({ discard, onRestore }: TableDiscardProps) {
       {open ? (
         <div className="flex flex-wrap gap-2">
           {discard.map((card) => {
-            const spectrum = scopeTaxonomySpectrumStyle(card)
             return (
               <div
                 key={`${card.path.join('/')}|${card.leafFilter?.join(',') ?? ''}`}
@@ -44,13 +40,7 @@ export function TableDiscard({ discard, onRestore }: TableDiscardProps) {
                   'flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2',
                 )}
               >
-                <span
-                  className={cn(
-                    'text-xs line-through',
-                    !spectrum && 'text-text-muted',
-                  )}
-                  style={spectrum}
-                >
+                <span className={cn('text-xs line-through', 'text-text-muted')}>
                   {scopeTitle(card)}
                 </span>
                 <button

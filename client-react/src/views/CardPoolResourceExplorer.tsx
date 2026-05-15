@@ -10,15 +10,11 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
-import {
-  TAXONOMY,
-  taxonomySpectrumColorForNodeId,
-} from '@/components/card-pool/taxonomy'
+import { TAXONOMY } from '@/components/card-pool/taxonomy'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
 import {
   nextBlackScopes,
   scopeKey,
-  scopeTaxonomySpectrumStyle,
   scopeTitle,
 } from '@/components/card-pool/scope'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
@@ -98,8 +94,6 @@ function TaxonomyTreePanel({
     const selected = focusPath[focusPath.length - 1] === id
     const pl =
       TREE_INDENT[Math.min(depth, TREE_INDENT.length - 1)] ?? 'pl-[5rem]'
-    const c = taxonomySpectrumColorForNodeId(id)
-    const labelSpectrum = c !== undefined ? { color: c } : undefined
     return (
       <div>
         <div
@@ -142,10 +136,9 @@ function TaxonomyTreePanel({
           )}
           <button
             type="button"
-            style={labelSpectrum}
             className={cn(
               'min-w-0 flex-1 truncate px-1 py-1 text-left text-sm hover:bg-accent/10',
-              !labelSpectrum && 'text-text-primary',
+              'text-text-primary',
             )}
             title={
               kids.length > 0 && id !== 'root'
@@ -199,7 +192,6 @@ function ExplorerDetailsScopeRow({
   const hasKids = nextBlackScopes(s).length > 0
   const n = childTotals[rowKey]
   const isSel = selectedKey === rowKey
-  const spectrum = scopeTaxonomySpectrumStyle(s)
 
   return (
     <>
@@ -232,9 +224,8 @@ function ExplorerDetailsScopeRow({
             <span
               className={cn(
                 'min-w-0 truncate font-medium',
-                !spectrum && 'text-text-primary',
+                'text-text-primary',
               )}
-              style={spectrum}
             >
               {scopeTitle(s)}
             </span>
@@ -363,11 +354,7 @@ function ExplorerDetailsShell({
             onClick={closeCtx}
             aria-hidden
           />
-          <div
-            className="fixed z-[341] min-w-[180px] rounded-md border border-border bg-bg-secondary py-1 text-sm text-foreground shadow-lg ring-1 ring-black/20 backdrop-blur-none"
-            style={{ left: ctx.x, top: ctx.y }}
-            role="menu"
-          >
+          <div className="fixed left-1/2 top-1/2 z-[341] min-w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-bg-secondary py-1 text-sm text-foreground shadow-lg ring-1 ring-black/20 backdrop-blur-none">
             <button
               type="button"
               className="flex w-full px-3 py-2 text-left hover:bg-bg-tertiary"
@@ -649,13 +636,7 @@ export default function CardPoolResourceExplorer() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm text-text-muted">
                     桌面 ·{' '}
-                    <span
-                      className={cn(
-                        !scopeTaxonomySpectrumStyle(desktopOpen.blackScope) &&
-                          'text-text-primary',
-                      )}
-                      style={scopeTaxonomySpectrumStyle(desktopOpen.blackScope)}
-                    >
+                    <span className={cn('text-text-primary')}>
                       {scopeTitle(desktopOpen.blackScope)}
                     </span>
                   </span>

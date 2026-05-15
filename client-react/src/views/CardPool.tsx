@@ -10,7 +10,6 @@ import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import {
   nextBlackScopes,
   scopeKey,
-  scopeTaxonomySpectrumStyle,
   scopeTitle,
 } from '@/components/card-pool/scope'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
@@ -401,13 +400,7 @@ export default function CardPool() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm text-text-muted">
             桌面 ·{' '}
-            <span
-              className={cn(
-                !scopeTaxonomySpectrumStyle(desktopOpen.blackScope) &&
-                  'text-text-primary',
-              )}
-              style={scopeTaxonomySpectrumStyle(desktopOpen.blackScope)}
-            >
+            <span className={cn('text-text-primary')}>
               {scopeTitle(desktopOpen.blackScope)}
             </span>
           </span>
@@ -514,13 +507,7 @@ export default function CardPool() {
         <div className="flex shrink-0 items-center gap-4 border-b border-border bg-muted/10 px-4 py-1.5 text-[11px] text-text-muted">
           <span>
             浏览：
-            <span
-              className={cn(
-                'font-medium',
-                !scopeTaxonomySpectrumStyle(focus) && 'text-text-secondary',
-              )}
-              style={scopeTaxonomySpectrumStyle(focus)}
-            >
+            <span className={cn('font-medium', 'text-text-secondary')}>
               {scopeTitle(focus)}
             </span>
             {browseDemandCount !== null ? (
@@ -547,12 +534,7 @@ export default function CardPool() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm text-text-muted">
                   叶子 ·{' '}
-                  <span
-                    className={cn(
-                      !scopeTaxonomySpectrumStyle(focus) && 'text-text-primary',
-                    )}
-                    style={scopeTaxonomySpectrumStyle(focus)}
-                  >
+                  <span className={cn('text-text-primary')}>
                     {scopeTitle(focus)}
                   </span>
                   {' · 共 '}

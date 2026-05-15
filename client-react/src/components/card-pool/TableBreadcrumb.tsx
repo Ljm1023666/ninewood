@@ -2,10 +2,7 @@ import { Undo2, Redo2, FolderUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { BlackScope } from '@/components/card-pool/types'
-import {
-  scopeCurrentClassificationBasis,
-  scopeTaxonomySpectrumStyle,
-} from '@/components/card-pool/scope'
+import { scopeCurrentClassificationBasis } from '@/components/card-pool/scope'
 import { TAXONOMY } from '@/components/card-pool/taxonomy'
 
 interface TableBreadcrumbProps {
@@ -30,7 +27,6 @@ export function TableBreadcrumb({
   onJumpToPath,
 }: TableBreadcrumbProps) {
   const label = scopeCurrentClassificationBasis(focus)
-  const spectrum = scopeTaxonomySpectrumStyle(focus)
   const pathSegments = focus.path.map((id) => TAXONOMY[id]?.label ?? id)
 
   return (
@@ -92,9 +88,8 @@ export function TableBreadcrumb({
                 <span
                   className={cn(
                     'min-w-0 truncate rounded px-1 py-0.5 font-semibold',
-                    !spectrum && 'text-text-primary',
+                    'text-text-primary',
                   )}
-                  style={spectrum}
                   title={label}
                 >
                   {seg}
@@ -107,9 +102,8 @@ export function TableBreadcrumb({
         <div
           className={cn(
             'min-w-0 flex-1 truncate rounded px-2 py-0.5 text-sm font-semibold',
-            !spectrum && 'text-text-primary',
+            'text-text-primary',
           )}
-          style={spectrum}
           title={label}
         >
           {label}
