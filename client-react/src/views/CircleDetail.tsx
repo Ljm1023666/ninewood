@@ -167,20 +167,16 @@ export default function CircleDetail() {
 
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
-      <div
-        className={cn(
-          'pointer-events-none absolute inset-0 z-0 bg-cover bg-center',
-          !circle.coverUrl &&
-            'bg-gradient-to-br from-primary/15 via-muted to-muted',
-        )}
-        style={
-          circle.coverUrl
-            ? {
-                backgroundImage: `url(${circle.coverUrl})`,
-              }
-            : undefined
-        }
-      />
+      {circle.coverUrl ? (
+        <img
+          src={circle.coverUrl}
+          alt=""
+          className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
+          aria-hidden
+        />
+      ) : (
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-primary/15 via-muted to-muted" />
+      )}
       <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-background/72 to-background" />
       <div className="relative z-10 box-border flex min-h-full w-full max-w-3xl shrink-0 self-center flex-col px-4 pb-16 sm:px-6">
         <div className="h-24 shrink-0 sm:h-28" aria-hidden />

@@ -20,6 +20,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
     frame: true,
     backgroundColor: '#0a0a1a',
@@ -32,7 +33,9 @@ function createWindow() {
     for (let i = 0; i < 10; i++) {
       try {
         await mainWindow.loadURL(devURL);
-        mainWindow.webContents.openDevTools();
+        if (process.env.NODE_ENV !== 'production') {
+          mainWindow.webContents.openDevTools({ mode: 'detach' });
+        }
         return;
       } catch {
         if (i < 9) await new Promise(r => setTimeout(r, 1500));
@@ -44,21 +47,29 @@ function createWindow() {
   loadApp();
 }
 
-ipcMain.on('window:quit', () => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (win) win.close();
+function getSenderWindow(event) {
+  return BrowserWindow.fromWebContents(event.sender) || BrowserWindow.getFocusedWindow();
+}
+
+ipcMain.handle('window:quit', (event) => {
+  const win = getSenderWindow(event);
+  if (!win) return false;
+  win.close();
+  return true;
 });
 
-ipcMain.on('window:minimize', () => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (win) win.minimize();
+ipcMain.handle('window:minimize', (event) => {
+  const win = getSenderWindow(event);
+  if (!win) return false;
+  win.minimize();
+  return true;
 });
 
-ipcMain.on('window:maximize', () => {
-  const win = BrowserWindow.getFocusedWindow();
-  if (win) {
-    win.isMaximized() ? win.unmaximize() : win.maximize();
-  }
+ipcMain.handle('window:maximize', (event) => {
+  const win = getSenderWindow(event);
+  if (!win) return false;
+  win.isMaximized() ? win.unmaximize() : win.maximize();
+  return true;
 });
 
 app.whenReady().then(createWindow);

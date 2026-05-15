@@ -7,7 +7,6 @@ import { ListItemCard } from '@/components/ui/list-item-card'
 import { Button } from '@/components/ui/button'
 import { AcetInvertButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { EmptyState } from '@/components/ui/empty-state'
-import { certColor } from '@/constants/cert'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
 
@@ -30,17 +29,25 @@ export type DemandRow = {
 }
 
 const DEFAULT_PAGE_SIZE = 20
+const CERT_BG_CLASS: Record<string, string> = {
+  NONE: 'bg-gray-500',
+  BASIC: 'bg-blue-500',
+  INTERMEDIATE: 'bg-violet-500',
+  ADVANCED: 'bg-amber-500',
+  MASTER: 'bg-red-500',
+}
 
 export function DemandCardInner({ d }: { d: DemandRow }) {
   const isDark = useThemeStore((s) => s.current.dark)
+  const certLevel = d.user?.certificationLevel ?? 'NONE'
+  const certBgClass = CERT_BG_CLASS[certLevel] ?? CERT_BG_CLASS.NONE
   return (
     <div className="flex gap-3">
       <div
-        className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white"
-        style={{
-          background:
-            certColor[d.user?.certificationLevel ?? 'NONE'] || certColor.NONE,
-        }}
+        className={cn(
+          'flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white',
+          certBgClass,
+        )}
       >
         {d.user?.avatarUrl ? (
           <img
