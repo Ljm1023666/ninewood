@@ -43,6 +43,14 @@
   --transition-normal: 0.3s ease;
   --font-family: 'Montserrat', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono: 'Roboto Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  /* Z-index 层级体系 */
+  --z-base: 1;
+  --z-content: 10;
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+  --z-max: 400;
 }
 
 /* ── Tailwind 主题扩展 ── */
@@ -86,6 +94,14 @@
   --shadow-elevation-1: var(--elevation-1);
   --shadow-elevation-2: var(--elevation-2);
 
+  --z-base: var(--z-base);
+  --z-content: var(--z-content);
+  --z-dropdown: var(--z-dropdown);
+  --z-sticky: var(--z-sticky);
+  --z-overlay: var(--z-overlay);
+  --z-modal: var(--z-modal);
+  --z-max: var(--z-max);
+
   @keyframes shimmer {
     from {
       background-position: 0 0;
@@ -98,6 +114,23 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 全局 focus ring：:where(0 特异性) 确保组件级 focus-visible 样式可覆盖 */
+:where(button, input, select, textarea, [tabindex], [role="button"], a[href]):focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* prefers-reduced-motion：关闭非必要动画 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 html {
   font-size: 106.25%;
@@ -414,6 +447,12 @@ html, body {
 @keyframes voice-wave {
   from { height: 4px; }
   to { height: 24px; }
+}
+
+@keyframes voiceWave {
+  0% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.3); }
 }
 
 @keyframes glowing-search-conic-spin {

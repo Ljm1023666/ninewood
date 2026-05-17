@@ -60,11 +60,7 @@ export default function NewGroupChat() {
   )
 
   function handleDone() {
-    if (selected.length === 1) {
-      const s = selected[0]!
-      navigate(`/messages/${s.id}`, { replace: true })
-      return
-    }
+    if (selected.length === 0) return
     setShowNameDialog(true)
   }
 
@@ -190,7 +186,7 @@ export default function NewGroupChat() {
 
       {/* 群名弹窗 */}
       {showNameDialog && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+        <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowNameDialog(false)}

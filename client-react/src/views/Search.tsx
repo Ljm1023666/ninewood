@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { userApi } from '@/api/user'
-import { certLabel, certColor } from '@/constants/cert'
-import { Search as SearchIcon, X } from 'lucide-react'
-import { AcetBackdropBlurButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { certLabel, certColor, certGlow } from '@/constants/cert'
+import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
+interface SearchUser {
+  id: string
+  nickname: string
+  avatarUrl?: string
+  bio?: string
+  certificationLevel: string
+}
 
 export default function Search() {
   const navigate = useNavigate()
   const [keyword, setKeyword] = useState('')
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<SearchUser[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
 
@@ -27,114 +36,175 @@ export default function Search() {
     }
   }
 
+  function handleClear() {
+    setKeyword('')
+    setResults([])
+    setSearched(false)
+  }
+
+  function getAvatarBgColor(certLevel: string) {
+    return certColor[certLevel as keyof typeof certColor] || '#6b7280'
+  }
+
+  function getCertGlow(certLevel: string) {
+    return certGlow[certLevel as keyof typeof certGlow] || 'none'
+  }
+
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background text-foreground">
       <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-3xl shrink-0 flex-col self-center">
-        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-          <div className="flex flex-1 items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
-            <SearchIcon size={16} className="flex-shrink-0 text-text-muted" />
-            <input
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="搜索用户昵称或手机号"
-              autoFocus
-              className="flex-1 border-none bg-transparent text-[15px] text-text-primary outline-none placeholder:text-text-muted"
-            />
-            {keyword && (
-              <button
-                type="button"
-                aria-label="清空"
-                onClick={() => {
-                  setKeyword('')
-                  setResults([])
-                  setSearched(false)
-                }}
-                className="text-text-muted"
-              >
-                <X size={14} />
-              </button>
-            )}
+        <div className="shrink-0 px-4 py-4 sm:px-6">
+          <div className="mb-1">
+            <h1 className="text-xl font-bold text-text-primary">找人</h1>
+            <p className="text-xs text-text-muted">搜索用户昵称或手机号</p>
           </div>
-          <AcetBackdropBlurButton
-            type="button"
-            onClick={handleSearch}
-            className="!shrink-0 !rounded-lg !px-4 !py-2 !text-sm font-semibold !text-text-primary"
-          >
-            搜索
-          </AcetBackdropBlurButton>
+
+          <div className="mt-3 flex items-center gap-2">
+            <div className="relative flex flex-1 items-center">
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="输入关键词搜索..."
+                autoFocus
+                className="h-10 w-full rounded-lg border border-border bg-bg-secondary pl-3 pr-10 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
+              />
+              {keyword && (
+                <button
+                  type="button"
+                  aria-label="清空"
+                  onClick={handleClear}
+                  className="absolute right-3 text-text-muted transition-colors hover:text-text-primary"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <Button
+              type="button"
+              onClick={handleSearch}
+              disabled={loading || !keyword.trim()}
+              className="h-10 shrink-0 px-4"
+            >
+              {loading ? '搜索中...' : '搜索'}
+            </Button>
+          </div>
         </div>
-        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto">
+
+        <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-4 sm:px-6">
           {loading && (
-            <p className="py-16 text-center text-sm text-text-muted">
-              搜索中...
-            </p>
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+              <p className="mt-3 text-sm text-text-muted">搜索中...</p>
+            </div>
           )}
-          {searched &&
-            !loading &&
-            (results.length === 0 ? (
-              <p className="py-16 text-center text-sm text-text-muted">
+
+          {searched && !loading && results.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
+                <X size={24} className="text-text-muted" />
+              </div>
+              <p className="mt-4 text-sm font-medium text-text-primary">
                 未找到相关用户
               </p>
-            ) : (
-              results.map((u: any) => (
-                <div
-                  key={u.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(`/profile/${u.id}`)}
-                  onKeyDown={(e) =>
-                    e.key === 'Enter' && navigate(`/profile/${u.id}`)
-                  }
-                  className="flex cursor-pointer items-center gap-3 px-4 py-4 hover:bg-bg-secondary sm:px-5"
-                >
+              <p className="mt-1 text-xs text-text-muted">尝试更换关键词搜索</p>
+            </div>
+          )}
+
+          {searched && !loading && results.length > 0 && (
+            <div className="space-y-2 pb-4">
+              <p className="px-1 text-xs text-text-muted">
+                找到 {results.length} 个用户
+              </p>
+              <div className="space-y-1">
+                {results.map((u) => (
                   <div
-                    className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-lg font-bold text-white"
-                    style={{
-                      background:
-                        certColor[
-                          u.certificationLevel as keyof typeof certColor
-                        ] || '#6b7280',
-                    }}
+                    key={u.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/profile/${u.id}`)}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && navigate(`/profile/${u.id}`)
+                    }
+                    className="group flex cursor-pointer items-center gap-3 rounded-xl border border-transparent bg-bg-secondary/50 p-3 transition-all hover:border-border hover:bg-bg-secondary active:scale-[0.99]"
                   >
-                    {u.avatarUrl ? (
-                      <img
-                        src={u.avatarUrl}
-                        className="h-full w-full object-cover"
-                        alt=""
-                      />
-                    ) : (
-                      u.nickname?.charAt(0)
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[15px] font-medium">{u.nickname}</div>
-                    {u.bio && (
-                      <div className="mt-0.5 truncate text-xs text-text-muted">
-                        {u.bio.slice(0, 40)}
-                      </div>
-                    )}
-                  </div>
-                  {u.certificationLevel !== 'NONE' && (
-                    <span
-                      className="flex-shrink-0 text-[11px] font-semibold"
+                    <div
+                      className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg font-bold text-white shadow-md"
                       style={{
-                        color:
-                          certColor[
-                            u.certificationLevel as keyof typeof certColor
-                          ],
+                        background: getAvatarBgColor(u.certificationLevel),
+                        boxShadow: getCertGlow(u.certificationLevel),
                       }}
                     >
-                      {
-                        certLabel[
-                          u.certificationLevel as keyof typeof certLabel
-                        ]
-                      }
-                    </span>
-                  )}
-                </div>
-              ))
-            ))}
+                      {u.avatarUrl ? (
+                        <Avatar className="h-full w-full">
+                          <AvatarImage
+                            src={u.avatarUrl}
+                            className="h-full w-full object-cover"
+                          />
+                          <AvatarFallback className="h-full w-full bg-transparent text-lg font-bold text-white">
+                            {u.nickname?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        u.nickname?.charAt(0)
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate text-[15px] font-medium text-text-primary">
+                          {u.nickname}
+                        </span>
+                        {u.certificationLevel !== 'NONE' && (
+                          <span
+                            className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                            style={{
+                              color: getAvatarBgColor(u.certificationLevel),
+                              backgroundColor:
+                                getAvatarBgColor(u.certificationLevel) + '15',
+                            }}
+                          >
+                            {
+                              certLabel[
+                                u.certificationLevel as keyof typeof certLabel
+                              ]
+                            }
+                          </span>
+                        )}
+                      </div>
+                      {u.bio && (
+                        <p className="mt-0.5 truncate text-xs text-text-muted">
+                          {u.bio.slice(0, 50)}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-text-muted"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!searched && !loading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <p className="text-sm text-text-muted">输入关键词开始搜索用户</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

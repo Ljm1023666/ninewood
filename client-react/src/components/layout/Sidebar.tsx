@@ -67,14 +67,14 @@ export default function Sidebar() {
                     )}
                   />
                   {item.path === '/messages' && unreadCount > 0 && (
-                    <span className="absolute -top-2 -right-2 z-10 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-red px-1 text-[10px] font-bold leading-none text-white">
+                    <span className="absolute -top-2 -right-2 z-10 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-red px-1 text-[11px] font-bold leading-none text-white">
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   )}
                 </div>
                 <span
                   className={cn(
-                    'mt-0.5 text-[10px] transition-[font-weight,color] duration-200',
+                    'mt-0.5 text-[11px] transition-[font-weight,color] duration-200',
                     isActive && 'font-semibold',
                   )}
                 >
@@ -94,7 +94,7 @@ export default function Sidebar() {
           className="nav-item flex h-12 w-12 cursor-pointer flex-col items-center justify-center rounded-lg text-text-secondary transition-[color,background-color] duration-200 ease-out hover:bg-accent/10 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <LogOut size={18} />
-          <span className="text-[10px] mt-0.5">注销</span>
+          <span className="text-[11px] mt-0.5">注销</span>
         </button>
       </div>
     </aside>

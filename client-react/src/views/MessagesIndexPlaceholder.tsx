@@ -8,11 +8,7 @@ export default function MessagesIndexPlaceholder() {
   return (
     <TemplateChatRightShell
       embedInLayout
-      currentChat={{
-        name: ' ',
-        message: '',
-        image: '',
-      }}
+      currentChat={null}
       middle={
         <div className="flex h-full min-h-0 flex-col items-center justify-center bg-bg-primary/50 px-6 text-center">
           <p className="text-sm text-text-muted">选择左侧会话开始聊天</p>

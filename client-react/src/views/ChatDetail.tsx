@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   File,
   Image,
-  Mic,
   Paperclip,
   Send,
   Smile,
@@ -20,6 +19,7 @@ import { userApi } from '@/api/user'
 import { TimeDivider } from '@/components/ui/time-divider'
 import { MessageBubble } from '@/components/ui/message-bubble'
 import { ActionSheet } from '@/components/ui/action-sheet'
+import { toast } from '@/components/ui/confirm-dialog'
 import { TemplateChatRightShell } from '@/components/ui/chat-template'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -57,56 +57,7 @@ export default function ChatDetail() {
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
-  const [isVoiceMode, setIsVoiceMode] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const voiceChunksRef = useRef<Blob[]>([])
 
-  async function startRecording() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mr = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus',
-      })
-      mediaRecorderRef.current = mr
-      voiceChunksRef.current = []
-
-      mr.ondataavailable = (e) => {
-        if (e.data.size > 0) voiceChunksRef.current.push(e.data)
-      }
-
-      mr.onstop = async () => {
-        if (isMergeChat) return
-        stream.getTracks().forEach((t) => t.stop())
-        const blob = new Blob(voiceChunksRef.current, { type: 'audio/webm' })
-        if (blob.size < 100) return
-        const fd = new FormData()
-        fd.append('toUserId', peerId)
-        fd.append('file', blob, `voice-${Date.now()}.webm`)
-        fd.append('content', '')
-        try {
-          await messageApi.sendForm(fd)
-          await chatStore.fetchMessages(peerId)
-          setTimeout(() => scrollBottom(true), 100)
-        } catch {
-          /* noop */
-        }
-      }
-
-      mr.start()
-      setIsRecording(true)
-    } catch {
-      setIsVoiceMode(false)
-      setIsRecording(false)
-    }
-  }
-
-  function stopRecording() {
-    if (mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop()
-    }
-    setIsRecording(false)
-  }
   const [peerUser, setPeerUser] = useState<{
     nickname: string
     avatarUrl: string | null
@@ -232,7 +183,7 @@ export default function ChatDetail() {
       setInput('')
       setTimeout(() => scrollBottom(true), 100)
     } catch {
-      /* noop */
+      toast('发送失败，请重试', 'error')
     }
   }
 
@@ -267,7 +218,7 @@ export default function ChatDetail() {
       await chatStore.fetchMessages(peerId)
       setTimeout(() => scrollBottom(true), 100)
     } catch {
-      /* noop */
+      toast('发送失败，请重试', 'error')
     }
   }
 
@@ -340,37 +291,38 @@ export default function ChatDetail() {
       middle={
         <div
           ref={listRef}
-          className="thin-scroll flex min-h-0 flex-1 flex-col overflow-y-auto bg-bg-primary px-2 py-2"
+          className="thin-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-bg-primary px-2 py-2"
         >
-          {messages.map((m: ChatMessage, idx: number) => (
-            <div key={m.id || m.createdAt}>
-              <TimeDivider
-                timestamp={m.createdAt}
-                prevTimestamp={idx > 0 ? messages[idx - 1].createdAt : null}
-              />
-              <MessageBubble
-                content={m.content}
-                isMine={(m.senderId || m.fromUserId) === myId}
-                type={m.type}
-                nickname={
-                  isMergeChat
-                    ? (m as any).fromUser?.nickname || '成员'
-                    : peerNickname
-                }
-                avatarUrl={
-                  isMergeChat
-                    ? (m as any).fromUser?.avatarUrl || ''
-                    : peerUser?.avatarUrl || ''
-                }
-                hideAvatar={
-                  idx < messages.length - 1 &&
-                  (messages[idx + 1]?.senderId ||
-                    messages[idx + 1]?.fromUserId) ===
-                    (m.senderId || m.fromUserId)
-                }
-              />
-            </div>
-          ))}
+          {messages.map((m: ChatMessage, idx: number) => {
+            const senderId = m.senderId || m.fromUserId
+            return (
+              <div key={m.id || m.createdAt}>
+                <TimeDivider
+                  timestamp={m.createdAt}
+                  prevTimestamp={idx > 0 ? messages[idx - 1].createdAt : null}
+                />
+                <MessageBubble
+                  content={m.content}
+                  isMine={senderId === myId}
+                  type={m.type}
+                  nickname={
+                    isMergeChat
+                      ? (m as any).fromUser?.nickname || '成员'
+                      : peerNickname
+                  }
+                  avatarUrl={
+                    isMergeChat
+                      ? (m as any).fromUser?.avatarUrl || ''
+                      : senderId === myId
+                        ? userStore.user?.avatarUrl || ''
+                        : peerUser?.avatarUrl || ''
+                  }
+                  hideAvatar={false}
+                  isGroupedWithPrev={false}
+                />
+              </div>
+            )
+          })}
         </div>
       }
       inputRow={
@@ -492,34 +444,15 @@ export default function ChatDetail() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {isVoiceMode ? (
-              <div
-                onPointerDown={(e) => {
-                  e.preventDefault()
-                  void startRecording()
-                }}
-                onPointerUp={() => stopRecording()}
-                onPointerLeave={() => stopRecording()}
-                onContextMenu={(e) => e.preventDefault()}
-                className={`flex h-9 min-w-0 flex-1 cursor-pointer select-none items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                  isRecording
-                    ? 'bg-[var(--error-color)]/20 text-[var(--error-color)]'
-                    : 'bg-bg-secondary text-text-secondary active:bg-bg-tertiary'
-                }`}
-              >
-                {isRecording ? '松开 发送' : '按住 说话'}
-              </div>
-            ) : (
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') void send()
-                }}
-                placeholder="输入消息…"
-                className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 text-[15px] text-text-primary shadow-none focus-visible:ring-0"
-              />
-            )}
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void send()
+              }}
+              placeholder="输入消息…"
+              className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 text-[15px] text-text-primary shadow-none focus-visible:ring-0"
+            />
 
             {!input.trim() ? (
               <Button
@@ -545,21 +478,6 @@ export default function ChatDetail() {
               disabled={!input.trim()}
             >
               <Send className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              title={isVoiceMode ? '键盘输入' : '语音'}
-              disabled={isMergeChat}
-              onClick={() => {
-                setIsVoiceMode(!isVoiceMode)
-                setShowEmoji(false)
-                setShowSheet(false)
-              }}
-            >
-              <Mic className="h-5 w-5" />
             </Button>
           </div>
 

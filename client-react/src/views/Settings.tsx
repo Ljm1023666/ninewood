@@ -88,7 +88,7 @@ export default function Settings() {
         )}
       />
 
-      <div className="relative z-10 box-border w-full max-w-[36rem] shrink-0 self-center px-4 pb-28 pt-14 md:px-6 md:pt-16">
+      <div className="relative z-10 box-border w-full max-w-2xl shrink-0 self-center px-4 pb-28 pt-14 md:px-6 md:pt-16">
         <div className="mb-8 text-center">
           <p
             className={cn(

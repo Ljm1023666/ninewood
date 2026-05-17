@@ -350,11 +350,11 @@ function ExplorerDetailsShell({
       {ctx ? (
         <>
           <div
-            className="fixed inset-0 z-[340]"
+            className="fixed inset-0 z-[var(--z-overlay)]"
             onClick={closeCtx}
             aria-hidden
           />
-          <div className="fixed left-1/2 top-1/2 z-[341] min-w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-bg-secondary py-1 text-sm text-foreground shadow-lg ring-1 ring-black/20 backdrop-blur-none">
+          <div className="fixed left-1/2 top-1/2 z-[var(--z-modal)] min-w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-bg-secondary py-1 text-sm text-foreground shadow-lg ring-1 ring-black/20 backdrop-blur-none">
             <button
               type="button"
               className="flex w-full px-3 py-2 text-left hover:bg-bg-tertiary"
@@ -616,7 +616,7 @@ export default function CardPoolResourceExplorer() {
             <p className="mb-1.5 px-1 text-[11px] font-semibold text-text-muted">
               文件夹
             </p>
-            <p className="mb-2 px-1 text-[10px] leading-snug text-text-muted">
+            <p className="mb-2 px-1 text-[11px] leading-snug text-text-muted">
               单击选择；双击名称或箭头展开/折叠。
             </p>
             <TaxonomyTreePanel
