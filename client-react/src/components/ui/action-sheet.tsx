@@ -13,7 +13,7 @@ export function ActionSheet({ visible, onClose, onSelect }: ActionSheetProps) {
   if (!visible) return null
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/30 animate-fadeIn"
+      className="fixed inset-0 z-[var(--z-sticky)] bg-black/30 animate-fadeIn"
       onClick={onClose}
     >
       <div

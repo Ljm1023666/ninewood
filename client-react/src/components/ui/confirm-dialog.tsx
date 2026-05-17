@@ -18,7 +18,7 @@ export function ConfirmDialog({
   if (!open) return null
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 animate-fadeIn"
+      className="fixed inset-0 z-[var(--z-overlay)] flex items-center justify-center bg-black/50 animate-fadeIn"
       onClick={onCancel}
     >
       <div
@@ -70,7 +70,7 @@ export function ToastContainer() {
   setToasts = setThis
   if (toasts.length === 0) return null
   return (
-    <div className="fixed top-4 right-4 z-[300] flex flex-col gap-2">
+    <div className="fixed top-4 right-4 z-[var(--z-modal)] flex flex-col gap-2">
       {toasts.map((t) => (
         <div
           key={t.id}

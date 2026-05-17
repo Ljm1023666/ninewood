@@ -15,6 +15,7 @@ type LegacyUser = {
   nickname: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
+  demandCardCoverUrl: string | null;
   cityCode: string | null;
   bio: string | null;
   certificationLevel: string | null;
@@ -23,24 +24,6 @@ type LegacyUser = {
   passwordHash?: string | null;
   createdAt?: Date;
 };
-
-type ModernUser = {
-  id: string;
-  username: string;
-  email: string;
-  password?: string | null;
-  avatar: string | null;
-  background: string | null;
-  bio: string | null;
-  createdAt?: Date;
-};
-
-function inferPhoneFromModernUser(user: { username: string; email: string }): string {
-  if (/^\d{11}$/.test(user.username)) return user.username;
-  const local = user.email.split('@')[0] || '';
-  if (/^\d{11}$/.test(local)) return local;
-  return user.username;
-}
 
 function generateCode(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -75,6 +58,7 @@ function legacyUserResponse(user: LegacyUser) {
     nickname: user.nickname || `用户_${user.phone.slice(-4)}`,
     avatarUrl: user.avatarUrl,
     coverUrl: user.coverUrl,
+    demandCardCoverUrl: user.demandCardCoverUrl,
     cityCode: user.cityCode,
     bio: user.bio,
     certificationLevel: user.certificationLevel || 'NONE',
@@ -84,27 +68,14 @@ function legacyUserResponse(user: LegacyUser) {
   };
 }
 
-function modernUserResponse(user: ModernUser) {
-  const phone = inferPhoneFromModernUser(user);
-  return {
-    id: user.id,
-    phone,
-    nickname: user.username,
-    avatarUrl: user.avatar,
-    coverUrl: user.background,
-    cityCode: null,
-    bio: user.bio,
-    certificationLevel: 'NONE',
-    snatchCredits: 0,
-    creditScore: 60,
-    createdAt: user.createdAt?.toISOString(),
-  };
+function modernUserResponse(user: LegacyUser) {
+  return legacyUserResponse(user);
 }
 
 async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> {
   try {
     const rows = await prisma.$queryRawUnsafe<any[]>(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
       phone,
     );
     return rows?.[0] || null;
@@ -116,7 +87,7 @@ async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> 
 async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
   try {
     const rows = await prisma.$queryRawUnsafe<any[]>(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
       userId,
     );
     return rows?.[0] || null;
@@ -130,7 +101,7 @@ async function createLegacyUser(phone: string): Promise<LegacyUser | null> {
   const tail = phone.slice(-4);
   try {
     const rows = await prisma.$queryRawUnsafe<any[]>(
-      'INSERT INTO "User" ("phone","nickname","passwordHash","createdAt","updatedAt") VALUES ($1,$2,$3,NOW(),NOW()) RETURNING "id","phone","nickname","avatarUrl","coverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt"',
+      'INSERT INTO "User" ("phone","nickname","passwordHash","createdAt","updatedAt") VALUES ($1,$2,$3,NOW(),NOW()) RETURNING "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt"',
       phone,
       `用户_${tail}`,
       passwordHash,
@@ -141,19 +112,22 @@ async function createLegacyUser(phone: string): Promise<LegacyUser | null> {
   }
 }
 
-async function findModernUserByPhone(phone: string): Promise<ModernUser | null> {
+async function findModernUserByPhone(phone: string): Promise<LegacyUser | null> {
   try {
-    return await prisma.user.findFirst({
-      where: {
-        OR: [{ username: phone }, { email: phone }, { email: `${phone}@ninewood.local` }],
-      },
+    return await prisma.user.findUnique({
+      where: { phone },
       select: {
         id: true,
-        username: true,
-        email: true,
-        password: true,
-        avatar: true,
-        background: true,
+        phone: true,
+        nickname: true,
+        avatarUrl: true,
+        coverUrl: true,
+        demandCardCoverUrl: true,
+        cityCode: true,
+        certificationLevel: true,
+        snatchCredits: true,
+        creditScore: true,
+        passwordHash: true,
         bio: true,
         createdAt: true,
       },
@@ -163,16 +137,22 @@ async function findModernUserByPhone(phone: string): Promise<ModernUser | null> 
   }
 }
 
-async function findModernUserById(userId: string): Promise<ModernUser | null> {
+async function findModernUserById(userId: string): Promise<LegacyUser | null> {
   try {
     return await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
-        username: true,
-        email: true,
-        avatar: true,
-        background: true,
+        phone: true,
+        nickname: true,
+        avatarUrl: true,
+        coverUrl: true,
+        demandCardCoverUrl: true,
+        cityCode: true,
+        certificationLevel: true,
+        snatchCredits: true,
+        creditScore: true,
+        passwordHash: true,
         bio: true,
         createdAt: true,
       },
@@ -241,16 +221,22 @@ export const authService = {
     const tail = phone.slice(-4);
     const modernUser = await prisma.user.create({
       data: {
-        username: `用户_${tail}`,
-        email: `${phone}@ninewood.local`,
-        password: passwordHash,
+        phone,
+        nickname: `用户_${tail}`,
+        passwordHash,
       },
       select: {
         id: true,
-        username: true,
-        email: true,
-        avatar: true,
-        background: true,
+        phone: true,
+        nickname: true,
+        avatarUrl: true,
+        coverUrl: true,
+        demandCardCoverUrl: true,
+        cityCode: true,
+        certificationLevel: true,
+        snatchCredits: true,
+        creditScore: true,
+        passwordHash: true,
         bio: true,
         createdAt: true,
       },
@@ -290,14 +276,14 @@ export const authService = {
 
     let valid = false;
     try {
-      valid = await bcrypt.compare(password, modernUser.password || '');
+      valid = await bcrypt.compare(password, modernUser.passwordHash || '');
     } catch {
       valid = false;
     }
-    if (!valid && modernUser.password === password) {
+    if (!valid && modernUser.passwordHash === password) {
       valid = true;
       const hash = await bcrypt.hash(password, 10);
-      await prisma.user.update({ where: { id: modernUser.id }, data: { password: hash } });
+      await prisma.user.update({ where: { id: modernUser.id }, data: { passwordHash: hash } });
     }
     if (!valid) throw { status: 400, message: '密码错误' };
 
@@ -305,8 +291,8 @@ export const authService = {
       user: modernUserResponse(modernUser),
       token: makeToken({
         id: modernUser.id,
-        phone: inferPhoneFromModernUser(modernUser),
-        certificationLevel: 'NONE',
+        phone: modernUser.phone,
+        certificationLevel: modernUser.certificationLevel || 'NONE',
       }),
     };
   },

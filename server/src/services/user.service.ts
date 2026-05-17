@@ -12,7 +12,7 @@ export const userService = {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, cityCode: true,
+        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true,
         certificationLevel: true, bio: true, creditScore: true, completedOrders: true, snatchCredits: true,
       },
     });
@@ -20,12 +20,14 @@ export const userService = {
     return user;
   },
 
-  async updateProfile(userId: string, data: { nickname?: string; avatarUrl?: string; coverUrl?: string; cityCode?: string; bio?: string }) {
+  async updateProfile(userId: string, data: { nickname?: string; avatarUrl?: string; coverUrl?: string; demandCardCoverUrl?: string | null; cityCode?: string; bio?: string }) {
+    const patch: typeof data = { ...data };
+    if (patch.demandCardCoverUrl === '') patch.demandCardCoverUrl = null;
     return prisma.user.update({
       where: { id: userId },
-      data,
+      data: patch,
       select: {
-        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, cityCode: true,
+        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true,
         certificationLevel: true, snatchCredits: true, creditScore: true, bio: true, completedOrders: true,
       },
     });
@@ -171,5 +173,54 @@ export const userService = {
     });
     if (!user) throw { status: 404, message: '用户不存在' };
     return user;
+  },
+
+  // ── Favorite ──
+  async toggleFavorite(userId: string, demandId: string) {
+    const existing = await prisma.demandFavorite.findUnique({
+      where: { userId_demandId: { userId, demandId } },
+    });
+    if (existing) {
+      await prisma.demandFavorite.delete({ where: { id: existing.id } });
+      return { favorited: false };
+    }
+    await prisma.demandFavorite.create({ data: { userId, demandId } });
+    return { favorited: true };
+  },
+
+  async isFavorited(userId: string, demandId: string) {
+    const f = await prisma.demandFavorite.findUnique({
+      where: { userId_demandId: { userId, demandId } },
+    });
+    return { favorited: !!f };
+  },
+
+  async getFavorites(userId: string, page = 1) {
+    const limit = 20;
+    const [list, total] = await Promise.all([
+      prisma.demandFavorite.findMany({
+        where: { userId },
+        include: {
+          demand: {
+            select: {
+              id: true, title: true, minPrice: true, category: true,
+              serviceType: true, mediaUrls: true, status: true,
+              createdAt: true,
+              user: { select: { id: true, nickname: true, avatarUrl: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.demandFavorite.count({ where: { userId } }),
+    ]);
+    return {
+      list: list.map(f => f.demand),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 };

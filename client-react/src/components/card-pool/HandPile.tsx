@@ -143,7 +143,7 @@ export function HandPackGhostAtPoint({
   const halfW = handGhostHalfCardWPx()
   return (
     <motion.div
-      className="pointer-events-none fixed z-[480] isolate w-[min(92vw,220px)] max-w-[220px] origin-center"
+      className="pointer-events-none fixed z-[var(--z-modal)] isolate w-[min(92vw,220px)] max-w-[220px] origin-center"
       aria-hidden
       style={{
         left: x - halfW,
@@ -295,7 +295,7 @@ function HandSwipeRow({
           <button
             type="button"
             tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-[10px] font-medium text-text-primary hover:bg-accent/15"
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-[11px] font-medium text-text-primary hover:bg-accent/15"
             onClick={() => {
               onPin(entry.id)
               snapClosed()
@@ -306,7 +306,7 @@ function HandSwipeRow({
           <button
             type="button"
             tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-[10px] font-medium text-text-primary hover:bg-accent/15"
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-[11px] font-medium text-text-primary hover:bg-accent/15"
             onClick={() => {
               onDiscardToPile(entry.id)
               snapClosed()
@@ -317,7 +317,7 @@ function HandSwipeRow({
           <button
             type="button"
             tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-destructive/20 text-[10px] font-medium text-destructive hover:bg-destructive/30"
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-destructive/20 text-[11px] font-medium text-destructive hover:bg-destructive/30"
             onClick={() => {
               onRemove(entry.id)
               snapClosed()
@@ -543,7 +543,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                       ? '指针按住黑卡微移提起卡面，拖入下方手牌区松手加入'
                       : '长按卡池黑卡拖入手牌区加入'}
                   </span>
-                  <span className="text-[10px] text-text-muted/90">
+                  <span className="text-[11px] text-text-muted/90">
                     卡面为卡池同款卡包造型（仅分类依据文案）；左侧竖条向左拖展开操作；拖入与拖出共用同一套全屏浮层弹簧动画
                   </span>
                 </div>
@@ -587,7 +587,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                 手牌 <span className="tabular-nums">({entries.length})</span>
               </span>
               {onDropBlackScope ? (
-                <span className="hidden font-normal text-[10px] text-text-muted/80 sm:inline">
+                <span className="hidden font-normal text-[11px] text-text-muted/80 sm:inline">
                   悬停展开 · 左侧条侧滑 · 拖入/拖出共用指针卡面浮层
                 </span>
               ) : null}
@@ -602,9 +602,12 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
 
           {ctx ? (
             <>
-              <div className="fixed inset-0 z-[340]" onClick={closeCtx} />
               <div
-                className="fixed z-[341] min-w-[160px] rounded-lg border border-border bg-bg-secondary p-1 text-foreground shadow-xl ring-1 ring-black/20 backdrop-blur-none"
+                className="fixed inset-0 z-[var(--z-overlay)]"
+                onClick={closeCtx}
+              />
+              <div
+                className="fixed z-[var(--z-modal)] min-w-[160px] rounded-lg border border-border bg-bg-secondary p-1 text-foreground shadow-xl ring-1 ring-black/20 backdrop-blur-none"
                 style={{ left: ctx.x, top: ctx.y }}
               >
                 <button

@@ -146,7 +146,10 @@ export default function LoginPage() {
                         isDark &&
                           'shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]',
                       )
-                    : cn(tMuted, `hover:${tPrimary}`),
+                    : cn(
+                        tMuted,
+                        isDark ? 'hover:text-white' : 'hover:text-text-primary',
+                      ),
                 )}
               >
                 登录
@@ -166,7 +169,10 @@ export default function LoginPage() {
                         isDark &&
                           'shadow-[inset_1px_1px_0_rgba(255,255,255,0.1)]',
                       )
-                    : cn(tMuted, `hover:${tPrimary}`),
+                    : cn(
+                        tMuted,
+                        isDark ? 'hover:text-white' : 'hover:text-text-primary',
+                      ),
                 )}
               >
                 注册
