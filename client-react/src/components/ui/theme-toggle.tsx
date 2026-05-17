@@ -3,7 +3,7 @@ import { useThemeStore } from '@/stores/theme'
 
 type CurtainPhase = 'idle' | 'falling' | 'rising'
 
-const DURATION = 550
+const DURATION = 300
 
 function MoonIcon() {
   return (
@@ -78,7 +78,7 @@ export function ThemeToggleButton() {
     setTimeout(() => {
       toggle()
       setPhase('rising')
-      setTimeout(() => setPhase('idle'), DURATION + 60)
+      setTimeout(() => setPhase('idle'), DURATION + 40)
     }, DURATION)
   }, [phase, toggle])
 
@@ -98,7 +98,7 @@ export function ThemeToggleButton() {
             phase !== 'idle'
               ? `transform ${DURATION}ms cubic-bezier(0.76,0,0.24,1)`
               : 'none',
-          zIndex: 9997,
+          zIndex: 'var(--z-max)',
           pointerEvents: 'none',
         }}
       />
@@ -121,7 +121,7 @@ export function ThemeToggleButton() {
         aria-label={isDark ? '切换亮色模式' : '切换暗色模式'}
       >
         {isDark ? <SunIcon /> : <MoonIcon />}
-        <span className="text-[10px] mt-0.5">主题</span>
+        <span className="text-[11px] mt-0.5">主题</span>
       </button>
     </>
   )

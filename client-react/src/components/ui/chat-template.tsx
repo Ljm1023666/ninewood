@@ -48,7 +48,6 @@ import {
   MessageCircle,
   MessageSquareDot,
   Paperclip,
-  Search,
   Send,
   Settings,
   Smile,
@@ -221,6 +220,9 @@ export function TemplateChatRightShell({
     avatarFallback?.trim() ||
     (currentChat?.name ? currentChat.name.slice(0, 2) : '?')
 
+  const showAvatar =
+    currentChat && currentChat.name && currentChat.name.trim() !== ''
+
   return (
     <div
       className={cn(
@@ -232,32 +234,36 @@ export function TemplateChatRightShell({
         {headerLeading ? (
           <div className="mr-1 flex shrink-0 items-center">{headerLeading}</div>
         ) : null}
-        <Avatar className="size-12 shrink-0">
-          <AvatarImage src={currentChat?.image} />
-          <AvatarFallback className="text-xs font-semibold">
-            {fb}
-          </AvatarFallback>
-        </Avatar>
-        {onProfileClick ? (
-          <button
-            type="button"
-            onClick={onProfileClick}
-            className="ml-2 min-w-0 flex-1 cursor-pointer text-left hover:opacity-80"
-          >
-            <CardTitle className="truncate text-base font-semibold text-text-primary">
-              {currentChat?.name || ' '}
-            </CardTitle>
-            <CardDescription className="text-xs text-text-muted">
-              查看主页
-            </CardDescription>
-          </button>
-        ) : (
-          <div className="ml-2 min-w-0 flex-1">
-            <CardTitle className="truncate text-base font-semibold text-text-primary">
-              {currentChat?.name || ' '}
-            </CardTitle>
-          </div>
-        )}
+        {showAvatar ? (
+          <Avatar className="size-12 shrink-0">
+            <AvatarImage src={currentChat?.image} />
+            <AvatarFallback className="text-xs font-semibold">
+              {fb}
+            </AvatarFallback>
+          </Avatar>
+        ) : null}
+        {showAvatar ? (
+          onProfileClick ? (
+            <button
+              type="button"
+              onClick={onProfileClick}
+              className="ml-2 min-w-0 flex-1 cursor-pointer text-left hover:opacity-80"
+            >
+              <CardTitle className="truncate text-base font-semibold text-text-primary">
+                {currentChat?.name}
+              </CardTitle>
+              <CardDescription className="text-xs text-text-muted">
+                查看主页
+              </CardDescription>
+            </button>
+          ) : (
+            <div className="ml-2 min-w-0 flex-1">
+              <CardTitle className="truncate text-base font-semibold text-text-primary">
+                {currentChat?.name}
+              </CardTitle>
+            </div>
+          )
+        ) : null}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -319,7 +325,7 @@ export function TemplateChatInputRow({
         {attach}
       </DropdownMenu>
       <Input
-        placeholder="Type a message"
+        placeholder="输入消息…"
         className="flex-grow border-0"
         {...inputProps}
       />
@@ -422,12 +428,11 @@ function LeftChatListPanel({
         </div>
 
         <div className="relative shrink-0 px-3 pb-3">
-          <Search className="pointer-events-none absolute left-6 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
           <Input
             placeholder="搜索或发起新聊天"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-10 border-border bg-background pl-10"
+            className="h-10 border-border bg-background"
           />
         </div>
 

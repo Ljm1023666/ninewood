@@ -92,7 +92,7 @@ export default function Orders() {
                   {o.demand?.title || '订单'}
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-semibold ${statusTheme(o.status)}`}
+                  className={`px-2 py-0.5 rounded text-[11px] font-semibold ${statusTheme(o.status)}`}
                 >
                   {statusLabel[o.status] || ''}
                 </span>

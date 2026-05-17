@@ -14,6 +14,8 @@ import { InteractiveProductCard } from '@/components/ui/interactive-product-card
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { useUserStore } from '@/stores/user'
+import { Heart } from 'lucide-react'
 
 function stripDebugFromTitle(title: string): string {
   return title
@@ -41,11 +43,17 @@ function preloadImageSrc(url: string | undefined | null) {
 
 function collectDemandImageUrls(d: {
   userId?: string
-  user?: { avatarUrl?: string; coverUrl?: string | null }
+  user?: {
+    avatarUrl?: string
+    coverUrl?: string | null
+    demandCardCoverUrl?: string | null
+  }
   mediaUrls?: string[]
 }) {
   const urls: string[] = []
   urls.push(publisherUserCoverPreset(d.userId))
+  const demandCover = d.user?.demandCardCoverUrl
+  if (demandCover?.trim()) urls.push(demandCover.trim())
   const cv = d.user?.coverUrl
   if (cv?.trim()) urls.push(cv.trim())
   const av = d.user?.avatarUrl
@@ -85,7 +93,7 @@ function scheduleIdle(cb: () => void, timeoutMs: number) {
 function pageShell(inner: ReactNode) {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
-      <div className="relative z-10 mx-auto flex w-full max-w-lg shrink-0 flex-col items-center self-center px-6 py-12">
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl shrink-0 flex-col items-center self-center px-6 py-12">
         {inner}
       </div>
     </div>
@@ -105,8 +113,12 @@ export default function DemandDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { isLoggedIn, isFavorited, checkFavoriteStatus, toggleFavorite } =
+    useUserStore()
 
   const [allDemands, setAllDemands] = useState<any[]>([])
+  const [favorited, setFavorited] = useState(false)
+  const [favoriteLoading, setFavoriteLoading] = useState(false)
   const [currentIdx, setCurrentIdx] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -121,7 +133,9 @@ export default function DemandDetail() {
 
   const publisherCoverUrl = useMemo(() => {
     if (!demand) return publisherUserCoverPreset(undefined)
-    return publisherUserCoverPreset(demand.userId)
+    return (
+      demand.user?.demandCardCoverUrl || publisherUserCoverPreset(demand.userId)
+    )
   }, [demand])
 
   const imageAttachmentCount = useMemo(
@@ -190,6 +204,25 @@ export default function DemandDetail() {
     prefetchedDetailIdsRef.current.clear()
     prefetchedDetailIdsRef.current.add(id)
   }, [id, loading])
+
+  useEffect(() => {
+    if (!demand?.id || !isLoggedIn) return
+    setFavorited(isFavorited(demand.id))
+    checkFavoriteStatus(demand.id).then(setFavorited)
+  }, [demand?.id, isLoggedIn, isFavorited, checkFavoriteStatus])
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!demand?.id || !isLoggedIn) return
+    setFavoriteLoading(true)
+    try {
+      const result = await toggleFavorite(demand.id)
+      setFavorited(result)
+    } catch {
+      /* noop */
+    } finally {
+      setFavoriteLoading(false)
+    }
+  }, [demand, isLoggedIn, toggleFavorite])
 
   /** 空闲时预拉相邻详情 + 解码关键图（手机弱网自动缩小半径） */
   useEffect(() => {
@@ -326,7 +359,6 @@ export default function DemandDetail() {
       <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col items-stretch justify-center overflow-visible py-6">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
-            key={demand.id}
             custom={direction}
             initial={{ opacity: 0, y: direction * 64 }}
             animate={{ opacity: 1, y: 0 }}
@@ -334,38 +366,54 @@ export default function DemandDetail() {
             transition={{ duration: 0.52, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="flex w-full min-w-0 flex-col items-center px-3"
           >
-            <CometCard
-              className="w-fit max-w-full shrink-0"
-              rotateDepth={12}
-              translateDepth={14}
-              hoverScale={1}
-            >
-              <InteractiveProductCard
-                disableSurfaceTilt
-                innerSheen
-                flipDescription
-                imageUrl={publisherCoverUrl}
-                logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
-                profileCoverUrl={demand.user?.coverUrl}
-                publisherUserId={demand.userId}
-                title={cardTitle}
-                description={cardDescription}
-                price={`¥${demand.minPrice}`}
-                avatarTo={
-                  demand.userId ? `/profile/${demand.userId}` : undefined
-                }
-                avatarLabel={
-                  demand.user?.nickname
-                    ? `查看 ${demand.user.nickname} 的主页`
-                    : '查看发布者主页'
-                }
-                dotCount={Math.min(imageAttachmentCount, 6)}
-                activeDotIndex={0}
-                onSwipeNext={hasNext ? goNext : undefined}
-                onSwipePrev={hasPrev ? goPrev : undefined}
-                className="shadow-none"
-              />
-            </CometCard>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleToggleFavorite}
+                disabled={!isLoggedIn || favoriteLoading}
+                className="absolute -right-2 -top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+                aria-label={favorited ? '取消收藏' : '收藏'}
+              >
+                <Heart
+                  size={20}
+                  className={
+                    favorited ? 'fill-red-500 text-red-500' : 'fill-none'
+                  }
+                />
+              </button>
+              <CometCard
+                className="w-fit max-w-full shrink-0"
+                rotateDepth={12}
+                translateDepth={14}
+                hoverScale={1}
+              >
+                <InteractiveProductCard
+                  disableSurfaceTilt
+                  innerSheen
+                  flipDescription
+                  imageUrl={publisherCoverUrl}
+                  logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
+                  profileCoverUrl={demand.user?.coverUrl}
+                  publisherUserId={demand.userId}
+                  title={cardTitle}
+                  description={cardDescription}
+                  price={`¥${demand.minPrice}`}
+                  avatarTo={
+                    demand.userId ? `/profile/${demand.userId}` : undefined
+                  }
+                  avatarLabel={
+                    demand.user?.nickname
+                      ? `查看 ${demand.user.nickname} 的主页`
+                      : '查看发布者主页'
+                  }
+                  dotCount={Math.min(imageAttachmentCount, 6)}
+                  activeDotIndex={0}
+                  onSwipeNext={hasNext ? goNext : undefined}
+                  onSwipePrev={hasPrev ? goPrev : undefined}
+                  className="shadow-none"
+                />
+              </CometCard>
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>

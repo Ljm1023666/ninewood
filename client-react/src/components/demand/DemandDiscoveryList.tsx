@@ -66,7 +66,7 @@ export function DemandCardInner({ d }: { d: DemandRow }) {
             {d.isExample ? (
               <span
                 className={cn(
-                  'rounded px-2 py-0.5 text-[10px] font-medium',
+                  'rounded px-2 py-0.5 text-[11px] font-medium',
                   isDark ? 'bg-bg-secondary text-text-muted' : 'text-gray-400',
                 )}
               >
@@ -75,7 +75,7 @@ export function DemandCardInner({ d }: { d: DemandRow }) {
             ) : null}
             <span
               className={cn(
-                'rounded px-2 py-0.5 text-[10px] font-semibold',
+                'rounded px-2 py-0.5 text-[11px] font-semibold',
                 isDark ? 'bg-bg-secondary text-text-muted' : 'text-gray-500',
               )}
             >

@@ -6,6 +6,7 @@ export interface ChatMessage {
   id?: string
   content: string
   type?: string
+  duration?: number
   senderId?: string
   receiverId?: string
   fromUserId?: string

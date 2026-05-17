@@ -39,4 +39,13 @@ export const userApi = {
   following(id: string, page = 1) {
     return api.get(`/users/${id}/following`, { params: { page } })
   },
+  toggleFavorite(demandId: string) {
+    return api.post(`/users/favorites/${demandId}`)
+  },
+  getFavorites(page = 1) {
+    return api.get('/users/favorites', { params: { page } })
+  },
+  getFavoriteStatus(demandId: string) {
+    return api.get(`/users/favorites/${demandId}/status`)
+  },
 }

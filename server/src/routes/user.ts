@@ -17,12 +17,13 @@ userRouter.get('/me', authMiddleware, async (req: Request, res: Response) => {
 });
 
 // PUT /api/users/profile
-userRouter.put('/profile', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), async (req: Request, res: Response) => {
+userRouter.put('/profile', authMiddleware, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'cover', maxCount: 1 }, { name: 'demandCardCover', maxCount: 1 }]), async (req: Request, res: Response) => {
   try {
     const data: any = { ...req.body };
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     if (files?.avatar?.[0]) data.avatarUrl = `/uploads/${files.avatar[0].filename}`;
     if (files?.cover?.[0]) data.coverUrl = `/uploads/${files.cover[0].filename}`;
+    if (files?.demandCardCover?.[0]) data.demandCardCoverUrl = `/uploads/${files.demandCardCover[0].filename}`;
     const user = await userService.updateProfile(req.user!.userId, data);
     success(res, user, '更新成功');
   } catch (e: any) {
@@ -114,7 +115,38 @@ userRouter.get('/:id/following', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/users/:id — public profile
+// POST /api/users/favorites/:demandId — toggle favorite
+userRouter.post('/favorites/:demandId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await userService.toggleFavorite(req.user!.userId, req.params.demandId as string);
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '操作失败', e.status || 500);
+  }
+});
+
+// GET /api/users/favorites — get my favorites
+userRouter.get('/favorites', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const page = parseInt((req.query.page as string) || '1');
+    const result = await userService.getFavorites(req.user!.userId, page);
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// GET /api/users/favorites/:demandId/status — check if favorited
+userRouter.get('/favorites/:demandId/status', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await userService.isFavorited(req.user!.userId, req.params.demandId as string);
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// GET /api/users/:id — public profile (keep last, catches unmatched routes)
 userRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const user = await userService.getProfile(req.params.id as string);

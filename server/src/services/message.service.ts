@@ -1,9 +1,9 @@
 import { prisma } from '../lib/prisma.js';
 
 export const messageService = {
-  async send(fromUserId: string, toUserId: string, content: string, orderId?: string) {
+  async send(fromUserId: string, toUserId: string, content: string, orderId?: string, type = 'TEXT', duration?: number) {
     return prisma.message.create({
-      data: { fromUserId, toUserId, content, type: 'TEXT', orderId: orderId || null },
+      data: { fromUserId, toUserId, content, type: type as any, orderId: orderId || null, duration: duration ?? null },
       include: {
         fromUser: { select: { id: true, nickname: true, avatarUrl: true } },
         toUser: { select: { id: true, nickname: true, avatarUrl: true } },

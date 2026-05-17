@@ -124,7 +124,7 @@ export default function Layout() {
         {showBack && (
           <button
             onClick={() => navigate(-1)}
-            className="fixed left-[86px] top-4 z-[999] flex h-9 w-9 items-center justify-center rounded-xl
+            className="fixed left-[86px] top-4 z-[var(--z-sticky)] flex h-9 w-9 items-center justify-center rounded-xl
               border border-border bg-card/80 text-text-secondary shadow-md backdrop-blur-md
               transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
             aria-label="返回"
@@ -134,7 +134,7 @@ export default function Layout() {
         )}
 
         {isElectronDesktop ? (
-          <div className="fixed right-3 top-3 z-[999] flex items-center gap-1.5">
+          <div className="fixed right-3 top-3 z-[var(--z-sticky)] flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => void electronAPI?.minimizeWindow()}

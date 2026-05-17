@@ -88,12 +88,20 @@ messageRouter.get('/:userId', authMiddleware, async (req: Request, res: Response
 // POST /api/messages/send
 messageRouter.post('/send', authMiddleware, upload.single('file'), async (req: Request, res: Response) => {
   try {
-    const { toUserId, content, orderId } = req.body;
+    const { toUserId, content, orderId, duration } = req.body;
     const file = req.file;
     let msgContent = content || '';
-    if (file) msgContent = msgContent || `/uploads/${file.filename}`;
+    let msgType = 'TEXT';
+    if (file) {
+      msgContent = msgContent || `/uploads/${file.filename}`;
+      const fn = file.filename.toLowerCase();
+      if (fn.startsWith('voice-')) msgType = 'VOICE';
+      else if (/\.(mp4|mov|mkv)$/i.test(fn)) msgType = 'VIDEO';
+      else if (/\.(jpg|jpeg|png|gif|webp)$/i.test(fn)) msgType = 'IMAGE';
+    }
     if (!toUserId || !msgContent) return fail(res, '缺少接收者或内容', 400);
-    const msg = await messageService.send(req.user!.userId, toUserId, msgContent, orderId);
+    const dur = duration ? parseInt(duration as string, 10) : undefined;
+    const msg = await messageService.send(req.user!.userId, toUserId, msgContent, orderId, msgType, dur);
 
     // Notify receiver via socket (real-time delivery)
     const io = req.app.get('io');

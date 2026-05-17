@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__MiniMax__understand_image",
+      "Bash(ls -la ~/.opencode/ 2>&1 || echo \"No ~/.opencode directory\")",
+      "Read(//c/Users/19617/**)",
+      "Bash(npm list *)",
+      "Bash(opencode --version)",
+      "Bash(minimax-mcp-js --help)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\19617\\AppData\\Local\\Temp"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "minimax"
+  ]
+}

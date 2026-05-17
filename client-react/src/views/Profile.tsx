@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -25,6 +25,7 @@ import {
   Zap,
   Users,
   ShieldCheck,
+  Heart,
 } from 'lucide-react'
 
 const PROFILE_HERO_FALLBACK =
@@ -113,6 +114,7 @@ export default function Profile() {
     followers: 0,
   })
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [certStatus, setCertStatus] = useState<any>(null)
   // 关注/粉丝改为页面跳转，不再使用 modal
   function gotoFollowList(mode: 'followers' | 'following') {
@@ -122,6 +124,22 @@ export default function Profile() {
   const [editing, setEditing] = useState(false)
   const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
+  const [uploadingKind, setUploadingKind] = useState<'avatar' | 'cover' | null>(
+    null,
+  )
+  const avatarInputRef = useRef<HTMLInputElement | null>(null)
+  const coverInputRef = useRef<HTMLInputElement | null>(null)
+  const [contentTab, setContentTab] = useState<'profile' | 'favorites'>(
+    'profile',
+  )
+  const {
+    favoriteDemands,
+    favoriteTotalPages,
+    favoriteLoading,
+    loadFavorites,
+    toggleFavorite,
+  } = useUserStore()
+  const [favPage, setFavPage] = useState(1)
 
   // 认证进度
   const promo = certStatus?.promotion
@@ -167,12 +185,27 @@ export default function Profile() {
     }
   }, [id, isMe, myUser?.id])
 
+  const loadFavPage = useCallback(
+    (page: number) => {
+      setFavPage(page)
+      loadFavorites(page)
+    },
+    [loadFavorites],
+  )
+
+  useEffect(() => {
+    if (contentTab === 'favorites') {
+      loadFavPage(1)
+    }
+  }, [contentTab, loadFavPage])
+
   useEffect(() => {
     loadUser()
   }, [loadUser])
 
   async function handleFollow() {
-    if (!displayUser?.id) return
+    if (!displayUser?.id || isFollowLoading) return
+    setIsFollowLoading(true)
     try {
       if (isFollowing) {
         await userApi.unfollow(displayUser.id)
@@ -185,8 +218,10 @@ export default function Profile() {
         setFollowCounts((p) => ({ ...p, followers: p.followers + 1 }))
       }
       setIsFollowing(!isFollowing)
-    } catch {
-      /* noop */
+    } catch (e: any) {
+      toast(e?.response?.data?.message || '操作失败', 'error')
+    } finally {
+      setIsFollowLoading(false)
     }
   }
 
@@ -203,6 +238,34 @@ export default function Profile() {
       toast('已保存', 'success')
     } catch (e: any) {
       toast(e.response?.data?.message || '保存失败', 'error')
+    }
+  }
+
+  async function uploadImage(kind: 'avatar' | 'cover', file: File | null) {
+    if (!file || !isMe) return
+    if (!file.type.startsWith('image/')) {
+      toast('请选择图片文件', 'error')
+      return
+    }
+    const maxBytes = 8 * 1024 * 1024
+    if (file.size > maxBytes) {
+      toast('图片不能超过 8MB', 'error')
+      return
+    }
+    try {
+      setUploadingKind(kind)
+      const fd = new FormData()
+      fd.append(kind, file)
+      await userApi.updateProfile(fd)
+      await useUserStore.getState().refreshUser()
+      if (!isMe) await loadUser()
+      toast(kind === 'avatar' ? '头像已更新' : '背景已更新', 'success')
+    } catch (e: any) {
+      toast(e.response?.data?.message || '上传失败', 'error')
+    } finally {
+      setUploadingKind(null)
+      if (avatarInputRef.current) avatarInputRef.current.value = ''
+      if (coverInputRef.current) coverInputRef.current.value = ''
     }
   }
 
@@ -224,7 +287,7 @@ export default function Profile() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.22 } }}
               onClick={handleIntroClick}
-              className="fixed inset-0 z-[2000] cursor-pointer overflow-hidden"
+              className="fixed inset-0 z-[var(--z-max)] cursor-pointer overflow-hidden"
               style={{ background: 'var(--bg-primary)' }}
             >
               {/* 封面大图 */}
@@ -274,6 +337,33 @@ export default function Profile() {
         document.body,
       )}
 
+      {isMe ? (
+        <>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            title="上传头像"
+            aria-label="上传头像"
+            className="hidden"
+            onChange={(e) =>
+              void uploadImage('avatar', e.currentTarget.files?.[0] || null)
+            }
+          />
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            title="上传背景"
+            aria-label="上传背景"
+            className="hidden"
+            onChange={(e) =>
+              void uploadImage('cover', e.currentTarget.files?.[0] || null)
+            }
+          />
+        </>
+      ) : null}
+
       <div
         className={cn(
           'relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto thin-scroll transition-opacity duration-200',
@@ -294,7 +384,25 @@ export default function Profile() {
         />
 
         {/* items-center + 显式宽度；min-h-full + justify-center：大屏下内容不贴顶，与底部留白更均衡 */}
-        <div className="relative z-10 box-border flex min-h-full w-full max-w-[36rem] shrink-0 self-center flex-col justify-center gap-4 px-4 pb-28 pt-16">
+        <div className="relative z-10 box-border flex min-h-full w-full max-w-2xl shrink-0 self-center flex-col justify-center gap-4 px-4 pb-28 pt-16">
+          {isMe ? (
+            <button
+              type="button"
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingKind !== null}
+              className={cn(
+                'h-10 w-full rounded-xl',
+                uploadingKind !== null && 'cursor-not-allowed opacity-60',
+              )}
+              aria-label="更换背景"
+              title="更换背景"
+            >
+              <span className="sr-only">
+                {uploadingKind === 'cover' ? '背景上传中' : '更换背景'}
+              </span>
+            </button>
+          ) : null}
+
           <LiquidGlassCard
             draggable={true}
             shadowIntensity="xs"
@@ -303,25 +411,53 @@ export default function Profile() {
             className={`p-5 ${cardSurface}`}
           >
             <div className="flex items-start gap-3">
-              <div
-                className={cn(
-                  'flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl font-bold shadow-lg',
-                  isDark ? 'border-white/25' : 'border-black/[0.08]',
-                )}
-                style={{
-                  boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)`,
-                }}
-              >
-                {displayUser?.avatarUrl ? (
-                  <img
-                    src={displayUser.avatarUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (displayUser?.nickname || '?')[0]
-                )}
-              </div>
+              {isMe ? (
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingKind !== null}
+                  className={cn(
+                    'group relative flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl font-bold shadow-lg transition',
+                    isDark ? 'border-white/25' : 'border-black/[0.08]',
+                    uploadingKind !== null && 'cursor-not-allowed opacity-70',
+                  )}
+                  style={{
+                    boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)`,
+                  }}
+                  aria-label="更换头像"
+                  title="更换头像"
+                >
+                  {displayUser?.avatarUrl ? (
+                    <img
+                      src={displayUser.avatarUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (displayUser?.nickname || '?')[0]
+                  )}
+                </button>
+              ) : (
+                <div
+                  className={cn(
+                    'flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl font-bold shadow-lg',
+                    isDark ? 'border-white/25' : 'border-black/[0.08]',
+                  )}
+                  style={{
+                    boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)`,
+                  }}
+                >
+                  {displayUser?.avatarUrl ? (
+                    <img
+                      src={displayUser.avatarUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (displayUser?.nickname || '?')[0]
+                  )}
+                </div>
+              )}
               <div className="min-w-0 flex-1 pt-0.5">
                 {editing ? (
                   <input
@@ -342,7 +478,7 @@ export default function Profile() {
                   </h2>
                 )}
                 <span
-                  className="mt-1 inline-block rounded px-2 py-0.5 text-[10px] font-semibold"
+                  className="mt-1 inline-block rounded px-2 py-0.5 text-[11px] font-semibold"
                   style={{
                     color: isDark ? '#fff' : color,
                     border: `1px solid ${color}66`,
@@ -427,8 +563,9 @@ export default function Profile() {
                     <button
                       type="button"
                       onClick={handleFollow}
+                      disabled={isFollowLoading}
                       className={cn(
-                        'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-[color,background-color,border-color]',
+                        'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-[color,background-color,border-color] disabled:opacity-50',
                         isDark
                           ? 'border-white/25 bg-white/10 text-white'
                           : 'border-black/[0.08] bg-black/[0.04] text-text-primary',
@@ -441,6 +578,7 @@ export default function Profile() {
                     <AcetFavouriteButton
                       type="button"
                       onClick={handleFollow}
+                      disabled={isFollowLoading}
                       className="flex flex-1 items-center justify-center gap-2 !rounded-xl !py-3 !text-sm font-bold"
                     >
                       <UserPlus size={15} />
@@ -477,7 +615,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => gotoFollowList('following')}
-                className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
+                className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
               >
                 <span className="text-2xl font-extrabold tabular-nums">
                   {followCounts.following}
@@ -497,7 +635,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={() => gotoFollowList('followers')}
-                className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
+                className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
               >
                 <span className="text-2xl font-extrabold tabular-nums">
                   {followCounts.followers}
@@ -595,7 +733,7 @@ export default function Profile() {
                     <item.icon size={15} />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-[10px] ${textSubtle}`}>{item.label}</p>
+                    <p className={`text-[11px] ${textSubtle}`}>{item.label}</p>
                     <p className="truncate text-sm font-extrabold tabular-nums">
                       {item.value}
                     </p>
@@ -610,12 +748,13 @@ export default function Profile() {
               {[
                 { icon: Award, label: '认证', path: '/cert-center' },
                 { icon: FileText, label: '需求', path: '/my-demands' },
+                { icon: Heart, label: '收藏', tab: 'favorites' as const },
                 { icon: ShoppingBag, label: '订单', path: '/orders' },
                 { icon: MessageCircle, label: '消息', path: '/messages' },
                 { icon: Settings, label: '设置', path: '/settings' },
               ].map((item) => (
                 <LiquidGlassCard
-                  key={item.path}
+                  key={item.tab || item.path}
                   draggable={true}
                   shadowIntensity="xs"
                   glowIntensity="none"
@@ -624,19 +763,113 @@ export default function Profile() {
                 >
                   <button
                     type="button"
-                    onClick={() => navigate(item.path)}
-                    className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
+                    onClick={() =>
+                      item.tab ? setContentTab(item.tab) : navigate(item.path!)
+                    }
+                    className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
                   >
                     <item.icon
                       size={18}
                       className={isDark ? 'text-white/90' : 'text-text-primary'}
                     />
-                    <span className={`text-[10px] ${textMuted}`}>
+                    <span className={`text-[11px] ${textMuted}`}>
                       {item.label}
                     </span>
                   </button>
                 </LiquidGlassCard>
               ))}
+            </div>
+          )}
+
+          {contentTab === 'favorites' && isMe && (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setContentTab('profile')}
+                  className={cn(
+                    'flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium',
+                    isDark
+                      ? 'bg-white/10 text-white'
+                      : 'bg-black/5 text-text-primary',
+                  )}
+                >
+                  ← 返回
+                </button>
+                <span className="text-sm font-semibold text-text-primary">
+                  我的收藏
+                </span>
+              </div>
+              {favoriteLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <span className="loader" />
+                </div>
+              ) : favoriteDemands.length === 0 ? (
+                <div className="text-center py-8 text-text-muted text-sm">
+                  暂无收藏
+                </div>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2">
+                    {favoriteDemands.map((demand) => (
+                      <LiquidGlassCard
+                        key={demand.id}
+                        draggable={true}
+                        shadowIntensity="xs"
+                        glowIntensity="none"
+                        borderRadius="16px"
+                        className={`p-4 ${cardSurface}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/demands/${demand.id}`)}
+                            className="flex-1 min-w-0 text-left"
+                          >
+                            <p className="truncate text-sm font-semibold text-text-primary">
+                              {demand.title}
+                            </p>
+                            <p className="text-xs text-text-muted mt-0.5">
+                              ¥{demand.minPrice} · {demand.category}
+                            </p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleFavorite(demand.id)}
+                            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
+                          >
+                            <Heart size={16} className="fill-red-500" />
+                          </button>
+                        </div>
+                      </LiquidGlassCard>
+                    ))}
+                  </div>
+                  {favoriteTotalPages > 1 && (
+                    <div className="flex justify-center gap-2 mt-2">
+                      {Array.from(
+                        { length: Math.min(5, favoriteTotalPages) },
+                        (_, i) => i + 1,
+                      ).map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => loadFavPage(page)}
+                          className={cn(
+                            'h-8 w-8 rounded-lg text-xs font-medium',
+                            page === favPage
+                              ? 'bg-accent text-white'
+                              : isDark
+                                ? 'bg-white/10 text-white'
+                                : 'bg-black/5 text-text-primary',
+                          )}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>

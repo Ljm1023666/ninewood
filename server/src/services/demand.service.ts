@@ -74,7 +74,7 @@ export const demandService = {
         mediaUrls: params.mediaUrls || [],
       },
       include: {
-        user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } },
+        user: { select: { id: true, nickname: true, avatarUrl: true, demandCardCoverUrl: true, certificationLevel: true } },
         _count: { select: { applications: true } },
       },
     });
@@ -192,7 +192,7 @@ export const demandService = {
       // PostgreSQL-level haversine: push distance calc + filter to DB
       const raw = await prisma.$queryRawUnsafe<any[]>(`
         SELECT d.*,
-          u."nickname", u."avatarUrl", u."coverUrl", u."certificationLevel",
+          u."nickname", u."avatarUrl", u."coverUrl", u."demandCardCoverUrl", u."certificationLevel",
           COALESCE((SELECT COUNT(*) FROM "DemandApplication" WHERE "demandId" = d.id), 0)::int AS "applicantCount",
           6371 * 2 * ASIN(SQRT(
             POWER(SIN((${params.lat} - d."locationLat") * PI() / 180 / 2), 2) +
@@ -267,6 +267,7 @@ export const demandService = {
           nickname: d.nickname,
           avatarUrl: d.avatarUrl,
           coverUrl: d.coverUrl,
+          demandCardCoverUrl: d.demandCardCoverUrl,
           certificationLevel: d.certificationLevel,
         },
         mediaUrls: d.mediaUrls,
@@ -300,6 +301,7 @@ export const demandService = {
             nickname: true,
             avatarUrl: true,
             coverUrl: true,
+            demandCardCoverUrl: true,
             certificationLevel: true,
           },
         },
@@ -347,7 +349,7 @@ export const demandService = {
     const demand = await prisma.demand.findUnique({
       where: { id: demandId },
       include: {
-        user: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true, certificationLevel: true, creditScore: true } },
+        user: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, certificationLevel: true, creditScore: true } },
         applications: {
           include: { user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } } },
           orderBy: { createdAt: 'desc' },

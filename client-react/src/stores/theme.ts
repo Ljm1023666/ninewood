@@ -125,7 +125,7 @@ function applyTheme(config: ThemeConfig) {
   } else {
     root.style.setProperty('--text-primary', '#171717')
     root.style.setProperty('--text-secondary', '#404040')
-    root.style.setProperty('--text-muted', '#737373')
+    root.style.setProperty('--text-muted', '#525252')
   }
   // 浅色模式提高金额对比度；暗色保持琥珀色可读性
   if (config.dark) {
