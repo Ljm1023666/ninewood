@@ -5,6 +5,8 @@ import { certLabel, certColor, certGlow } from '@/constants/cert'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface SearchUser {
   id: string
@@ -51,7 +53,7 @@ export default function Search() {
   }
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background text-foreground">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background text-text-primary">
       <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-3xl shrink-0 flex-col self-center">
         <div className="shrink-0 px-4 py-4 sm:px-6">
           <div className="mb-1">
@@ -93,22 +95,27 @@ export default function Search() {
 
         <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-4 sm:px-6">
           {loading && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-              <p className="mt-3 text-sm text-text-muted">搜索中...</p>
+            <div className="space-y-2 pb-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl bg-bg-secondary/40 p-3"
+                >
+                  <Skeleton className="size-12 shrink-0 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <Skeleton className="h-4 w-2/5 rounded" />
+                    <Skeleton className="h-3 w-3/5 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
           {searched && !loading && results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-secondary">
-                <X size={24} className="text-text-muted" />
-              </div>
-              <p className="mt-4 text-sm font-medium text-text-primary">
-                未找到相关用户
-              </p>
-              <p className="mt-1 text-xs text-text-muted">尝试更换关键词搜索</p>
-            </div>
+            <EmptyState
+              type="search"
+              message="未找到匹配的用户，试试其他关键词"
+            />
           )}
 
           {searched && !loading && results.length > 0 && (
@@ -202,7 +209,15 @@ export default function Search() {
 
           {!searched && !loading && (
             <div className="flex flex-col items-center justify-center py-20">
-              <p className="text-sm text-text-muted">输入关键词开始搜索用户</p>
+              <div className="flex size-14 items-center justify-center rounded-xl bg-[var(--accent-ghost)] mb-3">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </div>
+              <p className="text-sm text-text-muted">
+                输入昵称或手机号搜索用户
+              </p>
             </div>
           )}
         </div>

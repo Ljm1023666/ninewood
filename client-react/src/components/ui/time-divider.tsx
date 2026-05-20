@@ -26,8 +26,8 @@ export function TimeDivider({
         className={cn(
           'text-xs px-3 py-1 rounded-full border',
           isDark
-            ? 'text-neutral-500 bg-black/40 border-white/5'
-            : 'text-text-muted bg-black/[0.06] border-black/[0.08]',
+            ? 'text-neutral-500 bg-bg-secondary/75 border-white/5'
+            : 'text-text-muted bg-bg-secondary/40 border-border/70',
         )}
       >
         {formatChatTime(timestamp)}

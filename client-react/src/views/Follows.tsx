@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Users, UserCheck, Loader2 } from 'lucide-react'
 import { userApi } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
-import { certColor } from '@/constants/cert'
+import { certLabel, certColor } from '@/constants/cert'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
 export default function Follows() {
@@ -77,136 +78,202 @@ export default function Follows() {
   }
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto thin-scroll">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto thin-scroll bg-background text-text-primary">
       <div className="mx-auto w-full max-w-[36rem] px-4 py-6">
-        {/* 顶部 tab 切换 */}
-        <div className="flex items-center gap-2 mb-5">
+        {/* 顶部：返回 + Tab 切换 */}
+        <div className="mb-5 flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate(-1)}
+            aria-label="返回"
             className={cn(
-              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
-              isDark ? 'hover:bg-white/10' : 'hover:bg-black/[0.06]',
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors',
+              isDark ? 'hover:bg-white/10 text-text-secondary' : 'hover:bg-bg-secondary/50 text-text-secondary',
             )}
           >
             <ChevronLeft size={20} />
           </button>
-          <div className="flex rounded-lg border border-border bg-card p-0.5">
+          <div className="flex rounded-xl border border-border bg-bg-secondary p-1">
             <button
               type="button"
-              onClick={() => {
-                setItems([])
-                setPage(1)
-                setHasMore(true)
-                navigate(`/follows/${userId}?mode=followers`, { replace: true })
-              }}
+              onClick={() => navigate(`/follows/${userId}?mode=followers`, { replace: true })}
               className={cn(
-                'rounded-md px-4 py-1.5 text-sm font-semibold transition',
+                'flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200',
                 mode === 'followers'
-                  ? 'bg-[var(--primary-gradient)] text-white'
-                  : isDark
-                    ? 'text-white/60'
-                    : 'text-text-secondary',
+                  ? 'bg-background text-text-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-secondary',
               )}
             >
+              <Users size={14} />
               粉丝
             </button>
             <button
               type="button"
-              onClick={() => {
-                setItems([])
-                setPage(1)
-                setHasMore(true)
-                navigate(`/follows/${userId}?mode=following`, { replace: true })
-              }}
+              onClick={() => navigate(`/follows/${userId}?mode=following`, { replace: true })}
               className={cn(
-                'rounded-md px-4 py-1.5 text-sm font-semibold transition',
+                'flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200',
                 mode === 'following'
-                  ? 'bg-[var(--primary-gradient)] text-white'
-                  : isDark
-                    ? 'text-white/60'
-                    : 'text-text-secondary',
+                  ? 'bg-background text-text-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-secondary',
               )}
             >
+              <UserCheck size={14} />
               关注
             </button>
           </div>
         </div>
 
-        {/* 用户列表 */}
-        <div className="flex flex-col">
-          {items.map((u) => (
-            <div
-              key={u.id}
-              className={cn(
-                'flex items-center gap-3 py-3 border-b',
-                isDark ? 'border-white/5' : 'border-black/[0.06]',
-              )}
-            >
-              <div
-                className={cn(
-                  'h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden cursor-pointer',
-                  isDark ? 'bg-white/10' : 'bg-black/[0.06]',
-                )}
-                style={{
-                  boxShadow: u.certificationLevel
-                    ? `0 0 8px ${certColor[u.certificationLevel]}40`
-                    : undefined,
-                }}
-                onClick={() => navigate(`/profile/${u.id}`)}
-              >
-                {u.avatarUrl ? (
-                  <img
-                    src={u.avatarUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (u.nickname || '?')[0]
-                )}
-              </div>
-              <div
-                className="min-w-0 flex-1 cursor-pointer"
-                onClick={() => navigate(`/profile/${u.id}`)}
-              >
-                <p className="text-sm font-semibold text-text-primary truncate">
-                  {u.nickname}
-                </p>
-                {u.bio && (
-                  <p className="text-xs text-text-muted truncate">{u.bio}</p>
-                )}
-              </div>
-              {u.id !== myId && (
-                <button
-                  onClick={() => toggleFollow(u)}
-                  className={cn(
-                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition shrink-0',
-                    u.isFollowing
-                      ? cn(
-                          'border text-text-muted',
-                          isDark
-                            ? 'border-white/10 bg-white/5'
-                            : 'border-black/[0.08] bg-black/[0.04]',
-                        )
-                      : 'bg-[var(--primary-gradient)] text-white',
-                  )}
-                >
-                  {u.isFollowing ? '已关注' : '关注'}
-                </button>
+        {/* Loading */}
+        {loading && items.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 size={28} className="animate-spin text-accent" />
+            <p className="mt-3 text-sm text-text-muted">加载中...</p>
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && items.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-bg-secondary">
+              {mode === 'followers' ? (
+                <Users size={24} className="text-text-muted" />
+              ) : (
+                <UserCheck size={24} className="text-text-muted" />
               )}
             </div>
-          ))}
+            <p className="mt-4 text-sm font-medium text-text-primary">
+              {mode === 'followers' ? '暂无粉丝' : '暂未关注'}
+            </p>
+            <p className="mt-1 text-xs text-text-muted">
+              {mode === 'followers' ? '还没有人关注这位用户' : '还没有关注任何人'}
+            </p>
+          </div>
+        )}
 
-          {hasMore && (
+        {/* 用户列表 */}
+        {items.length > 0 && (
+          <div className="space-y-1">
+            {items.map((u) => (
+              <div
+                key={u.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/profile/${u.id}`)}
+                onKeyDown={(e) => e.key === 'Enter' && navigate(`/profile/${u.id}`)}
+                className={cn(
+                  'group flex cursor-pointer items-center gap-3 rounded-xl border border-transparent p-3 transition-all',
+                  isDark
+                    ? 'hover:border-border hover:bg-bg-secondary/80'
+                    : 'hover:border-border hover:bg-bg-secondary/60',
+                  'active:scale-[0.99]',
+                )}
+              >
+                <div
+                  className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white shadow-md"
+                  style={{
+                    background: certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280',
+                    boxShadow: u.certificationLevel
+                      ? `0 0 10px ${certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280'}40`
+                      : undefined,
+                  }}
+                >
+                  {u.avatarUrl ? (
+                    <Avatar className="h-full w-full">
+                      <AvatarImage src={u.avatarUrl} className="h-full w-full object-cover" />
+                      <AvatarFallback className="h-full w-full bg-transparent text-sm font-bold text-white">
+                        {(u.nickname || '?')[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    (u.nickname || '?')[0]
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-[15px] font-medium text-text-primary">
+                      {u.nickname}
+                    </span>
+                    {u.certificationLevel && u.certificationLevel !== 'NONE' && (
+                      <span
+                        className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                        style={{
+                          color: certColor[u.certificationLevel as keyof typeof certColor],
+                          backgroundColor:
+                            (certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280') + '15',
+                        }}
+                      >
+                        {certLabel[u.certificationLevel as keyof typeof certLabel]}
+                      </span>
+                    )}
+                  </div>
+                  {u.bio && (
+                    <p className="mt-0.5 truncate text-xs text-text-muted">
+                      {u.bio.slice(0, 50)}
+                    </p>
+                  )}
+                </div>
+
+                {u.id !== myId && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleFollow(u)
+                    }}
+                    className={cn(
+                      'shrink-0 rounded-lg px-4 py-1.5 text-xs font-semibold transition-all',
+                      u.isFollowing
+                        ? cn(
+                            'border text-text-muted',
+                            isDark
+                              ? 'border-white/10 bg-white/5 hover:bg-white/10'
+                              : 'border-border/70 bg-bg-secondary/40 hover:bg-bg-secondary/60',
+                          )
+                        : 'bg-[var(--primary-gradient)] text-white hover:opacity-90',
+                    )}
+                  >
+                    {u.isFollowing ? '已关注' : '关注'}
+                  </button>
+                )}
+
+                <ChevronLeft
+                  size={14}
+                  className={cn(
+                    'shrink-0 rotate-180 text-text-muted/40 opacity-0 transition-opacity group-hover:opacity-100',
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 加载更多 */}
+        {hasMore && items.length > 0 && (
+          <div className="mt-4 flex justify-center">
             <button
+              type="button"
               onClick={() => loadPage(page)}
               disabled={loading}
-              className="w-full py-3 text-sm text-text-muted hover:text-text-secondary mt-2"
+              className={cn(
+                'rounded-xl border border-border px-5 py-2.5 text-sm font-medium transition-all',
+                isDark
+                  ? 'bg-bg-secondary text-text-muted hover:bg-bg-tertiary hover:text-text-secondary'
+                  : 'bg-bg-secondary text-text-muted hover:bg-bg-tertiary hover:text-text-secondary',
+                loading && 'pointer-events-none opacity-60',
+              )}
             >
-              {loading ? '加载中...' : '加载更多'}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin" />
+                  加载中...
+                </span>
+              ) : (
+                '加载更多'
+              )}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

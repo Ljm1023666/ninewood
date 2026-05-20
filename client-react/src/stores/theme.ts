@@ -15,90 +15,146 @@ export interface ThemeConfig {
   borderColor: string
 }
 
-const presets: Record<string, ThemeConfig> = {
-  cyberpunk: {
-    name: 'cyberpunk',
+export const presets: Record<string, ThemeConfig> = {
+  'amber-stream': {
+    name: 'amber-stream',
     dark: true,
-    primaryStart: '#667eea',
-    primaryEnd: '#764ba2',
-    bgPrimary: '#0a0a1a',
-    bgSecondary: '#12122a',
-    bgTertiary: '#1a1a3a',
-    bgCard: 'rgba(102, 126, 234, 0.08)',
-    textPrimary: '#e0e0f0',
-    textSecondary: '#b0b0d0',
-    textMuted: '#8080a8',
-    borderColor: 'rgba(102, 126, 234, 0.2)',
+    primaryStart: 'oklch(70% 0.14 55)',
+    primaryEnd: 'oklch(60% 0.16 45)',
+    bgPrimary: 'oklch(18% 0.01 50)',
+    bgSecondary: 'oklch(24% 0.012 52)',
+    bgTertiary: 'oklch(30% 0.014 54)',
+    bgCard: 'oklch(70% 0.14 55 / 0.08)',
+    textPrimary: 'oklch(94% 0.008 60)',
+    textSecondary: 'oklch(80% 0.01 58)',
+    textMuted: 'oklch(62% 0.012 55)',
+    borderColor: 'oklch(36% 0.012 53)',
   },
-  ocean: {
-    name: 'ocean',
-    dark: true,
-    primaryStart: '#0ea5e9',
-    primaryEnd: '#06b6d4',
-    bgPrimary: '#0a1628',
-    bgSecondary: '#0f2240',
-    bgTertiary: '#152e50',
-    bgCard: 'rgba(14, 165, 233, 0.08)',
-    textPrimary: '#dceefb',
-    textSecondary: '#a0c4e8',
-    textMuted: '#6088a8',
-    borderColor: 'rgba(14, 165, 233, 0.2)',
+  'morning-mist': {
+    name: 'morning-mist',
+    dark: false,
+    primaryStart: 'oklch(68% 0.12 85)',
+    primaryEnd: 'oklch(58% 0.14 80)',
+    bgPrimary: 'oklch(98% 0.003 85)',
+    bgSecondary: 'oklch(94% 0.005 80)',
+    bgTertiary: 'oklch(88% 0.008 78)',
+    bgCard: 'oklch(68% 0.12 85 / 0.06)',
+    textPrimary: 'oklch(22% 0.008 70)',
+    textSecondary: 'oklch(45% 0.01 75)',
+    textMuted: 'oklch(60% 0.01 78)',
+    borderColor: 'oklch(70% 0.008 78)',
   },
-  sunset: {
-    name: 'sunset',
+  'moon-through-pines': {
+    name: 'moon-through-pines',
     dark: true,
-    primaryStart: '#f97316',
-    primaryEnd: '#ef4444',
-    bgPrimary: '#1a0f0a',
-    bgSecondary: '#2a1812',
-    bgTertiary: '#3a221a',
-    bgCard: 'rgba(249, 115, 22, 0.08)',
-    textPrimary: '#fce8d9',
-    textSecondary: '#d4a88c',
-    textMuted: '#a07058',
-    borderColor: 'rgba(249, 115, 22, 0.2)',
+    primaryStart: 'oklch(72% 0.09 145)',
+    primaryEnd: 'oklch(60% 0.10 140)',
+    bgPrimary: 'oklch(12% 0.008 140)',
+    bgSecondary: 'oklch(16% 0.01 138)',
+    bgTertiary: 'oklch(22% 0.012 135)',
+    bgCard: 'oklch(72% 0.09 145 / 0.08)',
+    textPrimary: 'oklch(92% 0.008 85)',
+    textSecondary: 'oklch(78% 0.01 80)',
+    textMuted: 'oklch(60% 0.015 75)',
+    borderColor: 'oklch(28% 0.012 136)',
   },
-  forest: {
-    name: 'forest',
-    dark: true,
-    primaryStart: '#22c55e',
-    primaryEnd: '#10b981',
-    bgPrimary: '#0a1a0f',
-    bgSecondary: '#122a1a',
-    bgTertiary: '#1a3a22',
-    bgCard: 'rgba(34, 197, 94, 0.08)',
-    textPrimary: '#d9fce1',
-    textSecondary: '#8cd4a0',
-    textMuted: '#58a070',
-    borderColor: 'rgba(34, 197, 94, 0.2)',
+  'green-vines': {
+    name: 'green-vines',
+    dark: false,
+    primaryStart: 'oklch(74% 0.11 155)',
+    primaryEnd: 'oklch(64% 0.12 150)',
+    bgPrimary: 'oklch(96% 0.008 145)',
+    bgSecondary: 'oklch(91% 0.01 148)',
+    bgTertiary: 'oklch(85% 0.012 150)',
+    bgCard: 'oklch(74% 0.11 155 / 0.06)',
+    textPrimary: 'oklch(18% 0.006 140)',
+    textSecondary: 'oklch(42% 0.008 138)',
+    textMuted: 'oklch(56% 0.01 135)',
+    borderColor: 'oklch(72% 0.012 148)',
   },
-  crimson: {
-    name: 'crimson',
+  'twilight-violet': {
+    name: 'twilight-violet',
     dark: true,
-    primaryStart: '#dc2626',
-    primaryEnd: '#b91c1c',
-    bgPrimary: '#1a0a0a',
-    bgSecondary: '#2a1212',
-    bgTertiary: '#3a1a1a',
-    bgCard: 'rgba(220, 38, 38, 0.08)',
-    textPrimary: '#fcd9d9',
-    textSecondary: '#d48c8c',
-    textMuted: '#a05858',
-    borderColor: 'rgba(220, 38, 38, 0.2)',
+    primaryStart: 'oklch(62% 0.14 295)',
+    primaryEnd: 'oklch(52% 0.16 290)',
+    bgPrimary: 'oklch(10% 0.012 290)',
+    bgSecondary: 'oklch(15% 0.014 292)',
+    bgTertiary: 'oklch(22% 0.016 295)',
+    bgCard: 'oklch(62% 0.14 295 / 0.08)',
+    textPrimary: 'oklch(92% 0.008 80)',
+    textSecondary: 'oklch(75% 0.01 75)',
+    textMuted: 'oklch(55% 0.015 70)',
+    borderColor: 'oklch(28% 0.016 294)',
+  },
+  'snow-on-pines': {
+    name: 'snow-on-pines',
+    dark: false,
+    primaryStart: 'oklch(82% 0.02 165)',
+    primaryEnd: 'oklch(72% 0.03 160)',
+    bgPrimary: 'oklch(98% 0.002 90)',
+    bgSecondary: 'oklch(94% 0.003 95)',
+    bgTertiary: 'oklch(88% 0.004 100)',
+    bgCard: 'oklch(82% 0.02 165 / 0.06)',
+    textPrimary: 'oklch(15% 0.005 145)',
+    textSecondary: 'oklch(35% 0.008 140)',
+    textMuted: 'oklch(52% 0.01 135)',
+    borderColor: 'oklch(72% 0.004 95)',
+  },
+  'sunset-molten-gold': {
+    name: 'sunset-molten-gold',
+    dark: true,
+    primaryStart: 'oklch(75% 0.18 65)',
+    primaryEnd: 'oklch(62% 0.20 55)',
+    bgPrimary: 'oklch(8% 0.015 40)',
+    bgSecondary: 'oklch(14% 0.018 42)',
+    bgTertiary: 'oklch(22% 0.02 45)',
+    bgCard: 'oklch(75% 0.18 65 / 0.08)',
+    textPrimary: 'oklch(94% 0.01 75)',
+    textSecondary: 'oklch(80% 0.015 70)',
+    textMuted: 'oklch(58% 0.02 65)',
+    borderColor: 'oklch(28% 0.02 44)',
+  },
+  'emerald-mist': {
+    name: 'emerald-mist',
+    dark: false,
+    primaryStart: 'oklch(68% 0.14 160)',
+    primaryEnd: 'oklch(58% 0.16 155)',
+    bgPrimary: 'oklch(98% 0.006 155)',
+    bgSecondary: 'oklch(93% 0.008 158)',
+    bgTertiary: 'oklch(86% 0.01 160)',
+    bgCard: 'oklch(68% 0.14 160 / 0.06)',
+    textPrimary: 'oklch(14% 0.008 150)',
+    textSecondary: 'oklch(38% 0.01 148)',
+    textMuted: 'oklch(54% 0.012 145)',
+    borderColor: 'oklch(72% 0.01 158)',
+  },
+  'autumn-river': {
+    name: 'autumn-river',
+    dark: false,
+    primaryStart: 'oklch(66% 0.11 265)',
+    primaryEnd: 'oklch(56% 0.12 260)',
+    bgPrimary: 'oklch(96% 0.006 260)',
+    bgSecondary: 'oklch(90% 0.008 262)',
+    bgTertiary: 'oklch(82% 0.01 265)',
+    bgCard: 'oklch(66% 0.11 265 / 0.06)',
+    textPrimary: 'oklch(12% 0.008 255)',
+    textSecondary: 'oklch(34% 0.01 258)',
+    textMuted: 'oklch(50% 0.012 260)',
+    borderColor: 'oklch(68% 0.008 262)',
   },
   light: {
     name: 'light',
     dark: false,
-    primaryStart: '#667eea',
-    primaryEnd: '#764ba2',
-    bgPrimary: '#edf1f7',
-    bgSecondary: '#e3e9f2',
-    bgTertiary: '#d8dfeb',
-    bgCard: 'rgba(255, 255, 255, 0.68)',
-    textPrimary: '#111827',
-    textSecondary: '#334155',
-    textMuted: '#64748b',
-    borderColor: 'rgba(30, 41, 59, 0.14)',
+    primaryStart: 'oklch(58% 0.16 45)',
+    primaryEnd: 'oklch(52% 0.18 35)',
+    bgPrimary: 'oklch(96% 0.004 65)',
+    bgSecondary: 'oklch(90% 0.004 62)',
+    bgTertiary: 'oklch(84% 0.003 58)',
+    bgCard: 'oklch(58% 0.16 45 / 0.04)',
+    textPrimary: '#111111',
+    textSecondary: '#333333',
+    textMuted: '#666666',
+    borderColor: 'oklch(60% 0.003 58 / 0.2)',
   },
 }
 
@@ -118,15 +174,9 @@ function applyTheme(config: ThemeConfig) {
     `linear-gradient(135deg, ${config.primaryStart}, ${config.primaryEnd})`,
   )
   // 正文色与皮肤色相解耦：浅色模式统一深色字，深色模式统一浅色字
-  if (config.dark) {
-    root.style.setProperty('--text-primary', '#f4f4f5')
-    root.style.setProperty('--text-secondary', '#d4d4d8')
-    root.style.setProperty('--text-muted', '#a1a1aa')
-  } else {
-    root.style.setProperty('--text-primary', '#171717')
-    root.style.setProperty('--text-secondary', '#404040')
-    root.style.setProperty('--text-muted', '#525252')
-  }
+  root.style.setProperty('--text-primary', config.textPrimary)
+  root.style.setProperty('--text-secondary', config.textSecondary)
+  root.style.setProperty('--text-muted', config.textMuted)
   // 浅色模式提高金额对比度；暗色保持琥珀色可读性
   if (config.dark) {
     root.style.setProperty('--price-foreground', '#fbbf24')
@@ -164,7 +214,7 @@ function getInitial() {
   if (saved && presets[saved]) {
     const preset = presets[saved]
     if (saved === 'light') {
-      const dp = presets[savedDark || 'cyberpunk'] || presets.cyberpunk
+      const dp = presets[savedDark || 'amber-stream'] || presets['amber-stream']
       return {
         config: {
           ...presets.light,
@@ -172,7 +222,7 @@ function getInitial() {
           primaryEnd: dp.primaryEnd,
           name: 'light',
         },
-        darkPreset: savedDark || 'cyberpunk',
+        darkPreset: savedDark || 'amber-stream',
         darkMode: true,
       }
     }
@@ -190,7 +240,11 @@ function getInitial() {
     }
     return { config: preset, darkPreset: saved, darkMode: false }
   }
-  return { config: presets.cyberpunk, darkPreset: 'cyberpunk', darkMode: false }
+  return {
+    config: presets['amber-stream'],
+    darkPreset: 'amber-stream',
+    darkMode: false,
+  }
 }
 
 const init = getInitial()
@@ -210,7 +264,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     if (!config) return
 
     if (name === 'light') {
-      const dp = presets[get().lastDarkPreset] || presets.cyberpunk
+      const dp = presets[get().lastDarkPreset] || presets.amber
       const lightConfig: ThemeConfig = {
         ...presets.light,
         primaryStart: dp.primaryStart,
@@ -246,7 +300,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     const { current, darkMode, lastDarkPreset } = get()
     if (darkMode) {
       // 当前是亮色 → 切到暗色
-      const dp = presets[lastDarkPreset] || presets.cyberpunk
+      const dp = presets[lastDarkPreset] || presets.amber
       applyTheme(dp)
       localStorage.setItem('ninewood-theme', lastDarkPreset)
       localStorage.removeItem('ninewood-light-mode')

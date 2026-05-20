@@ -14,18 +14,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  // Keep legacy JSX-in-.js files working after Vite restore/upgrades.
-  esbuild: {
-    loader: 'jsx',
-    include: /src\/.*\.[jt]sx?$/,
-    exclude: [],
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      loader: {
-        '.js': 'jsx',
-      },
-    },
+  // Vite 8 oxc: include .js files for JSX parsing (default exclude filters out .js)
+  oxc: {
+    include: /\.(m?ts|[jt]sx|js)$/,
+    exclude: /node_modules/,
   },
   server: {
     host: true,

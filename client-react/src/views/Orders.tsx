@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { orderApi } from '@/api/order'
-import { AcetNextWhiteButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { ListItemCard } from '@/components/ui/list-item-card'
+import { LoadingState } from '@/components/ui/loading-state'
+import { ErrorState } from '@/components/ui/error-state'
+import { EmptyState } from '@/components/ui/empty-state'
 
 const statusLabel: Record<string, string> = {
   PENDING: '待确认',
@@ -13,12 +16,13 @@ const statusLabel: Record<string, string> = {
 const statusTheme = (s: string) =>
   (
     ({
-      COMPLETED: 'bg-emerald-500/15 text-emerald-400',
-      DISPUTED: 'bg-red-500/15 text-red-400',
-      IN_PROGRESS: 'bg-blue-500/15 text-blue-400',
-      WAITING_REVIEW: 'bg-amber-500/15 text-amber-400',
+      COMPLETED: 'bg-success/15 text-success border border-success/25',
+      DISPUTED: 'bg-error/15 text-error border border-error/25',
+      IN_PROGRESS: 'bg-warning/15 text-warning border border-warning/25',
+      WAITING_REVIEW: 'bg-warning/10 text-warning border border-warning/20',
+      PENDING: 'bg-accent/10 text-accent border border-accent/20',
     }) as Record<string, string>
-  )[s] || 'bg-card text-text-muted'
+  )[s] || 'bg-card text-text-muted border border-border'
 
 export default function Orders() {
   const [searchParams] = useSearchParams()
@@ -48,7 +52,7 @@ export default function Orders() {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
       <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
-        <div className="flex gap-2 mb-4">
+        <div className="mb-4 flex gap-2">
           {[
             { value: '', label: '全部' },
             { value: 'provider', label: '我接的单' },
@@ -57,60 +61,53 @@ export default function Orders() {
             <button
               key={t.value}
               onClick={() => setRole(t.value)}
-              className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-[color,background-color,border-color] ${role === t.value ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}
+              className={`flex-1 rounded-xl py-3 text-sm font-semibold transition-all duration-300 ${
+                role === t.value
+                  ? 'bg-[var(--primary-gradient)] text-white shadow-lg'
+                  : 'glass-input text-text-secondary hover:text-text-primary'
+              }`}
             >
               {t.label}
             </button>
           ))}
         </div>
-        {error && (
-          <div className="text-center py-16">
-            <p className="text-text-muted text-sm">{error}</p>
-            <AcetNextWhiteButton
-              type="button"
-              onClick={fetchOrders}
-              className="!mx-auto !mt-3 !block !px-4 !py-2 !text-sm"
-            >
-              重试
-            </AcetNextWhiteButton>
+
+        {error && <ErrorState message={error} onRetry={fetchOrders} />}
+
+        {loading && <LoadingState />}
+
+        {!error && !loading && orders.length === 0 && (
+          <EmptyState type="order" />
+        )}
+
+        {!loading && orders.length > 0 && (
+          <div className="flex flex-col gap-3">
+            {orders.map((o: any) => (
+              <ListItemCard
+                key={o.id}
+                onClick={() => navigate(`/orders/${o.id}`)}
+                className="p-4 list-item-base"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-text-primary">
+                    {o.demand?.title || '订单'}
+                  </span>
+                  <span
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${statusTheme(o.status)}`}
+                  >
+                    {statusLabel[o.status] || ''}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-2 text-[13px] text-text-secondary">
+                  <span className="font-semibold text-accent">¥{o.agreedPrice}</span>
+                  <span>
+                    {o.provider?.nickname} → {o.requester?.nickname}
+                  </span>
+                </div>
+              </ListItemCard>
+            ))}
           </div>
         )}
-        {loading && (
-          <div className="text-center py-16 text-text-muted text-sm">
-            加载中...
-          </div>
-        )}
-        <div className="flex flex-col gap-2">
-          {orders.map((o: any) => (
-            <div
-              key={o.id}
-              onClick={() => navigate(`/orders/${o.id}`)}
-              className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-[transform,border-color,background-color,box-shadow] duration-300 p-4"
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">
-                  {o.demand?.title || '订单'}
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded text-[11px] font-semibold ${statusTheme(o.status)}`}
-                >
-                  {statusLabel[o.status] || ''}
-                </span>
-              </div>
-              <div className="flex justify-between mt-2 text-[13px] text-text-secondary">
-                <span>¥{o.agreedPrice}</span>
-                <span>
-                  {o.provider?.nickname} → {o.requester?.nickname}
-                </span>
-              </div>
-            </div>
-          ))}
-          {!loading && orders.length === 0 && (
-            <div className="py-16 text-center text-sm text-text-muted">
-              暂无订单
-            </div>
-          )}
-        </div>
       </div>
     </div>
   )
