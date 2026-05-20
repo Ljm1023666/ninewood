@@ -79,22 +79,24 @@ export function AuroraGradientBar({
 
       layers.forEach((layer, idx) => {
         const gradient = ctx.createLinearGradient(0, 0, w, 0)
-        const hueBase =
-          (hueShift + layer.offset + time * layer.speed * 50 * int) % 360
-        for (let i = 0; i <= 16; i++) {
-          const pos = i / 16
-          const hh = (hueBase + pos * 300) % 360
-          const s = 68 + Math.sin(time * 0.008 * int + idx) * 18 * int
-          const l = 46 + Math.sin(time * 0.014 * int + idx * 2) * 6 * int
+        // 琥珀色基准：OKLCH(58% 0.16 45) -> L:58, C:0.16, H:45
+        // 我们在 H=45 附近微调 L 和 C，营造温暖的琥珀流动感，而不是 HSL 随机色
+        const lBase = 48 + Math.sin(time * 0.01 + idx) * 8 * int
+        const cBase = 0.12 + Math.cos(time * 0.008 + idx) * 0.04 * int
+        
+        for (let i = 0; i <= 8; i++) {
+          const pos = i / 8
+          const l = lBase + Math.sin(pos * Math.PI + time * 0.02) * 10
+          const c = cBase + Math.cos(pos * Math.PI + time * 0.01) * 0.05
           gradient.addColorStop(
             pos,
-            `hsl(${hh}, ${Math.min(88, Math.max(58, s))}%, ${Math.min(54, Math.max(40, l))}%)`,
+            `oklch(${Math.min(75, Math.max(35, l))}% ${Math.min(0.2, Math.max(0.05, c))} 45)`,
           )
         }
         ctx.globalCompositeOperation = 'source-over'
         ctx.globalAlpha = Math.min(
-          0.92,
-          (layer.alphaBase + Math.sin(time * 0.01 + idx) * 0.12) * int,
+          0.85,
+          (layer.alphaBase + Math.sin(time * 0.01 + idx) * 0.1) * int,
         )
         ctx.fillStyle = gradient
         ctx.fillRect(0, 0, w, h)

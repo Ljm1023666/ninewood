@@ -1,0 +1,363 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="100%" stop-color="#12122a"/>
+    </linearGradient>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <linearGradient id="cyanBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="blueBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(102,126,234,0.16)"/>
+      <stop offset="100%" stop-color="rgba(102,126,234,0.04)"/>
+    </linearGradient>
+    <linearGradient id="cardHover" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(102,126,234,0.28)"/>
+      <stop offset="100%" stop-color="rgba(102,126,234,0.08)"/>
+    </linearGradient>
+    <linearGradient id="handBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(102,126,234,0.12)"/>
+      <stop offset="100%" stop-color="rgba(10,10,26,0.95)"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- BG -->
+  <rect width="1400" height="900" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="700" y="38" text-anchor="middle" fill="#f4f4f5" font-size="22" font-weight="800" letter-spacing="2">🃏 卡池系统架构 · Card Pool System</text>
+  <line x1="480" y1="48" x2="920" y2="48" stroke="rgba(102,126,234,0.3)" stroke-width="1"/>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: 分类树 Taxonomy -->
+  <!-- ============================================================ -->
+  <rect x="20" y="60" width="320" height="195" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="180" y="82" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">🌳 分类树 Taxonomy</text>
+  <line x1="40" y1="90" x2="320" y2="90" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- Root -->
+  <rect x="115" y="98" width="130" height="24" rx="6" fill="rgba(102,126,234,0.12)" stroke="rgba(102,126,234,0.25)" stroke-width="1"/>
+  <text x="180" y="114" text-anchor="middle" fill="#c4c4d4" font-size="11" font-weight="600">全部需求</text>
+
+  <!-- Lines root → children -->
+  <line x1="180" y1="122" x2="180" y2="130" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <line x1="90" y1="130" x2="270" y2="130" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <line x1="90" y1="130" x2="90" y2="138" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <line x1="270" y1="130" x2="270" y2="138" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+
+  <!-- Online -->
+  <rect x="42" y="138" width="96" height="22" rx="5" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.3)" stroke-width="1"/>
+  <text x="90" y="153" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="600">线上服务</text>
+
+  <!-- Offline -->
+  <rect x="222" y="138" width="96" height="22" rx="5" fill="rgba(59,130,246,0.1)" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+  <text x="270" y="153" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600">线下到场</text>
+
+  <!-- Leaf nodes row -->
+  <text x="52" y="178" fill="#7878a0" font-size="9">设计 · 技术 · 教育 · 专业服务 · 电商 · 娱乐</text>
+  <text x="52" y="192" fill="#7878a0" font-size="9">家政 · 维修 · 健康 · 汽车 · 房产 · 企业</text>
+  <text x="52" y="206" fill="#7878a0" font-size="9">婚庆 · 宠物 · 农业 · 旅游 · 翻译 · 留学 · 茶艺</text>
+  <text x="52" y="222" fill="#7878a0" font-size="9">→ 112 个叶子节点 · 6 线上 + 13 线下二级分类</text>
+
+  <text x="180" y="248" text-anchor="middle" fill="#667eea" font-size="9">每个叶子节点映射到 Prisma category 字段</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: 黑卡 (BlackScope) -->
+  <!-- ============================================================ -->
+  <rect x="370" y="60" width="330" height="195" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="535" y="82" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">🃏 黑卡 BlackScope</text>
+  <line x1="390" y1="90" x2="680" y2="90" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- BlackScope type -->
+  <text x="390" y="108" fill="#a78bfa" font-size="10" font-family="'Fira Code', monospace">type BlackScope = {</text>
+  <text x="400" y="122" fill="#c4c4d4" font-size="10" font-family="'Fira Code', monospace">path: string[]</text>
+  <text x="400" y="136" fill="#7878a0" font-size="9" font-family="'Fira Code', monospace">// ["root","online","on-design","on-d-ui"]</text>
+  <text x="400" y="152" fill="#c4c4d4" font-size="10" font-family="'Fira Code', monospace">leafFilter: string[] | null</text>
+  <text x="390" y="166" fill="#a78bfa" font-size="10" font-family="'Fira Code', monospace">}</text>
+
+  <!-- Visual card example -->
+  <rect x="470" y="108" width="180" height="55" rx="8" fill="url(#cardBg)" stroke="rgba(102,126,234,0.2)" stroke-width="1" filter="url(#shadow)"/>
+  <!-- Layered border effect -->
+  <rect x="473" y="111" width="174" height="49" rx="7" fill="none" stroke="rgba(102,126,234,0.08)" stroke-width="1"/>
+  <rect x="476" y="114" width="168" height="43" rx="6" fill="none" stroke="rgba(102,126,234,0.06)" stroke-width="1"/>
+  <!-- Color bar -->
+  <rect x="470" y="123" width="4" height="24" rx="2" fill="url(#cyanBar)"/>
+  <text x="485" y="130" fill="#f4f4f5" font-size="11" font-weight="600">UI 设计</text>
+  <text x="485" y="144" fill="#7878a0" font-size="9">128 个需求</text>
+  <text x="485" y="156" fill="#667eea" font-size="8">线上 > 设计 > UI设计</text>
+
+  <!-- Features -->
+  <text x="390" y="192" fill="#7878a0" font-size="9">• 短按 = 进入子范围</text>
+  <text x="390" y="206" fill="#7878a0" font-size="9">• 长按拖拽 = 加入手牌 ✋</text>
+  <text x="390" y="220" fill="#7878a0" font-size="9">• 右键菜单 = 加入手牌 / 打开</text>
+  <text x="390" y="234" fill="#7878a0" font-size="9">• scopeKey() 去重 · 同范围唯一</text>
+  <text x="390" y="248" fill="#7878a0" font-size="9">• 多层边框厚度视觉 (BlackPackSpine)</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: 手牌 Hand -->
+  <!-- ============================================================ -->
+  <rect x="730" y="60" width="310" height="195" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="885" y="82" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">✋ 手牌 Hand</text>
+  <line x1="750" y1="90" x2="1020" y2="90" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- HandEntry type -->
+  <text x="750" y="108" fill="#a78bfa" font-size="10" font-family="'Fira Code', monospace">type HandEntry = { id: string; scope: BlackScope }</text>
+
+  <!-- Hand visual -->
+  <rect x="750" y="118" width="275" height="70" rx="10" fill="url(#handBg)" stroke="rgba(102,126,234,0.25)" stroke-width="1"/>
+  <!-- Card in hand -->
+  <rect x="762" y="126" width="120" height="54" rx="7" fill="rgba(102,126,234,0.2)" stroke="rgba(102,126,234,0.35)" stroke-width="1"/>
+  <rect x="762" y="136" width="4" height="34" rx="2" fill="url(#blueBar)"/>
+  <text x="775" y="142" fill="#f4f4f5" font-size="10" font-weight="600">前端开发</text>
+  <text x="775" y="155" fill="#7878a0" font-size="8">892 需求</text>
+  <text x="775" y="168" fill="#667eea" font-size="7">线上 > 技术 > 前端</text>
+
+  <!-- Another card -->
+  <rect x="892" y="126" width="120" height="54" rx="7" fill="rgba(34,211,238,0.1)" stroke="rgba(34,211,238,0.25)" stroke-width="1"/>
+  <rect x="892" y="136" width="4" height="34" rx="2" fill="url(#cyanBar)"/>
+  <text x="905" y="142" fill="#f4f4f5" font-size="10" font-weight="600">UI 设计</text>
+  <text x="905" y="155" fill="#7878a0" font-size="8">128 需求</text>
+
+  <!-- Actions -->
+  <text x="750" y="205" fill="#7878a0" font-size="9">• 横向滑动展示操作：</text>
+  <rect x="880" y="196" width="42" height="16" rx="4" fill="rgba(102,126,234,0.15)"/>
+  <text x="901" y="208" text-anchor="middle" fill="#667eea" font-size="8">置顶 ↑</text>
+  <rect x="928" y="196" width="42" height="16" rx="4" fill="rgba(220,38,38,0.15)"/>
+  <text x="949" y="208" text-anchor="middle" fill="#ef4444" font-size="8">弃牌 ×</text>
+  <rect x="976" y="196" width="42" height="16" rx="4" fill="rgba(245,158,11,0.15)"/>
+  <text x="997" y="208" text-anchor="middle" fill="#f59e0b" font-size="8">移除 −</text>
+
+  <text x="750" y="228" fill="#7878a0" font-size="9">• 收折面板 — 悬停/点击展开</text>
+  <text x="750" y="242" fill="#7878a0" font-size="9">• 拖入/拖出浮层幽灵动画</text>
+  <text x="750" y="256" fill="#7878a0" font-size="9">• IndexedDB 持久化 (400ms 防抖)</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: 桌面 Desktop -->
+  <!-- ============================================================ -->
+  <rect x="1070" y="60" width="310" height="195" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="1225" y="82" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">🖥️ 桌面 Desktop</text>
+  <line x1="1090" y1="90" x2="1360" y2="90" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- Demand list preview -->
+  <rect x="1095" y="100" width="270" height="110" rx="8" fill="rgba(102,126,234,0.04)" stroke="rgba(102,126,234,0.1)" stroke-width="1"/>
+  <!-- Demand rows -->
+  <rect x="1105" y="108" width="250" height="28" rx="6" fill="rgba(102,126,234,0.08)"/>
+  <text x="1115" y="126" fill="#f4f4f5" font-size="10" font-weight="500">官网首页重构设计</text>
+  <text x="1285" y="126" fill="#fbbf24" font-size="10" font-weight="600">¥5,000</text>
+
+  <rect x="1105" y="140" width="250" height="28" rx="6" fill="rgba(102,126,234,0.06)"/>
+  <text x="1115" y="158" fill="#c4c4d4" font-size="10">APP 用户中心页面</text>
+  <text x="1285" y="158" fill="#fbbf24" font-size="10" font-weight="600">¥3,200</text>
+
+  <rect x="1105" y="172" width="250" height="28" rx="6" fill="rgba(102,126,234,0.04)"/>
+  <text x="1115" y="190" fill="#7878a0" font-size="10">电商后台管理面板</text>
+  <text x="1285" y="190" fill="#fbbf24" font-size="10" font-weight="600">¥8,500</text>
+
+  <!-- Features -->
+  <text x="1095" y="226" fill="#7878a0" font-size="9">• DemandDiscoveryList 需求列表</text>
+  <text x="1095" y="240" fill="#7878a0" font-size="9">• 无线滚动 / 分页模式</text>
+  <text x="1095" y="254" fill="#7878a0" font-size="9">• 可调网格行数 (1-5 行)</text>
+  <text x="1095" y="268" fill="#7878a0" font-size="9">• 递归到手牌: 需求→叶子范围</text>
+
+  <!-- ============================================================ -->
+  <!-- FLOW ARROWS -->
+  <!-- ============================================================ -->
+  <!-- T → BS -->
+  <line x1="340" y1="140" x2="370" y2="140" stroke="#667eea" stroke-width="1.5" marker-end="url(#arrowPurple)"/>
+  <!-- BS → Hand -->
+  <line x1="700" y1="140" x2="730" y2="140" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="715" y="135" fill="#22d3ee" font-size="8" text-anchor="middle">拖拽</text>
+  <!-- BS → Desktop -->
+  <line x1="700" y1="170" x2="1070" y2="170" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="885" y="165" fill="#a78bfa" font-size="8" text-anchor="middle">进入 (短按)</text>
+  <!-- Hand → Desktop (recurse) -->
+  <line x1="885" y1="255" x2="885" y2="285" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowAmber)"/>
+
+  <defs>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#667eea"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0,0 8,3 0,6" fill="#f59e0b"/>
+    </marker>
+  </defs>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 5: 状态机 -->
+  <!-- ============================================================ -->
+  <rect x="20" y="270" width="680" height="185" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="360" y="294" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">⚙️ 状态机 &amp; 核心逻辑</text>
+  <line x1="40" y1="302" x2="680" y2="302" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- Mode calculation -->
+  <rect x="40" y="312" width="310" height="62" rx="8" fill="rgba(102,126,234,0.08)" stroke="rgba(102,126,234,0.15)" stroke-width="1"/>
+  <text x="195" y="330" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">模式自动计算 (子节点数)</text>
+  <text x="60" y="348" fill="#7878a0" font-size="9">0 子节点 → leaf → 直接桌面</text>
+  <text x="60" y="362" fill="#7878a0" font-size="9">≤4 子节点 → simple → 卡片网格</text>
+
+  <rect x="370" y="312" width="310" height="62" rx="8" fill="rgba(102,126,234,0.08)" stroke="rgba(102,126,234,0.15)" stroke-width="1"/>
+  <text x="525" y="330" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">历史导航</text>
+  <text x="390" y="348" fill="#7878a0" font-size="9">≤12 子节点 → hand → 大网格</text>
+  <text x="390" y="362" fill="#7878a0" font-size="9">&gt;12 子节点 → paged → 分页</text>
+
+  <!-- Undo/redo -->
+  <rect x="40" y="382" width="640" height="62" rx="8" fill="rgba(102,126,234,0.04)" stroke="rgba(102,126,234,0.08)" stroke-width="1"/>
+  <text x="360" y="400" text-anchor="middle" fill="#c4c4d4" font-size="11" font-weight="600">面包屑导航 · 撤销/重做栈 (最多 10 步)</text>
+  <text x="360" y="418" text-anchor="middle" fill="#7878a0" font-size="9">scopeKey 保证同范围单卡 · goParent() 返回上级 · goToScope() 跳转 · undo()/redo() 历史</text>
+  <text x="360" y="434" text-anchor="middle" fill="#7878a0" font-size="9">叶子范围检测: 若有数据则自动展开桌面、批量获取子范围计数</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 6: 资源管理器 -->
+  <!-- ============================================================ -->
+  <rect x="730" y="270" width="650" height="185" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="1055" y="294" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">📁 资源管理器 (替代视图)</text>
+  <line x1="750" y1="302" x2="1360" y2="302" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- Explorer layout preview -->
+  <rect x="755" y="312" width="120" height="130" rx="6" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.12)" stroke-width="1"/>
+  <text x="815" y="330" text-anchor="middle" fill="#7878a0" font-size="9">📂 分类树</text>
+  <text x="772" y="346" fill="#22d3ee" font-size="8">📁 线上服务</text>
+  <text x="782" y="360" fill="#7878a0" font-size="8">📄 设计</text>
+  <text x="782" y="374" fill="#7878a0" font-size="8">📄 技术</text>
+  <text x="782" y="388" fill="#7878a0" font-size="8">📄 教育</text>
+  <text x="772" y="404" fill="#60a5fa" font-size="8">📁 线下到场</text>
+  <text x="782" y="418" fill="#7878a0" font-size="8">📄 家政</text>
+  <text x="782" y="432" fill="#7878a0" font-size="8">📄 维修</text>
+
+  <rect x="885" y="312" width="220" height="130" rx="6" fill="rgba(102,126,234,0.04)" stroke="rgba(102,126,234,0.1)" stroke-width="1"/>
+  <text x="995" y="330" text-anchor="middle" fill="#7878a0" font-size="9">📋 详情视图 (Table)</text>
+  <line x1="895" y1="336" x2="1095" y2="336" stroke="rgba(102,126,234,0.08)"/>
+  <text x="902" y="352" fill="#c4c4d4" font-size="9">名称            类型    需求数</text>
+  <text x="902" y="368" fill="#7878a0" font-size="8">📄 UI设计       leaf      128</text>
+  <text x="902" y="382" fill="#7878a0" font-size="8">📁 产品经理    node       56</text>
+  <text x="902" y="396" fill="#7878a0" font-size="8">📄 前端开发    leaf      892</text>
+  <text x="902" y="410" fill="#7878a0" font-size="8">📄 插画设计    leaf      215</text>
+
+  <rect x="1115" y="312" width="245" height="56" rx="6" fill="rgba(102,126,234,0.08)" stroke="rgba(102,126,234,0.15)" stroke-width="1"/>
+  <text x="1237" y="330" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="600">右键上下文菜单</text>
+  <text x="1130" y="348" fill="#7878a0" font-size="9">• 打开此范围</text>
+  <text x="1130" y="362" fill="#7878a0" font-size="9">• 加入手牌</text>
+
+  <!-- Shared persistence -->
+  <rect x="1115" y="376" width="245" height="66" rx="6" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.15)" stroke-width="1"/>
+  <text x="1237" y="394" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="600">🔗 共享持久化</text>
+  <text x="1130" y="412" fill="#7878a0" font-size="9">• IndexedDB: ninewood-card-pool/kv</text>
+  <text x="1130" y="426" fill="#7878a0" font-size="9">• localStorage: 焦点位置同步</text>
+  <text x="1130" y="440" fill="#7878a0" font-size="9">• 卡池 ↔ 资源管理器手牌同步</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 7: 数据流 -->
+  <!-- ============================================================ -->
+  <rect x="20" y="470" width="1360" height="130" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="700" y="494" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">🔄 数据流 &amp; API</text>
+  <line x1="40" y1="502" x2="1360" y2="502" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- Flow 1 -->
+  <rect x="45" y="514" width="300" height="36" rx="7" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.15)"/>
+  <text x="195" y="537" text-anchor="middle" fill="#22d3ee" font-size="10">分类树 → scopeToApiParams()</text>
+
+  <text x="355" y="537" fill="#7878a0" font-size="14">→</text>
+
+  <rect x="375" y="514" width="280" height="36" rx="7" fill="rgba(59,130,246,0.06)" stroke="rgba(59,130,246,0.15)"/>
+  <text x="515" y="537" text-anchor="middle" fill="#60a5fa" font-size="10">GET /demands/search?taxonomyLeafId=...</text>
+
+  <text x="665" y="537" fill="#7878a0" font-size="14">→</text>
+
+  <rect x="685" y="514" width="200" height="36" rx="7" fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.15)"/>
+  <text x="785" y="537" text-anchor="middle" fill="#a78bfa" font-size="10">DemandDiscoveryList</text>
+
+  <!-- Flow 2 -->
+  <rect x="45" y="558" width="300" height="36" rx="7" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.15)"/>
+  <text x="195" y="581" text-anchor="middle" fill="#f59e0b" font-size="10">需求点击 → categoryToLeafBlackScope()</text>
+
+  <text x="355" y="581" fill="#7878a0" font-size="14">→</text>
+
+  <rect x="375" y="558" width="280" height="36" rx="7" fill="rgba(220,38,38,0.06)" stroke="rgba(220,38,38,0.15)"/>
+  <text x="515" y="581" text-anchor="middle" fill="#ef4444" font-size="10">递归 = 将需求转化为叶子黑卡 → 加入手牌</text>
+
+  <!-- Persistence flow -->
+  <rect x="45" y="556" width="100" height="36" rx="6" fill="none" stroke="none"/>
+  <text x="140" y="560" fill="#7878a0" font-size="5"/>
+
+  <rect x="900" y="514" width="460" height="80" rx="8" fill="rgba(102,126,234,0.08)" stroke="rgba(102,126,234,0.12)" stroke-width="1"/>
+  <text x="1130" y="534" text-anchor="middle" fill="#22d3ee" font-size="10" font-weight="600">🧮 计数批量获取</text>
+  <text x="920" y="552" fill="#7878a0" font-size="9">• fetchTotalForScope(scope) → 每个卡片的需求数</text>
+  <text x="920" y="568" fill="#7878a0" font-size="9">• fetchFirstDemandId(scope) → 叶子是否有需求 (自动桌面)</text>
+  <text x="920" y="584" fill="#7878a0" font-size="9">• 子范围计数在进入时批量请求，避免 N+1</text>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 8: 交互手势 -->
+  <!-- ============================================================ -->
+  <rect x="20" y="615" width="1360" height="115" rx="14" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.18)" stroke-width="1"/>
+  <text x="700" y="639" text-anchor="middle" fill="#667eea" font-size="13" font-weight="700">🎮 交互手势 &amp; 动效</text>
+  <line x1="40" y1="647" x2="1360" y2="647" stroke="rgba(102,126,234,0.12)"/>
+
+  <!-- Gesture cards -->
+  <rect x="45" y="658" width="250" height="60" rx="8" fill="rgba(102,126,234,0.06)" stroke="rgba(102,126,234,0.15)"/>
+  <text x="170" y="678" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="600">👆 短按 (黑卡)</text>
+  <text x="170" y="696" text-anchor="middle" fill="#7878a0" font-size="9">点击进入子范围 · Desktop 展开</text>
+  <text x="170" y="710" text-anchor="middle" fill="#7878a0" font-size="9">计数动画 (AnimatedScopeCount)</text>
+
+  <rect x="315" y="658" width="250" height="60" rx="8" fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.15)"/>
+  <text x="440" y="678" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">🖐️ 长按拖拽</text>
+  <text x="440" y="696" text-anchor="middle" fill="#7878a0" font-size="9">黑卡 → 拖入手牌区 → 加入手牌</text>
+  <text x="440" y="710" text-anchor="middle" fill="#7878a0" font-size="9">浮层幽灵动画 (HandPackGhostAtPoint)</text>
+
+  <rect x="585" y="658" width="250" height="60" rx="8" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.15)"/>
+  <text x="710" y="678" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600">👈 横向滑动 (手牌)</text>
+  <text x="710" y="696" text-anchor="middle" fill="#7878a0" font-size="9">露出操作按钮：置顶/弃牌/移除</text>
+  <text x="710" y="710" text-anchor="middle" fill="#7878a0" font-size="9">拖动出手牌区 = 弃牌</text>
+
+  <rect x="855" y="658" width="250" height="60" rx="8" fill="rgba(34,211,238,0.06)" stroke="rgba(34,211,238,0.15)"/>
+  <text x="980" y="678" text-anchor="middle" fill="#22d3ee" font-size="11" font-weight="600">📜 滚动 &amp; 分页</text>
+  <text x="980" y="696" text-anchor="middle" fill="#7878a0" font-size="9">IntersectionObserver 无限滚动</text>
+  <text x="980" y="710" text-anchor="middle" fill="#7878a0" font-size="9">分页模式：上一页/下一页按钮</text>
+
+  <rect x="1125" y="658" width="235" height="60" rx="8" fill="rgba(239,68,68,0.06)" stroke="rgba(239,68,68,0.15)"/>
+  <text x="1242" y="678" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="600">🗑️ 弃牌堆</text>
+  <text x="1242" y="696" text-anchor="middle" fill="#7878a0" font-size="9">可折叠 · 恢复按钮</text>
+  <text x="1242" y="710" text-anchor="middle" fill="#7878a0" font-size="9">restoreCard() → 回到手牌</text>
+
+  <!-- ============================================================ -->
+  <!-- LEGEND -->
+  <!-- ============================================================ -->
+  <rect x="20" y="745" width="1360" height="50" rx="10" fill="rgba(102,126,234,0.04)" stroke="rgba(102,126,234,0.1)"/>
+  <text x="700" y="775" text-anchor="middle" fill="#7878a0" font-size="11">
+    4 个核心概念：🃏 BlackScope (范围卡片) · ✋ Hand (手牌) · 🖥️ Desktop (桌面需求列表) · 🗑️ Discard (弃牌堆)
+  </text>
+
+  <!-- Bottom stat line -->
+  <text x="700" y="810" text-anchor="middle" fill="#667eea" font-size="10">
+    总计 14 个组件文件 · 2 个路由 · 112 个叶子分类节点 · IndexedDB 持久化 · 拖拽手势引擎 · 撤销/重做栈
+  </text>
+
+  <!-- File count -->
+  <rect x="420" y="820" width="560" height="24" rx="6" fill="rgba(102,126,234,0.06)"/>
+  <text x="700" y="837" text-anchor="middle" fill="#7878a0" font-size="9">
+    card-pool/ (14 files): types · taxonomy · scope · search-params · category-to-scope · tablePersistence ·
+    usePersistedGlobalHand · useTableState · browse-black-cards · HandPile · TableBreadcrumb · TableDiscard ·
+    useLongPressHandZone · drag-surface
+  </text>
+
+  <!-- Decorative corner elements -->
+  <circle cx="30" cy="30" r="2" fill="#667eea" opacity="0.5"/>
+  <circle cx="1370" cy="30" r="2" fill="#667eea" opacity="0.5"/>
+  <circle cx="30" cy="870" r="2" fill="#667eea" opacity="0.5"/>
+  <circle cx="1370" cy="870" r="2" fill="#667eea" opacity="0.5"/>
+</svg>

@@ -1,9 +1,52 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useThemeStore } from '@/stores/theme'
 
 type CurtainPhase = 'idle' | 'falling' | 'rising'
 
-const DURATION = 300
+const CURTAIN_DURATION = 400
+
+export function useThemeCurtain() {
+  const [phase, setPhase] = useState<CurtainPhase>('idle')
+  const curtainColorRef = useRef('')
+  const callbackRef = useRef<(() => void) | null>(null)
+
+  const triggerCurtain = useCallback(
+    (destinationBg: string, onCovered: () => void) => {
+      if (phase !== 'idle') return
+      curtainColorRef.current = destinationBg
+      callbackRef.current = onCovered
+      setPhase('falling')
+      setTimeout(() => {
+        callbackRef.current?.()
+        setPhase('rising')
+        setTimeout(() => {
+          setPhase('idle')
+          callbackRef.current = null
+        }, CURTAIN_DURATION + 40)
+      }, CURTAIN_DURATION)
+    },
+    [phase],
+  )
+
+  const curtainElement = (
+    <div
+      aria-hidden="true"
+      data-curtain
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: curtainColorRef.current,
+        transformOrigin: 'top',
+        transform: phase === 'falling' ? 'scaleY(1)' : 'scaleY(0)',
+        transition: `transform ${CURTAIN_DURATION}ms cubic-bezier(0.76,0,0.24,1)`,
+        zIndex: 'var(--z-max)',
+        pointerEvents: 'none',
+      }}
+    />
+  )
+
+  return { triggerCurtain, curtainElement }
+}
 
 function MoonIcon() {
   return (
@@ -52,77 +95,31 @@ export function ThemeToggleButton() {
   const isDark = themeStore.current.dark
   const toggle = useCallback(() => themeStore.toggleDarkMode(), [themeStore])
 
-  const [phase, setPhase] = useState<CurtainPhase>('idle')
   const [hovered, setHovered] = useState(false)
   const [pressed, setPressed] = useState(false)
-  const curtainColorRef = useRef('')
-
-  /** 目标页背景色 */
-  useEffect(() => {
-    if (phase !== 'idle') return
-    const presets: Record<string, string> = {
-      cyberpunk: '#0a0a1a',
-      ocean: '#0a1628',
-      sunset: '#1a0f0a',
-      forest: '#0a1a0f',
-      crimson: '#1a0a0a',
-    }
-    curtainColorRef.current = isDark
-      ? '#edf1f7'
-      : presets[themeStore.lastDarkPreset] || '#0a0a1a'
-  }, [isDark, phase, themeStore.lastDarkPreset])
-
-  const handleToggle = useCallback(() => {
-    if (phase !== 'idle') return
-    setPhase('falling')
-    setTimeout(() => {
-      toggle()
-      setPhase('rising')
-      setTimeout(() => setPhase('idle'), DURATION + 40)
-    }, DURATION)
-  }, [phase, toggle])
 
   const btnScale = pressed ? 0.96 : hovered ? 1.1 : 1
 
   return (
-    <>
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: curtainColorRef.current,
-          transformOrigin: 'top',
-          transform: phase === 'falling' ? 'scaleY(1)' : 'scaleY(0)',
-          transition:
-            phase !== 'idle'
-              ? `transform ${DURATION}ms cubic-bezier(0.76,0,0.24,1)`
-              : 'none',
-          zIndex: 'var(--z-max)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      <button
-        onClick={handleToggle}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => {
-          setHovered(false)
-          setPressed(false)
-        }}
-        onMouseDown={() => setPressed(true)}
-        onMouseUp={() => setPressed(false)}
-        className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-[color,background-color,transform] duration-300"
-        style={{
-          color: 'var(--text-secondary)',
-          background: 'transparent',
-          transform: `scale(${btnScale})`,
-        }}
-        aria-label={isDark ? '切换亮色模式' : '切换暗色模式'}
-      >
-        {isDark ? <SunIcon /> : <MoonIcon />}
-        <span className="text-[11px] mt-0.5">主题</span>
-      </button>
-    </>
+    <button
+      onClick={toggle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => {
+        setHovered(false)
+        setPressed(false)
+      }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-[color,background-color,transform] duration-300"
+      style={{
+        color: 'var(--text-secondary)',
+        background: 'transparent',
+        transform: `scale(${btnScale})`,
+      }}
+      aria-label={isDark ? '切换亮色模式' : '切换暗色模式'}
+    >
+      {isDark ? <SunIcon /> : <MoonIcon />}
+      <span className="text-[11px] mt-0.5">主题</span>
+    </button>
   )
 }

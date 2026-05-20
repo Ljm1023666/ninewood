@@ -1,16 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Brush,
-  Camera,
-  ChartBarIncreasing,
   ChevronLeft,
-  File,
-  Image,
-  Paperclip,
   Send,
   Smile,
-  UserRound,
 } from 'lucide-react'
 import { useUserStore } from '@/stores/user'
 import { useChatStore, type ChatMessage } from '@/stores/chat'
@@ -18,17 +11,13 @@ import { messageApi } from '@/api/message'
 import { userApi } from '@/api/user'
 import { TimeDivider } from '@/components/ui/time-divider'
 import { MessageBubble } from '@/components/ui/message-bubble'
-import { ActionSheet } from '@/components/ui/action-sheet'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/confirm-dialog'
+import { cn } from '@/lib/utils'
 import { TemplateChatRightShell } from '@/components/ui/chat-template'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+/**/
 
 export default function ChatDetail() {
   const { userId, mergeId } = useParams<{ userId?: string; mergeId?: string }>()
@@ -56,7 +45,7 @@ export default function ChatDetail() {
 
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
-  const [showSheet, setShowSheet] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   const [peerUser, setPeerUser] = useState<{
     nickname: string
@@ -94,6 +83,8 @@ export default function ChatDetail() {
   useEffect(() => {
     if (isMergeChat) {
       if (!currentMergeId) return
+      // 切换群聊时清空旧消息
+      setMergeMessages([])
       messageApi
         .getMerges()
         .then((r) => {
@@ -137,6 +128,11 @@ export default function ChatDetail() {
   useEffect(() => {
     scrollBottom()
   }, [messages.length])
+
+  // 消息首次到达后关闭 loading
+  useEffect(() => {
+    if (messages.length > 0 && initialLoading) setInitialLoading(false)
+  }, [messages.length, initialLoading])
 
   // socket 连接变化
   useEffect(() => {
@@ -187,46 +183,7 @@ export default function ChatDetail() {
     }
   }
 
-  // 文件选择
-  const imageInputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
-  const [uploadPreview, setUploadPreview] = useState('')
-  const [uploadIsVideo, setUploadIsVideo] = useState(false)
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]
-    if (f) {
-      setUploadFile(f)
-      setUploadPreview(URL.createObjectURL(f))
-      setUploadIsVideo(f.type.startsWith('video/'))
-    }
-  }
-
-  async function sendFile() {
-    if (isMergeChat) return
-    if (!uploadFile) return
-    try {
-      const fd = new FormData()
-      fd.append('toUserId', peerId)
-      fd.append('file', uploadFile)
-      fd.append('content', '')
-      await messageApi.sendForm(fd)
-      setUploadFile(null)
-      setUploadPreview('')
-      setUploadIsVideo(false)
-      await chatStore.fetchMessages(peerId)
-      setTimeout(() => scrollBottom(true), 100)
-    } catch {
-      toast('发送失败，请重试', 'error')
-    }
-  }
-
-  function onSheetSelect(action: string) {
-    setShowSheet(false)
-    if (action === 'image') imageInputRef.current?.click()
-    if (action === 'video') videoInputRef.current?.click()
-  }
+  // 文件上传功能暂不可用
 
   const emojis = [
     '😀',
@@ -293,7 +250,36 @@ export default function ChatDetail() {
           ref={listRef}
           className="thin-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-bg-primary px-2 py-2"
         >
-          {messages.map((m: ChatMessage, idx: number) => {
+          {initialLoading && messages.length === 0 ? (
+            <div className="flex flex-col gap-3 px-4 pt-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    'flex items-end gap-2',
+                    i % 2 === 0 ? 'flex-row-reverse' : 'flex-row',
+                  )}
+                >
+                  {i % 2 !== 0 && <div className="size-8 shrink-0" />}
+                  <div className={cn(
+                    'flex flex-col gap-1',
+                    i % 2 === 0 ? 'items-end' : 'items-start',
+                  )}>
+                    <Skeleton className={cn(
+                      'h-8 rounded-2xl',
+                      i % 2 === 0 ? 'w-48' : 'w-36',
+                    )} />
+                    <Skeleton className={cn(
+                      'h-8 rounded-2xl',
+                      i % 2 === 0 ? 'w-32' : 'w-44',
+                    )} />
+                  </div>
+                  {i % 2 === 0 && <div className="size-8 shrink-0" />}
+                </div>
+              ))}
+            </div>
+          ) : (
+            messages.map((m: ChatMessage, idx: number) => {
             const senderId = m.senderId || m.fromUserId
             return (
               <div key={m.id || m.createdAt}>
@@ -322,49 +308,12 @@ export default function ChatDetail() {
                 />
               </div>
             )
-          })}
+          }))}
         </div>
       }
       inputRow={
         <>
-          {uploadPreview ? (
-            <div className="flex shrink-0 items-center gap-2 border-t border-border bg-bg-secondary px-3 py-2">
-              {uploadIsVideo ? (
-                <video
-                  src={uploadPreview}
-                  controls
-                  muted
-                  className="h-16 w-16 rounded-md object-cover"
-                />
-              ) : (
-                <img
-                  src={uploadPreview}
-                  alt=""
-                  className="h-16 w-16 rounded-md object-cover"
-                />
-              )}
-              <button
-                type="button"
-                onClick={sendFile}
-                className="rounded-md bg-[var(--primary-gradient)] px-3 py-1.5 text-sm font-semibold text-white"
-              >
-                发送
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setUploadFile(null)
-                  setUploadPreview('')
-                  setUploadIsVideo(false)
-                }}
-                className="text-sm text-text-muted"
-              >
-                取消
-              </button>
-            </div>
-          ) : null}
-
-          {showEmoji && !showSheet ? (
+          {showEmoji ? (
             <div className="max-h-[200px] shrink-0 overflow-y-auto border-t border-border bg-card px-3 py-2">
               <div className="flex flex-wrap gap-0.5">
                 {emojis.map((e) => (
@@ -384,11 +333,7 @@ export default function ChatDetail() {
             </div>
           ) : null}
 
-          <ActionSheet
-            visible={showSheet}
-            onClose={() => setShowSheet(false)}
-            onSelect={onSheetSelect}
-          />
+          {/* ActionSheet 暂不可用 */}
 
           <div className="flex h-12 shrink-0 items-center gap-0.5 border-t border-border bg-card px-1">
             <Button
@@ -397,52 +342,11 @@ export default function ChatDetail() {
               type="button"
               onClick={() => {
                 setShowEmoji(!showEmoji)
-                setShowSheet(false)
               }}
               title="表情"
             >
               <Smile className="h-5 w-5" />
             </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  type="button"
-                  title="附件"
-                  disabled={isMergeChat}
-                >
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onSelect={() => imageInputRef.current?.click()}
-                >
-                  <Image className="mr-2 h-4 w-4" /> 照片与视频
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => videoInputRef.current?.click()}
-                >
-                  <Camera className="mr-2 h-4 w-4" /> 视频
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => imageInputRef.current?.click()}
-                >
-                  <File className="mr-2 h-4 w-4" /> 文件
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <UserRound className="mr-2 h-4 w-4" /> 联系人
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ChartBarIncreasing className="mr-2 h-4 w-4" /> 投票
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Brush className="mr-2 h-4 w-4" /> 画板
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             <Input
               value={input}
@@ -453,21 +357,6 @@ export default function ChatDetail() {
               placeholder="输入消息…"
               className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 text-[15px] text-text-primary shadow-none focus-visible:ring-0"
             />
-
-            {!input.trim() ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                title="更多"
-                onClick={() => {
-                  setShowSheet(!showSheet)
-                  setShowEmoji(false)
-                }}
-              >
-                <span className="text-lg leading-none">＋</span>
-              </Button>
-            ) : null}
 
             <Button
               variant="ghost"
@@ -481,20 +370,7 @@ export default function ChatDetail() {
             </Button>
           </div>
 
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={onFileChange}
-          />
-          <input
-            ref={videoInputRef}
-            type="file"
-            accept="video/*"
-            hidden
-            onChange={onFileChange}
-          />
+          {/* 文件上传暂不可用 */}
         </>
       }
     />

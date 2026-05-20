@@ -31,14 +31,14 @@ export function UserCoverAmbientBg({
         className={
           isDark
             ? 'absolute inset-0 bg-bg-primary/38'
-            : 'absolute inset-0 bg-black/26'
+            : 'absolute inset-0 bg-bg-primary/26'
         }
       />
       <div
         className={
           isDark
             ? 'absolute inset-0 bg-gradient-to-b from-bg-primary/55 via-transparent to-bg-primary/70'
-            : 'absolute inset-0 bg-gradient-to-b from-black/36 via-black/10 to-bg-primary/40'
+            : 'absolute inset-0 bg-gradient-to-b from-bg-primary/36 via-bg-primary/12 to-bg-primary/40'
         }
         aria-hidden
       />

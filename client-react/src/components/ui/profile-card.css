@@ -375,11 +375,7 @@
   font-weight: 600;
   margin: 0;
   font-size: min(5vh, 3em);
-  background-image: linear-gradient(to bottom, #fff, #6f6fbe);
-  background-size: 1em 1.5em;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
+  color: #f5f5f5;
 }
 
 .pc-details p {
@@ -390,11 +386,7 @@
   font-size: 16px;
   margin: 0 auto;
   width: min-content;
-  background-image: linear-gradient(to bottom, #fff, #4a4ac0);
-  background-size: 1em 1.5em;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
+  color: rgba(245, 245, 245, 0.78);
 }
 
 @keyframes glow-bg {

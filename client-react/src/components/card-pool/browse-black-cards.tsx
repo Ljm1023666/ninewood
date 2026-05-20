@@ -237,10 +237,10 @@ export function RootSummaryBlackCard({
             busy && 'cursor-wait opacity-75',
           )}
         >
-          <div className="flex shrink-0 items-stretch border-r border-white/[0.08] bg-black/40 px-3 py-3 sm:px-4">
+          <div className="flex shrink-0 items-stretch border-r border-white/[0.08] bg-bg-secondary/75 px-3 py-3 sm:px-4">
             <BlackPackSpine />
           </div>
-          <div className="flex min-w-0 flex-1 flex-col bg-gradient-to-br from-neutral-950 via-neutral-900 to-black">
+          <div className="flex min-w-0 flex-1 flex-col bg-gradient-to-br from-bg-primary via-bg-secondary to-bg-tertiary">
             <PackStrip label="全部 · 卡池总览" />
             <div className="flex min-h-[88px] flex-1 flex-col justify-center gap-1.5 px-4 py-3 sm:px-5">
               <div className="flex items-center gap-2 text-white/90">

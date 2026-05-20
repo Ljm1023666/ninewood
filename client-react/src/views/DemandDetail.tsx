@@ -10,6 +10,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { demandApi } from '@/api/demand'
 import { CometCard } from '@/components/ui/comet-card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { InteractiveProductCard } from '@/components/ui/interactive-product-card'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
@@ -330,10 +332,17 @@ export default function DemandDetail() {
   }, [currentIdx, allDemands, navigate, demandSearchQS])
 
   if (loading)
-    return pageShell(<p className="text-sm text-text-muted">加载中...</p>)
+    return pageShell(
+      <div className="flex flex-col gap-4 p-4">
+        <Skeleton className="h-8 w-3/5 rounded-lg" />
+        <Skeleton className="h-5 w-2/5 rounded" />
+        <Skeleton className="mt-4 h-48 w-full rounded-xl" />
+        <Skeleton className="h-6 w-1/3 rounded" />
+      </div>,
+    )
   if (error) {
     return pageShell(
-      <div className="flex flex-col items-center gap-3 text-center">
+      <div className="flex flex-col items-center gap-3 text-center py-16">
         <p className="text-sm text-text-muted">{error}</p>
         <AcetUnapologeticButton
           type="button"
@@ -345,7 +354,10 @@ export default function DemandDetail() {
       </div>,
     )
   }
-  if (!demand) return null
+  if (!demand)
+    return pageShell(
+      <ErrorState message="需求不存在或已被删除" />,
+    )
 
   const canSwipeCycle = allDemands.length > 1
   const hasPrev = canSwipeCycle
@@ -371,7 +383,7 @@ export default function DemandDetail() {
                 type="button"
                 onClick={handleToggleFavorite}
                 disabled={!isLoggedIn || favoriteLoading}
-                className="absolute -right-2 -top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+                className="absolute -right-2 -top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary/80 backdrop-blur-sm text-white shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
                 aria-label={favorited ? '取消收藏' : '收藏'}
               >
                 <Heart

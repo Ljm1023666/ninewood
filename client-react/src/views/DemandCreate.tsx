@@ -158,7 +158,7 @@ export default function DemandCreate() {
                 <ArrowLeft className="size-6" />
               </Button>
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-black tracking-tight text-foreground">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
                   发布需求
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -362,7 +362,7 @@ export default function DemandCreate() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-[2] shrink-0 border-t border-border bg-background/90 px-4 py-3 backdrop-blur-md -mx-6">
+            <div className="sticky bottom-0 z-content shrink-0 border-t border-border bg-background/90 px-4 py-3 backdrop-blur-md -mx-6">
               <div className="flex gap-4">
                 <Button
                   type="button"

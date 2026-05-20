@@ -472,11 +472,11 @@ export default function CardPool() {
             <Layers className="size-5 shrink-0 text-accent" />
             <h1 className="text-lg font-bold text-text-primary">卡池</h1>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-text-muted">
             <span>监控：{rangeLabel}</span>
             <button
               type="button"
-              className="text-[11px] text-text-muted transition-colors hover:text-text-primary"
+              className="text-xs text-text-muted transition-colors hover:text-text-primary"
               onClick={() => navigate('/card-pool/explorer')}
             >
               资源管理器
@@ -504,10 +504,10 @@ export default function CardPool() {
           onJumpToPath={(path) => goToScope({ path, leafFilter: null })}
         />
 
-        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-muted/10 px-4 py-1.5 text-[11px] text-text-muted">
+        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-bg-secondary/50 px-4 py-2 text-xs text-text-secondary">
           <span>
             浏览：
-            <span className={cn('font-medium', 'text-text-secondary')}>
+            <span className={cn('font-semibold', 'text-text-primary')}>
               {scopeTitle(focus)}
             </span>
             {browseDemandCount !== null ? (
@@ -521,8 +521,8 @@ export default function CardPool() {
               </span>
             ) : null}
           </span>
-          <span>手牌 {hand.length}</span>
-          {discard.length > 0 ? <span>弃牌区 {discard.length}</span> : null}
+          <span className="text-text-muted">手牌 {hand.length}</span>
+          {discard.length > 0 ? <span className="text-text-muted">弃牌区 {discard.length}</span> : null}
         </div>
 
         <div
@@ -532,9 +532,9 @@ export default function CardPool() {
           {mode === 'leaf' && !isRootOnly ? (
             <div className="flex min-h-0 flex-1 flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm text-text-muted">
+                <span className="text-sm text-text-secondary">
                   叶子 ·{' '}
-                  <span className={cn('text-text-primary')}>
+                  <span className={cn('font-semibold text-text-primary')}>
                     {scopeTitle(focus)}
                   </span>
                   {' · 共 '}

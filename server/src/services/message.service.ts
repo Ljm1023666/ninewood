@@ -101,11 +101,7 @@ export const messageService = {
     // Send messages to all members: store as multi-target
     const limit = 50;
     const messages = await prisma.message.findMany({
-      where: {
-        OR: merge.memberIds.flatMap((mid) => [
-          { fromUserId: mid, toUserId: { in: merge.memberIds } },
-        ]),
-      },
+      where: { mergeId },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -126,7 +122,7 @@ export const messageService = {
     const msgs = await Promise.all(
       recipients.map((toId) =>
         prisma.message.create({
-          data: { fromUserId, toUserId: toId, content, type: 'TEXT' },
+          data: { fromUserId, toUserId: toId, content, type: 'TEXT', mergeId },
           include: {
             fromUser: { select: { id: true, nickname: true, avatarUrl: true } },
           },

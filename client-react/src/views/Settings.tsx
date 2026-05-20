@@ -17,11 +17,15 @@ import {
 } from 'lucide-react'
 
 const themeNames: Record<string, string> = {
-  cyberpunk: '赛博朋克',
-  ocean: '深海',
-  sunset: '日落',
-  forest: '森林',
-  crimson: '绯红',
+  'amber-stream': '琥珀川',
+  'morning-mist': '薄雾晨光',
+  'moon-through-pines': '松间照',
+  'green-vines': '青萝拂衣',
+  'twilight-violet': '暮山紫',
+  'snow-on-pines': '雪落松枝',
+  'sunset-molten-gold': '夕照熔金',
+  'emerald-mist': '空翠湿人衣',
+  'autumn-river': '秋水长天',
   light: '浅色',
 }
 
@@ -53,19 +57,30 @@ export default function Settings() {
   )
 
   const presets = [
-    { name: 'cyberpunk', gradient: 'from-[#667eea] to-[#764ba2]' },
-    { name: 'ocean', gradient: 'from-[#0ea5e9] to-[#06b6d4]' },
-    { name: 'sunset', gradient: 'from-[#f97316] to-[#ef4444]' },
-    { name: 'forest', gradient: 'from-[#22c55e] to-[#10b981]' },
-    { name: 'crimson', gradient: 'from-[#dc2626] to-[#b91c1c]' },
-    { name: 'light', gradient: 'from-[#94a3b8] to-[#64748b]' },
+    { name: 'amber-stream', gradient: 'from-[#c4873b] to-[#b5772e]' },
+    { name: 'morning-mist', gradient: 'from-[#d4a574] to-[#c49568]' },
+    { name: 'moon-through-pines', gradient: 'from-[#4a9e6b] to-[#3a8a5a]' },
+    { name: 'green-vines', gradient: 'from-[#5cb87a] to-[#4ca86a]' },
+    { name: 'twilight-violet', gradient: 'from-[#8b6bc4] to-[#7a5ab3]' },
+    { name: 'snow-on-pines', gradient: 'from-[#c8d4c0] to-[#b8c4b0]' },
+    { name: 'sunset-molten-gold', gradient: 'from-[#d4873b] to-[#c4772e]' },
+    { name: 'emerald-mist', gradient: 'from-[#4ab874] to-[#3aa864]' },
+    { name: 'autumn-river', gradient: 'from-[#5a8cc4] to-[#4a7cb3]' },
   ]
 
   function goDark() {
-    if (darkMode) themeStore.toggleDarkMode()
+    if (darkMode) {
+      themeStore.toggleDarkMode()
+    }
   }
   function goLight() {
-    if (!darkMode) themeStore.toggleDarkMode()
+    if (!darkMode) {
+      themeStore.toggleDarkMode()
+    }
+  }
+
+  function handleSetTheme(name: string) {
+    themeStore.setTheme(name)
   }
 
   function handleLogout() {
@@ -181,7 +196,7 @@ export default function Settings() {
                 <button
                   key={preset.name}
                   type="button"
-                  onClick={() => themeStore.setTheme(preset.name)}
+                  onClick={() => handleSetTheme(preset.name)}
                   className={cn(
                     'relative rounded-xl border p-3 text-left transition-[background-color,border-color,box-shadow]',
                     isUiLight

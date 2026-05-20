@@ -212,7 +212,7 @@ function ExplorerDetailsScopeRow({
           <div className="flex min-w-0 items-center gap-2">
             {hasKids ? (
               <Folder
-                className="size-4 shrink-0 text-amber-600/90 dark:text-amber-400/90"
+                className="size-4 shrink-0 text-accent"
                 aria-hidden
               />
             ) : (

@@ -18,7 +18,7 @@ export function ConfirmDialog({
   if (!open) return null
   return (
     <div
-      className="fixed inset-0 z-[var(--z-overlay)] flex items-center justify-center bg-black/50 animate-fadeIn"
+      className="fixed inset-0 z-[var(--z-overlay)] flex items-center justify-center bg-background/70 animate-fadeIn"
       onClick={onCancel}
     >
       <div
