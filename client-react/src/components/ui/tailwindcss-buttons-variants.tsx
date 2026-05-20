@@ -3,6 +3,50 @@ import { cn } from '@/lib/utils'
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement>
 
+// ═══ 标准按钮层级（项目使用这 4 种） ═══
+
+/** 主要操作 — 渐变填充 */
+export const AcetPrimaryButton = forwardRef<HTMLButtonElement, BtnProps>(
+  ({ className, children, ...rest }, ref) => (
+    <button
+      ref={ref}
+      type="button"
+      className={cn(
+        'h-11 rounded-xl bg-[var(--primary-gradient)] px-6 text-sm font-semibold text-white',
+        'transition-all duration-200 hover:opacity-90 hover:shadow-lg',
+        'active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed',
+        className,
+      )}
+      {...rest}
+    >
+      {children}
+    </button>
+  ),
+)
+AcetPrimaryButton.displayName = 'AcetPrimaryButton'
+
+/** 次要操作 — 线框 + hover 填充 */
+export const AcetSecondaryButton = forwardRef<HTMLButtonElement, BtnProps>(
+  ({ className, children, ...rest }, ref) => (
+    <button
+      ref={ref}
+      type="button"
+      className={cn(
+        'h-11 rounded-xl border border-border bg-transparent px-6 text-sm font-semibold text-text-secondary',
+        'transition-all duration-200 hover:border-accent/40 hover:bg-accent/8 hover:text-text-primary',
+        'active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed',
+        className,
+      )}
+      {...rest}
+    >
+      {children}
+    </button>
+  ),
+)
+AcetSecondaryButton.displayName = 'AcetSecondaryButton'
+
+// ═══ 保留：向后兼容（已使用的地方不强制替换） ═══
+
 export const AcetSketchButton = forwardRef<HTMLButtonElement, BtnProps>(
   ({ className, children, ...rest }, ref) => (
     <button
@@ -136,8 +180,8 @@ export const AcetLitUpBordersButton = forwardRef<HTMLButtonElement, BtnProps>(
       className={cn('group relative p-[3px]', className)}
       {...rest}
     >
-      <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500" />
-      <div className="relative rounded-[6px] bg-black px-8 py-2 text-white transition duration-200 group-hover:bg-transparent">
+      <div className="absolute inset-0 rounded-lg bg-[var(--accent-gradient)]" />
+      <div className="relative rounded-[6px] bg-bg-primary px-8 py-2 text-white transition duration-200 group-hover:bg-transparent">
         {children ?? 'Lit up borders'}
       </div>
     </button>
@@ -188,7 +232,7 @@ export const AcetFavouriteButton = forwardRef<HTMLButtonElement, BtnProps>(
       ref={ref}
       type="button"
       className={cn(
-        'rounded-md bg-black px-8 py-2 text-sm font-semibold text-white hover:bg-black/[0.8] hover:shadow-lg',
+        'rounded-md bg-bg-primary px-8 py-2 text-sm font-semibold text-white hover:bg-bg-secondary hover:shadow-lg',
         className,
       )}
       {...rest}
@@ -324,7 +368,7 @@ export const AcetFigmaButton = forwardRef<HTMLButtonElement, BtnProps>(
       ref={ref}
       type="button"
       className={cn(
-        'transform rounded-lg bg-black px-6 py-2 font-bold text-white transition duration-300 hover:-translate-y-1',
+        'transform rounded-lg bg-bg-primary px-6 py-2 font-bold text-white transition duration-300 hover:-translate-y-1',
         className,
       )}
       {...rest}

@@ -17,3 +17,6 @@ server/prisma/seed.js
 server/prisma/seed.js.map
 server/prisma/seed.d.ts
 server/prisma/seed.d.ts.map
+.pnpm-home/
+.pnpm-store/
+__pycache__/

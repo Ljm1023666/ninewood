@@ -37,12 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  Brush,
-  Camera,
-  ChartBarIncreasing,
   ChevronUp,
-  File,
-  Image,
   ListFilter,
   Menu,
   MessageCircle,
@@ -54,7 +49,6 @@ import {
   SquarePen,
   User,
   User2,
-  UserRound,
   Users,
 } from 'lucide-react'
 
@@ -288,42 +282,21 @@ export function TemplateChatInputRow({
   attachMenu?: React.ReactNode
   smileButtonProps?: React.ComponentProps<typeof Button>
 }) {
-  const attach = attachMenu ?? (
-    <DropdownMenuContent>
-      <DropdownMenuItem>
-        <Image /> Photos & Videos
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <Camera /> Camera
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <File /> Document
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <UserRound /> Contact
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <ChartBarIncreasing /> Poll
-      </DropdownMenuItem>
-      <DropdownMenuItem>
-        <Brush /> Drawing
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  )
-
   return (
     <div className="flex h-10 pt-2 border-t">
       <Button variant="ghost" size="icon" type="button" {...smileButtonProps}>
         <Smile />
       </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" type="button">
-            <Paperclip />
-          </Button>
-        </DropdownMenuTrigger>
-        {attach}
-      </DropdownMenu>
+      {attachMenu && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" type="button">
+              <Paperclip />
+            </Button>
+          </DropdownMenuTrigger>
+          {attachMenu}
+        </DropdownMenu>
+      )}
       <Input
         placeholder="输入消息…"
         className="flex-grow border-0"

@@ -3,14 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { orderApi } from '@/api/order'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
+import { Button } from '@/components/ui/button'
 import {
-  AcetBrutalButton,
-  AcetFigmaButton,
-  AcetFigmaOutlineButton,
-  AcetGradientButton,
-  AcetLitUpBordersButton,
-  AcetNextBlueButton,
-  AcetSpotifyButton,
+  AcetPrimaryButton,
+  AcetSecondaryButton,
 } from '@/components/ui/tailwindcss-buttons-variants'
 
 const statusLabel: Record<string, string> = {
@@ -70,13 +66,13 @@ export default function OrderDetail() {
     return (
       <div className="text-center py-16">
         <p className="text-text-muted text-sm">{error}</p>
-        <AcetFigmaOutlineButton
-          type="button"
+        <Button
+          variant="ghost"
           onClick={fetchOrder}
-          className="!mx-auto !mt-3 !block !text-sm"
+          className="mx-auto mt-3 block"
         >
           重试
-        </AcetFigmaOutlineButton>
+        </Button>
       </div>
     )
   if (!order) return null
@@ -144,65 +140,60 @@ export default function OrderDetail() {
 
           <div className="flex flex-col gap-2">
             {isRequester && s === 'IN_PROGRESS' && !order.paidAt && (
-              <AcetGradientButton
-                type="button"
+              <AcetPrimaryButton
                 onClick={() =>
                   act(() => orderApi.prepay(order.id), '支付成功（模拟）')
                 }
-                className="w-full !rounded-lg !py-3 !text-sm font-semibold"
+                className="w-full"
               >
                 模拟支付 (预付50%)
-              </AcetGradientButton>
+              </AcetPrimaryButton>
             )}
             {isProvider && s === 'IN_PROGRESS' && order.paidAt && (
-              <AcetNextBlueButton
-                type="button"
+              <AcetPrimaryButton
                 onClick={() =>
                   act(() => orderApi.complete(order.id), '已标记完成')
                 }
-                className="w-full !rounded-lg !py-3 !text-sm font-semibold"
+                className="w-full"
               >
                 标记完成
-              </AcetNextBlueButton>
+              </AcetPrimaryButton>
             )}
             {isRequester && s === 'WAITING_REVIEW' && (
-              <AcetSpotifyButton
-                type="button"
+              <AcetPrimaryButton
                 onClick={() =>
                   act(() => orderApi.confirm(order.id), '订单已完成')
                 }
-                className="w-full !rounded-lg !py-3 !text-sm !normal-case !tracking-normal font-semibold"
+                className="w-full"
               >
                 确认验收
-              </AcetSpotifyButton>
+              </AcetPrimaryButton>
             )}
             {(isProvider || isRequester) &&
               ['IN_PROGRESS', 'WAITING_REVIEW'].includes(s) && (
-                <AcetLitUpBordersButton
-                  type="button"
+                <AcetSecondaryButton
                   onClick={() =>
                     act(() => orderApi.dispute(order.id), '争议已提交')
                   }
-                  className="w-full !text-sm"
+                  className="w-full !border-red-500/30 !text-red-400 hover:!border-red-500/50 hover:!bg-red-500/10"
                 >
                   发起争议
-                </AcetLitUpBordersButton>
+                </AcetSecondaryButton>
               )}
             {isProvider && s === 'IN_PROGRESS' && (
-              <AcetFigmaButton
-                type="button"
+              <AcetSecondaryButton
                 onClick={() => setShowPartial(true)}
-                className="w-full !rounded-lg !border !border-border !bg-transparent !py-3 !text-sm font-semibold !text-text-secondary hover:!opacity-90"
+                className="w-full"
               >
                 部分完成
-              </AcetFigmaButton>
+              </AcetSecondaryButton>
             )}
           </div>
         </div>
 
         {showPartial && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/70"
             onClick={() => setShowPartial(false)}
           >
             <div
@@ -229,8 +220,7 @@ export default function OrderDetail() {
                   rows={2}
                   className="bg-card border border-border rounded-lg px-4 py-3 text-text-primary text-sm outline-none resize-none"
                 />
-                <AcetBrutalButton
-                  type="button"
+                <AcetPrimaryButton
                   onClick={() =>
                     act(
                       () =>
@@ -242,10 +232,10 @@ export default function OrderDetail() {
                       '部分完成已提交',
                     )
                   }
-                  className="w-full !rounded-lg !py-3 !text-sm !normal-case"
+                  className="w-full"
                 >
                   提交
-                </AcetBrutalButton>
+                </AcetPrimaryButton>
               </div>
             </div>
           </div>

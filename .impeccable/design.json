@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-18T12:00:00.000Z",
+  "title": "Design System: 九木 (Ninewood)",
+  "extensions": {
+    "colorMeta": {
+      "warm-amber": {
+        "role": "primary",
+        "displayName": "Warm Amber",
+        "canonical": "oklch(58% 0.16 45)",
+        "tonalRamp": [
+          "oklch(15% 0.16 45)",
+          "oklch(25% 0.16 45)",
+          "oklch(35% 0.16 45)",
+          "oklch(45% 0.16 45)",
+          "oklch(58% 0.16 45)",
+          "oklch(68% 0.15 45)",
+          "oklch(78% 0.12 45)",
+          "oklch(92% 0.06 45)"
+        ]
+      },
+      "dark-earth": {
+        "role": "neutral-bg",
+        "displayName": "Dark Earth",
+        "canonical": "oklch(14% 0.005 60)",
+        "tonalRamp": [
+          "oklch(8% 0.005 60)",
+          "oklch(14% 0.005 60)",
+          "oklch(17% 0.004 55)",
+          "oklch(21% 0.004 50)",
+          "oklch(32% 0.003 60)",
+          "oklch(58% 0.003 60)",
+          "oklch(78% 0.003 60)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "semantic-green": {
+        "role": "success",
+        "displayName": "Semantic Green",
+        "canonical": "oklch(60% 0.15 150)",
+        "tonalRamp": [
+          "oklch(20% 0.15 150)",
+          "oklch(35% 0.15 150)",
+          "oklch(50% 0.15 150)",
+          "oklch(60% 0.15 150)",
+          "oklch(70% 0.13 150)",
+          "oklch(80% 0.10 150)",
+          "oklch(90% 0.06 150)",
+          "oklch(96% 0.03 150)"
+        ]
+      },
+      "semantic-red": {
+        "role": "error",
+        "displayName": "Semantic Red",
+        "canonical": "oklch(55% 0.19 22)",
+        "tonalRamp": [
+          "oklch(18% 0.19 22)",
+          "oklch(30% 0.19 22)",
+          "oklch(42% 0.19 22)",
+          "oklch(55% 0.19 22)",
+          "oklch(65% 0.17 22)",
+          "oklch(75% 0.12 22)",
+          "oklch(88% 0.07 22)",
+          "oklch(95% 0.03 22)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Body",
+        "purpose": "All body copy, descriptions, form labels. Montserrat with system fallback."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigation items, metadata, section overlines, button text."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Prices, order IDs, codes, tabular data. Roboto Mono."
+      }
+    },
+    "shadows": [
+      {
+        "name": "elevation-1",
+        "value": "0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.35), 0 0 0 1px oklch(58% 0.16 45 / 0.08)",
+        "purpose": "Card rest state. Subtle structural lift with amber-tinted border."
+      },
+      {
+        "name": "elevation-2",
+        "value": "0 6px 16px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.32), 0 0 0 1px oklch(58% 0.16 45 / 0.12)",
+        "purpose": "Hovered cards, dropdowns, dialogs. Stronger lift with pronounced amber border glow."
+      },
+      {
+        "name": "shadow-sm",
+        "value": "0 2px 8px rgba(0, 0, 0, 0.35)",
+        "purpose": "Hover state for list items and interactive elements."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 6px 20px rgba(0, 0, 0, 0.45)",
+        "purpose": "Popovers, tooltips, action sheets."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 12px 36px rgba(0, 0, 0, 0.55)",
+        "purpose": "Modals and full-page overlays."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transition-fast",
+        "value": "0.15s ease",
+        "purpose": "Micro-interactions: hover color shifts, icon state changes."
+      },
+      {
+        "name": "transition-normal",
+        "value": "0.25s ease",
+        "purpose": "Standard state transitions: border shifts, background changes, card lifts."
+      },
+      {
+        "name": "transition-toggle",
+        "value": "0.2s ease",
+        "purpose": "Toggle switch knob position and background transitions."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary call-to-action. Full amber weight, used sparingly — at most one per screen section.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">\n  <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg>\n  加入圈子\n</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: oklch(58% 0.16 45); color: #fafafa; padding: 12px 24px; border: none; border-radius: 10px; font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease; } .ds-btn-primary:hover { background: oklch(65% 0.17 48); } .ds-btn-primary:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 3px oklch(58% 0.16 45 / 0.35); } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action. Transparent with muted text; gains amber on hover.",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\">\n  <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z\"/></svg>\n  收藏\n</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: oklch(58% 0.003 60); padding: 12px 16px; border: none; border-radius: 10px; font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 500; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; } .ds-btn-ghost:hover { background: oklch(58% 0.16 45 / 0.06); color: oklch(58% 0.16 45); } .ds-btn-ghost:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 3px oklch(58% 0.16 45 / 0.35); }"
+    },
+    {
+      "name": "List Item Card",
+      "kind": "card",
+      "refersTo": "card-list-item",
+      "description": "Standard content card for lists. Full border that shifts amber on hover. No side-stripe.",
+      "html": "<div class=\"ds-card-list-item\">\n  <h3 class=\"ds-card-list-item-title\">需求标题</h3>\n  <p class=\"ds-card-list-item-desc\">简介内容，最多两行显示，超出省略。</p>\n</div>",
+      "css": ".ds-card-list-item { background: oklch(58% 0.16 45 / 0.06); border: 1px solid oklch(32% 0.003 60); border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.35), 0 0 0 1px oklch(58% 0.16 45 / 0.08); transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease; font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; } .ds-card-list-item:hover { border-color: oklch(58% 0.16 45 / 0.5); background: oklch(58% 0.16 45 / 0.06); box-shadow: 0 6px 16px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.32), 0 0 0 1px oklch(58% 0.16 45 / 0.12); } .ds-card-list-item:active { transform: scale(0.99); } .ds-card-list-item-title { color: oklch(95% 0 0); font-size: 1.125rem; font-weight: 600; line-height: 1.3; margin: 0 0 4px 0; } .ds-card-list-item-desc { color: oklch(58% 0.003 60); font-size: 0.875rem; line-height: 1.5; margin: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }"
+    },
+    {
+      "name": "Glass Input",
+      "kind": "input",
+      "refersTo": "input-glass",
+      "description": "Amber-tinted text field. Subtle at rest, pronounced on focus.",
+      "html": "<input class=\"ds-input-glass\" type=\"text\" placeholder=\"搜索需求…\" value=\"\" />",
+      "css": ".ds-input-glass { width: 100%; padding: 14px 16px; background: oklch(58% 0.16 45 / 0.06); color: oklch(95% 0 0); border: 1px solid oklch(32% 0.003 60); border-radius: 10px; font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; font-size: 0.9375rem; outline: none; transition: border-color 0.25s ease, box-shadow 0.25s ease; } .ds-input-glass::placeholder { color: oklch(58% 0.003 60); } .ds-input-glass:focus { border-color: oklch(58% 0.16 45); box-shadow: 0 0 0 3px oklch(58% 0.16 45 / 0.12), 0 4px 16px oklch(58% 0.16 45 / 0.06); }"
+    },
+    {
+      "name": "Toggle Switch",
+      "kind": "custom",
+      "refersTo": "toggle-on",
+      "description": "Small pill toggle with amber gradient when active. Must carry role=switch and aria-checked.",
+      "html": "<button class=\"ds-toggle ds-toggle--on\" type=\"button\" role=\"switch\" aria-checked=\"true\" aria-label=\"邮件通知\">\n  <span class=\"ds-toggle__knob\"></span>\n</button>",
+      "css": ".ds-toggle { position: relative; display: inline-flex; width: 52px; height: 28px; border-radius: 9999px; border: none; cursor: pointer; transition: background 0.2s ease; padding: 0; } .ds-toggle--on { background: linear-gradient(135deg, oklch(58% 0.16 45), oklch(52% 0.18 35)); } .ds-toggle--off { background: oklch(21% 0.004 50); } .ds-toggle__knob { position: absolute; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: left 0.2s ease; } .ds-toggle--on .ds-toggle__knob { left: 27px; } .ds-toggle--off .ds-toggle__knob { left: 4px; } .ds-toggle:focus-visible { outline: 2px solid transparent; box-shadow: 0 0 0 3px oklch(58% 0.16 45 / 0.35); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-active",
+      "description": "Small status tag with border and translucent background. Three semantic variants.",
+      "html": "<span class=\"ds-badge ds-badge--active\">活跃</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 6px; font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; border: 1px solid; } .ds-badge--active { border-color: oklch(60% 0.15 150 / 0.3); background: oklch(60% 0.15 150 / 0.12); color: oklch(60% 0.15 150); } .ds-badge--warning { border-color: oklch(68% 0.16 80 / 0.35); background: oklch(68% 0.16 80 / 0.12); color: oklch(68% 0.16 80); } .ds-badge--error { border-color: oklch(55% 0.19 22 / 0.35); background: oklch(55% 0.19 22 / 0.12); color: oklch(55% 0.19 22); } .ds-badge--neutral { border-color: oklch(32% 0.003 60); background: transparent; color: oklch(78% 0.003 60); }"
+    },
+    {
+      "name": "Skeleton Loader",
+      "kind": "custom",
+      "refersTo": "skeleton",
+      "description": "Content-shaped placeholder for loading states. Shimmer animation sweeps across.",
+      "html": "<div class=\"ds-skeleton\" style=\"width: 280px; height: 20px;\"></div>",
+      "css": ".ds-skeleton { background: linear-gradient(90deg, oklch(78% 0.003 60 / 0.08) 0%, oklch(78% 0.003 60 / 0.16) 50%, oklch(78% 0.003 60 / 0.08) 100%); background-size: 200% 100%; border-radius: 6px; animation: ds-shimmer 2s linear infinite; } @keyframes ds-shimmer { from { background-position: 0 0; } to { background-position: -200% 0; } } @media (prefers-reduced-motion: reduce) { .ds-skeleton { animation: none; } }"
+    },
+    {
+      "name": "Error State",
+      "kind": "custom",
+      "refersTo": "error-state",
+      "description": "Centered failure message with retry action. Always specific about what went wrong.",
+      "html": "<div class=\"ds-error-state\">\n  <p class=\"ds-error-state__message\">需求不存在或已被删除</p>\n  <button class=\"ds-btn-ghost\" type=\"button\">重试</button>\n</div>",
+      "css": ".ds-error-state { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 64px 24px; text-align: center; } .ds-error-state__message { color: oklch(58% 0.003 60); font-family: 'Montserrat', 'Segoe UI', system-ui, sans-serif; font-size: 0.875rem; margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Warm Workshop",
+    "overview": "A freelancer leans into their monitor at 11 PM, the only light in the room is the screen. The interface doesn't compete for attention; it recedes into the task. Warm amber accents mark what's actionable against a deep earth-toned backdrop. Every pixel earns its place. The tool feels solid and reliable, like a well-built workbench you don't think about because it just works.\n\nNinewood is a product-register system. Restrained color strategy: one accent (warm amber) used on ~8% of any given surface. The dark theme isn't a stylistic choice; it's an ergonomic one for users spending hours managing demands, orders, and conversations.\n\nThis system rejects the aesthetic of cyberpunk terminals, purple-blue AI-generated slop, and decorative glassmorphism. It embraces familiarity that earns trust: standard navigation patterns, consistent component vocabulary, motion that conveys state rather than decoration.",
+    "keyCharacteristics": [
+      "Dark with purpose: warm-toned dark backgrounds reduce fatigue during long work sessions",
+      "One accent, used sparingly: warm amber appears only on primary actions, selections, and state indicators",
+      "Flat at rest, subtle on interaction: surfaces gain depth only when hovered or focused",
+      "Standardized component vocabulary: every interactive element has seven consistent states",
+      "Efficiency-forward: content density matches work pace; skeleton loading states instead of spinners"
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "The warm amber accent is used on ≤10% of any given screen. Its rarity is the point. An interface that's 40% amber has no accent at all.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Black Rule",
+        "body": "Never use #000 or #fff. Every neutral is tinted toward the accent hue (chroma 0.003–0.005).",
+        "section": "colors"
+      },
+      {
+        "name": "The Scale Gap Rule",
+        "body": "Adjacent heading sizes differ by at least 1.25:1. No flat scales; hierarchy must be instantly readable.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Display Rule",
+        "body": "Display fonts are prohibited in UI context. One sans family carries headings, body, buttons, and labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Use the warm amber accent on primary actions, selected states, and focus rings only",
+      "Tint every neutral surface toward the accent hue (chroma 0.003–0.005)",
+      "Use skeleton loading for content areas; reserve spinners for inline actions",
+      "Provide a retry action alongside every error message",
+      "Use role=\"switch\" and aria-checked on toggle controls",
+      "Use Tailwind utility classes for all styling",
+      "Respect prefers-reduced-motion for all non-essential animations",
+      "Use focus-visible for focus rings, not :focus",
+      "Maintain WCAG 2.1 AA contrast: 4.5:1 for body, 3:1 for large text"
+    ],
+    "donts": [
+      "Use gradient text (background-clip: text). Absolute ban. Use solid amber color for emphasis",
+      "Use side-stripe borders (border-left/border-right > 1px as accent)",
+      "Use glassmorphism as a default surface treatment",
+      "Use purple-blue gradients as brand colors. This is the #1 AI slop signal",
+      "Use emoji as icons. Always use lucide-react",
+      "Use #000 or #fff. Every neutral must carry a hint of the accent hue",
+      "Create identical card grids (icon + heading + text repeated)",
+      "Use modals as a first resort. Exhaust inline alternatives first",
+      "Animate CSS layout properties (width, height, top, left). Use transform and opacity only",
+      "Ship a component with missing states. Every interactive element needs default, hover, focus, active, disabled, loading, and error"
+    ]
+  }
+}

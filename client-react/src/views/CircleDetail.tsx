@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { ListItemCard } from '@/components/ui/list-item-card'
 import {
   DemandCardInner,
@@ -159,7 +160,7 @@ export default function CircleDetail() {
     )
   }
 
-  if (!circle) return null
+  if (!circle) return <ErrorState message="圈子不存在或已被删除" />
 
   const st = statusMap[circle.status || 'ACTIVE'] || statusMap.ACTIVE
   const memberCount = circle._count?.members ?? circle.members?.length ?? 0
@@ -190,7 +191,7 @@ export default function CircleDetail() {
                 {circle.type === 'PUBLIC' ? '公开圈' : '私密圈'}
               </Badge>
             </div>
-            <h1 className="text-balance text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+            <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {circle.name}
             </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:text-sm">

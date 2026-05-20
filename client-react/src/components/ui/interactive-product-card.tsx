@@ -17,7 +17,6 @@ import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
 import { InfoCard } from '@/components/ui/info-card'
-import { AuroraGradientBar } from '@/components/ui/aurora-gradient-bar'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 
 export interface InteractiveProductCardProps extends HTMLAttributes<HTMLDivElement> {
@@ -218,24 +217,21 @@ export function InteractiveProductCard({
     profileCoverUrl?.trim() ||
     publisherUserCoverPreset(publisherUserId ?? undefined)
   const numericPrice = parsePriceNumber(price)
-  /** 翻面标题色条：各档仅在自身色相（或金/极光辅色）内做渐变流光 */
-  const titleBarShimmerClass =
+  /** 翻面标题色条：静态渐变色，按价格档次区分 */
+  const titleBarGradient =
     numericPrice > 10000
-      ? undefined
-      : cn(
-          'flip-card-title-bar-shimmer',
-          numericPrice > 3000 && numericPrice <= 10000
-            ? 'flip-card-title-bar-shimmer--gold'
-            : numericPrice > 1000
-              ? 'flip-card-title-bar-shimmer--red'
-              : numericPrice > 500
-                ? 'flip-card-title-bar-shimmer--orange'
-                : numericPrice > 100
-                  ? 'flip-card-title-bar-shimmer--violet'
-                  : numericPrice > 10
-                    ? 'flip-card-title-bar-shimmer--blue'
-                    : 'flip-card-title-bar-shimmer--green',
-        )
+      ? 'linear-gradient(135deg, oklch(65% 0.15 45), oklch(50% 0.16 35))'
+      : numericPrice > 3000
+        ? 'linear-gradient(135deg, oklch(60% 0.14 55), oklch(52% 0.15 40))'
+        : numericPrice > 1000
+          ? 'linear-gradient(135deg, oklch(58% 0.16 30), oklch(50% 0.18 20))'
+          : numericPrice > 500
+            ? 'linear-gradient(135deg, oklch(62% 0.14 50), oklch(54% 0.15 35))'
+            : numericPrice > 100
+              ? 'linear-gradient(135deg, oklch(58% 0.16 55), oklch(50% 0.16 40))'
+              : numericPrice > 10
+                ? 'linear-gradient(135deg, oklch(55% 0.12 60), oklch(48% 0.12 45))'
+                : 'linear-gradient(135deg, oklch(50% 0.10 60), oklch(43% 0.10 50))'
   /** 翻面布局时根节点不要叠 perspective，否则与 CometCard / 内层 perspective 叠加，背面会像斜薄片、出现诡异侧棱 */
   const rootTransformStyle: CSSProperties = isFlipLayout
     ? {}
@@ -257,7 +253,7 @@ export function InteractiveProductCard({
       className={cn(
         /* 宽度用视口推算，避免父级 flex 压缩时 100% 变成极窄条 */
         /* 宽度：扣除全局侧栏，避免在 main 内仍按整屏 vw 计算导致视觉不居中 */
-        'relative box-border aspect-[9/16] w-[min(332px,calc(100vw-var(--sidebar-w,72px)-2.5rem))] max-w-full shrink-0 rounded-3xl',
+        'relative box-border aspect-[9/16] w-[min(332px,calc(100vw-var(--sidebar-w,72px)-2.5rem))] max-w-full shrink-0 rounded-3xl [will-change:transform]',
         isFlipLayout ? 'shadow-none' : 'shadow-lg',
         isFlipLayout ? 'overflow-visible' : 'overflow-hidden',
         'bg-transparent',
@@ -326,23 +322,15 @@ export function InteractiveProductCard({
                 style={{ transform: 'translateZ(40px)' }}
               >
                 <div
-                  className={cn(
-                    'relative shrink-0 flex w-full justify-center overflow-hidden px-4 py-3 [text-rendering:optimizeLegibility]',
-                    titleBarShimmerClass,
-                  )}
+                  className="relative shrink-0 flex w-full justify-center overflow-hidden px-4 py-3 [text-rendering:optimizeLegibility]"
+                  style={{ background: titleBarGradient }}
                 >
                   {numericPrice > 10000 ? (
-                    <>
-                      <AuroraGradientBar
-                        className="absolute inset-0 z-0 min-h-[44px] w-full [filter:drop-shadow(0_0_6px_rgba(102,126,234,0.5))_drop-shadow(0_0_12px_rgba(0,255,255,0.3))]"
-                        intensity={1.15}
-                      />
-                      <div
-                        className="flip-card-title-bar-aurora-sheen pointer-events-none absolute inset-0 z-[1] min-h-[44px]"
-                        aria-hidden
-                      />
-                    </>
-                  ) : null}
+                  <div
+                    className="absolute inset-0 z-0 min-h-[44px] w-full"
+                    style={{ background: titleBarGradient }}
+                  />
+                ) : null}
                   <h3
                     className={cn(
                       'relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight',
@@ -514,10 +502,10 @@ export function InteractiveProductCard({
                     index === safeActive
                       ? isDark
                         ? 'bg-white'
-                        : 'bg-black/60'
+                        : 'bg-text-muted/70'
                       : isDark
                         ? 'bg-white/30'
-                        : 'bg-black/20',
+                        : 'bg-text-muted/35',
                   )}
                 />
               ))}

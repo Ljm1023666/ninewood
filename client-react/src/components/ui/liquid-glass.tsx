@@ -84,7 +84,7 @@ export const GlassEffect: React.FC<GlassEffectProps> = ({
 }) => {
   const glassStyle: React.CSSProperties = {
     boxShadow: '0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1)',
-    transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+    transitionTimingFunction: 'var(--ease-out-expo)',
     ...style,
   }
 
@@ -147,7 +147,7 @@ export const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({
           className="w-16 h-16 transition-transform duration-700 hover:scale-110 cursor-pointer"
           style={{
             transformOrigin: 'center center',
-            transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+            transitionTimingFunction: 'var(--ease-out-expo)',
           }}
           onClick={icon.onClick}
         />
@@ -170,7 +170,7 @@ export const GlassButton: React.FC<{
     <div
       className="transition-transform duration-700 hover:scale-95"
       style={{
-        transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+        transitionTimingFunction: 'var(--ease-out-expo)',
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import Sidebar from './Sidebar'
+import PageTransition from './PageTransition'
 import { useChatStore } from '@/stores/chat'
 import { useKeyboard } from '@/hooks/useKeyboard'
 import { ToastContainer } from '@/components/ui/confirm-dialog'
@@ -12,7 +13,7 @@ import {
   suppressLayoutAmbient,
 } from '@/utils/user-cover-presets'
 import { userApi } from '@/api/user'
-import { ChevronLeft, Minus, Square, X } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 
 export default function Layout() {
   const location = useLocation()
@@ -83,6 +84,7 @@ export default function Layout() {
   const hideGlobalBack =
     p === '/' ||
     p === '/card-pool' ||
+    p.startsWith('/card-pool/') ||
     p === '/demands/create' ||
     p === '/circles' ||
     p === '/search' ||
@@ -90,7 +92,8 @@ export default function Layout() {
     p.startsWith('/messages/') ||
     p === '/profile' ||
     p === '/profile/' ||
-    p.startsWith('/follows/')
+    p.startsWith('/follows/') ||
+    p === '/settings'
   const showBack = !hideGlobalBack
   /** 需求详情页 3D 翻面会略超出卡片盒模型；全站 main 的 overflow-hidden 会裁掉透视溢出，仅在此路由放宽 */
   const demandDetail3dOverflow = isDemandDetailRoute(p)
@@ -103,7 +106,6 @@ export default function Layout() {
           : 'flex h-screen w-full min-w-0 overflow-hidden'
       }
     >
-      <GlassFilter />
       <ToastContainer />
       <Sidebar />
 
@@ -124,50 +126,20 @@ export default function Layout() {
         {showBack && (
           <button
             onClick={() => navigate(-1)}
-            className="fixed left-[86px] top-4 z-[var(--z-sticky)] flex h-9 w-9 items-center justify-center rounded-xl
-              border border-border bg-card/80 text-text-secondary shadow-md backdrop-blur-md
-              transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
+            className="fixed left-[calc(var(--sidebar-w)+14px)] top-4 z-[var(--z-sticky)] flex h-9 w-9 items-center justify-center rounded-default
+              border border-border bg-card/90 text-text-secondary shadow-sm
+              transition-[border-color,color,transform] duration-200 hover:border-accent hover:text-text-primary active:scale-95"
             aria-label="返回"
           >
             <ChevronLeft size={20} />
           </button>
         )}
 
-        {isElectronDesktop ? (
-          <div className="fixed right-3 top-3 z-[var(--z-sticky)] flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => void electronAPI?.minimizeWindow()}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card/80 text-text-secondary shadow-sm backdrop-blur-md transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
-              aria-label="最小化窗口"
-              title="最小化"
-            >
-              <Minus className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => void electronAPI?.maximizeWindow()}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card/80 text-text-secondary shadow-sm backdrop-blur-md transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
-              aria-label="最大化或还原窗口"
-              title="最大化/还原"
-            >
-              <Square className="size-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => void electronAPI?.quitApp()}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card/80 text-text-secondary shadow-sm backdrop-blur-md transition-[border-color,color] duration-200 hover:border-red-500/70 hover:text-red-500"
-              aria-label="关闭窗口"
-              title="关闭"
-            >
-              <X className="size-4" />
-            </button>
-          </div>
-        ) : null}
-
-        {/* 主栏内容区：横向铺满 flex-1 区域，不在此层做 max-w 封顶（否则超宽屏右侧整段空白）；单页可读宽度由各路由内 max-w-* 自控 */}
-        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col [&>*]:min-h-0 [&>*]:min-w-0 [&>*]:flex-1">
-          <Outlet />
+        {/* 主栏内容区：PageTransition 包裹路由过渡动画 */}
+        <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col">
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </div>
       </main>
     </div>

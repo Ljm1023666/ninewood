@@ -6,8 +6,8 @@ import {
   type MouseEvent,
 } from 'react'
 
-/** 0 = 下一 macrotask 即武装拖拽，无固定长按停顿；仍可用 pointermove 在武装前取消 */
-const DEFAULT_LONG_MS = 0
+/** 长按 300ms 后武装拖拽，短按仍触发开卡 */
+const DEFAULT_LONG_MS = 300
 const DEFAULT_MOVE_CANCEL_PX = 16
 /** 尚未进入长按态时：仅当滑动较大才取消计时（便于按住后拖向手牌区） */
 const PRE_ARM_MOVE_CANCEL_PX = 80

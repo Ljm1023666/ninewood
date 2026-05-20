@@ -1,6 +1,5 @@
-import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'motion/react'
+import { motion } from 'motion/react'
 import { ContainerScroll, CardSticky } from '@/components/ui/sticky-scroll'
 import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
 import { useThemeStore } from '@/stores/theme'
@@ -14,7 +13,6 @@ import {
   Users,
   Award,
   ArrowRight,
-  ChevronDown,
 } from 'lucide-react'
 
 const levels = ['NONE', 'BASIC', 'INTERMEDIATE', 'ADVANCED', 'MASTER'] as const
@@ -67,63 +65,39 @@ export default function CertIntro() {
   const tPrimary = isDark ? 'text-white' : 'text-text-primary'
   const tSecondary = isDark ? 'text-white/70' : 'text-text-secondary'
   const tMuted = isDark ? 'text-white/50' : 'text-text-muted'
-  const tFaint = isDark ? 'text-white/30' : 'text-text-muted'
-  const heroRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  })
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
-  const heroY = useTransform(scrollYProgress, [0, 0.6], [0, -60])
-  const heroScale = useTransform(scrollYProgress, [0, 0.6], [1, 0.9])
-
   return (
-    <div className="relative min-h-full w-full overflow-y-auto thin-scroll bg-gradient-to-b from-bg-primary via-bg-secondary to-bg-primary">
-      {/* Hero Section */}
-      <motion.div
-        ref={heroRef}
-        style={{ opacity: heroOpacity, y: heroY, scale: heroScale }}
-        className="flex h-[70vh] w-full flex-col items-center justify-center px-4 text-center"
-      >
+    <motion.div className="relative min-h-full w-full overflow-y-auto thin-scroll bg-background">
+      <motion.div className="relative z-10 mx-auto w-full max-w-2xl px-4 pt-6 pb-8 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-3"
         >
-          <div
+          <p
             className={cn(
-              'mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm backdrop-blur-sm',
-              isDark
-                ? 'border-white/10 bg-white/5 text-white/60'
-                : 'border-black/[0.08] bg-black/[0.04] text-text-secondary',
+              'flex items-center gap-2 text-xs font-semibold uppercase tracking-wider',
+              tMuted,
             )}
           >
-            <ShieldCheck size={16} className="text-amber-400" />
+            <ShieldCheck size={14} className="text-accent" aria-hidden />
             认证体系
-          </div>
-          <h1
-            className={`mb-4 text-4xl font-black tracking-tight ${tPrimary} md:text-5xl`}
-          >
-            层层进阶
-            <br />
-            <span className="cyber-glow">解锁更多能力</span>
-          </h1>
-          <p className={`mx-auto max-w-md text-base ${tMuted}`}>
-            从新手到大师，5个认证等级，每升一级解锁更强权限
           </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-12"
-        >
-          <ChevronDown size={24} className={`animate-bounce ${tFaint}`} />
+          <h1
+            className={cn(
+              'text-balance text-2xl font-bold tracking-tight sm:text-3xl',
+              tPrimary,
+            )}
+          >
+            层层进阶，<span className="text-accent">解锁更多能力</span>
+          </h1>
+          <p className={cn('max-w-xl text-sm leading-relaxed', tMuted)}>
+            从新手到大师，5 个认证等级，每升一级解锁更强权限。
+          </p>
         </motion.div>
       </motion.div>
 
-      {/* Stacked Cards Section */}
+      {/* 等级说明（保留叠卡展示，不改动卡片本体） */}
       <ContainerScroll className="mx-auto w-full max-w-2xl px-4 pb-40">
         {levels.map((level, i) => {
           const color = certColor[level]
@@ -209,7 +183,7 @@ export default function CertIntro() {
                         viewport={{ once: true }}
                         className={cn(
                           'flex items-center gap-3 rounded-xl p-3',
-                          isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]',
+                          isDark ? 'bg-white/[0.04]' : 'bg-bg-secondary/35',
                         )}
                       >
                         <div
@@ -268,6 +242,6 @@ export default function CertIntro() {
           </LiquidGlassCard>
         </CardSticky>
       </ContainerScroll>
-    </div>
+    </motion.div>
   )
 }

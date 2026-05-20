@@ -346,7 +346,7 @@ function HandSwipeRow({
               aria-label="从此条向左拖，展开置顶、弃牌、移除"
               disabled={busy}
               className={cn(
-                'flex w-[22px] shrink-0 touch-none select-none flex-col items-center justify-center rounded-none border-0 border-r border-white/[0.08] bg-black/30 p-0 text-neutral-400 hover:bg-black/45',
+                'flex w-[22px] shrink-0 touch-none select-none flex-col items-center justify-center rounded-none border-0 border-r border-white/[0.08] bg-bg-secondary/70 p-0 text-neutral-400 hover:bg-bg-secondary/85',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50',
               )}
               onPointerDown={(e) => {

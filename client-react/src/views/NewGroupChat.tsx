@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, Search } from 'lucide-react'
+import { X, Search, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
@@ -164,20 +164,7 @@ export default function NewGroupChat() {
                     : 'border-border',
                 )}
               >
-                {isSel && (
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
+                {isSel && <Check className="size-3 text-white" strokeWidth={3} />}
               </div>
             </button>
           )
@@ -188,7 +175,7 @@ export default function NewGroupChat() {
       {showNameDialog && (
         <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-background/70"
             onClick={() => setShowNameDialog(false)}
           />
           <div className="relative z-10 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">

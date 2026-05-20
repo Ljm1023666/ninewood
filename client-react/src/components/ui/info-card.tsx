@@ -48,13 +48,13 @@ export function InfoCard({
   borderBgColor = '#242424',
   borderWidth = 3,
   borderPadding = 14,
-  cardBgColor = '#000',
+  cardBgColor = 'var(--bg-primary)',
   patternColor1 = 'rgba(230,230,230,0.15)',
   patternColor2 = 'rgba(240,240,240,0.15)',
   textColor = '#f5f5f5',
   hoverTextColor = '#242424',
   fontFamily = "'Roboto Mono', monospace",
-  rtlFontFamily = "'Montserrat', sans-serif",
+  rtlFontFamily = "var(--font-family)",
   effectBgColor = '#DAFF3E',
   contentPadding = '10px 16px',
   fillContainer = false,
@@ -164,7 +164,7 @@ export function InfoCard({
             <Link
               to={heroImageTo}
               aria-label={heroImageAriaLabel ?? imageAlt ?? title}
-              className="block h-full w-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ic-card-bg,#000)] focus-visible:ring-white/40"
+              className="block h-full w-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ic-card-bg,var(--bg-primary))] focus-visible:ring-white/40"
               onClick={(e) => e.stopPropagation()}
             >
               <img

@@ -8,13 +8,16 @@ import {
   XCircle,
   Trash2,
   ArrowRight,
-  Loader2,
   X,
 } from 'lucide-react'
 import { demandApi } from '@/api/demand'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import { ListItemCard } from '@/components/ui/list-item-card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { ErrorState } from '@/components/ui/error-state'
+import { LoadingState } from '@/components/ui/loading-state'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { cn } from '@/lib/utils'
 
 const sMap: Record<
@@ -166,39 +169,6 @@ function ApplicationCard({ a }: { a: any }) {
   )
 }
 
-function EmptyState({ type }: { type: 'demands' | 'applications' }) {
-  const navigate = useNavigate()
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center py-16 px-4"
-    >
-      <div className="size-16 rounded-2xl bg-gradient-to-br from-[var(--primary-start)]/20 to-[var(--primary-end)]/20 flex items-center justify-center mb-4">
-        <FileText className="size-8 text-[var(--primary-start)] opacity-60" />
-      </div>
-      <h3 className="text-lg font-semibold text-text-primary mb-1">
-        {type === 'demands' ? '暂无发布需求' : '暂无申请记录'}
-      </h3>
-      <p className="text-sm text-text-muted text-center max-w-xs">
-        {type === 'demands'
-          ? '还没有发布任何需求，点击下方按钮开始发布第一条需求'
-          : '还没有申请过任何需求，去发现页看看吧'}
-      </p>
-      {type === 'demands' && (
-        <Button
-          type="button"
-          className="mt-4 gap-2"
-          onClick={() => navigate('/demands/create')}
-        >
-          发布需求
-          <ArrowRight className="size-4" />
-        </Button>
-      )}
-    </motion.div>
-  )
-}
-
 export default function MyDemands() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<'demands' | 'applications'>('demands')
@@ -249,22 +219,22 @@ export default function MyDemands() {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background">
       <div className="relative z-10 mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">我的需求</h1>
-            <p className="text-sm text-text-muted mt-0.5">
-              管理您发布和申请的需求
-            </p>
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => navigate('/demands/create')}
-          >
-            发布需求
-          </Button>
-        </div>
+        <PageHeader
+          title="我的需求"
+          subtitle="管理您发布和申请的需求"
+          divider={false}
+          className="mb-6"
+          actions={
+            <Button
+              type="button"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => navigate('/demands/create')}
+            >
+              发布需求
+            </Button>
+          }
+        />
 
         <div className="relative mb-6 flex gap-1 rounded-xl bg-bg-secondary/80 p-1">
           {tabs.map((t) => (
@@ -302,38 +272,30 @@ export default function MyDemands() {
           ))}
         </div>
 
-        {error && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="size-12 rounded-xl bg-red-500/10 flex items-center justify-center mb-3">
-              <XCircle className="size-6 text-red-400" />
-            </div>
-            <p className="text-sm text-text-muted mb-3">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={fetchData}
-            >
-              重试
-            </Button>
-          </div>
-        )}
+        {error && <ErrorState message={error} onRetry={fetchData} />}
 
-        {!error && loading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="size-8 text-[var(--primary-start)] animate-spin mb-3" />
-            <p className="text-sm text-text-muted">加载中...</p>
-          </div>
-        )}
+        {!error && loading && <LoadingState lines={4} />}
 
         {!error && !loading && tab === 'demands' && demands.length === 0 && (
-          <EmptyState type="demands" />
+          <EmptyState
+            type="demand"
+            message="还没有发布任何需求，点击下方按钮开始发布第一条需求"
+            actionLabel="发布需求"
+            onAction={() => navigate('/demands/create')}
+          />
         )}
 
         {!error &&
           !loading &&
           tab === 'applications' &&
-          applications.length === 0 && <EmptyState type="applications" />}
+          applications.length === 0 && (
+            <EmptyState
+              type="search"
+              message="还没有申请过任何需求，去发现页看看吧"
+              actionLabel="去发现"
+              onAction={() => navigate('/discover')}
+            />
+          )}
 
         <AnimatePresence mode="wait">
           {!error && !loading && (

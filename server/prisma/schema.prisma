@@ -271,12 +271,14 @@ model Message {
   content    String
   type       MessageType @default(TEXT)
   duration   Int?
+  mergeId    String?
   isRead     Boolean     @default(false)
   createdAt  DateTime    @default(now())
 
   @@index([fromUserId])
   @@index([toUserId])
   @@index([orderId])
+  @@index([mergeId])
   @@index([createdAt])
 }
 
