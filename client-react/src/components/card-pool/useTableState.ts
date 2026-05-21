@@ -21,6 +21,8 @@ export function useTableState(initialFocus?: BlackScope | null) {
     pinToFront,
     discardHandEntryById,
     restoreCard,
+    clearHand,
+    addDemandToSingles,
   } = usePersistedGlobalHand()
 
   const children = useMemo(() => nextBlackScopes(focus), [focus])
@@ -140,6 +142,8 @@ export function useTableState(initialFocus?: BlackScope | null) {
     pinToFront,
     discardHandEntryById,
     restoreCard,
+    clearHand,
+    addDemandToSingles,
     addDemandToHand,
     expandNode,
     goParent,

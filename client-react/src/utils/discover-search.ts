@@ -22,18 +22,25 @@ export function buildDiscoverSearchQuery(trimmed: string): string {
 export function parseDiscoverUrlParams(searchParams: URLSearchParams): {
   serviceType: 'ALL' | 'ONLINE' | 'OFFLINE'
   keyword: string
+  tags: string[]
+  taxonomyLeafIds?: string
 } {
   const q = (searchParams.get('q') ?? '').trim()
   const t = searchParams.get('type')
+  const tagsRaw = (searchParams.get('tags') ?? '').trim()
+  const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : []
+  const leafIds = searchParams.get('leafIds') ?? undefined
   const fromQ = parseHeroSearch(q)
 
   if (t === 'ONLINE' || t === 'OFFLINE') {
     return {
       serviceType: t,
       keyword: fromQ.keyword,
+      tags,
+      taxonomyLeafIds: leafIds,
     }
   }
-  return fromQ
+  return { ...fromQ, tags, taxonomyLeafIds: leafIds }
 }
 
 export function formatDiscoverFilterHint(

@@ -18,6 +18,8 @@ import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { useUserStore } from '@/stores/user'
 import { Heart } from 'lucide-react'
+import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
+import { toast } from '@/components/ui/confirm-dialog'
 
 function stripDebugFromTitle(title: string): string {
   return title
@@ -118,6 +120,13 @@ export default function DemandDetail() {
   const { isLoggedIn, isFavorited, checkFavoriteStatus, toggleFavorite } =
     useUserStore()
 
+  const { addDemandToSingles, hand } = usePersistedGlobalHand()
+  const singlesIdsRef = useRef<string[]>([])
+  // 每次 hand 变化时更新 ref
+  const singlesEntry = hand.find((h) =>
+    h.scope.path.length >= 2 && h.scope.path[h.scope.path.length - 1] === '__singles__'
+  )
+  singlesIdsRef.current = singlesEntry?.scope.leafFilter ?? []
   const [allDemands, setAllDemands] = useState<any[]>([])
   const [favorited, setFavorited] = useState(false)
   const [favoriteLoading, setFavoriteLoading] = useState(false)
@@ -160,32 +169,31 @@ export default function DemandDetail() {
     setLoading(true)
     setError('')
     try {
-      const keyword = (searchParams.get('q') ?? '').trim()
-      const serviceType = searchParams.get('type') ?? ''
-      const category = (searchParams.get('category') ?? '').trim()
-      const listParams: Record<string, any> = { limit: 50 }
-      if (keyword) listParams.keyword = keyword
-      if (serviceType === 'ONLINE' || serviceType === 'OFFLINE')
-        listParams.serviceType = serviceType
-      if (category) listParams.category = category
-
-      const [listRes, detailRes] = await Promise.all([
-        demandApi.list(listParams),
-        demandApi.get(id),
-      ])
-      const rawList = (listRes.data.data?.demands ||
-        listRes.data.data?.items ||
-        []) as any[]
+      // 先获取当前需求详情
+      const detailRes = await demandApi.get(id)
       const detail = detailRes.data.data
       if (!detail) throw new Error('需求不存在')
 
-      let idx = rawList.findIndex((d: any) => d.id === id)
-      if (idx === -1) {
-        rawList.unshift(detail)
-        idx = 0
-      } else {
-        rawList[idx] = detail
+      // 从 ? 卡包获取手牌需求 ID 列表
+      const singlesIds = singlesIdsRef.current
+
+      let rawList: any[] = [detail]
+
+      if (singlesIds.length > 0) {
+        // 按 IDs 批量加载手牌需求
+        const listRes = await demandApi.list({ ids: singlesIds.join(','), limit: 200 })
+        const fetched = (listRes.data.data?.demands || []) as any[]
+        // 替换为最新数据
+        const merged = fetched.map((d: any) => d.id === id ? { ...d, ...detail } : d)
+        // 确保当前需求在列表中
+        if (!merged.some((d: any) => d.id === id)) {
+          merged.unshift(detail)
+        }
+        rawList = merged
       }
+
+      let idx = rawList.findIndex((d: any) => d.id === id)
+      if (idx === -1) idx = 0
 
       setAllDemands(rawList)
       setCurrentIdx(idx)
@@ -194,7 +202,7 @@ export default function DemandDetail() {
     } finally {
       setLoading(false)
     }
-  }, [id, searchParams])
+  }, [id])
 
   useEffect(() => {
     fetchAll()
@@ -422,6 +430,7 @@ export default function DemandDetail() {
                   activeDotIndex={0}
                   onSwipeNext={hasNext ? goNext : undefined}
                   onSwipePrev={hasPrev ? goPrev : undefined}
+                  onAddToHand={() => { if (demand?.id) { addDemandToSingles(demand.id); toast('已加入手牌', 'success') } }}
                   className="shadow-none"
                 />
               </CometCard>
