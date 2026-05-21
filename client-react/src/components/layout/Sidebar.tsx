@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
+import { MaterialSwitch } from '@/components/ui/material-switch'
 import { presets } from '@/stores/theme'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
@@ -107,15 +108,20 @@ export default function Sidebar() {
 
         {/* 底部操作 */}
         <div className="mt-auto flex flex-col items-center gap-2">
-          <button
-            type="button"
-            onClick={handleThemeToggle}
-            className="flex size-14 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl text-[var(--text-muted)] transition-all duration-200 hover:bg-[var(--accent-ghost)] hover:text-[var(--text-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
-            aria-label={isDark ? '切换亮色模式' : '切换暗色模式'}
-          >
-            {isDark ? <Sun size={24} /> : <Moon size={24} />}
-            <span className="text-[13px] font-medium leading-none">主题</span>
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            <MaterialSwitch
+              checked={isDark}
+              onCheckedChange={handleThemeToggle}
+              size="sm"
+              showIcons
+              checkedIcon={<Moon size={14} />}
+              uncheckedIcon={<Sun size={14} />}
+              haptic="light"
+            />
+            <span className="text-[11px] font-medium text-[var(--text-muted)]">
+              主题
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => setConfirmLogout(true)}

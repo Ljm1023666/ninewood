@@ -1,29 +1,29 @@
 import { Monitor, MapPin, Lock, LockOpen } from 'lucide-react'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
+import { MaterialSwitch } from '@/components/ui/material-switch'
 
 function LockToggle({ fieldKey }: { fieldKey: string }) {
   const locked = useDemandWorkspaceStore((s) => s.fieldOverrides.has(fieldKey))
   const toggleLock = useDemandWorkspaceStore((s) => s.toggleLock)
 
   return (
-    <button
-      type="button"
-      onClick={() => toggleLock(fieldKey)}
-      className={`flex size-6 shrink-0 items-center justify-center rounded-md transition-all ${
-        locked
-          ? 'bg-amber-500/15 text-amber-400'
-          : 'bg-white/[0.03] text-white/15 hover:text-white/40 hover:bg-white/[0.06]'
-      }`}
-      title={locked ? '已锁定，AI 不会修改' : '点击锁定此字段'}
-    >
-      {locked ? <Lock className="size-3" /> : <LockOpen className="size-3" />}
-    </button>
+    <MaterialSwitch
+      checked={locked}
+      onCheckedChange={() => toggleLock(fieldKey)}
+      size="sm"
+      showIcons
+      checkedIcon={<Lock className="size-2.5" />}
+      uncheckedIcon={<LockOpen className="size-2.5" />}
+      haptic="light"
+      className="-mt-1.5"
+    />
   )
 }
 
 export function WorkspaceFields() {
   const fields = useDemandWorkspaceStore((s) => s.fields)
   const updateField = useDemandWorkspaceStore((s) => s.updateField)
+  const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
 
   return (
     <div className="space-y-3">
@@ -59,7 +59,7 @@ export function WorkspaceFields() {
             线下
           </button>
         </div>
-        <LockToggle fieldKey="serviceType" />
+        {!speedMode && <LockToggle fieldKey="serviceType" />}
       </div>
 
       {/* 预算 + 时间 */}
@@ -67,7 +67,7 @@ export function WorkspaceFields() {
         <div>
           <div className="flex items-center gap-1 mb-1">
             <label className="block text-[11px] text-white/25">预算</label>
-            <LockToggle fieldKey="budget" />
+            {!speedMode && <LockToggle fieldKey="budget" />}
           </div>
           <input
             type="text"
@@ -80,7 +80,7 @@ export function WorkspaceFields() {
         <div>
           <div className="flex items-center gap-1 mb-1">
             <label className="block text-[11px] text-white/25">时间</label>
-            <LockToggle fieldKey="schedule" />
+            {!speedMode && <LockToggle fieldKey="schedule" />}
           </div>
           <input
             type="text"
@@ -96,7 +96,7 @@ export function WorkspaceFields() {
       <div>
         <div className="flex items-center gap-1 mb-1">
           <label className="block text-[11px] text-white/25">分类</label>
-          <LockToggle fieldKey="category" />
+          {!speedMode && <LockToggle fieldKey="category" />}
         </div>
         <input
           type="text"
@@ -129,11 +129,12 @@ function KeywordTags() {
   const keywords = useDemandWorkspaceStore((s) => s.fields.suggestedKeywords)
   const lockedKeywords = useDemandWorkspaceStore((s) => s.lockedKeywords)
   const toggleKeywordLock = useDemandWorkspaceStore((s) => s.toggleKeywordLock)
+  const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
 
   return (
     <div>
       <label className="block text-[11px] text-white/25 mb-1">
-        关键词（点击锁定）
+        关键词{speedMode ? '（点击解锁）' : '（点击锁定）'}
       </label>
       <div className="flex flex-wrap gap-1">
         {keywords.map((kw) => {

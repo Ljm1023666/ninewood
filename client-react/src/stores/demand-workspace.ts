@@ -34,6 +34,9 @@ interface DemandWorkspaceState {
   resolveAllAnswered: () => void
   confidence: 'high' | 'medium' | 'low'
   readyToPublish: boolean
+  /** Speed 模式：隐藏锁定图标，关键词默认全锁 */
+  speedMode: boolean
+  setSpeedMode: (on: boolean) => void
   /** 被用户锁定的关键词（点击关键词即可切换锁定状态） */
   lockedKeywords: Set<string>
   toggleKeywordLock: (keyword: string) => void
@@ -61,6 +64,7 @@ interface DemandWorkspaceState {
     budget?: string | null
     schedule?: string | null
     category?: string | null
+    taxonomyLeafId?: string | null
   }) => void
   reset: () => void
 }
@@ -88,7 +92,10 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
     missingAnswers: {},
     confidence: 'low',
     readyToPublish: false,
+    speedMode: false,
     lockedKeywords: new Set(),
+
+    setSpeedMode: (on) => set({ speedMode: on }),
 
     toggleMissingQueue: (item) => {
       set((s) => {
@@ -217,7 +224,7 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
     },
 
     applyAnalyzeResult: (data) => {
-      const { fieldOverrides } = get()
+      const { fieldOverrides, speedMode } = get()
       set((s) => {
         const next = { ...s.fields }
         if (!fieldOverrides.has('title') && data.title) next.title = data.title
@@ -233,12 +240,22 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
           next.schedule = data.schedule
         if (!fieldOverrides.has('category') && data.category)
           next.category = data.category
+        if (data.taxonomyLeafId) next.taxonomyLeafId = data.taxonomyLeafId
         if (data.scopeLabels)
           next.scopeLabels = data.scopeLabels.filter(
             (s): s is string => s !== null,
           )
-        if (data.suggestedKeywords)
+        if (data.suggestedKeywords) {
           next.suggestedKeywords = data.suggestedKeywords
+          // Speed 模式：新关键词默认全部锁定
+          if (speedMode) {
+            set({
+              lockedKeywords: new Set(
+                data.suggestedKeywords.filter((s): s is string => s !== null),
+              ),
+            })
+          }
+        }
         return {
           fields: next,
           missingInfo: data.missingInfo ?? s.missingInfo,
@@ -255,6 +272,7 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
         fields: { ...INITIAL_FIELDS },
         fieldOverrides: new Set(),
         lockedKeywords: new Set(),
+        speedMode: false,
         missingInfo: [],
         missingQueue: [],
         answeredQueue: [],
