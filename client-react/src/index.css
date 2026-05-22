@@ -153,10 +153,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* 全局 focus ring：box-shadow 更柔和 */
-:where(button, input, select, textarea, [tabindex], [role="button"], a[href]):focus-visible {
-  outline: 2px solid transparent;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 35%, transparent);
+/* 全局 focus ring */
+:where(button, select, [tabindex], [role="button"], a[href]):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-color) 35%, transparent);
+  outline-offset: 2px;
 }
 
 /* prefers-reduced-motion：关闭非必要动画（保留帷幕功能动画） */

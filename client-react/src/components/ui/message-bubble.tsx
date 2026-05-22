@@ -30,7 +30,7 @@ export function MessageBubble({
   if (type === 'SYSTEM') {
     return (
       <div className="flex justify-center py-2">
-        <span className="text-xs px-3 py-1 rounded-full bg-bg-secondary/70 text-text-muted">
+        <span className="text-sm px-3 py-1 rounded-full bg-bg-secondary/70 text-text-muted">
           {content}
         </span>
       </div>
@@ -54,7 +54,9 @@ export function MessageBubble({
         <div
           className={cn(
             'w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-sm font-medium',
-            isMine ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]',
+            isMine
+              ? 'bg-[var(--accent-color)] text-white'
+              : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]',
           )}
         >
           {avatarUrl ? (
@@ -73,14 +75,16 @@ export function MessageBubble({
 
       <div className="flex flex-col gap-0.5 max-w-[72%]">
         {!isMine && nickname && (
-          <span className="text-[11px] text-text-muted px-1">{nickname}</span>
+          <span className="text-sm text-text-muted px-1">{nickname}</span>
         )}
 
         <div className="flex items-end gap-1.5">
           <div
             className={cn(
               'rounded-xl px-4 py-2.5 text-sm leading-relaxed',
-              isMine ? 'bg-[var(--accent-color)] text-white' : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)]',
+              isMine
+                ? 'bg-[var(--accent-color)] text-white'
+                : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)]',
             )}
           >
             {isImage ? (
@@ -107,7 +111,7 @@ export function MessageBubble({
           {timestamp && (
             <span
               className={cn(
-                'text-[11px] mt-0.5',
+                'text-sm mt-0.5',
                 isMine ? 'text-white/50' : 'text-[var(--text-muted)]',
               )}
             >

@@ -58,7 +58,7 @@ export default function Search() {
         <div className="shrink-0 px-4 py-4 sm:px-6">
           <div className="mb-1">
             <h1 className="text-xl font-bold text-text-primary">找人</h1>
-            <p className="text-xs text-text-muted">搜索用户昵称或手机号</p>
+            <p className="text-sm text-text-muted">搜索用户昵称或手机号</p>
           </div>
 
           <div className="mt-3 flex items-center gap-2">
@@ -69,7 +69,7 @@ export default function Search() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="输入关键词搜索..."
                 autoFocus
-                className="h-10 w-full rounded-lg border border-border bg-bg-secondary pl-3 pr-10 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
+                className="h-10 w-full rounded-lg border border-border bg-bg-secondary pl-3 pr-10 text-sm text-text-primary outline-none placeholder:text-text-muted"
               />
               {keyword && (
                 <button
@@ -120,7 +120,7 @@ export default function Search() {
 
           {searched && !loading && results.length > 0 && (
             <div className="space-y-2 pb-4">
-              <p className="px-1 text-xs text-text-muted">
+              <p className="px-1 text-sm text-text-muted">
                 找到 {results.length} 个用户
               </p>
               <div className="space-y-1">
@@ -164,7 +164,7 @@ export default function Search() {
                         </span>
                         {u.certificationLevel !== 'NONE' && (
                           <span
-                            className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                            className="shrink-0 rounded-full px-2 py-0.5 text-sm font-semibold"
                             style={{
                               color: getAvatarBgColor(u.certificationLevel),
                               backgroundColor:
@@ -180,7 +180,7 @@ export default function Search() {
                         )}
                       </div>
                       {u.bio && (
-                        <p className="mt-0.5 truncate text-xs text-text-muted">
+                        <p className="mt-0.5 truncate text-sm text-text-muted">
                           {u.bio.slice(0, 50)}
                         </p>
                       )}
@@ -210,7 +210,16 @@ export default function Search() {
           {!searched && !loading && (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="flex size-14 items-center justify-center rounded-xl bg-[var(--accent-ghost)] mb-3">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--accent-color)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <circle cx="11" cy="11" r="8" />
                   <path d="m21 21-4.3-4.3" />
                 </svg>

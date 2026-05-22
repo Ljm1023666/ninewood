@@ -100,10 +100,10 @@ function ExplorerDetailsScopeRow({
             </span>
           </div>
         </td>
-        <td className="px-2 py-1.5 text-xs text-text-muted">
+        <td className="px-2 py-1.5 text-sm text-text-muted">
           {hasKids ? '文件夹' : '分类范围'}
         </td>
-        <td className="px-3 py-1.5 text-right font-mono text-xs tabular-nums text-text-secondary">
+        <td className="px-3 py-1.5 text-right font-mono text-sm tabular-nums text-text-secondary">
           {n === undefined ? '…' : n}
         </td>
       </tr>
@@ -146,7 +146,7 @@ function ExplorerDetailsShell({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-0 border border-border bg-card">
       <div
-        className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-0.5 border-b border-border bg-muted/15 px-2 py-1.5 font-mono text-[11px] text-text-primary"
+        className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-0.5 border-b border-border bg-muted/15 px-2 py-1.5 font-mono text-sm text-text-primary"
         title="当前路径"
         role="navigation"
         aria-label="地址栏"
@@ -177,7 +177,7 @@ function ExplorerDetailsShell({
 
       <div className="thin-scroll min-h-0 flex-1 overflow-auto">
         <table className="w-full border-collapse text-left text-sm">
-          <thead className="sticky top-0 z-[1] border-b border-border bg-muted/40 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+          <thead className="sticky top-0 z-[1] border-b border-border bg-muted/40 text-sm font-semibold uppercase tracking-wide text-text-muted">
             <tr>
               <th className="w-[min(52%,520px)] px-3 py-2">名称</th>
               <th className="w-36 px-2 py-2">类型</th>
@@ -208,7 +208,7 @@ function ExplorerDetailsShell({
         </table>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-x-3 border-t border-border bg-muted/20 px-3 py-1 text-[11px] text-text-muted">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-3 border-t border-border bg-muted/20 px-3 py-1 text-sm text-text-muted">
         <span>
           {childScopes.length} 个项目
           {selectedKey ? <span className="ml-2">已选择 1 个项目</span> : null}
@@ -425,7 +425,7 @@ export default function CardPoolResourceExplorer() {
         </Button>
         <div>
           <h1 className="text-lg font-bold text-text-primary">资源管理器</h1>
-          <p className="text-[11px] text-text-muted">
+          <p className="text-sm text-text-muted">
             分类浏览独立；手牌与弃牌与主卡池共用持久化
           </p>
         </div>
@@ -441,7 +441,7 @@ export default function CardPoolResourceExplorer() {
       >
         <div className="flex min-h-0 flex-1 divide-x divide-border overflow-hidden">
           <nav className="thin-scroll w-64 shrink-0 overflow-y-auto border-r border-border bg-muted/15 p-2">
-            <p className="mb-1.5 px-1 text-[11px] font-semibold text-text-muted">
+            <p className="mb-1.5 px-1 text-sm font-semibold text-text-muted">
               文件夹
             </p>
             <div className="space-y-0.5">
@@ -537,7 +537,7 @@ export default function CardPoolResourceExplorer() {
             ) : isLeaf && leafDesktop ? (
               <div className="flex min-h-0 flex-1 flex-col gap-2">
                 <div
-                  className="shrink-0 rounded border border-border bg-muted/15 px-2 py-1.5 font-mono text-[11px] text-text-muted"
+                  className="shrink-0 rounded border border-border bg-muted/15 px-2 py-1.5 font-mono text-sm text-text-muted"
                   title="当前路径"
                 >
                   {focus.path

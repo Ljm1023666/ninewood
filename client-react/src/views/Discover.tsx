@@ -1,48 +1,86 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import {
-  Sparkles,
-  Loader2,
-  Search,
-  X,
-  Brain,
-  Monitor,
-  MapPin,
-  Send,
-  Check,
-} from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { useSearchParams } from 'react-router-dom'
+import { Loader2, X, BrainCog, Send, Minimize2 } from 'lucide-react'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { PromptInputBox } from '@/components/ui/prompt-input-box'
 import { toast } from '@/components/ui/confirm-dialog'
-import { demandApi } from '@/api/demand'
 import {
   formatDiscoverFilterHint,
   parseDiscoverUrlParams,
 } from '@/utils/discover-search'
 
-/** 思考面板 — 独立组件，逐字动画状态不触发父组件重渲染 */
-function ThinkingPanel({
+// ====== Types ======
+
+interface ClassifyResult {
+  understood: string
+  scopePath: string[]
+  scopeNodeIds: string[]
+  taxonomyNodeId: string | null
+  classifiedNodeIds?: string[]
+  matchCount: number
+  total?: number
+  keywords?: string[]
+  demands?: {
+    id: string
+    title: string
+    minPrice: number
+    descriptionPreview?: string
+  }[]
+  hint?: string
+  refineOptions: {
+    label: string
+    taxonomyNodeId: string
+    scopePath: string[]
+    count: number
+  }[]
+  tags: string[]
+  refinePrompt: string
+  preciseEnough: boolean
+  serviceType: string | null
+}
+
+// ====== Think Overlay — 独立可拖拽浮层 ======
+
+function ThinkOverlay({
   text,
   isLoading,
-  collapsed,
-  onToggleCollapse,
+  visible,
+  onClose,
 }: {
   text: string
   isLoading: boolean
-  collapsed: boolean
-  onToggleCollapse: () => void
+  visible: boolean
+  onClose: () => void
 }) {
-  const [len, setLen] = useState(0)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState(() => {
+    const saved = localStorage.getItem('ninewood-think-overlay-pos')
+    if (saved) {
+      try {
+        return JSON.parse(saved) as { x: number; y: number }
+      } catch {
+        /* skip */
+      }
+    }
+    return { x: Math.max(0, window.innerWidth - 420), y: 80 }
+  })
+  const [minimized, setMinimized] = useState(false)
+  const drag = useRef({ active: false, startX: 0, startY: 0, elX: 0, elY: 0 })
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [charLen, setCharLen] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
+  // Persist position
   useEffect(() => {
-    if (len < text.length) {
+    localStorage.setItem('ninewood-think-overlay-pos', JSON.stringify(pos))
+  }, [pos])
+
+  // Typing animation — character by character
+  useEffect(() => {
+    if (charLen < text.length) {
       if (!timerRef.current) {
         timerRef.current = setInterval(() => {
-          setLen((prev) => {
+          setCharLen((prev) => {
             if (prev >= text.length) {
               if (timerRef.current) {
                 clearInterval(timerRef.current)
@@ -52,7 +90,7 @@ function ThinkingPanel({
             }
             return prev + 1
           })
-        }, 25)
+        }, 20)
       }
     } else {
       if (timerRef.current) {
@@ -66,47 +104,130 @@ function ThinkingPanel({
         timerRef.current = null
       }
     }
-  }, [len, text.length])
+  }, [charLen, text.length])
 
   useEffect(() => {
     if (scrollRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [len])
+  }, [charLen])
 
   useEffect(() => {
-    if (!text) setLen(0)
+    if (!text) setCharLen(0)
   }, [text])
 
-  if (!text) return null
+  // Drag handlers
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    const panel = panelRef.current
+    if (!panel) return
+    e.preventDefault()
+    panel.setPointerCapture(e.pointerId)
+    const r = panel.getBoundingClientRect()
+    drag.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      elX: r.left,
+      elY: r.top,
+    }
+  }, [])
+
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!drag.current.active) return
+      const vw = window.innerWidth,
+        vh = window.innerHeight
+      const w = minimized ? 220 : 360
+      const h = minimized ? 40 : 320
+      setPos({
+        x: Math.max(
+          0,
+          Math.min(
+            drag.current.elX + (e.clientX - drag.current.startX),
+            vw - w,
+          ),
+        ),
+        y: Math.max(
+          0,
+          Math.min(
+            drag.current.elY + (e.clientY - drag.current.startY),
+            vh - h,
+          ),
+        ),
+      })
+    },
+    [minimized],
+  )
+
+  const onPointerUp = useCallback(() => {
+    drag.current.active = false
+  }, [])
+
+  if (!visible || !text) return null
+
+  const panelW = minimized ? 220 : 360
+  const panelH = minimized ? 40 : 320
 
   return (
-    <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-purple-500/20 bg-purple-500/[0.03] overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2 text-xs text-purple-400/60">
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className="flex items-center gap-1.5 hover:text-purple-300 transition-colors"
-        >
-          <Brain className="size-3.5" />
+    <div
+      ref={panelRef}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      className="fixed z-[9999] rounded-xl border border-purple-500/30 bg-[#1a1a2e] shadow-2xl overflow-hidden select-none"
+      style={{
+        left: pos.x,
+        top: pos.y,
+        width: panelW,
+        height: panelH,
+        transition: drag.current.active ? 'none' : 'left 0.1s, top 0.1s',
+      }}
+    >
+      {/* Header — 拖拽区域 */}
+      <div
+        onPointerDown={onPointerDown}
+        className="flex items-center justify-between px-3 py-2 bg-purple-500/10 cursor-grab active:cursor-grabbing"
+      >
+        <div className="flex items-center gap-2 text-sm text-purple-300">
+          <BrainCog className="size-3.5" />
           <span>思考过程</span>
-          <span
-            className={`inline-block transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
+          {isLoading && (
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => setMinimized(!minimized)}
+            className="flex size-6 items-center justify-center rounded text-purple-400/50 hover:bg-purple-500/20 hover:text-purple-300 transition-colors"
+            title={minimized ? '展开' : '最小化'}
           >
-            ▼
-          </span>
-        </button>
-        {isLoading && (
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-        )}
+            <Minimize2 className="size-3" />
+          </button>
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={onClose}
+            className="flex size-6 items-center justify-center rounded text-purple-400/50 hover:bg-purple-500/20 hover:text-purple-300 transition-colors"
+            title="关闭"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
       </div>
-      {!collapsed && (
+
+      {/* 内容 — 流式输出 */}
+      {!minimized && (
         <div
           ref={scrollRef}
-          className="px-4 pb-3 text-xs text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-[120px] overflow-y-scroll"
-          style={{ scrollbarWidth: 'thin', scrollbarColor: '#444 transparent' }}
+          className="p-3 text-sm text-purple-300/60 leading-relaxed whitespace-pre-wrap font-mono overflow-y-auto"
+          style={{
+            height: panelH - 36,
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#444 transparent',
+          }}
         >
-          {text.slice(0, len)}
-          {len < text.length && (
+          {text.slice(0, charLen)}
+          {charLen < text.length && (
             <span className="inline-block w-0.5 h-3.5 bg-purple-400/60 ml-0.5 animate-pulse" />
           )}
         </div>
@@ -115,447 +236,307 @@ function ThinkingPanel({
   )
 }
 
-interface ClassifyResult {
-  understood: string
-  scopePath: string[]
-  scopeNodeIds: string[]
-  taxonomyNodeId: string | null
-  matchCount: number
-  refineOptions: {
-    label: string
-    taxonomyNodeId: string
-    scopePath: string[]
-    count: number
-  }[]
-  tags: string[]
-  refinePrompt: string
-  preciseEnough: boolean
-  serviceType: string | null
-}
+// ====== 悬浮球（含输入栏、Think 开关、发送按钮） ======
 
-let _msgId = 0
-const newMsgId = () => `m${++_msgId}`
+const SIDEBAR_W = 80
+const BALL_SIZE = 48 // 折叠态直径
+const EXPANDED_W = 400 // 展开态宽度
+const BAR_H = 48 // 展开态高度
+const MARGIN = 8
 
-interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  result?: ClassifyResult | null
-}
-
-let _pMsgId = 0
-const newPMsgId = () => `p${++_pMsgId}`
-
-interface PublishChatMsg {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  isStreaming?: boolean
-  toolCall?: { name: string; arguments: Record<string, string> } | null
-}
-
-export default function Discover() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const scrollRef = useRef<HTMLDivElement>(null)
-
-  const [aiOpen, setAiOpen] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [thinkText, setThinkText] = useState('')
-  const [thinkCollapsed, setThinkCollapsed] = useState(false)
-  const [isThinkMode, setIsThinkMode] = useState(false)
-  const thinkAccRef = useRef('')
-
-  // 双模式：找服务 / 发需求
-  const [mode, setMode] = useState<'discover' | 'publish'>('discover')
-  const [publishMessages, setPublishMessages] = useState<PublishChatMsg[]>([])
-  const publishMessagesRef = useRef(publishMessages)
-  publishMessagesRef.current = publishMessages
-  const [publishing, setPublishing] = useState(false)
-
-  // 悬浮球拖拽
-  const SIDEBAR_W = 80
-  const BTN_SIZE = 48
-  const MARGIN = 8
+function FloatingBall({
+  thinkMode,
+  onThinkToggle,
+  onSend,
+  isLoading,
+}: {
+  thinkMode: boolean
+  onThinkToggle: () => void
+  onSend: (text: string, thinkMode: boolean) => void
+  isLoading: boolean
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const [value, setValue] = useState('')
   const [pos, setPos] = useState(() => {
-    const saved = localStorage.getItem('ninewood-ai-float-pos')
+    const saved = localStorage.getItem('ninewood-float-bar-pos')
     if (saved) {
       try {
-        const p = JSON.parse(saved) as { x: number; y: number }
-        if (p.x < SIDEBAR_W && p.y < 60) throw 'stale'
-        return p
+        return JSON.parse(saved) as { x: number; y: number }
       } catch {
-        /* stale localStorage */
+        /* skip */
       }
     }
     const vw = typeof window !== 'undefined' ? window.innerWidth : 1200
     const vh = typeof window !== 'undefined' ? window.innerHeight : 800
-    return { x: vw - BTN_SIZE - MARGIN - 8, y: vh - BTN_SIZE - MARGIN - 60 }
+    return { x: vw - BALL_SIZE - MARGIN - 8, y: vh - 160 }
   })
-  const dragRef = useRef({
-    dragging: false,
+  const drag = useRef({
+    active: false,
     startX: 0,
     startY: 0,
     elX: 0,
     elY: 0,
     moved: false,
   })
-  const floatRef = useRef<HTMLButtonElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
+  // 持久化位置
   useEffect(() => {
-    localStorage.setItem('ninewood-ai-float-pos', JSON.stringify(pos))
+    localStorage.setItem('ninewood-float-bar-pos', JSON.stringify(pos))
   }, [pos])
 
-  // 窗口缩放时重新 clamp 悬浮球位置，防止球超出缩小后的窗口边界
+  // Resize 时 clamp
   useEffect(() => {
+    const w = expanded ? EXPANDED_W : BALL_SIZE
     function clamp() {
       const vw = window.innerWidth,
         vh = window.innerHeight
-      setPos((prev) => {
-        let nx = prev.x,
-          ny = prev.y
-        let changed = false
-        if (nx < SIDEBAR_W + MARGIN) {
-          nx = SIDEBAR_W + MARGIN
-          changed = true
+      setPos((p) => {
+        let x = p.x,
+          y = p.y,
+          ch = false
+        if (x < SIDEBAR_W + MARGIN) {
+          x = SIDEBAR_W + MARGIN
+          ch = true
         }
-        if (ny < MARGIN) {
-          ny = MARGIN
-          changed = true
+        if (y < MARGIN) {
+          y = MARGIN
+          ch = true
         }
-        if (nx + BTN_SIZE > vw - MARGIN) {
-          nx = vw - BTN_SIZE - MARGIN
-          changed = true
+        if (x + w > vw - MARGIN) {
+          x = vw - w - MARGIN
+          ch = true
         }
-        if (ny + BTN_SIZE > vh - MARGIN) {
-          ny = vh - BTN_SIZE - MARGIN
-          changed = true
+        if (y + BAR_H > vh - MARGIN) {
+          y = vh - BAR_H - MARGIN
+          ch = true
         }
-        return changed ? { x: nx, y: ny } : prev
+        return ch ? { x, y } : p
       })
     }
     window.addEventListener('resize', clamp)
     return () => window.removeEventListener('resize', clamp)
-  }, [])
+  }, [expanded])
 
-  function handlePointerDown(e: React.PointerEvent) {
-    const btn = floatRef.current
-    if (!btn) return
-    btn.setPointerCapture(e.pointerId)
-    const rect = btn.getBoundingClientRect()
-    dragRef.current = {
-      dragging: true,
+  // 展开后自动聚焦输入框
+  useEffect(() => {
+    if (expanded && inputRef.current) inputRef.current.focus()
+  }, [expanded])
+
+  // 点击外部 → 折叠
+  useEffect(() => {
+    if (!expanded) return
+    const raf = requestAnimationFrame(() => {
+      const handler = (e: MouseEvent) => {
+        if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+          setExpanded(false)
+        }
+      }
+      document.addEventListener('mousedown', handler)
+      return () => document.removeEventListener('mousedown', handler)
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [expanded])
+
+  // --- 拖拽 ---
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    // 输入框内不触发拖拽
+    if ((e.target as HTMLElement).tagName === 'INPUT') return
+    const el = rootRef.current
+    if (!el) return
+    el.setPointerCapture(e.pointerId)
+    const r = el.getBoundingClientRect()
+    drag.current = {
+      active: true,
       startX: e.clientX,
       startY: e.clientY,
-      elX: rect.left,
-      elY: rect.top,
+      elX: r.left,
+      elY: r.top,
       moved: false,
     }
-  }
+  }, [])
 
-  function handlePointerMove(e: React.PointerEvent) {
-    const d = dragRef.current
-    if (!d.dragging) return
-    const dx = e.clientX - d.startX
-    const dy = e.clientY - d.startY
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) d.moved = true
-    let nx = d.elX + dx,
-      ny = d.elY + dy
-    const vw = window.innerWidth,
-      vh = window.innerHeight
-    if (nx < SIDEBAR_W + MARGIN) nx = SIDEBAR_W + MARGIN
-    if (ny < MARGIN) ny = MARGIN
-    if (nx + BTN_SIZE > vw - MARGIN) nx = vw - BTN_SIZE - MARGIN
-    if (ny + BTN_SIZE > vh - MARGIN) ny = vh - BTN_SIZE - MARGIN
-    setPos({ x: nx, y: ny })
-  }
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!drag.current.active) return
+      const dx = e.clientX - drag.current.startX
+      const dy = e.clientY - drag.current.startY
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) drag.current.moved = true
+      const w = expanded ? EXPANDED_W : BALL_SIZE
+      const vw = window.innerWidth,
+        vh = window.innerHeight
+      setPos({
+        x: Math.max(
+          SIDEBAR_W + MARGIN,
+          Math.min(drag.current.elX + dx, vw - w - MARGIN),
+        ),
+        y: Math.max(
+          MARGIN,
+          Math.min(drag.current.elY + dy, vh - BAR_H - MARGIN),
+        ),
+      })
+    },
+    [expanded],
+  )
 
-  function handlePointerUp() {
-    const d = dragRef.current
-    d.dragging = false
-    if (!d.moved) {
-      setChatMessages([])
-      setPublishMessages([])
-      setThinkText('')
-      setThinkCollapsed(false)
-      thinkAccRef.current = ''
-      setIsThinkMode(false)
-      setMode('discover')
-      setAiOpen(true)
-    }
-    const vw = window.innerWidth,
-      vh = window.innerHeight
-    let nx = pos.x,
-      ny = pos.y
-    if (nx < SIDEBAR_W + MARGIN) nx = SIDEBAR_W + MARGIN
-    if (ny < MARGIN) ny = MARGIN
-    if (nx + BTN_SIZE > vw - MARGIN) nx = vw - BTN_SIZE - MARGIN
-    if (ny + BTN_SIZE > vh - MARGIN) ny = vh - BTN_SIZE - MARGIN
-    setPos({ x: nx, y: ny })
-  }
+  const onPointerUp = useCallback(() => {
+    const d = drag.current
+    d.active = false
+    // 纯点击（无拖拽）且折叠态 → 展开
+    if (!d.moved && !expanded) setExpanded(true)
+  }, [expanded])
+
+  // --- 发送 ---
+  const send = useCallback(() => {
+    const text = value.trim()
+    if (!text || isLoading) return
+    onSend(text, thinkMode)
+    setValue('')
+  }, [value, isLoading, onSend, thinkMode])
+
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        send()
+      }
+    },
+    [send],
+  )
+
+  const placeholder = thinkMode ? '深度思考模式...' : '描述你的能力'
+
+  return (
+    <div
+      ref={rootRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      className="fixed z-[9999] touch-none"
+      style={{
+        left: pos.x,
+        top: pos.y,
+        transition: drag.current.active ? 'none' : 'left 0.15s, top 0.15s',
+      }}
+    >
+      {expanded ? (
+        /* 展开态：输入栏 */
+        <div
+          className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#1a1a2e] shadow-2xl px-2.5 py-1.5"
+          style={{ width: EXPANDED_W, height: BAR_H }}
+        >
+          {/* 🧠 Think 开关 — 参照 PromptInputBox 设计 */}
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              onThinkToggle()
+            }}
+            className={`rounded-full transition-all duration-200 flex items-center gap-1 border shrink-0 ${
+              thinkMode
+                ? 'px-2.5 py-0 h-6 bg-[#8B5CF6]/15 border-[#8B5CF6]/30 text-[#8B5CF6] shadow-[0_0_10px_rgba(139,92,246,0.15)]'
+                : 'px-1.5 py-1 h-7 bg-transparent border-transparent text-white/30 hover:text-white/50'
+            }`}
+            title={thinkMode ? '关闭深度思考' : '开启深度思考'}
+          >
+            <BrainCog className="size-3.5 shrink-0" />
+            <span
+              className="text-xs whitespace-nowrap overflow-hidden transition-all duration-200"
+              style={{
+                maxWidth: thinkMode ? '40px' : '0px',
+                opacity: thinkMode ? 1 : 0,
+              }}
+            >
+              Think
+            </span>
+          </button>
+
+          {/* 输入框 */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={onKeyDown}
+            onPointerDown={(e) => e.stopPropagation()}
+            placeholder={placeholder}
+            className="flex-1 bg-transparent text-sm text-white/85 outline-none placeholder:text-white/25 min-w-0"
+          />
+
+          {/* 发送按钮 */}
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              send()
+            }}
+            disabled={!value.trim() || isLoading}
+            className={`flex size-8 shrink-0 items-center justify-center rounded-full transition-colors ${
+              value.trim() && !isLoading
+                ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
+                : 'bg-white/5 text-white/20'
+            }`}
+          >
+            {isLoading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-3.5" />
+            )}
+          </button>
+        </div>
+      ) : (
+        /* 折叠态：圆形按钮 */
+        <div
+          className="flex size-12 cursor-pointer items-center justify-center rounded-full bg-accent text-white shadow-lg select-none transition-shadow duration-200"
+          style={
+            thinkMode
+              ? { boxShadow: '0 0 20px rgba(139, 92, 246, 0.45)' }
+              : undefined
+          }
+        >
+          <BrainCog className="size-5" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ====== 主页面 ======
+
+export default function Discover() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const [isThinkMode, setIsThinkMode] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [thinkText, setThinkText] = useState('')
+  const [thinkVisible, setThinkVisible] = useState(false)
+  const [classifiedNodeIds, setClassifiedNodeIds] = useState<string[]>([])
+  const thinkAcc = useRef('')
 
   const { keyword, serviceType, tags } = parseDiscoverUrlParams(searchParams)
   const filterHint = formatDiscoverFilterHint(keyword, serviceType)
 
-  // === 发需求：Agentic 对话 ===
-
-  const sendPublishRequest = useCallback(
+  /** 发送用户输入 → 分类 API → 更新页面 URL params → DemandDiscoveryList 自动刷新 */
+  const handleSend = useCallback(
     async (message: string, thinkMode: boolean) => {
       setAiLoading(true)
       setIsThinkMode(thinkMode)
       setThinkText('')
-      setThinkCollapsed(false)
-      thinkAccRef.current = ''
-
-      const currentMsg = { role: 'user' as const, content: message }
-      const history = [
-        ...publishMessagesRef.current.map((m) => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        })),
-        currentMsg,
-      ]
-
-      setPublishMessages((prev) => [
-        ...prev,
-        { id: newPMsgId(), role: 'user', content: message },
-      ])
-
-      try {
-        const res = await fetch('/api/ai/agent-demand-stream', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: history, thinkMode }),
-        })
-        if (!res.ok || !res.body) {
-          setPublishMessages((prev) => [
-            ...prev,
-            { id: newPMsgId(), role: 'assistant', content: '网络异常，请重试' },
-          ])
-          setAiLoading(false)
-          return
-        }
-
-        const reader = res.body.getReader()
-        const decoder = new TextDecoder()
-        let buf = ''
-        const assistantId = newPMsgId()
-        let assistantContent = ''
-        let hasAssistantMsg = false
-        let toolCall: PublishChatMsg['toolCall'] = null
-
-        const ensureAssistant = () => {
-          if (!hasAssistantMsg) {
-            hasAssistantMsg = true
-            setPublishMessages((prev) => [
-              ...prev,
-              {
-                id: assistantId,
-                role: 'assistant',
-                content: '',
-                isStreaming: true,
-              },
-            ])
-          }
-        }
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          buf += decoder.decode(value, { stream: true })
-          const events = buf.split('\n\n')
-          buf = events.pop() || ''
-          for (const event of events) {
-            const lines = event.split('\n')
-            const eventType = lines[0].replace('event: ', '')
-            const dataLine = lines.find((l) => l.startsWith('data: '))
-            if (!dataLine) continue
-            const data = dataLine.slice(6)
-
-            if (eventType === 'think' && thinkMode) {
-              try {
-                const { line } = JSON.parse(data)
-                if (line) {
-                  thinkAccRef.current +=
-                    (thinkAccRef.current ? '\n' : '') + line
-                  setThinkText(thinkAccRef.current)
-                }
-              } catch {
-                /* skip */
-              }
-            } else if (eventType === 'text') {
-              try {
-                const { delta } = JSON.parse(data)
-                if (delta) {
-                  assistantContent += delta
-                  ensureAssistant()
-                  setPublishMessages((prev) =>
-                    prev.map((m) =>
-                      m.id === assistantId
-                        ? { ...m, content: assistantContent }
-                        : m,
-                    ),
-                  )
-                }
-              } catch {
-                /* skip */
-              }
-            } else if (eventType === 'tool_call') {
-              try {
-                toolCall = JSON.parse(data)
-              } catch {
-                /* skip */
-              }
-            } else if (eventType === 'error') {
-              try {
-                const { message } = JSON.parse(data)
-                setPublishMessages((prev) => [
-                  ...prev,
-                  {
-                    id: newPMsgId(),
-                    role: 'assistant',
-                    content: message || 'AI 错误',
-                  },
-                ])
-              } catch {
-                /* skip */
-              }
-            }
-          }
-        }
-
-        if (toolCall) {
-          if (hasAssistantMsg) {
-            setPublishMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId
-                  ? {
-                      ...m,
-                      content: assistantContent || '已收集完整信息，准备发布',
-                      isStreaming: false,
-                      toolCall,
-                    }
-                  : m,
-              ),
-            )
-          } else {
-            setPublishMessages((prev) => [
-              ...prev,
-              {
-                id: assistantId,
-                role: 'assistant',
-                content: '已收集完整信息，准备发布',
-                isStreaming: false,
-                toolCall,
-              },
-            ])
-          }
-        } else if (hasAssistantMsg) {
-          setPublishMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId ? { ...m, isStreaming: false } : m,
-            ),
-          )
-        } else {
-          setPublishMessages((prev) => [
-            ...prev,
-            {
-              id: assistantId,
-              role: 'assistant',
-              content: '无法理解，请换个方式描述',
-            },
-          ])
-        }
-      } catch {
-        setPublishMessages((prev) => [
-          ...prev,
-          { id: newPMsgId(), role: 'assistant', content: '网络异常' },
-        ])
-      } finally {
-        setAiLoading(false)
-      }
-    },
-    [],
-  )
-
-  const handlePublish = useCallback(
-    async (toolCall: NonNullable<PublishChatMsg['toolCall']>) => {
-      setPublishing(true)
-      try {
-        const args = toolCall.arguments
-        const fd = new FormData()
-        fd.append('title', args.title || '新需求')
-        fd.append('description', args.description || '')
-        fd.append('minPrice', '1')
-        fd.append(
-          'category',
-          args.category ||
-            (args.serviceType === 'OFFLINE' ? 'of-move' : 'ol-game'),
-        )
-        fd.append(
-          'serviceType',
-          args.serviceType === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
-        )
-        fd.append('expireAt', new Date(Date.now() + 7 * 86400000).toISOString())
-        await demandApi.create(fd)
-        toast('发布成功', 'success')
-        handleClose()
-      } catch (e: unknown) {
-        const err = e as { response?: { data?: { message?: string } } }
-        toast(err.response?.data?.message || '发布失败', 'error')
-      } finally {
-        setPublishing(false)
-      }
-    },
-    [],
-  )
-
-  const buildHistory = useCallback((): {
-    role: 'user' | 'assistant'
-    content: string
-  }[] => {
-    return chatMessages
-      .filter((m) => m.role === 'user' || (m.role === 'assistant' && m.result))
-      .map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content:
-          m.role === 'assistant' && m.result
-            ? `[搜索结果] ${(m.result.keywords || []).join('·')} | 匹配 ${m.result.total || 0} 条`
-            : m.content,
-      }))
-  }, [chatMessages])
-
-  const sendClassifyRequest = useCallback(
-    async (message: string, thinkMode: boolean) => {
-      setAiLoading(true)
-      setIsThinkMode(thinkMode)
-      setThinkText('')
-      setThinkCollapsed(false)
-      thinkAccRef.current = ''
-
-      setChatMessages((prev) => [
-        ...prev,
-        { id: newMsgId(), role: 'user' as const, content: message },
-      ])
-
-      const history = buildHistory()
+      setThinkVisible(!!thinkMode)
+      thinkAcc.current = ''
 
       try {
         const res = await fetch('/api/ai/discover-classify-stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, history, thinkMode }),
+          body: JSON.stringify({ message, history: [], thinkMode }),
         })
         if (!res.ok || !res.body) {
-          setChatMessages((prev) => [
-            ...prev,
-            {
-              id: newMsgId(),
-              role: 'assistant' as const,
-              content: '网络异常，请重试',
-            },
-          ])
+          toast('网络异常，请重试', 'error')
           setAiLoading(false)
           return
         }
@@ -577,13 +558,13 @@ export default function Discover() {
             const dataLine = lines.find((l) => l.startsWith('data: '))
             if (!dataLine) continue
             const data = dataLine.slice(6)
+
             if (eventType === 'think' && thinkMode) {
               try {
                 const { line } = JSON.parse(data)
                 if (line) {
-                  thinkAccRef.current +=
-                    (thinkAccRef.current ? '\n' : '') + line
-                  setThinkText(thinkAccRef.current)
+                  thinkAcc.current += (thinkAcc.current ? '\n' : '') + line
+                  setThinkText(thinkAcc.current)
                 }
               } catch {
                 /* skip */
@@ -594,98 +575,43 @@ export default function Discover() {
               } catch {
                 /* skip */
               }
-            } else if (eventType === 'done') {
-              if (result) {
-                setChatMessages((prev) => [
-                  ...prev,
-                  {
-                    id: newMsgId(),
-                    role: 'assistant' as const,
-                    content:
-                      result!.total > 0
-                        ? `找到 ${result!.total} 条匹配需求`
-                        : result!.keywords?.join('·') || '搜索完成',
-                    result,
-                  },
-                ])
-              } else {
-                setChatMessages((prev) => [
-                  ...prev,
-                  {
-                    id: newMsgId(),
-                    role: 'assistant' as const,
-                    content: '无法理解，请换个方式描述',
-                  },
-                ])
-              }
             } else if (eventType === 'error') {
               try {
-                const { message } = JSON.parse(data)
-                setChatMessages((prev) => [
-                  ...prev,
-                  {
-                    id: newMsgId(),
-                    role: 'assistant' as const,
-                    content: message || 'AI 错误',
-                  },
-                ])
+                const { message: errMsg } = JSON.parse(data)
+                toast(errMsg || 'AI 错误', 'error')
               } catch {
                 /* skip */
               }
             }
+            // 'done' — 无操作
           }
         }
-        if (!result) {
-          setChatMessages((prev) => [
-            ...prev,
-            {
-              id: newMsgId(),
-              role: 'assistant' as const,
-              content: '无法理解，请换个方式描述',
-            },
-          ])
+
+        if (result) {
+          // 将分类结果写入 URL params
+          const params = new URLSearchParams()
+          if (result.keywords?.length)
+            params.set('keyword', result.keywords.join(' '))
+          if (result.serviceType) params.set('serviceType', result.serviceType)
+          if (result.tags?.length) params.set('tags', result.tags.join(','))
+          setSearchParams(params, { replace: true })
+
+          // 传递精确分类节点 ID 给列表 → 后端 taxonomyLeafIds 精确搜索
+          setClassifiedNodeIds(result.classifiedNodeIds || [])
+
+          const count = result.total ?? result.matchCount ?? 0
+          toast(`找到 ${count} 条匹配需求`, 'success')
+        } else {
+          toast('未找到匹配，请换个方式描述', 'info')
         }
       } catch {
-        setChatMessages((prev) => [
-          ...prev,
-          { id: newMsgId(), role: 'assistant' as const, content: '网络异常' },
-        ])
+        toast('网络异常', 'error')
       } finally {
         setAiLoading(false)
       }
     },
-    [buildHistory],
+    [setSearchParams],
   )
-
-  const handleAISend = useCallback(
-    async (message: string) => {
-      const thinkMode = message.startsWith('[Think:')
-      const text = message
-        .replace(/^\[(Search|Think|Canvas):\s*/, '')
-        .replace(/\]$/, '')
-        .trim()
-      if (!text) return
-      if (mode === 'publish') {
-        await sendPublishRequest(text, thinkMode)
-      } else {
-        await sendClassifyRequest(text, thinkMode)
-      }
-    },
-    [mode, sendClassifyRequest, sendPublishRequest],
-  )
-
-  function handleClose() {
-    setAiOpen(false)
-    setTimeout(() => {
-      setChatMessages([])
-      setPublishMessages([])
-      setThinkText('')
-      setThinkCollapsed(false)
-      setIsThinkMode(false)
-      setMode('discover')
-      thinkAccRef.current = ''
-    }, 200)
-  }
 
   return (
     <div
@@ -699,6 +625,7 @@ export default function Discover() {
             keyword={keyword}
             serviceType={serviceType}
             tags={tags}
+            taxonomyLeafIds={classifiedNodeIds}
             scrollRootRef={scrollRef}
             paginationMode="paged"
             pageSize={6}
@@ -706,361 +633,21 @@ export default function Discover() {
         </div>
       </div>
 
-      {/* AI 悬浮球 */}
-      <button
-        ref={floatRef}
-        type="button"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        className="fixed z-[9999] flex size-12 items-center justify-center rounded-full bg-accent text-white shadow-lg touch-none select-none"
-        style={{
-          left: pos.x,
-          top: pos.y,
-          transition: dragRef.current.dragging
-            ? 'none'
-            : 'left 0.15s ease, top 0.15s ease',
-        }}
-        aria-label="AI 匹配"
-      >
-        <Sparkles className="size-5" />
-      </button>
+      {/* 悬浮输入球 */}
+      <FloatingBall
+        thinkMode={isThinkMode}
+        onThinkToggle={() => setIsThinkMode((v) => !v)}
+        onSend={handleSend}
+        isLoading={aiLoading}
+      />
 
-      {/* AI 弹窗 */}
-      <AnimatePresence>
-        {aiOpen && (
-          <motion.div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) handleClose()
-            }}
-          >
-            <motion.div
-              className="relative mx-4 flex w-full max-w-xl flex-col rounded-2xl border border-[#333] bg-[#1F2023] shadow-2xl"
-              style={{ maxHeight: '85vh' }}
-              initial={{ scale: 0.92, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.92, opacity: 0, y: 40 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* 头部 */}
-              <div className="flex items-center justify-between px-5 pt-4 pb-0 shrink-0 border-b border-white/5">
-                <div className="flex items-center gap-1">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-accent/20 text-accent mr-1">
-                    <Sparkles className="size-4" />
-                  </div>
-                  <span className="px-3 py-2.5 text-xs font-medium text-white">
-                    找需求
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="flex size-8 items-center justify-center rounded-lg text-white/40 hover:bg-white/10 hover:text-white/80 transition-colors"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-
-              {/* 对话内容 */}
-              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-scroll thin-scroll px-5 pt-3 pb-2">
-                {mode === 'discover' ? (
-                  <>
-                    {chatMessages.length === 0 && !aiLoading && (
-                      <div className="flex flex-1 items-center justify-center py-12">
-                        <div className="text-center text-white/25">
-                          <Sparkles className="size-10 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">描述你想接什么需求</p>
-                          <p className="text-xs mt-1">
-                            AI 会自动分类并显示匹配需求数量
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <AnimatePresence>
-                      {chatMessages.map((msg) => (
-                        <motion.div
-                          key={msg.id}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.15 }}
-                        >
-                          {msg.role === 'user' ? (
-                            <div className="flex justify-end mb-2">
-                              <div className="max-w-[80%] rounded-2xl rounded-br-lg bg-accent/15 px-4 py-2.5">
-                                <span className="text-sm text-white/85">
-                                  {msg.content}
-                                </span>
-                              </div>
-                            </div>
-                          ) : msg.result ? (
-                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] mb-2">
-                              {/* 新格式：关键词 */}
-                              {msg.result.keywords?.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 pb-1">
-                                  <Search className="size-3 text-accent/50 shrink-0" />
-                                  {msg.result.keywords.map((kw, j) => (
-                                    <span
-                                      key={j}
-                                      className="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent/80"
-                                    >
-                                      {kw}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              {/* 新格式：匹配数 */}
-                              <div className="px-4 py-1">
-                                <span className="text-xs text-accent/65">
-                                  匹配{' '}
-                                  <span className="text-accent font-semibold">
-                                    {msg.result.total ??
-                                      msg.result.matchCount ??
-                                      0}
-                                  </span>{' '}
-                                  条需求
-                                </span>
-                              </div>
-                              {/* 新格式：需求列表 */}
-                              {msg.result.demands?.length > 0 && (
-                                <div className="px-4 pb-2 space-y-1.5">
-                                  {msg.result.demands.slice(0, 5).map((d) => (
-                                    <div
-                                      key={d.id}
-                                      onClick={() => {
-                                        navigate(`/demands/${d.id}`)
-                                        setAiOpen(false)
-                                      }}
-                                      className="rounded-xl border border-white/[0.04] bg-white/[0.03] px-3 py-2 text-xs cursor-pointer hover:border-accent/30 hover:bg-accent/[0.04] transition-colors"
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-white/85 font-medium truncate">
-                                          {d.title}
-                                        </span>
-                                        <span className="text-accent/70 shrink-0 ml-2">
-                                          ¥{d.minPrice}
-                                        </span>
-                                      </div>
-                                      {d.descriptionPreview && (
-                                        <p className="text-white/40 mt-0.5 line-clamp-1">
-                                          {d.descriptionPreview}
-                                        </p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              {/* 新格式：hint */}
-                              {msg.result.hint && (
-                                <div className="px-4 pb-2">
-                                  <span className="text-xs text-white/35 italic">
-                                    💡 {msg.result.hint}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex justify-start mb-2">
-                              <div className="max-w-[80%] rounded-2xl rounded-bl-lg bg-white/5 px-4 py-2.5">
-                                <span className="text-sm text-white/65">
-                                  {msg.content}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-
-                    {aiLoading &&
-                      !chatMessages.some(
-                        (m) => m.role === 'assistant' && !m.result,
-                      ) && (
-                        <div className="flex items-center gap-2 px-4 py-3">
-                          <Loader2 className="size-4 animate-spin text-accent" />
-                          <span className="text-sm text-white/50">
-                            AI 分析中...
-                          </span>
-                        </div>
-                      )}
-                  </>
-                ) : (
-                  <>
-                    {publishMessages.length === 0 && !aiLoading && (
-                      <div className="flex flex-1 items-center justify-center py-12">
-                        <div className="text-center text-white/25">
-                          <Sparkles className="size-10 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">描述你的需求</p>
-                          <p className="text-xs mt-1">
-                            AI 会帮你理清细节并追问
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <AnimatePresence>
-                      {publishMessages.map((msg) => (
-                        <motion.div
-                          key={msg.id}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.15 }}
-                        >
-                          {msg.role === 'user' ? (
-                            <div className="flex justify-end mb-2">
-                              <div className="max-w-[80%] rounded-2xl rounded-br-lg bg-accent/15 px-4 py-2.5">
-                                <span className="text-sm text-white/85">
-                                  {msg.content}
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] mb-2 px-4 py-3">
-                              <span className="text-sm text-white/75 whitespace-pre-wrap">
-                                {msg.content}
-                                {msg.isStreaming && (
-                                  <span className="inline-block w-0.5 h-4 bg-purple-400/60 ml-0.5 animate-pulse align-middle" />
-                                )}
-                              </span>
-
-                              {msg.toolCall && (
-                                <div className="mt-3 pt-3 border-t border-white/[0.06]">
-                                  <div className="flex items-center gap-2 mb-3 text-xs text-emerald-400/80">
-                                    <Check className="size-3.5" />
-                                    <span>AI 已确认信息完整，可以发布</span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
-                                    {msg.toolCall.arguments.title && (
-                                      <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                        <span className="text-white/25">
-                                          标题
-                                        </span>
-                                        <p className="text-white/70 mt-0.5">
-                                          {msg.toolCall.arguments.title}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {msg.toolCall.arguments.serviceType && (
-                                      <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                        <span className="text-white/25">
-                                          服务类型
-                                        </span>
-                                        <p className="text-white/70 mt-0.5 inline-flex items-center gap-1">
-                                          {msg.toolCall.arguments
-                                            .serviceType === 'ONLINE' ? (
-                                            <Monitor className="size-3 text-blue-400/60" />
-                                          ) : (
-                                            <MapPin className="size-3 text-orange-400/60" />
-                                          )}
-                                          {msg.toolCall.arguments
-                                            .serviceType === 'ONLINE'
-                                            ? '线上'
-                                            : '线下'}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {msg.toolCall.arguments.budget && (
-                                      <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                        <span className="text-white/25">
-                                          预算
-                                        </span>
-                                        <p className="text-white/70 mt-0.5">
-                                          {msg.toolCall.arguments.budget}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {msg.toolCall.arguments.schedule && (
-                                      <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                        <span className="text-white/25">
-                                          时间
-                                        </span>
-                                        <p className="text-white/70 mt-0.5">
-                                          {msg.toolCall.arguments.schedule}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {msg.toolCall.arguments.category && (
-                                      <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                        <span className="text-white/25">
-                                          分类
-                                        </span>
-                                        <p className="text-white/70 mt-0.5">
-                                          {msg.toolCall.arguments.category}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {msg.toolCall.arguments.description && (
-                                    <div className="rounded-lg bg-white/[0.03] px-3 py-2 mb-3 text-xs">
-                                      <span className="text-white/25">
-                                        详细描述
-                                      </span>
-                                      <p className="text-white/60 mt-0.5">
-                                        {msg.toolCall.arguments.description}
-                                      </p>
-                                    </div>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() => handlePublish(msg.toolCall!)}
-                                    disabled={publishing}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
-                                  >
-                                    {publishing ? (
-                                      <span className="inline-block size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                      <Send className="size-3.5" />
-                                    )}
-                                    确认发布
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-
-                    {aiLoading &&
-                      !publishMessages.some(
-                        (m) => m.role === 'assistant' && m.isStreaming,
-                      ) && (
-                        <div className="flex items-center gap-2 px-4 py-3">
-                          <Loader2 className="size-4 animate-spin text-accent" />
-                          <span className="text-sm text-white/50">
-                            AI 分析中...
-                          </span>
-                        </div>
-                      )}
-                  </>
-                )}
-              </div>
-
-              {/* 输入框 + 思考卡片（absolute 定位，不挤占布局） */}
-              <div className="shrink-0 border-t border-white/5 px-5 pt-3 pb-4 relative">
-                <PromptInputBox
-                  onSend={handleAISend}
-                  isLoading={aiLoading}
-                  placeholder="描述你想接什么需求..."
-                />
-                {isThinkMode && (
-                  <ThinkingPanel
-                    text={thinkText}
-                    isLoading={aiLoading}
-                    collapsed={thinkCollapsed}
-                    onToggleCollapse={() => setThinkCollapsed(!thinkCollapsed)}
-                  />
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Think 浮层 — 仅 Think 模式开启且时有内容时显示 */}
+      <ThinkOverlay
+        text={thinkText}
+        isLoading={aiLoading}
+        visible={thinkVisible}
+        onClose={() => setThinkVisible(false)}
+      />
     </div>
   )
 }

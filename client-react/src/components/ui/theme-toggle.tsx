@@ -126,7 +126,7 @@ export function ThemeToggleButton() {
         uncheckedIcon={<SunIcon />}
         haptic="light"
       />
-      <span className="text-xs text-white/60">深色模式</span>
+      <span className="text-sm text-white/60">深色模式</span>
     </label>
   )
 }

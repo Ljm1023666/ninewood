@@ -91,7 +91,7 @@ function ThinkingPanel({
 
   return (
     <div className="rounded-xl border border-purple-500/20 bg-purple-500/[0.03] overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2 text-xs text-purple-400/60">
+      <div className="flex items-center gap-2 px-4 py-2 text-sm text-purple-400/60">
         <button
           type="button"
           onClick={onToggleCollapse}
@@ -112,7 +112,7 @@ function ThinkingPanel({
       {!collapsed && (
         <div
           ref={scrollRef}
-          className="px-4 pb-3 text-xs text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-[120px] overflow-y-scroll"
+          className="px-4 pb-3 text-sm text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-[80px] overflow-y-auto"
           style={{ scrollbarWidth: 'thin', scrollbarColor: '#444 transparent' }}
         >
           {text.slice(0, len)}
@@ -861,7 +861,7 @@ export default function DemandCreate() {
               }
               clearDraft()
             }}
-            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-[11px] text-white/30 hover:border-white/15 hover:text-white/50 transition-all"
+            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-sm text-white/30 hover:border-white/15 hover:text-white/50 transition-all"
           >
             <Plus className="size-3" />
             新建
@@ -870,7 +870,7 @@ export default function DemandCreate() {
         <div className="flex items-center gap-2">
           {workspaceFields.title && (
             <span
-              className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
+              className={`rounded-full px-2.5 py-1 text-sm font-medium ${
                 confidence === 'high'
                   ? 'bg-emerald-500/10 text-emerald-400/70'
                   : confidence === 'medium'
@@ -889,7 +889,7 @@ export default function DemandCreate() {
             type="button"
             onClick={() => doPublish(true)}
             disabled={forcePublishing || publishing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-2 text-xs font-medium text-red-300/70 hover:border-red-500/30 hover:bg-red-500/[0.10] disabled:opacity-30 transition-all"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-2 text-sm font-medium text-red-300/70 hover:border-red-500/30 hover:bg-red-500/[0.10] disabled:opacity-30 transition-all"
           >
             {forcePublishing ? (
               <span className="inline-block size-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
@@ -902,7 +902,7 @@ export default function DemandCreate() {
             type="button"
             onClick={() => doPublish()}
             disabled={publishing || forcePublishing}
-            className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
           >
             {publishing ? (
               <span className="inline-block size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -970,11 +970,11 @@ export default function DemandCreate() {
                         {/* 确认发布卡片 */}
                         {msg.toolCall && (
                           <div className="mt-3 pt-3 border-t border-white/[0.06]">
-                            <div className="flex items-center gap-2 mb-3 text-xs text-emerald-400/80">
+                            <div className="flex items-center gap-2 mb-3 text-sm text-emerald-400/80">
                               <Check className="size-3.5" />
                               <span>AI 已确认信息完整，可以发布</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+                            <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                               {msg.toolCall.arguments.title && (
                                 <div className="rounded-lg bg-white/[0.03] px-3 py-2">
                                   <span className="text-white/25">标题</span>
@@ -1028,7 +1028,7 @@ export default function DemandCreate() {
                               )}
                             </div>
                             {msg.toolCall.arguments.description && (
-                              <div className="rounded-lg bg-white/[0.03] px-3 py-2 mb-3 text-xs">
+                              <div className="rounded-lg bg-white/[0.03] px-3 py-2 mb-3 text-sm">
                                 <span className="text-white/25">详细描述</span>
                                 <p className="text-white/60 mt-0.5">
                                   {msg.toolCall.arguments.description}
@@ -1041,7 +1041,7 @@ export default function DemandCreate() {
                                 handlePublishFromChat(msg.toolCall!)
                               }
                               disabled={publishing}
-                              className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
+                              className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
                             >
                               {publishing ? (
                                 <span className="inline-block size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

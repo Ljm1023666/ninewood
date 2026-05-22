@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { Slot } from '@radix-ui/react-slot'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
 
 // ── SVG 液态玻璃滤镜 ──
 
@@ -54,30 +54,28 @@ const liquidButtonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-transparent hover:scale-105 text-[--text-primary]",
+        default: 'bg-transparent hover:scale-105 text-[--text-primary]',
         destructive:
-          "bg-[--error-color]/15 text-[--error-color] hover:bg-[--error-color]/25",
+          'bg-[--error-color]/15 text-[--error-color] hover:bg-[--error-color]/25',
         outline:
-          "border border-[--border-color] bg-transparent hover:bg-[--bg-card] text-[--text-primary]",
+          'border border-[--border-color] bg-transparent hover:bg-[--bg-card] text-[--text-primary]',
         secondary:
-          "bg-[--bg-card] text-[--text-secondary] hover:bg-[--bg-tertiary]",
-        ghost:
-          "hover:bg-[--bg-card] text-[--text-primary]",
+          'bg-[--bg-card] text-[--text-secondary] hover:bg-[--bg-tertiary]',
+        ghost: 'hover:bg-[--bg-card] text-[--text-primary]',
       },
       size: {
-        sm: "h-8 text-xs gap-1.5 px-4 rounded-lg",
-        default: "h-9 px-4 py-2 rounded-lg",
-        lg: "h-10 px-6 rounded-lg text-sm",
-        xl: "h-12 px-8 rounded-xl text-sm",
-        xxl: "h-14 px-10 rounded-xl text-base",
+        sm: 'h-8 text-sm gap-1.5 px-4 rounded-lg',
+        default: 'h-9 px-4 py-2 rounded-lg',
+        lg: 'h-10 px-6 rounded-lg text-sm',
+        xl: 'h-12 px-8 rounded-xl text-sm',
+        xxl: 'h-14 px-10 rounded-xl text-base',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "xxl",
+      variant: 'default',
+      size: 'xxl',
     },
-  }
+  },
 )
 
 // ── 玻璃层样式 ──
@@ -108,11 +106,12 @@ const glassBevelLight: React.CSSProperties = {
 // ── 带玻璃效果的主按钮 ──
 
 export interface LiquidButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof liquidButtonVariants> {
   asChild?: boolean
   /** 覆盖玻璃层主题，默认跟随 data-appearance */
-  glassSurface?: "dark" | "light"
+  glassSurface?: 'dark' | 'light'
 }
 
 export const LiquidButton = React.forwardRef<
@@ -122,18 +121,18 @@ export const LiquidButton = React.forwardRef<
   (
     {
       className,
-      variant = "default",
+      variant = 'default',
       size,
       asChild = false,
       glassSurface,
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const Comp = asChild ? Slot : "button"
-    const isDefaultVariant = variant === "default"
-    const isLightSurface = glassSurface === "light"
+    const Comp = asChild ? Slot : 'button'
+    const isDefaultVariant = variant === 'default'
+    const isLightSurface = glassSurface === 'light'
 
     const tint = isLightSurface ? glassTintLight : glassTintDark
     const bevel = isLightSurface ? glassBevelLight : glassBevelDark
@@ -144,8 +143,8 @@ export const LiquidButton = React.forwardRef<
           data-slot="button"
           ref={ref}
           className={cn(
-            "relative overflow-hidden",
-            liquidButtonVariants({ variant, size, className })
+            'relative overflow-hidden',
+            liquidButtonVariants({ variant, size, className }),
           )}
           {...props}
         >
@@ -171,39 +170,38 @@ export const LiquidButton = React.forwardRef<
           )}
 
           {/* 文字 */}
-          <span className="pointer-events-none relative z-20">
-            {children}
-          </span>
+          <span className="pointer-events-none relative z-20">{children}</span>
 
           {isDefaultVariant && <GlassFilter />}
         </Comp>
       </>
     )
-  }
+  },
 )
-LiquidButton.displayName = "LiquidButton"
+LiquidButton.displayName = 'LiquidButton'
 
 // ── 简化版玻璃按钮（无 SVG 滤镜，纯 CSS 玻璃态）──
 
 const glassButtonVariants = cva(
-  "relative isolate cursor-pointer rounded-full transition-all duration-300 font-medium",
+  'relative isolate cursor-pointer rounded-full transition-all duration-300 font-medium',
   {
     variants: {
       size: {
-        default: "text-base",
-        sm: "text-sm",
-        lg: "text-lg",
-        icon: "h-10 w-10",
+        default: 'text-base',
+        sm: 'text-sm',
+        lg: 'text-lg',
+        icon: 'h-10 w-10',
       },
     },
     defaultVariants: {
-      size: "default",
+      size: 'default',
     },
-  }
+  },
 )
 
 export interface GlassButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof glassButtonVariants> {
   contentClassName?: string
 }
@@ -213,13 +211,20 @@ export const GlassButton = React.forwardRef<
   GlassButtonProps
 >(({ className, children, size, contentClassName, ...props }, ref) => {
   return (
-    <div className={cn("glass-button-wrap cursor-pointer rounded-full", className)}>
+    <div
+      className={cn('glass-button-wrap cursor-pointer rounded-full', className)}
+    >
       <button
-        className={cn("glass-button", glassButtonVariants({ size }))}
+        className={cn('glass-button', glassButtonVariants({ size }))}
         ref={ref}
         {...props}
       >
-        <span className={cn("glass-button-text relative block select-none tracking-tighter", contentClassName)}>
+        <span
+          className={cn(
+            'glass-button-text relative block select-none tracking-tighter',
+            contentClassName,
+          )}
+        >
           {children}
         </span>
       </button>
@@ -227,4 +232,4 @@ export const GlassButton = React.forwardRef<
     </div>
   )
 })
-GlassButton.displayName = "GlassButton"
+GlassButton.displayName = 'GlassButton'

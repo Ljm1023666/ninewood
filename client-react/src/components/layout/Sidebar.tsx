@@ -14,6 +14,7 @@ import {
   LogOut,
   Moon,
   Sun,
+  HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
@@ -26,6 +27,7 @@ const NAV_TOP = [
   { path: '/card-pool', icon: Layers, label: '卡池' },
   { path: '/demands/create', icon: FileText, label: '发布' },
   { path: '/circles', icon: Users, label: '圈子' },
+  { path: '/help', icon: HelpCircle, label: '帮助' },
 ]
 
 const NAV_BOTTOM = [
@@ -118,7 +120,7 @@ export default function Sidebar() {
               uncheckedIcon={<Sun size={14} />}
               haptic="light"
             />
-            <span className="text-[11px] font-medium text-[var(--text-muted)]">
+            <span className="text-sm font-medium text-[var(--text-muted)]">
               主题
             </span>
           </div>
@@ -183,7 +185,7 @@ function NavItem({
               )}
             />
             {unreadCount !== undefined && unreadCount > 0 && (
-              <span className="absolute -right-2.5 -top-2 flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[var(--error-color)] px-1 text-[11px] font-bold leading-none text-white shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
+              <span className="absolute -right-2.5 -top-2 flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[var(--error-color)] px-1 text-sm font-bold leading-none text-white shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}

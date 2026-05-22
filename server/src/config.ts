@@ -15,7 +15,7 @@ export const config = {
     ? process.env.CORS_ORIGINS.split(',')
     : ['http://localhost:5173', 'http://localhost:3000', 'app://.'],
 
-  // AI（支持 OpenAI / DeepSeek / MiniMax 等兼容接口）
+  // AI（MiniMax，兼容 OpenAI / DeepSeek 接口格式）
   aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimax.chat/v1',
   aiApiKey: process.env.AI_API_KEY || '',
   aiModel: process.env.AI_MODEL || 'MiniMax-M2.7-highspeed',

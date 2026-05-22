@@ -103,7 +103,7 @@ export function PackStrip({ label, spectrum }: PackStripProps) {
         className="relative flex h-9 w-full shrink-0 items-center justify-center overflow-hidden px-2 pack-strip-shimmer"
         style={{ backgroundImage: gradient }}
       >
-        <span className="relative z-10 line-clamp-1 text-center text-[11px] font-bold uppercase tracking-wider text-white drop-shadow-sm">
+        <span className="relative z-10 line-clamp-1 text-center text-sm font-bold uppercase tracking-wider text-white drop-shadow-sm">
           {label}
         </span>
       </div>
@@ -113,7 +113,7 @@ export function PackStrip({ label, spectrum }: PackStripProps) {
   return (
     <div className="relative flex h-9 w-full shrink-0 items-center justify-center overflow-hidden">
       <AuroraGradientBar className="absolute inset-0" intensity={1} />
-      <span className="relative z-10 line-clamp-1 px-2 text-center text-[11px] font-bold uppercase tracking-wider text-white drop-shadow-sm">
+      <span className="relative z-10 line-clamp-1 px-2 text-center text-sm font-bold uppercase tracking-wider text-white drop-shadow-sm">
         {label}
       </span>
     </div>
@@ -263,9 +263,7 @@ export function RootSummaryBlackCard({
                 className="font-mono text-3xl font-black tabular-nums tracking-tight text-[var(--primary-start)] drop-shadow-[0_0_12px_rgba(56,189,248,0.35)] sm:text-4xl"
               />
               {totalFull != null && total != null && totalFull > total ? (
-                <span className="text-[11px] text-white/50">
-                  全库 {totalFull}
-                </span>
+                <span className="text-sm text-white/50">全库 {totalFull}</span>
               ) : null}
             </div>
           </div>

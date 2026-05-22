@@ -62,7 +62,7 @@ export function WorkspaceTools() {
     <div className="space-y-4">
       {/* 润色工具 */}
       <div>
-        <label className="text-xs font-medium text-white/30 uppercase tracking-wider">
+        <label className="text-sm font-medium text-white/30 uppercase tracking-wider">
           润色工具
         </label>
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -77,7 +77,7 @@ export function WorkspaceTools() {
               type="button"
               disabled={!description.trim() || polishing !== null}
               onClick={() => handlePolish(action)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-xs text-white/50 hover:border-white/15 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-sm text-white/50 hover:border-white/15 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               {polishing === action ? (
                 <span className="inline-block size-3 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
@@ -99,7 +99,7 @@ export function WorkspaceTools() {
               type="button"
               disabled={!description.trim() || polishing !== null}
               onClick={() => handlePolish(action)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-xs text-white/50 hover:border-white/15 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-sm text-white/50 hover:border-white/15 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               {polishing === action ? (
                 <span className="inline-block size-3 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
@@ -115,7 +115,7 @@ export function WorkspaceTools() {
       {/* 缺失信息（可勾选队列） */}
       {allItems.length > 0 && (
         <div>
-          <label className="text-xs font-medium text-white/30 uppercase tracking-wider flex items-center gap-1.5">
+          <label className="text-sm font-medium text-white/30 uppercase tracking-wider flex items-center gap-1.5">
             <AlertTriangle className="size-3 text-amber-400/60" />
             缺失信息
             {missingQueue.length > 0 && (
@@ -174,19 +174,19 @@ export function WorkspaceTools() {
                   className={`flex w-full items-center gap-2 rounded-lg border ${border} ${bg} ${hover} px-3 py-2 text-left transition-all disabled:cursor-not-allowed group`}
                 >
                   <Icon className={`size-3 shrink-0 ${iconColor}`} />
-                  <span className={`text-xs ${textColor} flex-1`}>{info}</span>
+                  <span className={`text-sm ${textColor} flex-1`}>{info}</span>
                   {isQueued && (
-                    <span className="text-[10px] text-red-400/40 font-medium">
+                    <span className="text-sm text-red-400/40 font-medium">
                       待回答
                     </span>
                   )}
                   {isAnswered && (
-                    <span className="text-[10px] text-gray-400/40 font-medium">
+                    <span className="text-sm text-gray-400/40 font-medium">
                       已收集
                     </span>
                   )}
                   {isResolved && (
-                    <span className="text-[10px] text-emerald-400/40 font-medium">
+                    <span className="text-sm text-emerald-400/40 font-medium">
                       已解决
                     </span>
                   )}

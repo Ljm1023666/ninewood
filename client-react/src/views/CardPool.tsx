@@ -341,7 +341,7 @@ export default function CardPool() {
       <div className="flex flex-col gap-4">
         {showPager ? (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs text-text-muted">
+            <span className="text-sm text-text-muted">
               子分类 {childrenNotInHand.length} · 第 {childPage + 1}/
               {totalPages} 页
             </span>
@@ -440,8 +440,16 @@ export default function CardPool() {
             layoutVariant="grid"
             desktopGridRowCount={desktopGridRows}
             onDesktopGridRowCountChange={setDesktopGridRows}
-            pageSize={desktopOpen.blackScope.path.some(s => s === '__singles__') ? 200 : 6}
-            paginationMode={desktopOpen.blackScope.path.some(s => s === '__singles__') ? 'infinite' : 'paged'}
+            pageSize={
+              desktopOpen.blackScope.path.some((s) => s === '__singles__')
+                ? 200
+                : 6
+            }
+            paginationMode={
+              desktopOpen.blackScope.path.some((s) => s === '__singles__')
+                ? 'infinite'
+                : 'paged'
+            }
             onDemandRowRecurse={(d) => {
               const r = addDemandToHand(
                 d.category,
@@ -451,7 +459,10 @@ export default function CardPool() {
               if (r === 'invalid') toast('无法映射该需求的分类到黑卡', 'error')
               else if (r === 'duplicate') toast('该分类已在手牌中', 'info')
             }}
-            onLongPressDropDemandInHand={(demandId) => { addDemandToSingles(demandId); toast('已加入 ? 卡包', 'success') }}
+            onLongPressDropDemandInHand={(demandId) => {
+              addDemandToSingles(demandId)
+              toast('已加入 ? 卡包', 'success')
+            }}
             handDropZoneRef={handDropZoneRef}
             className={fullHeight ? 'min-h-0 flex-1' : undefined}
           />
@@ -477,11 +488,11 @@ export default function CardPool() {
             <Layers className="size-5 shrink-0 text-accent" />
             <h1 className="text-lg font-bold text-text-primary">卡池</h1>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-muted">
             <span>监控：{rangeLabel}</span>
             <button
               type="button"
-              className="text-xs text-text-muted transition-colors hover:text-text-primary"
+              className="text-sm text-text-muted transition-colors hover:text-text-primary"
               onClick={() => navigate('/card-pool/explorer')}
             >
               资源管理器
@@ -509,7 +520,7 @@ export default function CardPool() {
           onJumpToPath={(path) => goToScope({ path, leafFilter: null })}
         />
 
-        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-bg-secondary/50 px-4 py-2 text-xs text-text-secondary">
+        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-bg-secondary/50 px-4 py-2 text-sm text-text-secondary">
           <span>
             浏览：
             <span className={cn('font-semibold', 'text-text-primary')}>
@@ -527,7 +538,9 @@ export default function CardPool() {
             ) : null}
           </span>
           <span className="text-text-muted">手牌 {hand.length}</span>
-          {discard.length > 0 ? <span className="text-text-muted">弃牌区 {discard.length}</span> : null}
+          {discard.length > 0 ? (
+            <span className="text-text-muted">弃牌区 {discard.length}</span>
+          ) : null}
         </div>
 
         <div
@@ -587,7 +600,7 @@ export default function CardPool() {
           <button
             type="button"
             onClick={clearHand}
-            className="-mt-1 flex w-full items-center justify-center gap-1 border-t border-border/30 px-3 py-1.5 text-[11px] text-text-muted/50 hover:text-destructive/60 transition-colors"
+            className="-mt-1 flex w-full items-center justify-center gap-1 border-t border-border/30 px-3 py-1.5 text-sm text-text-muted/50 hover:text-destructive/60 transition-colors"
           >
             清空手牌
           </button>

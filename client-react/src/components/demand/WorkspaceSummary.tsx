@@ -15,7 +15,7 @@ function LockToggle({ fieldKey }: { fieldKey: string }) {
       checkedIcon={<Lock className="size-2.5" />}
       uncheckedIcon={<LockOpen className="size-2.5" />}
       haptic="light"
-      className="-mt-1.5 scale-75 origin-right"
+      className="-mt-4"
     />
   )
 }
@@ -28,13 +28,13 @@ export function WorkspaceSummary() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-white/30 uppercase tracking-wider">
+        <label className="text-sm font-medium text-white/30 uppercase tracking-wider">
           需求摘要
         </label>
       </div>
 
       {/* 标题 */}
-      <div className="flex items-start gap-2">
+      <div className="flex items-center gap-2">
         <input
           type="text"
           value={fields.title}
@@ -54,7 +54,11 @@ export function WorkspaceSummary() {
           rows={4}
           className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-white/80 placeholder:text-white/20 focus:border-white/20 focus:outline-none transition-colors resize-none"
         />
-        {!speedMode && <LockToggle fieldKey="description" />}
+        {!speedMode && (
+          <div className="-mt-3 shrink-0">
+            <LockToggle fieldKey="description" />
+          </div>
+        )}
       </div>
     </div>
   )

@@ -108,7 +108,7 @@ export default function Settings() {
         <div className="mb-8 text-center">
           <p
             className={cn(
-              'text-xs font-semibold uppercase tracking-[0.2em]',
+              'text-sm font-semibold uppercase tracking-[0.2em]',
               isUiLight ? 'text-text-muted' : 'text-white/50',
             )}
           >
@@ -143,7 +143,7 @@ export default function Settings() {
             <Palette className="h-4 w-4 shrink-0" aria-hidden />
             <h2
               className={cn(
-                'text-xs font-bold uppercase tracking-wider',
+                'text-sm font-bold uppercase tracking-wider',
                 sectionHeading,
               )}
             >
@@ -151,7 +151,7 @@ export default function Settings() {
             </h2>
           </div>
 
-          <p className={cn('mb-2 text-[11px]', labelMuted)}>显示模式</p>
+          <p className={cn('mb-2 text-sm', labelMuted)}>显示模式</p>
           <div className="mb-6 flex gap-2">
             <LiquidButton
               variant={!darkMode ? 'default' : 'ghost'}
@@ -175,7 +175,7 @@ export default function Settings() {
             </LiquidButton>
           </div>
 
-          <p className={cn('mb-2 text-[11px]', labelMuted)}>主题色</p>
+          <p className={cn('mb-2 text-sm', labelMuted)}>主题色</p>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {presets.map((preset) => {
               const active = current.name === preset.name
@@ -203,7 +203,7 @@ export default function Settings() {
                   />
                   <span
                     className={cn(
-                      'text-[11px] font-medium',
+                      'text-sm font-medium',
                       isUiLight ? 'text-text-primary' : 'text-white/85',
                     )}
                   >
@@ -236,7 +236,7 @@ export default function Settings() {
         >
           <p
             className={cn(
-              'px-3 pb-2 pt-2 text-[11px] font-bold uppercase tracking-wider',
+              'px-3 pb-2 pt-2 text-sm font-bold uppercase tracking-wider',
               labelMuted,
             )}
           >
@@ -345,7 +345,7 @@ export default function Settings() {
 
         <p
           className={cn(
-            'mt-8 text-center text-xs',
+            'mt-8 text-center text-sm',
             isUiLight ? 'text-text-muted' : 'text-white/40',
           )}
         >

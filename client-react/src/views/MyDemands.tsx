@@ -76,7 +76,7 @@ function StatusBadge({ status, map }: { status: string; map: typeof sMap }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium',
         config.className,
       )}
     >
@@ -259,7 +259,7 @@ export default function MyDemands() {
                 {t.l}
                 <span
                   className={cn(
-                    'text-xs px-1.5 py-0.5 rounded-full transition-colors',
+                    'text-sm px-1.5 py-0.5 rounded-full transition-colors',
                     tab === t.k
                       ? 'bg-[var(--primary-start)]/20 text-[var(--primary-start)]'
                       : 'bg-bg-tertiary text-text-muted',

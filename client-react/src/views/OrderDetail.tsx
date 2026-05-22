@@ -101,7 +101,7 @@ export default function OrderDetail() {
           <h2 className="mb-4 text-lg font-bold">{order.demand?.title}</h2>
           <div className="mb-4">
             <span
-              className={`px-2 py-0.5 rounded text-[11px] font-semibold ${statusTheme(s)}`}
+              className={`px-2 py-0.5 rounded text-sm font-semibold ${statusTheme(s)}`}
             >
               {statusLabel[s] || s}
             </span>
