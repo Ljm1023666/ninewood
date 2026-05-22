@@ -31,6 +31,8 @@ interface ChatMsg {
   content: string
   isStreaming?: boolean
   toolCall?: { name: string; arguments: Record<string, string> } | null
+  /** 思考模式下的 reasoning_content，有 tool_call 的轮次必须回传 */
+  reasoningContent?: string
 }
 
 function ThinkingPanel({
@@ -295,6 +297,9 @@ export default function DemandCreate() {
         ...messagesRef.current.map((m) => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
+          ...(m.reasoningContent
+            ? { reasoning_content: m.reasoningContent }
+            : {}),
         })),
         currentMsg,
       ]
@@ -714,6 +719,10 @@ export default function DemandCreate() {
         }
       }
 
+      const reasoningContent = thinkMode
+        ? thinkAccRef.current || undefined
+        : undefined
+
       if (toolCall) {
         if (hasAssistantMsg) {
           setMessages((prev) =>
@@ -724,6 +733,7 @@ export default function DemandCreate() {
                     content: assistantContent || '已收集完整信息，准备发布',
                     isStreaming: false,
                     toolCall,
+                    reasoningContent,
                   }
                 : m,
             ),
@@ -737,13 +747,16 @@ export default function DemandCreate() {
               content: '已收集完整信息，准备发布',
               isStreaming: false,
               toolCall,
+              reasoningContent,
             },
           ])
         }
       } else if (hasAssistantMsg) {
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === assistantId ? { ...m, isStreaming: false } : m,
+            m.id === assistantId
+              ? { ...m, isStreaming: false, reasoningContent }
+              : m,
           ),
         )
       } else {
@@ -753,6 +766,7 @@ export default function DemandCreate() {
             id: assistantId,
             role: 'assistant',
             content: '无法理解，请换个方式描述',
+            reasoningContent,
           },
         ])
       }

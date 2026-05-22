@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { ServiceType, DemandStatus } from '@prisma/client';
+import { ServiceType, DemandStatus, Prisma } from '@prisma/client';
 
 const CERT_ORDER: Record<string, number> = { MASTER: 4, ADVANCED: 3, INTERMEDIATE: 2, BASIC: 1, NONE: 0 };
 
@@ -207,87 +207,88 @@ export const demandService = {
     // 使用稳定排序避免同 createdAt 记录在翻页时重复/丢失
     const orderBy: any = [{ createdAt: 'desc' }, { id: 'desc' }];
 
-    const hasGeo = !!(params.lat && params.lng && params.distance);
-    const publisherSql = publisherFilter ? `AND d."userId" = '${publisherFilter}'` : '';
-    const sqlEsc = (s: string) => s.replace(/'/g, "''");
-    const tagsSql = tagsList.length > 0
-      ? tagsList.map((t) => `AND (d."title" ILIKE '%${sqlEsc(t)}%' OR d."description" ILIKE '%${sqlEsc(t)}%')`).join(' ')
-      : '';
-    const categorySql =
-      categoriesList.length > 0
-        ? `AND d."category" IN (${categoriesList.map((c) => `'${sqlEsc(c)}'`).join(',')})`
-        : params.category
-          ? `AND d."category" = '${sqlEsc(params.category)}'`
-          : '';
-    const taxonomySql =
-      taxonomyLeafIdsList.length > 0
-        ? `AND d."taxonomyLeafId" IN (${taxonomyLeafIdsList.map((id) => `'${sqlEsc(id)}'`).join(',')})`
-        : params.taxonomyLeafId
-          ? `AND d."taxonomyLeafId" = '${sqlEsc(params.taxonomyLeafId)}'`
-          : '';
+        const hasGeo = !!(params.lat && params.lng && params.distance);
 
-    if (hasGeo) {
-      // PostgreSQL-level haversine: push distance calc + filter to DB
-      const raw = await prisma.$queryRawUnsafe<any[]>(`
-        SELECT d.*,
-          u."nickname", u."avatarUrl", u."coverUrl", u."demandCardCoverUrl", u."certificationLevel",
-          COALESCE((SELECT COUNT(*) FROM "DemandApplication" WHERE "demandId" = d.id), 0)::int AS "applicantCount",
-          6371 * 2 * ASIN(SQRT(
-            POWER(SIN((${params.lat} - d."locationLat") * PI() / 180 / 2), 2) +
-            COS(${params.lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
-            POWER(SIN((${params.lng} - d."locationLng") * PI() / 180 / 2), 2)
-          )) AS "distanceKm"
-        FROM "Demand" d
-        JOIN "User" u ON u.id = d."userId"
-        WHERE d.status = 'PENDING'
-          ${publisherSql}
-          ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
-          ${serviceTypeOk ? `AND d."serviceType" = '${serviceTypeOk}'` : ''}
-          ${taxonomySql}
-          ${categorySql}
-          ${params.keyword ? `AND (d."title" ILIKE '%${sqlEsc(params.keyword)}%' OR d."description" ILIKE '%${sqlEsc(params.keyword)}%')` : ''}
-          ${tagsSql}
-          AND (
+        if (hasGeo) {
+          const lat = params.lat!;
+          const lng = params.lng!;
+          const distance = params.distance!;
+
+          // 用 Prisma.sql 片段构建 WHERE 条件，参数绑定由 Prisma 负责
+          const whereFragments: Prisma.Sql[] = [Prisma.sql`d.status = 'PENDING'`];
+
+          if (publisherFilter) whereFragments.push(Prisma.sql`d."userId" = ${publisherFilter}::uuid`);
+          if (params.cityCode) whereFragments.push(Prisma.sql`d."cityCode" = ${params.cityCode}`);
+          if (serviceTypeOk) whereFragments.push(Prisma.sql`d."serviceType" = ${serviceTypeOk}::"ServiceType"`);
+
+          if (taxonomyLeafIdsList.length > 0) {
+            const ph = taxonomyLeafIdsList.map((v) => Prisma.sql`${v}`);
+            whereFragments.push(Prisma.sql`d."taxonomyLeafId" IN (${Prisma.join(ph, ',')})`);
+          } else if (params.taxonomyLeafId) {
+            whereFragments.push(Prisma.sql`d."taxonomyLeafId" = ${params.taxonomyLeafId}`);
+          } else if (categoriesList.length > 0) {
+            const ph = categoriesList.map((v) => Prisma.sql`${v}`);
+            whereFragments.push(Prisma.sql`d."category" IN (${Prisma.join(ph, ',')})`);
+          } else if (params.category) {
+            whereFragments.push(Prisma.sql`d."category" = ${params.category}`);
+          }
+
+          if (keywordTrimmed) {
+            const kw = `%${keywordTrimmed}%`;
+            whereFragments.push(Prisma.sql`(d."title" ILIKE ${kw} OR d."description" ILIKE ${kw})`);
+          }
+          if (tagsList.length > 0) {
+            for (const tag of tagsList) {
+              const t = `%${tag}%`;
+              whereFragments.push(Prisma.sql`(d."title" ILIKE ${t} OR d."description" ILIKE ${t})`);
+            }
+          }
+
+          const whereClause = Prisma.join(whereFragments, '\n          AND ');
+
+          // haversine 地理条件（参数由 Prisma 安全绑定）
+          const geoCondition = Prisma.sql`
             d."serviceType" = 'ONLINE'
             OR (
               d."serviceType" = 'OFFLINE'
               AND d."locationLat" IS NOT NULL
               AND d."locationLng" IS NOT NULL
               AND 6371 * 2 * ASIN(SQRT(
-                POWER(SIN((${params.lat} - d."locationLat") * PI() / 180 / 2), 2) +
-                COS(${params.lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
-                POWER(SIN((${params.lng} - d."locationLng") * PI() / 180 / 2), 2)
-              )) <= ${params.distance}
+                POWER(SIN((${lat} - d."locationLat") * PI() / 180 / 2), 2) +
+                COS(${lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
+                POWER(SIN((${lng} - d."locationLng") * PI() / 180 / 2), 2)
+              )) <= ${distance}
             )
-          )
-        ORDER BY d."createdAt" DESC, d."id" DESC
-        LIMIT ${limit} OFFSET ${(page - 1) * limit}
-      `);
+          `;
 
-      // Count query
-      const countRaw = await prisma.$queryRawUnsafe<any[]>(`
-        SELECT COUNT(*)::int AS total FROM "Demand" d
-        WHERE d.status = 'PENDING'
-          ${publisherSql}
-          ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
-          ${serviceTypeOk ? `AND d."serviceType" = '${serviceTypeOk}'` : ''}
-          ${taxonomySql}
-          ${categorySql}
-          ${params.keyword ? `AND (d."title" ILIKE '%${sqlEsc(params.keyword)}%' OR d."description" ILIKE '%${sqlEsc(params.keyword)}%')` : ''}
-          ${tagsSql}
-          AND (
-            d."serviceType" = 'ONLINE'
-            OR (
-              d."serviceType" = 'OFFLINE'
-              AND d."locationLat" IS NOT NULL AND d."locationLng" IS NOT NULL
-              AND 6371 * 2 * ASIN(SQRT(
-                POWER(SIN((${params.lat} - d."locationLat") * PI() / 180 / 2), 2) +
-                COS(${params.lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
-                POWER(SIN((${params.lng} - d."locationLng") * PI() / 180 / 2), 2)
-              )) <= ${params.distance}
-            )
-          )
-      `);
+          const haversineExpr = Prisma.sql`
+            6371 * 2 * ASIN(SQRT(
+              POWER(SIN((${lat} - d."locationLat") * PI() / 180 / 2), 2) +
+              COS(${lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
+              POWER(SIN((${lng} - d."locationLng") * PI() / 180 / 2), 2)
+            ))
+          `;
+
+          const offset = (page - 1) * limit;
+
+          const raw = await prisma.$queryRaw<any[]>`
+            SELECT d.*,
+              u."nickname", u."avatarUrl", u."coverUrl", u."demandCardCoverUrl", u."certificationLevel",
+              COALESCE((SELECT COUNT(*) FROM "DemandApplication" WHERE "demandId" = d.id), 0)::int AS "applicantCount",
+              ${haversineExpr} AS "distanceKm"
+            FROM "Demand" d
+            JOIN "User" u ON u.id = d."userId"
+            WHERE ${whereClause}
+              AND (${geoCondition})
+            ORDER BY d."createdAt" DESC, d."id" DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+
+          const countRaw = await prisma.$queryRaw<any[]>`
+            SELECT COUNT(*)::int AS total FROM "Demand" d
+            WHERE ${whereClause}
+              AND (${geoCondition})
+          `;
 
       const total = countRaw[0]?.total || 0;
       const result = raw.map((d: any) => ({
