@@ -10,7 +10,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PackCardData } from '@/components/card-pool/search-params'
 
-type AnimationPhase = 'scatter' | 'line' | 'circle' | 'bottom-arc'
+type AnimationPhase = 'scatter' | 'line' | 'circle'
 
 const BASE_CARD_W = 190
 const BASE_CARD_H = 336
@@ -129,25 +129,24 @@ function PackCard({
               </span>
             </div>
           )}
-          <div
+          <motion.div
+            animate={{ height: barH }}
+            transition={{ type: 'spring', stiffness: 40, damping: 15 }}
             className={cn(
               'absolute top-0 left-0 right-0 flex items-center overflow-hidden px-2',
               getShimmerClass(card.price),
             )}
-            style={{ height: barH, transition: 'height 0.5s ease' }}
           >
-            <p
+            <motion.p
+              animate={{ fontSize: titleFontSize }}
+              transition={{ type: 'spring', stiffness: 40, damping: 15 }}
               className="w-full font-bold text-white text-center whitespace-nowrap leading-none"
-              style={{
-                fontSize: titleFontSize,
-                transition: 'font-size 0.5s ease',
-              }}
             >
               {card.title.length > titleMaxChars
                 ? card.title.slice(0, titleMaxChars) + '…'
                 : card.title}
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </div>
 
         {/* 背面：价格，点击进入详情 */}

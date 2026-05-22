@@ -412,22 +412,6 @@ html, body {
     #ef4444 100%
   );
 }
-/* 叠层仅用深靛辅色扫光，避免出现浅青/发白感 */
-.flip-card-title-bar-aurora-sheen {
-  background-image: linear-gradient(
-    100deg,
-    rgba(49, 46, 129, 0) 0%,
-    rgba(55, 48, 163, 0.18) 22%,
-    rgba(67, 56, 202, 0.2) 50%,
-    rgba(55, 48, 163, 0.18) 78%,
-    rgba(49, 46, 129, 0) 100%
-  );
-  background-size: 200% 100%;
-  animation: flip-card-title-bar-pan 2.85s linear infinite;
-  mix-blend-mode: multiply;
-  opacity: 0.38;
-}
-
 /* 卡包色条流光 — 与翻卡 flip-card-title-bar-shimmer 完全一致 */
 .pack-strip-shimmer {
   background-size: 200% 100%;
@@ -460,10 +444,6 @@ html, body {
   }
   .flip-card-title-bar-shimmer--gold {
     background-image: linear-gradient(90deg, #ca8a04, #92400e);
-  }
-  .flip-card-title-bar-aurora-sheen {
-    animation: none;
-    opacity: 0;
   }
 }
 

@@ -406,7 +406,7 @@ ${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中' : ''}`;
       temperature: 0.1,
       stream: true,
       messages,
-      ...(thinkModeEnabled ? { thinking: { type: 'enabled' } } : {}),
+      ...(thinkModeEnabled ? { thinking: { type: 'enabled' }, reasoning_effort: 'high' } : {}),
     }
 
     const aiRes = await fetch(`${PROVIDER.baseUrl}/chat/completions`, {
@@ -710,6 +710,7 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
         temperature: 0.1,
         stream: true,
         messages,
+        ...(thinkModeEnabled ? { thinking: { type: 'enabled' }, reasoning_effort: 'high' } : {}),
       }),
     })
 
@@ -780,10 +781,23 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
         if (raw === '[DONE]') continue
         try {
           const chunk = JSON.parse(raw)
-          const delta = chunk.choices?.[0]?.delta?.content || ''
+          const delta = chunk.choices?.[0]?.delta
           if (!delta) continue
-          fullContent += delta
-          if (thinkModeEnabled) flushThinkLines()
+
+          // reasoning_content 流式发送给前端
+          const reasoning: string = (delta as any).reasoning_content || ''
+          if (reasoning && thinkModeEnabled) {
+            const rLines = reasoning.split('\n')
+            for (const rl of rLines) {
+              if (rl.trim()) sendThinkLine(rl.trim())
+            }
+          }
+
+          const contentDelta: string = delta.content || ''
+          if (contentDelta) {
+            fullContent += contentDelta
+            if (thinkModeEnabled) flushThinkLines()
+          }
         } catch { /* skip */ }
       }
     }
@@ -848,7 +862,7 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
 aiRouter.post('/agent-demand-stream', async (req: Request, res: Response) => {
   try {
     const { messages, thinkMode } = req.body as {
-      messages?: { role: 'user' | 'assistant'; content: string }[]
+      messages?: { role: string; content: string; reasoning_content?: string }[]
       thinkMode?: boolean
     }
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -897,9 +911,13 @@ ${thinkModeEnabled ? '\n【要求】将你的推理分析过程放在 <think>...
       },
     }
 
-    const chatMessages: { role: string; content: string }[] = [
+    const chatMessages: { role: string; content: string; reasoning_content?: string }[] = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...messages.map(m => ({ role: m.role, content: m.content })),
+      ...messages.map(m => ({
+        role: m.role,
+        content: m.content,
+        ...(m.reasoning_content ? { reasoning_content: m.reasoning_content } : {}),
+      })),
     ]
 
     res.setHeader('Content-Type', 'text/event-stream')
@@ -915,6 +933,7 @@ ${thinkModeEnabled ? '\n【要求】将你的推理分析过程放在 <think>...
       messages: chatMessages,
       tools: [PUBLISH_TOOL],
       tool_choice: 'auto' as const,
+      ...(thinkModeEnabled ? { thinking: { type: 'enabled' }, reasoning_effort: 'high' } : {}),
     }
 
     const aiRes = await fetch(`${PROVIDER.baseUrl}/chat/completions`, {
@@ -1011,6 +1030,15 @@ ${thinkModeEnabled ? '\n【要求】将你的推理分析过程放在 <think>...
           const chunk = JSON.parse(raw)
           const delta = chunk.choices?.[0]?.delta
           if (!delta) continue
+
+          // 思考模式：reasoning_content 流式发送给前端
+          const reasoning: string = (delta as any).reasoning_content || ''
+          if (reasoning && thinkModeEnabled) {
+            const rLines = reasoning.split('\n')
+            for (const rl of rLines) {
+              if (rl.trim()) sendThinkLine(rl.trim())
+            }
+          }
 
           // 文本增量 → 流式输出给前端
           const contentDelta: string = delta.content || ''
