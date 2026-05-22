@@ -49,7 +49,7 @@ export default function CertCenter() {
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
       <div className="relative z-10 box-border flex w-full max-w-4xl shrink-0 flex-col self-center px-5 pb-12 md:px-10">
         <section className="border-b border-border pb-4 pt-4 mb-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <p className="text-sm font-semibold uppercase tracking-wider text-text-muted">
             认证
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
@@ -84,7 +84,7 @@ export default function CertCenter() {
                       <span className="block text-[28px] font-bold leading-none tabular-nums">
                         {s.n}
                       </span>
-                      <span className="block mt-2 text-xs text-text-muted tracking-[1px]">
+                      <span className="block mt-2 text-sm text-text-muted tracking-[1px]">
                         {s.l}
                       </span>
                     </div>

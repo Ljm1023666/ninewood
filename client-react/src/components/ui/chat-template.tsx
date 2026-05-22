@@ -231,7 +231,7 @@ export function TemplateChatRightShell({
         {showAvatar ? (
           <Avatar className="size-12 shrink-0">
             <AvatarImage src={currentChat?.image} />
-            <AvatarFallback className="text-xs font-semibold">
+            <AvatarFallback className="text-sm font-semibold">
               {fb}
             </AvatarFallback>
           </Avatar>
@@ -246,7 +246,7 @@ export function TemplateChatRightShell({
               <CardTitle className="truncate text-base font-semibold text-text-primary">
                 {currentChat?.name}
               </CardTitle>
-              <CardDescription className="text-xs text-text-muted">
+              <CardDescription className="text-sm text-text-muted">
                 查看主页
               </CardDescription>
             </button>
@@ -443,7 +443,7 @@ function LeftChatListPanel({
                     <CardTitle className="truncate text-[15px] font-semibold leading-tight text-text-primary">
                       {contact.name}
                     </CardTitle>
-                    <CardDescription className="line-clamp-1 text-xs text-text-muted">
+                    <CardDescription className="line-clamp-1 text-sm text-text-muted">
                       {contact.message}
                     </CardDescription>
                   </div>

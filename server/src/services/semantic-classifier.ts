@@ -5,7 +5,7 @@
 
 const CLASSIFIER_URL = 'http://127.0.0.1:8001/classify'
 const TIMEOUT_MS = 500
-const REQUEST_TIMEOUT_MS = 1000
+const REQUEST_TIMEOUT_MS = 30000
 
 export interface SemanticMatch {
   category_id: string

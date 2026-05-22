@@ -69,7 +69,7 @@ export function PageHeader({
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-0.5 max-w-[60vw] truncate text-xs text-text-muted">
+          <p className="mt-0.5 max-w-[60vw] truncate text-sm text-text-muted">
             {subtitle}
           </p>
         )}

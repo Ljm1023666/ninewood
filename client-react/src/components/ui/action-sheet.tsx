@@ -28,7 +28,7 @@ export function ActionSheet({ visible, onClose, onSelect }: ActionSheetProps) {
               className="flex flex-col items-center gap-2 bg-transparent border-none text-text-primary cursor-pointer py-3 px-2 rounded-xl hover:bg-bg-tertiary"
             >
               <span className="text-[32px]">{a.icon}</span>
-              <span className="text-xs text-text-secondary">{a.label}</span>
+              <span className="text-sm text-text-secondary">{a.label}</span>
             </button>
           ))}
         </div>

@@ -25,7 +25,14 @@ IDS_PATH = BASE_DIR / 'category_ids.pkl'
 
 # ─── 模型 & 索引 ─────────────────────────────────
 print('[Classifier] Loading model...')
-_model = SentenceTransformer('BAAI/bge-small-zh-v1.5', device='cpu')
+_device = 'cuda' if os.environ.get('CUDA_VISIBLE_DEVICES') != '-1' else 'cpu'
+try:
+    import torch
+    _device = 'cuda' if torch.cuda.is_available() else 'cpu'
+except ImportError:
+    _device = 'cpu'
+print(f'[Classifier] Using device: {_device}')
+_model = SentenceTransformer('BAAI/bge-small-zh-v1.5', device=_device)
 print(f'[Classifier] Model loaded, dim={_model.get_sentence_embedding_dimension()}')
 
 print('[Classifier] Loading FAISS index...')

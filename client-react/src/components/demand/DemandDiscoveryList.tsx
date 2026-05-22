@@ -66,7 +66,7 @@ export function DemandCardInner({ d }: { d: DemandRow }) {
             {d.isExample ? (
               <span
                 className={cn(
-                  'rounded px-2 py-0.5 text-[11px] font-medium',
+                  'rounded px-2 py-0.5 text-sm font-medium',
                   isDark ? 'bg-bg-secondary text-text-muted' : 'text-gray-400',
                 )}
               >
@@ -75,7 +75,7 @@ export function DemandCardInner({ d }: { d: DemandRow }) {
             ) : null}
             <span
               className={cn(
-                'rounded px-2 py-0.5 text-[11px] font-semibold',
+                'rounded px-2 py-0.5 text-sm font-semibold',
                 isDark ? 'bg-bg-secondary text-text-muted' : 'text-gray-500',
               )}
             >
@@ -83,7 +83,7 @@ export function DemandCardInner({ d }: { d: DemandRow }) {
             </span>
           </div>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
           <span>{d.category}</span>
           <span>{d.applicantCount ?? 0} 人申请</span>
           {d.createdAgo ? <span>{d.createdAgo}</span> : null}
@@ -109,6 +109,7 @@ export function DemandDiscoveryList({
   listScope,
   keyword,
   serviceType,
+  taxonomyLeafIds,
   scrollRootRef,
   className,
   interactionMode,
@@ -124,6 +125,7 @@ export function DemandDiscoveryList({
   listScope?: Record<string, string>
   keyword: string
   serviceType: ServiceFilter
+  taxonomyLeafIds?: string[]
   scrollRootRef: React.RefObject<HTMLElement | null>
   className?: string
   interactionMode?: 'default' | 'cardPoolDesktop'
@@ -144,6 +146,10 @@ export function DemandDiscoveryList({
   const navigate = useNavigate()
   const sentinelRef = useRef<HTMLDivElement>(null)
 
+  // 稳定数组依赖：用字符串 key 避免每次渲染 [] !== [] 触发连锁重建
+  const tagsKey = tags?.join(',') ?? ''
+  const leafIdsKey = taxonomyLeafIds?.join(',') ?? ''
+
   const fetchPage = useCallback(
     async (page: number) => {
       const kw = keyword.trim()
@@ -155,6 +161,8 @@ export function DemandDiscoveryList({
       if (kw) apiParams.keyword = kw
       if (serviceType !== 'ALL') apiParams.serviceType = serviceType
       if (tags && tags.length > 0) apiParams.tags = tags.join(',')
+      if (taxonomyLeafIds && taxonomyLeafIds.length > 0)
+        apiParams.taxonomyLeafIds = taxonomyLeafIds.join(',')
       if (exact) apiParams.exact = 'true'
       const r = await demandApi.list({
         ...apiParams,
@@ -166,7 +174,7 @@ export function DemandDiscoveryList({
         totalPages: number
       }
     },
-    [keyword, serviceType, listScope, pageSize, tags, exact],
+    [keyword, serviceType, listScope, pageSize, tagsKey, leafIdsKey, exact],
   )
 
   const {
@@ -194,7 +202,7 @@ export function DemandDiscoveryList({
       return
     }
     void loadMore(true)
-  }, [keyword, serviceType, loadMore, goToPage, paginationMode])
+  }, [keyword, serviceType, leafIdsKey, loadMore, goToPage, paginationMode])
 
   /** 勿把 loading/hasMore 放进依赖：否则会反复 disconnect 观察器，在 rootMargin 下 sentinel 常相交，导致连续 loadMore 拉完全部分页 */
   useLayoutEffect(() => {
@@ -296,15 +304,15 @@ export function DemandDiscoveryList({
         <p className="py-12 text-center text-sm text-text-muted">加载中…</p>
       ) : null}
       {loading && items.length > 0 ? (
-        <p className="py-6 text-center text-xs text-text-muted">加载更多…</p>
+        <p className="py-6 text-center text-sm text-text-muted">加载更多…</p>
       ) : null}
       {!hasMore && items.length > 0 && paginationMode === 'infinite' ? (
-        <p className="py-6 text-center text-xs text-text-muted">没有更多了</p>
+        <p className="py-6 text-center text-sm text-text-muted">没有更多了</p>
       ) : null}
 
       {paginationMode === 'paged' && totalPages > 1 ? (
         <div className="mt-5 flex items-center justify-between gap-3 border-t border-border pt-4">
-          <span className="text-xs text-text-muted">
+          <span className="text-sm text-text-muted">
             第 {page}/{totalPages} 页 · 共 {totalCount} 条
           </span>
           <div className="flex items-center gap-2">

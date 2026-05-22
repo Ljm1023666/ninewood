@@ -478,7 +478,7 @@ export default function Profile() {
                   </h2>
                 )}
                 <span
-                  className="mt-1 inline-block rounded px-2 py-0.5 text-[11px] font-semibold"
+                  className="mt-1 inline-block rounded px-2 py-0.5 text-sm font-semibold"
                   style={{
                     color: isDark ? '#fff' : color,
                     border: `1px solid ${color}66`,
@@ -507,7 +507,7 @@ export default function Profile() {
                   type="button"
                   onClick={saveProfile}
                   className={cn(
-                    'rounded-lg px-4 py-2 text-xs font-semibold backdrop-blur-sm',
+                    'rounded-lg px-4 py-2 text-sm font-semibold backdrop-blur-sm',
                     isDark
                       ? 'bg-white/20 text-white hover:bg-white/30'
                       : 'bg-black/[0.08] text-text-primary hover:bg-black/[0.12]',
@@ -523,7 +523,7 @@ export default function Profile() {
                     setBio(displayUser?.bio ?? '')
                   }}
                   className={cn(
-                    'rounded-lg border px-4 py-2 text-xs',
+                    'rounded-lg border px-4 py-2 text-sm',
                     isDark
                       ? 'border-white/20 text-white/80 hover:bg-white/10'
                       : 'border-black/[0.08] text-text-secondary hover:bg-black/[0.04]',
@@ -533,7 +533,7 @@ export default function Profile() {
                 </button>
               </div>
             ) : (
-              <p className={`mt-3 text-xs leading-relaxed ${textSecondary}`}>
+              <p className={`mt-3 text-sm leading-relaxed ${textSecondary}`}>
                 {displayUser?.bio || '这个人很懒，什么都没写...'}
               </p>
             )}
@@ -548,7 +548,7 @@ export default function Profile() {
                     setEditing(true)
                   }}
                   className={cn(
-                    'flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-semibold backdrop-blur-sm',
+                    'flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold backdrop-blur-sm',
                     isDark
                       ? 'border-white/20 bg-white/10 text-white hover:bg-white/18'
                       : 'border-black/[0.08] bg-black/[0.04] text-text-primary hover:bg-black/[0.08]',
@@ -620,7 +620,7 @@ export default function Profile() {
                 <span className="text-2xl font-extrabold tabular-nums">
                   {followCounts.following}
                 </span>
-                <span className={`text-xs ${textMuted}`}>关注</span>
+                <span className={`text-sm ${textMuted}`}>关注</span>
               </button>
             </LiquidGlassCard>
 
@@ -640,7 +640,7 @@ export default function Profile() {
                 <span className="text-2xl font-extrabold tabular-nums">
                   {followCounts.followers}
                 </span>
-                <span className={`text-xs ${textMuted}`}>粉丝</span>
+                <span className={`text-sm ${textMuted}`}>粉丝</span>
               </button>
             </LiquidGlassCard>
 
@@ -654,7 +654,7 @@ export default function Profile() {
             >
               <div className="flex flex-col items-center gap-1">
                 <ShieldCheck size={22} style={{ color }} />
-                <span className="text-xs font-bold" style={{ color }}>
+                <span className="text-sm font-bold" style={{ color }}>
                   {certLabel[level]}
                 </span>
                 {promo && (
@@ -733,7 +733,7 @@ export default function Profile() {
                     <item.icon size={15} />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-[11px] ${textSubtle}`}>{item.label}</p>
+                    <p className={`text-sm ${textSubtle}`}>{item.label}</p>
                     <p className="truncate text-sm font-extrabold tabular-nums">
                       {item.value}
                     </p>
@@ -772,9 +772,7 @@ export default function Profile() {
                       size={18}
                       className={isDark ? 'text-white/90' : 'text-text-primary'}
                     />
-                    <span className={`text-[11px] ${textMuted}`}>
-                      {item.label}
-                    </span>
+                    <span className={`text-sm ${textMuted}`}>{item.label}</span>
                   </button>
                 </LiquidGlassCard>
               ))}
@@ -829,7 +827,7 @@ export default function Profile() {
                             <p className="truncate text-sm font-semibold text-text-primary">
                               {demand.title}
                             </p>
-                            <p className="text-xs text-text-muted mt-0.5">
+                            <p className="text-sm text-text-muted mt-0.5">
                               ¥{demand.minPrice} · {demand.category}
                             </p>
                           </button>
@@ -855,7 +853,7 @@ export default function Profile() {
                           type="button"
                           onClick={() => loadFavPage(page)}
                           className={cn(
-                            'h-8 w-8 rounded-lg text-xs font-medium',
+                            'h-8 w-8 rounded-lg text-sm font-medium',
                             page === favPage
                               ? 'bg-accent text-white'
                               : isDark

@@ -24,7 +24,7 @@ export function TimeDivider({
     <div className={cn('flex items-center justify-center py-3', className)}>
       <span
         className={cn(
-          'text-xs px-3 py-1 rounded-full border',
+          'text-sm px-3 py-1 rounded-full border',
           isDark
             ? 'text-neutral-500 bg-bg-secondary/75 border-white/5'
             : 'text-text-muted bg-bg-secondary/40 border-border/70',

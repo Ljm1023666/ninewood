@@ -492,11 +492,20 @@ ${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中' : ''}`;
           const delta = chunk.choices?.[0]?.delta
           if (!delta) continue
 
-          const contentDelta: string = delta.content || ''
-          if (!contentDelta) continue
+          // MiniMax thinking 模式：reasoning_content 直接流式发送给前端
+          const reasoning: string = (delta as any).reasoning_content || ''
+          if (reasoning && thinkModeEnabled) {
+            const lines = reasoning.split('\n')
+            for (const line of lines) {
+              if (line.trim()) sendThinkLine(line.trim())
+            }
+          }
 
-          fullContent += contentDelta
-          if (thinkModeEnabled) flushThinkLines()
+          const contentDelta: string = delta.content || ''
+          if (contentDelta) {
+            fullContent += contentDelta
+            if (thinkModeEnabled) flushThinkLines()
+          }
         } catch { /* skip malformed chunk */ }
       }
     }
@@ -580,6 +589,7 @@ ${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中' : ''}`;
       total: searchResult.total || 0,
       classifiedLabels: classified.labels,
       classifyMethod: classified.method,
+      classifiedNodeIds: classified.nodeIds,
     }
 
     res.write(`event: result\ndata: ${JSON.stringify(result)}\n\n`)

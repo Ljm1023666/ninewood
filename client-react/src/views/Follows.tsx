@@ -88,7 +88,9 @@ export default function Follows() {
             aria-label="返回"
             className={cn(
               'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors',
-              isDark ? 'hover:bg-white/10 text-text-secondary' : 'hover:bg-bg-secondary/50 text-text-secondary',
+              isDark
+                ? 'hover:bg-white/10 text-text-secondary'
+                : 'hover:bg-bg-secondary/50 text-text-secondary',
             )}
           >
             <ChevronLeft size={20} />
@@ -96,7 +98,9 @@ export default function Follows() {
           <div className="flex rounded-xl border border-border bg-bg-secondary p-1">
             <button
               type="button"
-              onClick={() => navigate(`/follows/${userId}?mode=followers`, { replace: true })}
+              onClick={() =>
+                navigate(`/follows/${userId}?mode=followers`, { replace: true })
+              }
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200',
                 mode === 'followers'
@@ -109,7 +113,9 @@ export default function Follows() {
             </button>
             <button
               type="button"
-              onClick={() => navigate(`/follows/${userId}?mode=following`, { replace: true })}
+              onClick={() =>
+                navigate(`/follows/${userId}?mode=following`, { replace: true })
+              }
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200',
                 mode === 'following'
@@ -144,8 +150,10 @@ export default function Follows() {
             <p className="mt-4 text-sm font-medium text-text-primary">
               {mode === 'followers' ? '暂无粉丝' : '暂未关注'}
             </p>
-            <p className="mt-1 text-xs text-text-muted">
-              {mode === 'followers' ? '还没有人关注这位用户' : '还没有关注任何人'}
+            <p className="mt-1 text-sm text-text-muted">
+              {mode === 'followers'
+                ? '还没有人关注这位用户'
+                : '还没有关注任何人'}
             </p>
           </div>
         )}
@@ -159,7 +167,9 @@ export default function Follows() {
                 role="button"
                 tabIndex={0}
                 onClick={() => navigate(`/profile/${u.id}`)}
-                onKeyDown={(e) => e.key === 'Enter' && navigate(`/profile/${u.id}`)}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && navigate(`/profile/${u.id}`)
+                }
                 className={cn(
                   'group flex cursor-pointer items-center gap-3 rounded-xl border border-transparent p-3 transition-all',
                   isDark
@@ -171,7 +181,10 @@ export default function Follows() {
                 <div
                   className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white shadow-md"
                   style={{
-                    background: certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280',
+                    background:
+                      certColor[
+                        u.certificationLevel as keyof typeof certColor
+                      ] || '#6b7280',
                     boxShadow: u.certificationLevel
                       ? `0 0 10px ${certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280'}40`
                       : undefined,
@@ -179,7 +192,10 @@ export default function Follows() {
                 >
                   {u.avatarUrl ? (
                     <Avatar className="h-full w-full">
-                      <AvatarImage src={u.avatarUrl} className="h-full w-full object-cover" />
+                      <AvatarImage
+                        src={u.avatarUrl}
+                        className="h-full w-full object-cover"
+                      />
                       <AvatarFallback className="h-full w-full bg-transparent text-sm font-bold text-white">
                         {(u.nickname || '?')[0]}
                       </AvatarFallback>
@@ -194,21 +210,31 @@ export default function Follows() {
                     <span className="truncate text-[15px] font-medium text-text-primary">
                       {u.nickname}
                     </span>
-                    {u.certificationLevel && u.certificationLevel !== 'NONE' && (
-                      <span
-                        className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                        style={{
-                          color: certColor[u.certificationLevel as keyof typeof certColor],
-                          backgroundColor:
-                            (certColor[u.certificationLevel as keyof typeof certColor] || '#6b7280') + '15',
-                        }}
-                      >
-                        {certLabel[u.certificationLevel as keyof typeof certLabel]}
-                      </span>
-                    )}
+                    {u.certificationLevel &&
+                      u.certificationLevel !== 'NONE' && (
+                        <span
+                          className="shrink-0 rounded-full px-2 py-0.5 text-sm font-semibold"
+                          style={{
+                            color:
+                              certColor[
+                                u.certificationLevel as keyof typeof certColor
+                              ],
+                            backgroundColor:
+                              (certColor[
+                                u.certificationLevel as keyof typeof certColor
+                              ] || '#6b7280') + '15',
+                          }}
+                        >
+                          {
+                            certLabel[
+                              u.certificationLevel as keyof typeof certLabel
+                            ]
+                          }
+                        </span>
+                      )}
                   </div>
                   {u.bio && (
-                    <p className="mt-0.5 truncate text-xs text-text-muted">
+                    <p className="mt-0.5 truncate text-sm text-text-muted">
                       {u.bio.slice(0, 50)}
                     </p>
                   )}
@@ -222,7 +248,7 @@ export default function Follows() {
                       toggleFollow(u)
                     }}
                     className={cn(
-                      'shrink-0 rounded-lg px-4 py-1.5 text-xs font-semibold transition-all',
+                      'shrink-0 rounded-lg px-4 py-1.5 text-sm font-semibold transition-all',
                       u.isFollowing
                         ? cn(
                             'border text-text-muted',

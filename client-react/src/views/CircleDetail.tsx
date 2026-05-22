@@ -194,7 +194,7 @@ export default function CircleDetail() {
             <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {circle.name}
             </h1>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:text-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground sm:text-sm">
               <span className="inline-flex items-center gap-1.5">
                 <Users className="size-3.5 shrink-0 opacity-80" aria-hidden />
                 {memberCount} 位成员
@@ -213,7 +213,7 @@ export default function CircleDetail() {
           {(circle.status === 'WARNING' || circle.status === 'DEFUNCT') && (
             <div
               className={cn(
-                'mt-4 flex items-start gap-2 rounded-xl border px-3 py-2.5 text-xs sm:text-sm',
+                'mt-4 flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm sm:text-sm',
                 circle.status === 'DEFUNCT'
                   ? 'border-red-500/25 bg-red-500/8 text-red-700 dark:text-red-300'
                   : 'border-amber-500/25 bg-amber-500/8 text-amber-900 dark:text-amber-200',
@@ -284,7 +284,7 @@ export default function CircleDetail() {
                 <span className="text-sm font-semibold text-foreground">
                   成员
                 </span>
-                <span className="text-xs font-medium text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   {showMembers ? '收起' : `查看全部 · ${memberCount}`}
                 </span>
               </button>
@@ -296,7 +296,7 @@ export default function CircleDetail() {
                     title={m.user?.nickname}
                     onClick={() => navigate(`/profile/${m.userId}`)}
                     className={cn(
-                      'relative flex size-10 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted text-xs font-bold text-muted-foreground',
+                      'relative flex size-10 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted text-sm font-bold text-muted-foreground',
                       'ring-1 ring-border/80 transition hover:z-10 hover:ring-primary/40',
                     )}
                   >
@@ -312,7 +312,7 @@ export default function CircleDetail() {
                   </button>
                 ))}
                 {memberCount > previewMembers.length ? (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     +{memberCount - previewMembers.length}
                   </span>
                 ) : null}
@@ -329,7 +329,7 @@ export default function CircleDetail() {
                       >
                         <div
                           className={cn(
-                            'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-xs font-bold',
+                            'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-sm font-bold',
                           )}
                         >
                           {m.user?.avatarUrl ? (
@@ -345,7 +345,7 @@ export default function CircleDetail() {
                         <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
                           {m.user?.nickname || '用户'}
                         </span>
-                        <span className="shrink-0 text-xs text-muted-foreground">
+                        <span className="shrink-0 text-sm text-muted-foreground">
                           {roleLabel[m.role] || m.role}
                         </span>
                       </button>
@@ -363,7 +363,7 @@ export default function CircleDetail() {
               <h2 className="text-lg font-bold tracking-tight text-foreground">
                 圈内需求
               </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 点击卡片查看详情与 3D 展示
               </p>
             </div>
@@ -387,7 +387,7 @@ export default function CircleDetail() {
               <p className="text-sm font-medium text-foreground">
                 暂无圈内需求
               </p>
-              <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+              <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
                 {isMember
                   ? '发布一条需求，让圈子里的伙伴看见你。'
                   : '加入圈子后即可发布与浏览圈内需求。'}
