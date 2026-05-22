@@ -120,7 +120,7 @@ function getNodePath(nodeId: string): string[] {
   const labels: string[] = []
   let current: string | null = nodeId
   while (current && current !== 'root') {
-    const node = raw[current]
+    const node: { label: string; parent: string | null } | undefined = raw[current]
     if (!node) break
     labels.unshift(node.label)
     current = node.parent

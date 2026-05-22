@@ -2,11 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import * as Sentry from '@sentry/node';
 import { config } from './config.js';
 import { errorHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
 import { setupSocket } from './utils/socket.js';
 import { startAllCronJobs } from './cron/index.js';
+import { setupSwagger } from './swagger.js';
 import { authRouter } from './routes/auth.js';
 import { userRouter } from './routes/user.js';
 import { demandRouter } from './routes/demand.js';
@@ -18,6 +20,13 @@ import { shortsRouter } from './routes/shorts.js';
 import { complaintRouter } from './routes/complaint.js';
 import { adminRouter } from './routes/admin.js';
 import { aiRouter } from './routes/ai.js';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN || '',
+  environment: process.env.NODE_ENV || 'development',
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 0,
+  integrations: [Sentry.expressIntegration()],
+});
 
 const app = express();
 const httpServer = createServer(app);
@@ -31,6 +40,8 @@ app.set('io', io);
 // Logging
 app.use(requestLogger);
 
+// Sentry request handler — added via integrations[] in Sentry.init() above
+
 // Security
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
 app.use(express.json({ limit: '500mb' }));
@@ -38,6 +49,9 @@ app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 // Static files
 app.use('/uploads', express.static(config.uploadDir));
+
+// Swagger docs
+setupSwagger(app);
 
 // Routes
 app.use('/api/auth', authRouter);
@@ -56,6 +70,9 @@ app.use('/api/ai', aiRouter);
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
+
+// Sentry error handler (must be before generic error handler)
+Sentry.setupExpressErrorHandler(app);
 
 // Error handler
 app.use(errorHandler);

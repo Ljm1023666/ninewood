@@ -6,36 +6,21 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type Dispatch,
   type MutableRefObject,
-  type RefObject,
-  type SetStateAction,
 } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  motion,
-  AnimatePresence,
-  useMotionValue,
-  animate,
-  useDragControls,
-  type PanInfo,
-} from 'framer-motion'
-import { ChevronUp, GripVertical } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
-import {
-  packButtonClass,
-  packButtonIdle,
-} from '@/components/card-pool/browse-black-cards'
+import { packButtonClass } from '@/components/card-pool/browse-black-cards'
 import {
   scopeCurrentClassificationBasis,
   scopeKey,
   scopeTaxonomySpectrumStyle,
 } from '@/components/card-pool/scope'
-import { useLongPressDragOutOfHand } from '@/components/card-pool/useLongPressHandZone'
 
 const PEEK_LEAVE_MS = 420
-const ACTION_W = 132
 
 /** 手牌区专用：竖条卡面（路径标题 + 数量），与卡池浏览区的横向卡包视觉分离 */
 export function HandEntryCardPackFace({
@@ -204,222 +189,6 @@ interface HandPileProps {
   pointerDropHighlight?: boolean
 }
 
-function HandSwipeRow({
-  entry,
-  busy,
-  handZoneRef,
-  openSwipeId,
-  setOpenSwipeId,
-  scopeTotals,
-  onOpenDesktop,
-  onRemove,
-  onPin,
-  onDiscardToPile,
-  onCtx,
-}: {
-  entry: HandEntry
-  busy: boolean
-  handZoneRef: RefObject<HTMLElement | null>
-  openSwipeId: string | null
-  setOpenSwipeId: Dispatch<SetStateAction<string | null>>
-  scopeTotals: Record<string, number | null>
-  onOpenDesktop: (entry: HandEntry) => void
-  onRemove: (id: string) => void
-  onPin: (id: string) => void
-  onDiscardToPile: (id: string) => void
-  onCtx: (e: React.MouseEvent, entry: HandEntry) => void
-}) {
-  const dragControls = useDragControls()
-  const x = useMotionValue(0)
-  const k = scopeKey(entry.scope)
-  const n = scopeTotals[k]
-  const basis = scopeCurrentClassificationBasis(entry.scope)
-  const spectrum = scopeTaxonomySpectrumStyle(entry.scope, n)
-  const isSingles =
-    entry.scope.path[entry.scope.path.length - 1] === '__singles__'
-  const snapClosed = useCallback(() => {
-    animate(x, 0, { type: 'spring', stiffness: 520, damping: 38 })
-    setOpenSwipeId((cur) => (cur === entry.id ? null : cur))
-  }, [entry.id, setOpenSwipeId, x])
-
-  useEffect(() => {
-    if (openSwipeId !== null && openSwipeId !== entry.id) {
-      snapClosed()
-    }
-  }, [entry.id, openSwipeId, snapClosed])
-
-  const { onPointerDown, dragOutVisual } = useLongPressDragOutOfHand({
-    handZoneRef,
-    disabled: busy,
-    onDragOut: () => onRemove(entry.id),
-  })
-
-  const [holdDragOutPresence, setHoldDragOutPresence] = useState(false)
-  useLayoutEffect(() => {
-    if (dragOutVisual != null) setHoldDragOutPresence(true)
-  }, [dragOutVisual])
-
-  const showDragOutPortal = dragOutVisual != null || holdDragOutPresence
-
-  const dragOutGhost =
-    showDragOutPortal &&
-    typeof document !== 'undefined' &&
-    createPortal(
-      <AnimatePresence
-        mode="sync"
-        onExitComplete={() => setHoldDragOutPresence(false)}
-      >
-        {dragOutVisual != null ? (
-          <HandPackGhostAtPoint
-            key="hand-drag-out-ghost"
-            x={dragOutVisual.x}
-            y={dragOutVisual.y}
-            exitOnUnmount
-          >
-            <HandEntryCardPackFace
-              basis={basis}
-              n={n}
-              spectrum={spectrum}
-              className="ring-2 ring-accent/40"
-            />
-          </HandPackGhostAtPoint>
-        ) : null}
-      </AnimatePresence>,
-      document.body,
-    )
-
-  const onDragEnd = useCallback(
-    (_e: unknown, info: PanInfo) => {
-      const cur = x.get()
-      const projected = cur + info.velocity.x * 0.18
-      if (projected < -ACTION_W * 0.32) {
-        animate(x, -ACTION_W, { type: 'spring', stiffness: 420, damping: 34 })
-        setOpenSwipeId(entry.id)
-      } else {
-        snapClosed()
-      }
-    },
-    [entry.id, setOpenSwipeId, snapClosed, x],
-  )
-
-  return (
-    <>
-      {dragOutGhost}
-      <motion.div
-        layout
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10, transition: { duration: 0.2 } }}
-        transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-        className="relative mx-auto w-full max-w-[252px] overflow-visible py-2"
-      >
-        <div
-          className="pointer-events-auto absolute inset-y-0 right-0 z-0 flex w-[132px] divide-x divide-border/60"
-          aria-hidden
-        >
-          <button
-            type="button"
-            tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-sm font-medium text-text-primary hover:bg-accent/15"
-            onClick={() => {
-              onPin(entry.id)
-              snapClosed()
-            }}
-          >
-            置顶
-          </button>
-          <button
-            type="button"
-            tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-sm font-medium text-text-primary hover:bg-accent/15"
-            onClick={() => {
-              onDiscardToPile(entry.id)
-              snapClosed()
-            }}
-          >
-            弃牌
-          </button>
-          <button
-            type="button"
-            tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-destructive/20 text-sm font-medium text-destructive hover:bg-destructive/30"
-            onClick={() => {
-              onRemove(entry.id)
-              snapClosed()
-            }}
-          >
-            移除
-          </button>
-        </div>
-
-        <motion.div
-          style={{ x }}
-          drag={busy ? false : 'x'}
-          dragListener={false}
-          dragControls={dragControls}
-          dragConstraints={{ left: -ACTION_W, right: 0 }}
-          dragElastic={0.22}
-          dragMomentum={false}
-          onDragStart={() => setOpenSwipeId(entry.id)}
-          onDragEnd={onDragEnd}
-          className="relative z-10 min-w-0"
-        >
-          <div className="flex min-w-0 flex-row items-stretch">
-            <button
-              type="button"
-              tabIndex={0}
-              aria-label="从此条向左拖，展开置顶、弃牌、移除"
-              disabled={busy}
-              className={cn(
-                'flex w-[22px] shrink-0 touch-none select-none flex-col items-center justify-center rounded-none border-0 border-r border-white/[0.08] bg-bg-secondary/70 p-0 text-neutral-400 hover:bg-bg-secondary/85',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/50',
-              )}
-              onPointerDown={(e) => {
-                if (busy) return
-                dragControls.start(e)
-              }}
-            >
-              <GripVertical className="size-3.5 opacity-75" aria-hidden />
-            </button>
-            <div
-              className={cn(
-                'min-w-0 flex-1 transition-opacity duration-150',
-                busy && 'pointer-events-none cursor-wait opacity-55',
-                dragOutVisual && !busy && 'opacity-[0.18]',
-              )}
-              onPointerDown={onPointerDown}
-              onDoubleClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (!busy) onOpenDesktop(entry)
-              }}
-              onContextMenu={(e) => {
-                onCtx(e, entry)
-              }}
-              role="group"
-              aria-label={`手牌：${basis}`}
-              tabIndex={-1}
-            >
-              <div className="w-full min-w-0 px-0.5 py-1">
-                <HandEntryCardPackFace
-                  basis={basis}
-                  n={n}
-                  spectrum={spectrum}
-                  isSingles={isSingles}
-                  className={cn(
-                    !busy && packButtonIdle,
-                    'cursor-grab active:cursor-grabbing',
-                  )}
-                />
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </>
-  )
-}
-
 export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
   function HandPile(
     {
@@ -443,7 +212,16 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
       entry: HandEntry
     } | null>(null)
     const [panelOpen, setPanelOpen] = useState(false)
-    const [openSwipeId, setOpenSwipeId] = useState<string | null>(null)
+    const [visibleSlots, setVisibleSlots] = useState<
+      { key: string; entry: HandEntry }[]
+    >(() =>
+      entries
+        .slice(0, Math.min(3, entries.length))
+        .map((e, i) => ({ key: `${e.id}-s${i}`, entry: e })),
+    )
+    const nextIdxRef = useRef(Math.min(3, entries.length))
+    const cycleRef = useRef(0)
+    const [currentPos, setCurrentPos] = useState(1)
     const [dropInGhost, setDropInGhost] = useState<{
       key: number
       x: number
@@ -452,6 +230,60 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
     } | null>(null)
     const dropInKeyRef = useRef(0)
     const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const prevEntryLenRef = useRef(entries.length)
+
+    const prevEntriesRef = useRef(entries)
+
+    useEffect(() => {
+      const prevLen = prevEntryLenRef.current
+      const newLen = entries.length
+
+      if (newLen < prevLen) {
+        // 移除了条目：visibleSlots 已由按钮更新，只需补位
+        const maxVisible = Math.min(3, newLen)
+        const prevEntries = prevEntriesRef.current
+        const removedIds = new Set(
+          prevEntries
+            .map((e) => e.id)
+            .filter((id) => !entries.some((e) => e.id === id)),
+        )
+        setVisibleSlots((prev) => {
+          const remaining = prev.filter((s) => !removedIds.has(s.entry.id))
+          if (remaining.length >= maxVisible) return remaining
+          const existingIds = new Set(remaining.map((s) => s.entry.id))
+          cycleRef.current += 1
+          const toAdd = entries
+            .filter((e) => !existingIds.has(e.id))
+            .slice(0, maxVisible - remaining.length)
+          return [
+            ...remaining,
+            ...toAdd.map((e) => ({
+              key: `${e.id}-f${cycleRef.current}`,
+              entry: e,
+            })),
+          ]
+        })
+        nextIdxRef.current = newLen
+        prevEntryLenRef.current = newLen
+        prevEntriesRef.current = entries
+        return
+      }
+
+      if (newLen > prevLen) {
+        // 新增了条目：重置队列
+        setVisibleSlots(
+          entries
+            .slice(0, Math.min(3, newLen))
+            .map((e, i) => ({ key: `${e.id}-s${i}`, entry: e })),
+        )
+        nextIdxRef.current = Math.min(3, newLen)
+        cycleRef.current = 0
+        setCurrentPos(1)
+      }
+
+      prevEntryLenRef.current = newLen
+      prevEntriesRef.current = entries
+    }, [entries.length])
 
     const clearLeaveTimer = useCallback(() => {
       if (leaveTimerRef.current) {
@@ -574,26 +406,155 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4 pb-1">
-                  <AnimatePresence initial={false} mode="popLayout">
-                    {entries.map((entry) => (
-                      <HandSwipeRow
-                        key={entry.id}
-                        entry={entry}
-                        busy={busy}
-                        handZoneRef={ref as RefObject<HTMLElement | null>}
-                        openSwipeId={openSwipeId}
-                        setOpenSwipeId={setOpenSwipeId}
-                        scopeTotals={scopeTotals}
-                        onOpenDesktop={onOpenDesktop}
-                        onRemove={onRemove}
-                        onPin={onPin}
-                        onDiscardToPile={onDiscardToPile}
-                        onCtx={onCtx}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
+                <>
+                  <div className="relative flex w-full flex-col items-center justify-center">
+                    <div className="relative h-[380px] w-full overflow-hidden sm:w-[644px]">
+                      <AnimatePresence initial={false}>
+                        {visibleSlots.map(({ key: slotKey, entry }, index) => {
+                          const positionStyles = [
+                            { scale: 1, y: 12 },
+                            { scale: 0.95, y: -16 },
+                            { scale: 0.9, y: -44 },
+                          ]
+                          const { y, scale } =
+                            positionStyles[index] ?? positionStyles[2]
+                          const zIndex = index === 0 && busy ? 10 : 3 - index
+                          const exitAnim =
+                            index === 0
+                              ? { y: 340, scale: 1, zIndex: 10 }
+                              : undefined
+                          const lastIdx = visibleSlots.length - 1
+                          const initialAnim =
+                            index === lastIdx && lastIdx > 0
+                              ? { y: 340, scale: 0.9 }
+                              : undefined
+                          const basis = scopeCurrentClassificationBasis(
+                            entry.scope,
+                          )
+                          const isSingles =
+                            entry.scope.path[entry.scope.path.length - 1] ===
+                            '__singles__'
+                          const n = scopeTotals[scopeKey(entry.scope)]
+                          const spectrum = scopeTaxonomySpectrumStyle(
+                            entry.scope,
+                            n,
+                          )
+                          const accentColor = spectrum?.color || '#a78bfa'
+
+                          return (
+                            <motion.div
+                              key={slotKey}
+                              initial={initialAnim}
+                              animate={{ y, scale }}
+                              exit={exitAnim}
+                              transition={{
+                                type: 'spring',
+                                duration: 1,
+                                bounce: 0,
+                              }}
+                              style={{
+                                zIndex,
+                                left: '50%',
+                                x: '-50%',
+                                bottom: 0,
+                              }}
+                              className="absolute flex h-[280px] w-[324px] overflow-hidden rounded-t-xl border-x border-t border-border bg-neutral-900 shadow-lg will-change-transform sm:w-[512px]"
+                              onDoubleClick={(e) => {
+                                if (!busy) {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  onOpenDesktop(entry)
+                                }
+                              }}
+                              onContextMenu={(e) => {
+                                onCtx(e, entry)
+                              }}
+                            >
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setVisibleSlots((prev) =>
+                                    prev.filter((s) => s.entry.id !== entry.id),
+                                  )
+                                  onRemove(entry.id)
+                                }}
+                                className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/30 text-white/60 hover:bg-red-500/60 hover:text-white transition-colors"
+                                aria-label="移除此卡包"
+                              >
+                                <svg
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.5"
+                                  strokeLinecap="round"
+                                >
+                                  <path d="M5 12H19" />
+                                </svg>
+                              </button>
+                              <div className="flex h-full w-full flex-col">
+                                {/* 色条 + 标题 */}
+                                <div
+                                  className="flex shrink-0 items-center px-3 py-2.5"
+                                  style={{
+                                    background: `linear-gradient(135deg, ${accentColor}ee, ${accentColor}30)`,
+                                  }}
+                                >
+                                  <span className="text-sm font-bold text-white truncate drop-shadow-sm">
+                                    {basis}
+                                  </span>
+                                </div>
+                                {/* 数量 */}
+                                <div className="flex flex-1 items-center justify-center">
+                                  {isSingles ? (
+                                    <span className="select-none text-6xl font-black text-white/20">
+                                      ?
+                                    </span>
+                                  ) : (
+                                    <span className="select-none text-5xl font-black text-white/60 tabular-nums">
+                                      {n == null ? '…' : n}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )
+                        })}
+                      </AnimatePresence>
+                    </div>
+                    {entries.length >= 2 && (
+                      <div className="relative z-10 flex w-full items-center justify-center border-t border-border py-4 sm:w-[644px]">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            cycleRef.current += 1
+                            const idx = nextIdxRef.current % entries.length
+                            setVisibleSlots((prev) => [
+                              ...prev.slice(1),
+                              {
+                                key: `${entries[idx].id}-c${cycleRef.current}`,
+                                entry: entries[idx],
+                              },
+                            ])
+                            nextIdxRef.current = idx + 1
+                            setCurrentPos(
+                              ((idx - 1 + entries.length) % entries.length) + 1,
+                            )
+                          }}
+                          className="pointer-events-auto flex h-9 cursor-pointer select-none items-center justify-center gap-1 overflow-hidden rounded-lg border border-border bg-background px-3 font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:scale-[0.98]"
+                        >
+                          切换
+                          <span className="text-muted-foreground/60">
+                            ({currentPos} / {entries.length})
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </motion.div>

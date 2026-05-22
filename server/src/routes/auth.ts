@@ -20,6 +20,81 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+/**
+ * @openapi
+ * /api/auth/send-code:
+ *   post:
+ *     tags: [Auth]
+ *     summary: 发送短信验证码
+ *     description: 为新用户手机号发送注册验证码
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phone]
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 example: "13800000001"
+ *     responses:
+ *       200:
+ *         description: 验证码已发送
+ *       400:
+ *         description: 输入验证失败
+ *
+ * /api/auth/register:
+ *   post:
+ *     tags: [Auth]
+ *     summary: 注册新用户
+ *     description: 手机号 + 验证码注册，返回 JWT token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phone, code]
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 example: "13800000001"
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: 注册成功，返回 token + 用户信息
+ *       400:
+ *         description: 验证码错误或已过期
+ *
+ * /api/auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: 密码登录
+ *     description: 手机号 + 密码登录已有的用户
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phone, password]
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 example: "13800000001"
+ *               password:
+ *                 type: string
+ *                 example: "1"
+ *     responses:
+ *       200:
+ *         description: 登录成功
+ *       401:
+ *         description: 密码错误
+ */
+
 // POST /api/auth/send-code — only for new users
 authRouter.post('/send-code', async (req: Request, res: Response) => {
   try {
