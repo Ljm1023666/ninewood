@@ -2,14 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { circleApi } from '@/api/circle'
 import { cn } from '@/lib/utils'
-import {
-  Compass,
-  Loader2,
-  Lock,
-  Plus,
-  RefreshCw,
-  Users,
-} from 'lucide-react'
+import { Compass, Loader2, Lock, Plus, RefreshCw, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -105,13 +98,13 @@ function CircleTile({
       </div>
       <div className="flex flex-1 flex-col gap-1.5 border-t border-border/60 bg-card/90 px-3.5 py-3 backdrop-blur-sm">
         {description ? (
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         ) : (
-          <p className="text-xs text-muted-foreground/80">暂无简介</p>
+          <p className="text-sm text-muted-foreground/80">暂无简介</p>
         )}
-        <div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <div className="mt-auto flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
           <Users className="size-3.5 opacity-80" aria-hidden />
           <span>{memberCount} 位成员</span>
         </div>
@@ -206,7 +199,7 @@ export default function Circles() {
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
         <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0 max-w-2xl space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               社区
             </p>
             <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -257,10 +250,14 @@ export default function Circles() {
           >
             <Users className="size-4" />
             我的圈子
-            <span className={cn(
-              'ml-1 rounded-full px-2 py-0.5 text-xs',
-              tab === 'mine' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
-            )}>
+            <span
+              className={cn(
+                'ml-1 rounded-full px-2 py-0.5 text-sm',
+                tab === 'mine'
+                  ? 'bg-primary/15 text-primary'
+                  : 'bg-muted text-muted-foreground',
+              )}
+            >
               {myCircles.length}
             </span>
           </button>
@@ -276,10 +273,14 @@ export default function Circles() {
           >
             <Compass className="size-4" />
             发现圈子
-            <span className={cn(
-              'ml-1 rounded-full px-2 py-0.5 text-xs',
-              tab === 'discover' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
-            )}>
+            <span
+              className={cn(
+                'ml-1 rounded-full px-2 py-0.5 text-sm',
+                tab === 'discover'
+                  ? 'bg-primary/15 text-primary'
+                  : 'bg-muted text-muted-foreground',
+              )}
+            >
               {circles.length}
             </span>
           </button>
@@ -329,10 +330,15 @@ export default function Circles() {
                 ) : (
                   <div className="rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center">
                     <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-muted">
-                      <Users className="size-6 text-muted-foreground" aria-hidden />
+                      <Users
+                        className="size-6 text-muted-foreground"
+                        aria-hidden
+                      />
                     </div>
-                    <p className="text-sm font-medium text-foreground">还没有加入圈子</p>
-                    <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground">
+                      还没有加入圈子
+                    </p>
+                    <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-muted-foreground">
                       去发现页面浏览公开圈子，找到感兴趣的加入吧。
                     </p>
                     <Button
@@ -369,13 +375,22 @@ export default function Circles() {
                 ) : (
                   <div className="rounded-2xl border border-border/80 bg-card/40 px-6 py-14 text-center backdrop-blur-sm">
                     <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl border border-border bg-background">
-                      <Lock className="size-5 text-muted-foreground" aria-hidden />
+                      <Lock
+                        className="size-5 text-muted-foreground"
+                        aria-hidden
+                      />
                     </div>
-                    <p className="text-sm font-medium text-foreground">暂无公开圈子</p>
-                    <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+                    <p className="text-sm font-medium text-foreground">
+                      暂无公开圈子
+                    </p>
+                    <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
                       还没有人创建圈子，成为第一个吧。
                     </p>
-                    <Button type="button" className="mt-5" onClick={() => setShowCreate(true)}>
+                    <Button
+                      type="button"
+                      className="mt-5"
+                      onClick={() => setShowCreate(true)}
+                    >
                       <Plus className="size-4" aria-hidden />
                       创建圈子
                     </Button>
@@ -407,7 +422,7 @@ export default function Circles() {
               >
                 创建圈子
               </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 创建一个圈子，邀请志同道合的朋友加入
               </p>
             </div>

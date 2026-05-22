@@ -71,9 +71,7 @@ export function HandEntryCardPackFace({
           <span className="text-5xl font-black leading-none text-white/80">
             ?
           </span>
-          <span className="text-[11px] font-medium text-white/40">
-            {n ?? '?'}
-          </span>
+          <span className="text-sm font-medium text-white/40">{n ?? '?'}</span>
         </div>
       </div>
     )
@@ -104,7 +102,7 @@ export function HandEntryCardPackFace({
       />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-2 bg-gradient-to-br from-neutral-950 via-neutral-900 to-black px-3 py-3">
         <span
-          className="line-clamp-5 min-w-0 text-left text-[11px] font-semibold leading-snug text-white/95"
+          className="line-clamp-5 min-w-0 text-left text-sm font-semibold leading-snug text-white/95"
           style={spectrum}
         >
           {basis}
@@ -322,7 +320,7 @@ function HandSwipeRow({
           <button
             type="button"
             tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-[11px] font-medium text-text-primary hover:bg-accent/15"
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-sm font-medium text-text-primary hover:bg-accent/15"
             onClick={() => {
               onPin(entry.id)
               snapClosed()
@@ -333,7 +331,7 @@ function HandSwipeRow({
           <button
             type="button"
             tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-[11px] font-medium text-text-primary hover:bg-accent/15"
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-muted/90 text-sm font-medium text-text-primary hover:bg-accent/15"
             onClick={() => {
               onDiscardToPile(entry.id)
               snapClosed()
@@ -344,7 +342,7 @@ function HandSwipeRow({
           <button
             type="button"
             tabIndex={-1}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-destructive/20 text-[11px] font-medium text-destructive hover:bg-destructive/30"
+            className="flex flex-1 flex-col items-center justify-center gap-0.5 bg-destructive/20 text-sm font-medium text-destructive hover:bg-destructive/30"
             onClick={() => {
               onRemove(entry.id)
               snapClosed()
@@ -571,7 +569,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                       ? '指针按住黑卡微移提起卡面，拖入下方手牌区松手加入'
                       : '长按卡池黑卡拖入手牌区加入'}
                   </span>
-                  <span className="text-[11px] text-text-muted/90">
+                  <span className="text-sm text-text-muted/90">
                     卡面为卡池同款卡包造型（仅分类依据文案）；左侧竖条向左拖展开操作；拖入与拖出共用同一套全屏浮层弹簧动画
                   </span>
                 </div>
@@ -610,12 +608,12 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
             onMouseEnter={openPanel}
             aria-expanded={panelOpen}
           >
-            <span className="flex items-center gap-2 text-xs font-semibold text-text-muted">
+            <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
               <span>
                 手牌 <span className="tabular-nums">({entries.length})</span>
               </span>
               {onDropBlackScope ? (
-                <span className="hidden font-normal text-[11px] text-text-muted/80 sm:inline">
+                <span className="hidden font-normal text-sm text-text-muted/80 sm:inline">
                   悬停展开 · 左侧条侧滑 · 拖入/拖出共用指针卡面浮层
                 </span>
               ) : null}

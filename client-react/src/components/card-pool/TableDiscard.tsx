@@ -40,7 +40,7 @@ export function TableDiscard({ discard, onRestore }: TableDiscardProps) {
                   'flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2',
                 )}
               >
-                <span className={cn('text-xs line-through', 'text-text-muted')}>
+                <span className={cn('text-sm line-through', 'text-text-muted')}>
                   {scopeTitle(card)}
                 </span>
                 <button

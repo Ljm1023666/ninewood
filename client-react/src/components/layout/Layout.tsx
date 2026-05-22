@@ -5,7 +5,6 @@ import PageTransition from './PageTransition'
 import { useChatStore } from '@/stores/chat'
 import { useKeyboard } from '@/hooks/useKeyboard'
 import { ToastContainer } from '@/components/ui/confirm-dialog'
-import { GlassFilter } from '@/components/ui/liquid-glass'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { useUserStore } from '@/stores/user'
 import {
@@ -77,10 +76,7 @@ export default function Layout() {
   ])
 
   const p = location.pathname
-  const electronAPI =
-    typeof window !== 'undefined' ? window.electronAPI : undefined
-  const isElectronDesktop = Boolean(electronAPI?.isElectron)
-  // Tab 根路由不显示全局返回（避免挡标题）；聊天会话 /messages/:id 也不显示（顶栏已有返回）
+  // Tab根路由不显示全局返回（避免挡标题）；聊天会话 /messages/:id 也不显示（顶栏已有返回）
   const hideGlobalBack =
     p === '/' ||
     p.startsWith('/discover') ||
@@ -94,7 +90,8 @@ export default function Layout() {
     p === '/profile' ||
     p === '/profile/' ||
     p.startsWith('/follows/') ||
-    p === '/settings'
+    p === '/settings' ||
+    p === '/help'
   const showBack = !hideGlobalBack
   /** 需求详情页 3D 翻面会略超出卡片盒模型；全站 main 的 overflow-hidden 会裁掉透视溢出，仅在此路由放宽 */
   const demandDetail3dOverflow = isDemandDetailRoute(p)

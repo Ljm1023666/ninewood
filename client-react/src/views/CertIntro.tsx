@@ -6,14 +6,7 @@ import { useThemeStore } from '@/stores/theme'
 import { certLabel, certColor, certGlow } from '@/constants/cert'
 import { cn } from '@/lib/utils'
 import { AcetGradientButton } from '@/components/ui/tailwindcss-buttons-variants'
-import {
-  ShieldCheck,
-  Star,
-  Zap,
-  Users,
-  Award,
-  ArrowRight,
-} from 'lucide-react'
+import { ShieldCheck, Star, Zap, Users, Award, ArrowRight } from 'lucide-react'
 
 const levels = ['NONE', 'BASIC', 'INTERMEDIATE', 'ADVANCED', 'MASTER'] as const
 
@@ -76,7 +69,7 @@ export default function CertIntro() {
         >
           <p
             className={cn(
-              'flex items-center gap-2 text-xs font-semibold uppercase tracking-wider',
+              'flex items-center gap-2 text-sm font-semibold uppercase tracking-wider',
               tMuted,
             )}
           >
@@ -158,7 +151,7 @@ export default function CertIntro() {
                       </h2>
                       <p
                         className={cn(
-                          'text-xs',
+                          'text-sm',
                           isDark ? 'text-white/40' : 'text-text-muted',
                         )}
                       >

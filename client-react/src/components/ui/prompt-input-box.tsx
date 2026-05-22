@@ -20,10 +20,6 @@ const cn = (...classes: (string | undefined | null | false)[]) =>
 
 // Embedded CSS for minimal custom styles
 const styles = `
-  *:focus-visible {
-    outline-offset: 0 !important;
-    --ring-offset: 0 !important;
-  }
   textarea::-webkit-scrollbar {
     width: 6px;
   }
@@ -785,7 +781,7 @@ export const PromptInputBox = React.forwardRef(
                           animate={{ width: 'auto', opacity: 1 }}
                           exit={{ width: 0, opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="text-xs overflow-hidden whitespace-nowrap text-[#F59E0B] flex-shrink-0"
+                          className="text-sm overflow-hidden whitespace-nowrap text-[#F59E0B] flex-shrink-0"
                         >
                           Speed
                         </motion.span>
@@ -840,7 +836,7 @@ export const PromptInputBox = React.forwardRef(
                         animate={{ width: 'auto', opacity: 1 }}
                         exit={{ width: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="text-xs overflow-hidden whitespace-nowrap text-[#8B5CF6] flex-shrink-0"
+                        className="text-sm overflow-hidden whitespace-nowrap text-[#8B5CF6] flex-shrink-0"
                       >
                         Think
                       </motion.span>
@@ -897,7 +893,7 @@ export const PromptInputBox = React.forwardRef(
                         animate={{ width: 'auto', opacity: 1 }}
                         exit={{ width: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="text-xs overflow-hidden whitespace-nowrap text-[#F97316] flex-shrink-0"
+                        className="text-sm overflow-hidden whitespace-nowrap text-[#F97316] flex-shrink-0"
                       >
                         Canvas
                       </motion.span>

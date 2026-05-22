@@ -93,13 +93,15 @@ export default function Orders() {
                     {o.demand?.title || '订单'}
                   </span>
                   <span
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${statusTheme(o.status)}`}
+                    className={`px-2.5 py-1 rounded-lg text-sm font-bold ${statusTheme(o.status)}`}
                   >
                     {statusLabel[o.status] || ''}
                   </span>
                 </div>
                 <div className="flex justify-between mt-2 text-[13px] text-text-secondary">
-                  <span className="font-semibold text-accent">¥{o.agreedPrice}</span>
+                  <span className="font-semibold text-accent">
+                    ¥{o.agreedPrice}
+                  </span>
                   <span>
                     {o.provider?.nickname} → {o.requester?.nickname}
                   </span>
