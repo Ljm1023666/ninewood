@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { snatchLimiter } from '../middleware/rate-limit.js';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
@@ -219,7 +220,7 @@ demandRouter.delete('/:id', authMiddleware, async (req: Request, res: Response) 
 });
 
 // POST /api/demands/:id/apply
-demandRouter.post('/:id/apply', authMiddleware, async (req: Request, res: Response) => {
+demandRouter.post('/:id/apply', authMiddleware, snatchLimiter, async (req: Request, res: Response) => {
   try {
     const data = applySchema.parse(req.body);
     const app = await demandService.apply(req.params.id as string, req.user!.userId, data.offerPrice, data.message);
@@ -231,7 +232,7 @@ demandRouter.post('/:id/apply', authMiddleware, async (req: Request, res: Respon
 });
 
 // POST /api/demands/:id/snatch
-demandRouter.post('/:id/snatch', authMiddleware, async (req: Request, res: Response) => {
+demandRouter.post('/:id/snatch', authMiddleware, snatchLimiter, async (req: Request, res: Response) => {
   try {
     const app = await demandService.snatch(req.params.id as string, req.user!.userId);
     success(res, app, '抢单成功', 201);
@@ -241,7 +242,7 @@ demandRouter.post('/:id/snatch', authMiddleware, async (req: Request, res: Respo
 });
 
 // POST /api/demands/:id/accept-snatch
-demandRouter.post('/:id/accept-snatch', authMiddleware, async (req: Request, res: Response) => {
+demandRouter.post('/:id/accept-snatch', authMiddleware, snatchLimiter, async (req: Request, res: Response) => {
   try {
     const { applicationId } = req.body;
     if (!applicationId) return fail(res, '缺少applicationId', 400);

@@ -6,9 +6,11 @@ import * as Sentry from '@sentry/node';
 import { config } from './config.js';
 import { errorHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
+import { globalLimiter } from './middleware/rate-limit.js';
 import { setupSocket } from './utils/socket.js';
 import { startAllCronJobs } from './cron/index.js';
 import { setupSwagger } from './swagger.js';
+import { connectRedis } from './lib/redis.js';
 import { authRouter } from './routes/auth.js';
 import { userRouter } from './routes/user.js';
 import { demandRouter } from './routes/demand.js';
@@ -20,6 +22,8 @@ import { shortsRouter } from './routes/shorts.js';
 import { complaintRouter } from './routes/complaint.js';
 import { adminRouter } from './routes/admin.js';
 import { aiRouter } from './routes/ai.js';
+import { agentRouter } from './routes/agent.js';
+import { registerNinewoodTools } from './services/agent/tools.js';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN || '',
@@ -42,10 +46,13 @@ app.use(requestLogger);
 
 // Sentry request handler — added via integrations[] in Sentry.init() above
 
+// Rate limiting — applied to all /api routes
+app.use('/api', globalLimiter);
+
 // Security
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
-app.use(express.json({ limit: '500mb' }));
-app.use(express.urlencoded({ limit: '500mb', extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Static files
 app.use('/uploads', express.static(config.uploadDir));
@@ -65,6 +72,10 @@ app.use('/api/shorts', shortsRouter);
 app.use('/api/complaints', complaintRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/agent', agentRouter);
+
+// 注册 Ninewood 业务工具
+registerNinewoodTools();
 
 // Health
 app.get('/api/health', (_req, res) => {
@@ -82,6 +93,9 @@ setupSocket(io);
 
 // Cron
 startAllCronJobs();
+
+// Redis
+connectRedis();
 
 httpServer.listen(config.port, () => {
   console.log(`[Ninewood] Server running on http://localhost:${config.port}`);

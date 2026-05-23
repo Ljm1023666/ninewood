@@ -242,9 +242,9 @@ export default function Circles() {
             type="button"
             onClick={() => setTab('mine')}
             className={cn(
-              'flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200',
+              'flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-200',
               tab === 'mine'
-                ? 'bg-background text-foreground shadow-sm'
+                ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -252,10 +252,10 @@ export default function Circles() {
             我的圈子
             <span
               className={cn(
-                'ml-1 rounded-full px-2 py-0.5 text-sm',
+                'ml-1 text-sm',
                 tab === 'mine'
-                  ? 'bg-primary/15 text-primary'
-                  : 'bg-muted text-muted-foreground',
+                  ? 'text-primary font-semibold'
+                  : 'text-muted-foreground',
               )}
             >
               {myCircles.length}
@@ -265,9 +265,9 @@ export default function Circles() {
             type="button"
             onClick={() => setTab('discover')}
             className={cn(
-              'flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200',
+              'flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-200',
               tab === 'discover'
-                ? 'bg-background text-foreground shadow-sm'
+                ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -275,10 +275,10 @@ export default function Circles() {
             发现圈子
             <span
               className={cn(
-                'ml-1 rounded-full px-2 py-0.5 text-sm',
+                'ml-1 text-sm',
                 tab === 'discover'
-                  ? 'bg-primary/15 text-primary'
-                  : 'bg-muted text-muted-foreground',
+                  ? 'text-primary font-semibold'
+                  : 'text-muted-foreground',
               )}
             >
               {circles.length}

@@ -98,6 +98,17 @@ orderRouter.post('/:id/dispute', authMiddleware, async (req: Request, res: Respo
   }
 });
 
+// POST /api/orders/:id/cancel
+orderRouter.post('/:id/cancel', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await orderService.cancel(req.params.id as string, req.user!.userId);
+    emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
 // POST /api/orders/:id/partial
 orderRouter.post('/:id/partial', authMiddleware, async (req: Request, res: Response) => {
   try {

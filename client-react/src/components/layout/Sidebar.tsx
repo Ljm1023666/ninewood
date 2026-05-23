@@ -12,15 +12,13 @@ import {
   MessageCircle,
   User,
   LogOut,
-  Moon,
-  Sun,
   HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
-import { MaterialSwitch } from '@/components/ui/material-switch'
 import { presets } from '@/stores/theme'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { AnimatedThemeToggle } from '@/components/ui/animated-theme-toggle'
 
 const NAV_TOP = [
   { path: '/', icon: Home, label: '发现' },
@@ -64,7 +62,7 @@ export default function Sidebar() {
   return (
     <>
       {curtainElement}
-      <aside className="sidebar sidebar-ct-accent z-10 flex w-[var(--sidebar-w)] shrink-0 flex-col items-center border-r border-border py-5">
+      <aside className="sidebar sidebar-ct-accent z-10 flex w-[var(--sidebar-w)] shrink-0 flex-col items-center border-r border-border py-5 backdrop-blur-xl">
         {/* Logo */}
         <button
           type="button"
@@ -111,15 +109,7 @@ export default function Sidebar() {
         {/* 底部操作 */}
         <div className="mt-auto flex flex-col items-center gap-2">
           <div className="flex flex-col items-center gap-1">
-            <MaterialSwitch
-              checked={isDark}
-              onCheckedChange={handleThemeToggle}
-              size="sm"
-              showIcons
-              checkedIcon={<Moon size={14} />}
-              uncheckedIcon={<Sun size={14} />}
-              haptic="light"
-            />
+            <AnimatedThemeToggle isDark={isDark} onToggle={handleThemeToggle} />
             <span className="text-sm font-medium text-[var(--text-muted)]">
               主题
             </span>
@@ -169,7 +159,7 @@ function NavItem({
           'text-[var(--text-secondary)] transition-all duration-200',
           'hover:bg-[var(--accent-ghost)] hover:text-[var(--text-secondary)]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]',
-          isActive && 'text-[var(--accent-color)]',
+          isActive && 'bg-white/[0.08] text-[var(--accent-color)]',
         )
       }
     >
@@ -181,7 +171,7 @@ function NavItem({
               className={cn(
                 'transition-all duration-200 ease-out',
                 'group-hover:scale-110',
-                isActive ? 'opacity-100' : 'opacity-55',
+                isActive ? 'opacity-100' : 'opacity-70',
               )}
             />
             {unreadCount !== undefined && unreadCount > 0 && (

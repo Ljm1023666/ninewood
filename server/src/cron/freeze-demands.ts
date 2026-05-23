@@ -22,17 +22,18 @@ export function startFreezeDemandsCron() {
         });
 
         for (const d of frozenDemands) {
-          const deposit = await prisma.deposit.findFirst({
-            where: { userId: d.userId, status: 'PENDING' },
+          const depositDemand = await prisma.depositDemand.findFirst({
+            where: {
+              demandId: d.id,
+              deposit: { userId: d.userId, status: 'PENDING' },
+            },
+            include: { deposit: true },
           });
-          if (deposit) {
-            const demandIds = deposit.demandIds as string[];
-            if (demandIds.includes(d.id)) {
-              await prisma.deposit.update({
-                where: { id: deposit.id },
-                data: { status: 'FORFEITED' },
-              });
-            }
+          if (depositDemand) {
+            await prisma.deposit.update({
+              where: { id: depositDemand.depositId },
+              data: { status: 'FORFEITED' },
+            });
           }
         }
       }

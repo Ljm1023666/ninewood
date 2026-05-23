@@ -24,6 +24,7 @@ const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 const Discover = lazy(() => import('@/views/Discover'))
 const Help = lazy(() => import('@/views/Help'))
+const AgentChat = lazy(() => import('@/views/AgentChat'))
 const NewGroupChat = lazy(() => import('@/views/NewGroupChat'))
 const CardPool = lazy(() => import('@/views/CardPool'))
 const CardPoolResourceExplorer = lazy(
@@ -235,6 +236,22 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <Help />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'agent',
+            element: (
+              <LazyLoad>
+                <AgentChat />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'agent/:id',
+            element: (
+              <LazyLoad>
+                <AgentChat />
               </LazyLoad>
             ),
           },

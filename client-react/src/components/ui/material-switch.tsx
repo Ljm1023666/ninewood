@@ -5,9 +5,9 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 
-// --- MATERIAL DESIGN 3 PHYSICS ---
+// --- TRANSITION ---
 const SWITCH_THEME = {
-  '--ease-spring': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+  '--ease-switch': 'cubic-bezier(0.4, 0, 0.2, 1)',
 } as React.CSSProperties
 
 const switchVariants = cva(
@@ -178,7 +178,7 @@ const MaterialSwitch = React.forwardRef<HTMLInputElement, MaterialSwitchProps>(
           {/* HANDLE CONTAINER */}
           <div
             className={cn(
-              'pointer-events-none block h-full w-full transition-all duration-300 ease-[var(--ease-spring)]',
+              'pointer-events-none block h-full w-full transition-all duration-200 ease-out',
               isChecked ? translateDist : 'translate-x-0',
             )}
           >

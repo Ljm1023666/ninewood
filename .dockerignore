@@ -1,0 +1,17 @@
+node_modules
+dist
+.env
+*.log
+.git
+.gitignore
+server/uploads/*
+!server/uploads/.gitkeep
+server/src/**/*.js
+server/src/**/*.js.map
+server/src/**/*.d.ts
+server/src/**/*.d.ts.map
+.pnpm-home
+.pnpm-store
+__pycache__
+README.md
+*.md
