@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
+import { LegalDialog } from '@/components/ui/terms-conditions'
+import { captchaApi } from '@/api/captcha'
 import { BackgroundBeams } from '@/components/ui/background-beams'
 
-const CODE_LENGTH = 6
+const SMS_LENGTH = 6
 
 // ---- AnimatedNavLink ----
 
@@ -198,6 +200,215 @@ function MiniNavbar({
   )
 }
 
+// ---- 法律条文 ----
+
+const termsSections = [
+  {
+    title: '服务说明',
+    content:
+      '九木平台（以下简称"本平台"）是一个连接服务需求方与服务提供方的中介平台。用户可在本平台发布需求、接单、完成交易。',
+  },
+  {
+    title: '用户账户',
+    content:
+      '用户注册时需提供真实有效的手机号码。每个手机号码仅限注册一个账户。用户应妥善保管账户密码，因账户密码泄露导致的损失由用户自行承担。',
+  },
+  {
+    title: '平台规则',
+    content: [
+      '禁止发布违法违规内容',
+      '禁止恶意刷单、虚假交易',
+      '禁止在平台外私下交易',
+      '禁止骚扰、辱骂其他用户',
+      '禁止使用外挂、自动化脚本操作平台',
+    ],
+  },
+  {
+    title: '交易规则',
+    content:
+      '本平台采用担保交易模式。需求方发布需求后，服务方申请接单。双方确认后进入执行阶段。完成验收后资金解冻给服务方。如发生争议，平台有权介入协调。',
+  },
+  {
+    title: '费用与税收',
+    content:
+      '平台可能对成功交易收取服务费，具体费率以平台公示为准。用户应自行承担因使用平台服务产生的税费。',
+  },
+  {
+    title: '免责声明',
+    content:
+      '本平台仅作为信息中介，不对用户之间的交易结果承担责任。用户应自行判断交易风险。',
+  },
+  {
+    title: '条款变更',
+    content: '本平台有权随时修改服务条款，修改后的条款一经发布即生效。',
+  },
+  { title: '法律适用', content: '本条款适用中华人民共和国法律。' },
+]
+
+const privacySections = [
+  {
+    title: '信息收集',
+    content:
+      '我们收集您在使用九木平台时主动提供的个人信息，包括但不限于：手机号码、昵称、头像、个人简介。',
+  },
+  {
+    title: '信息使用',
+    content:
+      '您的个人信息用于创建和维护账户、处理和完成交易、改善平台服务、发送服务相关通知。',
+  },
+  {
+    title: '信息保护',
+    content:
+      '我们采取行业标准的安全措施保护您的个人信息，包括加密传输、访问控制、定期安全审计等。',
+  },
+  {
+    title: '信息共享',
+    content:
+      '我们不会将您的个人信息出售给第三方。法律要求或获得明确同意时除外。',
+  },
+  {
+    title: '用户权利',
+    content:
+      '您有权查看、修改、删除您的个人信息；注销您的账户；撤回同意。您可以在设置页面中进行上述操作。',
+  },
+  {
+    title: '联系我们',
+    content: '如有隐私相关的疑问或投诉，请通过平台内消息系统联系客服。',
+  },
+]
+
+// ---- hCaptcha 组件 ----
+
+function HCaptchaWidget({
+  siteKey,
+  onVerify,
+  onError,
+}: {
+  siteKey: string
+  onVerify: (token: string) => void
+  onError: (err: string) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    // 动态加载 hCaptcha 脚本
+    const existing = document.querySelector('script[src*="hcaptcha"]')
+    const loadWidget = () => {
+      if (!containerRef.current || !(window as any).hcaptcha) return
+      try {
+        widgetIdRef.current = (window as any).hcaptcha.render(
+          containerRef.current,
+          {
+            sitekey: siteKey,
+            size: 'normal',
+            theme: 'dark',
+            callback: onVerify,
+            'error-callback': () => onError('验证失败，请重试'),
+          },
+        )
+      } catch {
+        onError('验证组件加载失败')
+      }
+    }
+
+    if (existing) {
+      if ((window as any).hcaptcha) {
+        loadWidget()
+      } else {
+        existing.addEventListener('load', loadWidget)
+      }
+      return () => {
+        if (widgetIdRef.current) {
+          try {
+            ;(window as any).hcaptcha?.remove(widgetIdRef.current)
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://js.hcaptcha.com/1/api.js'
+    script.async = true
+    script.defer = true
+    script.onload = loadWidget
+    document.head.appendChild(script)
+
+    return () => {
+      if (widgetIdRef.current) {
+        try {
+          ;(window as any).hcaptcha?.remove(widgetIdRef.current)
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  }, [siteKey, onVerify, onError])
+
+  return (
+    <div ref={containerRef} className="flex justify-center min-h-[120px]" />
+  )
+}
+
+// ---- 验证码输入组件 ----
+
+function CodeInput({
+  length,
+  code,
+  onChange,
+  onKeyDown,
+  disabled,
+}: {
+  length: number
+  code: string[]
+  onChange: (index: number, value: string) => void
+  onKeyDown: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void
+  disabled: boolean
+}) {
+  const refs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    setTimeout(() => refs.current[0]?.focus(), 400)
+  }, [])
+
+  return (
+    <div className="relative rounded-full py-4 px-5 border border-white/10 bg-transparent">
+      <div className="flex items-center justify-center">
+        {code.map((digit, i) => (
+          <div key={i} className="flex items-center">
+            <div className="relative">
+              <input
+                ref={(el) => {
+                  refs.current[i] = el
+                }}
+                data-sms-index={i}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={1}
+                value={digit}
+                disabled={disabled}
+                onChange={(e) => onChange(i, e.target.value)}
+                onKeyDown={(e) => onKeyDown(i, e)}
+                className="w-8 text-center text-xl bg-transparent text-white border-none focus:outline-none focus:ring-0 appearance-none disabled:opacity-50"
+                style={{ caretColor: 'transparent' }}
+              />
+              {!digit && (
+                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
+                  <span className="text-xl text-white/20">0</span>
+                </div>
+              )}
+            </div>
+            {i < length - 1 && <span className="text-white/20 text-xl">|</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ---- SignInPage ----
 
 export default function LoginPage() {
@@ -208,12 +419,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLogin, setIsLogin] = useState(true)
-  const [step, setStep] = useState<'email' | 'code' | 'success'>('email')
-  const [code, setCode] = useState(Array(CODE_LENGTH).fill('') as string[])
-  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const [step, setStep] = useState<'phone' | 'captcha' | 'sms' | 'success'>(
+    'phone',
+  )
+  const [smsDigits, setSmsDigits] = useState(
+    Array(SMS_LENGTH).fill('') as string[],
+  )
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
+
+  // 人机验证 (hCaptcha)
+  const [captchaSiteKey, setCaptchaSiteKey] = useState('')
+  const [captchaError, setCaptchaError] = useState('')
+
+  // 隐私政策
+  const [privacyAccepted, setPrivacyAccepted] = useState(false)
+
+  // 预加载 hCaptcha 脚本（避免到验证步骤才加载）
+  useEffect(() => {
+    if (document.querySelector('script[src*="hcaptcha"]')) return
+    const script = document.createElement('script')
+    script.src = 'https://js.hcaptcha.com/1/api.js'
+    script.async = true
+    script.defer = true
+    document.head.appendChild(script)
+  }, [])
 
   // 倒计时
   useEffect(() => {
@@ -222,46 +453,62 @@ export default function LoginPage() {
     return () => clearInterval(t)
   }, [countdown])
 
-  // 聚焦第一个验证码输入
-  useEffect(() => {
-    if (step === 'code') {
-      setTimeout(() => {
-        codeInputRefs.current[0]?.focus()
-      }, 500)
-    }
-  }, [step])
-
-  // 发送验证码
-  const handleSendCode = useCallback(async () => {
-    if (!phone || phone.length < 11 || isLoading || countdown > 0) return
+  // ── 进入人机验证步骤 ──
+  const handleFetchCaptcha = useCallback(async () => {
     setError('')
+    setCaptchaError('')
     setIsLoading(true)
     try {
-      await authApi.sendCode(phone)
-      setCountdown(60)
-      setStep('code')
-    } catch (e: unknown) {
-      const msg =
-        e && typeof e === 'object' && 'response' in e
-          ? (e as { response?: { data?: { message?: string } } }).response?.data
-              ?.message
-          : undefined
-      setError(msg || '发送失败')
+      const siteKey = await captchaApi.getSiteKey()
+      if (!siteKey) throw new Error('hCaptcha 未配置')
+      setCaptchaSiteKey(siteKey)
+      setStep('captcha')
+    } catch {
+      setError('人机验证未配置，请联系管理员')
     } finally {
       setIsLoading(false)
     }
-  }, [phone, isLoading, countdown])
+  }, [])
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  // hCaptcha 验证回调 → 发送短信
+  const handleHCaptchaVerify = useCallback(
+    async (token: string) => {
+      setCaptchaError('')
+      setIsLoading(true)
+      try {
+        const result = await captchaApi.verify(token)
+        if (!result.success) {
+          setCaptchaError(result.message || '验证失败')
+          return
+        }
+        await authApi.sendCode(phone, token)
+        setStep('sms')
+        setCountdown(60)
+      } catch (e: any) {
+        const msg =
+          e?.response?.data?.message || e?.message || '操作失败，请重试'
+        setCaptchaError(msg)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [phone],
+  )
+
+  // ── 手机号提交 → 获取人机验证 ──
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await handleSendCode()
+    if (!phone || phone.length < 11) return
+    await handleFetchCaptcha()
   }
 
-  const handleResendCode = async () => {
-    await handleSendCode()
+  // ── 重新发送短信 ──
+  const handleResendSms = async () => {
+    if (countdown > 0) return
+    await handleFetchCaptcha()
   }
 
-  // 密码登录
+  // ── 密码登录 ──
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!phone || phone.length < 11 || !password) return
@@ -283,20 +530,24 @@ export default function LoginPage() {
     }
   }
 
-  const handleCodeChange = async (index: number, value: string) => {
+  // ── 短信验证码输入处理 ──
+  const handleSmsChange = async (index: number, value: string) => {
     if (value.length > 1) return
-    const newCode = [...code]
-    newCode[index] = value
-    setCode(newCode)
+    const newDigits = [...smsDigits]
+    newDigits[index] = value
+    setSmsDigits(newDigits)
 
-    if (value && index < CODE_LENGTH - 1) {
-      codeInputRefs.current[index + 1]?.focus()
+    if (value && index < SMS_LENGTH - 1) {
+      // focus next
+      const nextEl = document.querySelector<HTMLInputElement>(
+        `[data-sms-index="${index + 1}"]`,
+      )
+      nextEl?.focus()
     }
 
-    if (index === CODE_LENGTH - 1 && value) {
-      const fullCode = newCode.join('')
-      if (newCode.every((digit) => digit !== '')) {
-        // 调后端验证
+    if (index === SMS_LENGTH - 1 && value) {
+      const fullCode = newDigits.join('')
+      if (newDigits.every((d) => d !== '')) {
         setError('')
         setIsLoading(true)
         try {
@@ -310,8 +561,7 @@ export default function LoginPage() {
                   ?.data?.message
               : undefined
           setError(msg || '验证失败')
-          setCode(Array(CODE_LENGTH).fill(''))
-          codeInputRefs.current[0]?.focus()
+          setSmsDigits(Array(SMS_LENGTH).fill(''))
         } finally {
           setIsLoading(false)
         }
@@ -319,19 +569,24 @@ export default function LoginPage() {
     }
   }
 
-  const handleKeyDown = (
+  const handleSmsKeyDown = (
     index: number,
     e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      codeInputRefs.current[index - 1]?.focus()
+    if (e.key === 'Backspace' && !smsDigits[index] && index > 0) {
+      const prevEl = document.querySelector<HTMLInputElement>(
+        `[data-sms-index="${index - 1}"]`,
+      )
+      prevEl?.focus()
     }
   }
 
-  const handleBackClick = () => {
-    setStep('email')
-    setCode(Array(CODE_LENGTH).fill(''))
+  const handleBackToPhone = () => {
+    setStep('phone')
+    setSmsDigits(Array(SMS_LENGTH).fill(''))
     setError('')
+    setCaptchaError('')
+    setPrivacyAccepted(false)
   }
 
   return (
@@ -352,20 +607,23 @@ export default function LoginPage() {
           onToggleMode={(v) => {
             setIsLogin(v)
             setError('')
-            if (step === 'code') {
-              setStep('email')
-              setCode(Array(CODE_LENGTH).fill(''))
+            setPrivacyAccepted(false)
+            if (step !== 'phone') {
+              setStep('phone')
+              setSmsDigits(Array(SMS_LENGTH).fill(''))
+              setCaptchaSelected([])
             }
           }}
         />
 
         <div className="flex flex-1 flex-col lg:flex-row">
           <div className="flex-1 flex flex-col justify-center items-center">
-            <div className="w-full mt-[150px] max-w-sm">
+            <div className="w-full mt-[120px] max-w-sm">
               <AnimatePresence mode="wait">
-                {step === 'email' && (
+                {/* ── Step 1: 手机号 ── */}
+                {step === 'phone' && (
                   <motion.div
-                    key="email-step"
+                    key="phone-step"
                     initial={{ opacity: 0, x: -100 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
@@ -385,7 +643,7 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setError('Google 登录暂未开放')}
-                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-full py-3 px-4 transition-colors"
+                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-full py-3 px-4 transition-colors cursor-pointer"
                       >
                         <span className="text-lg">G</span>
                         <span>使用 Google 登录</span>
@@ -427,7 +685,7 @@ export default function LoginPage() {
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors w-9 h-9 flex items-center justify-center"
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors w-9 h-9 flex items-center justify-center cursor-pointer"
                             >
                               {showPassword ? (
                                 <svg
@@ -503,16 +761,19 @@ export default function LoginPage() {
                                 setIsLogin(false)
                                 setError('')
                               }}
-                              className="text-white/50 hover:text-white/70 underline ml-1 transition-colors"
+                              className="text-white/50 hover:text-white/70 underline ml-1 transition-colors cursor-pointer"
                             >
                               手机号注册
                             </button>
                           </p>
                         </form>
                       ) : (
-                        /* 注册表单 */
+                        /* 注册 → 手机号输入 */
                         <>
-                          <form onSubmit={handleEmailSubmit}>
+                          <form
+                            onSubmit={handlePhoneSubmit}
+                            className="space-y-3"
+                          >
                             <div className="relative">
                               <input
                                 type="tel"
@@ -528,7 +789,17 @@ export default function LoginPage() {
                               />
                               <button
                                 type="submit"
-                                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors group overflow-hidden"
+                                disabled={
+                                  phone.length < 11 ||
+                                  isLoading ||
+                                  !privacyAccepted
+                                }
+                                className={cn(
+                                  'absolute right-1.5 top-1/2 -translate-y-1/2 text-white w-9 h-9 flex items-center justify-center rounded-full transition-colors group overflow-hidden',
+                                  phone.length === 11 && privacyAccepted
+                                    ? 'bg-white/10 hover:bg-white/20 cursor-pointer'
+                                    : 'bg-white/5 cursor-not-allowed',
+                                )}
                               >
                                 <span className="relative w-full h-full block overflow-hidden">
                                   <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
@@ -540,6 +811,40 @@ export default function LoginPage() {
                                 </span>
                               </button>
                             </div>
+
+                            {/* 隐私政策接受 */}
+                            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={privacyAccepted}
+                                onChange={(e) =>
+                                  setPrivacyAccepted(e.target.checked)
+                                }
+                                className="w-4 h-4 rounded accent-white cursor-pointer"
+                              />
+                              <span className="text-xs text-white/40">
+                                我已阅读并同意{' '}
+                                <LegalDialog
+                                  trigger={
+                                    <span className="underline hover:text-white/60 cursor-pointer">
+                                      服务条款
+                                    </span>
+                                  }
+                                  title="服务条款"
+                                  sections={termsSections}
+                                />{' '}
+                                和{' '}
+                                <LegalDialog
+                                  trigger={
+                                    <span className="underline hover:text-white/60 cursor-pointer">
+                                      隐私政策
+                                    </span>
+                                  }
+                                  title="隐私政策"
+                                  sections={privacySections}
+                                />
+                              </span>
+                            </label>
                           </form>
 
                           {error && (
@@ -560,39 +865,44 @@ export default function LoginPage() {
                                 setIsLogin(true)
                                 setError('')
                               }}
-                              className="text-white/50 hover:text-white/70 underline ml-1 transition-colors"
+                              className="text-white/50 hover:text-white/70 underline ml-1 transition-colors cursor-pointer"
                             >
                               密码登录
                             </button>
                           </p>
 
-                          <p className="text-sm text-white/40 pt-10">
+                          <div className="text-sm text-white/40 pt-10">
                             注册即表示同意{' '}
-                            <button
-                              type="button"
-                              onClick={() => setError('服务条款页面建设中')}
-                              className="underline text-white/40 hover:text-white/60 transition-colors"
-                            >
-                              服务条款
-                            </button>{' '}
+                            <LegalDialog
+                              trigger={
+                                <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
+                                  服务条款
+                                </span>
+                              }
+                              title="服务条款"
+                              sections={termsSections}
+                            />{' '}
                             和{' '}
-                            <button
-                              type="button"
-                              onClick={() => setError('隐私政策页面建设中')}
-                              className="underline text-white/40 hover:text-white/60 transition-colors"
-                            >
-                              隐私政策
-                            </button>
-                          </p>
+                            <LegalDialog
+                              trigger={
+                                <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
+                                  隐私政策
+                                </span>
+                              }
+                              title="隐私政策"
+                              sections={privacySections}
+                            />
+                          </div>
                         </>
                       )}
                     </div>
                   </motion.div>
                 )}
 
-                {step === 'code' && (
+                {/* ── Step 2: 人机验证 ── */}
+                {step === 'captcha' && (
                   <motion.div
-                    key="code-step"
+                    key="captcha-step"
                     initial={{ opacity: 0, x: 100 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 100 }}
@@ -601,51 +911,75 @@ export default function LoginPage() {
                   >
                     <div className="space-y-1">
                       <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">
-                        已发送验证码
+                        人机验证
                       </h1>
                       <p className="text-[1.25rem] text-white/50 font-light">
-                        至 <span className="text-white/70">{phone}</span>
+                        完成下方验证
                       </p>
                     </div>
 
-                    <div className="w-full">
-                      <div className="relative rounded-full py-4 px-5 border border-white/10 bg-transparent">
-                        <div className="flex items-center justify-center">
-                          {code.map((digit, i) => (
-                            <div key={i} className="flex items-center">
-                              <div className="relative">
-                                <input
-                                  ref={(el) => {
-                                    codeInputRefs.current[i] = el
-                                  }}
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  maxLength={1}
-                                  value={digit}
-                                  onChange={(e) =>
-                                    handleCodeChange(i, e.target.value)
-                                  }
-                                  onKeyDown={(e) => handleKeyDown(i, e)}
-                                  className="w-8 text-center text-xl bg-transparent text-white border-none focus:outline-none focus:ring-0 appearance-none"
-                                  style={{ caretColor: 'transparent' }}
-                                />
-                                {!digit && (
-                                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                                    <span className="text-xl text-white">
-                                      0
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              {i < CODE_LENGTH - 1 && (
-                                <span className="text-white/20 text-xl">|</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                    {captchaSiteKey && (
+                      <HCaptchaWidget
+                        siteKey={captchaSiteKey}
+                        onVerify={handleHCaptchaVerify}
+                        onError={(msg) => setCaptchaError(msg)}
+                      />
+                    )}
+
+                    {isLoading && (
+                      <p className="text-sm text-white/40">验证中，请稍候...</p>
+                    )}
+
+                    {captchaError && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-sm text-red-400/80"
+                      >
+                        {captchaError}
+                      </motion.p>
+                    )}
+
+                    <div className="flex justify-center">
+                      <motion.button
+                        onClick={handleBackToPhone}
+                        className="rounded-full bg-white text-black font-medium px-8 py-3 hover:bg-white/90 transition-colors cursor-pointer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        返回
+                      </motion.button>
                     </div>
+                  </motion.div>
+                )}
+
+                {/* ── Step 3: 短信验证码 ── */}
+                {step === 'sms' && (
+                  <motion.div
+                    key="sms-step"
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 100 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    className="space-y-6 text-center"
+                  >
+                    <div className="space-y-1">
+                      <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">
+                        输入验证码
+                      </h1>
+                      <p className="text-[1.25rem] text-white/50 font-light">
+                        已发送至 {phone}
+                      </p>
+                    </div>
+
+                    <CodeInput
+                      length={SMS_LENGTH}
+                      code={smsDigits}
+                      onChange={handleSmsChange}
+                      onKeyDown={handleSmsKeyDown}
+                      disabled={isLoading}
+                    />
 
                     {error && (
                       <motion.p
@@ -663,7 +997,7 @@ export default function LoginPage() {
                         className="text-white/50 hover:text-white/70 transition-colors cursor-pointer text-sm"
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
-                        onClick={handleResendCode}
+                        onClick={handleResendSms}
                         disabled={isLoading || countdown > 0}
                       >
                         {countdown > 0 ? `${countdown}秒后重发` : '重新发送'}
@@ -672,55 +1006,45 @@ export default function LoginPage() {
 
                     <div className="flex w-full gap-3">
                       <motion.button
-                        onClick={handleBackClick}
-                        className="rounded-full bg-white text-black font-medium px-8 py-3 hover:bg-white/90 transition-colors w-[30%]"
+                        onClick={handleBackToPhone}
+                        className="rounded-full bg-white text-black font-medium px-8 py-3 hover:bg-white/90 transition-colors w-[30%] cursor-pointer"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ duration: 0.2 }}
                       >
                         返回
                       </motion.button>
-                      <motion.button
-                        className={`flex-1 rounded-full font-medium py-3 border transition-all duration-300 ${
-                          code.every((d) => d !== '')
-                            ? 'bg-white text-black border-transparent hover:bg-white/90 cursor-pointer'
-                            : 'bg-[#111] text-white/50 border-white/10 cursor-not-allowed'
-                        }`}
-                        disabled={!code.every((d) => d !== '')}
-                        whileHover={
-                          code.every((d) => d !== '') ? { scale: 1.02 } : {}
-                        }
-                        whileTap={
-                          code.every((d) => d !== '') ? { scale: 0.98 } : {}
-                        }
-                      >
-                        {isLoading ? '验证中...' : '继续'}
-                      </motion.button>
+                      <div className="flex-1" />
                     </div>
 
-                    <div className="pt-16">
-                      <p className="text-sm text-white/40">
+                    <div className="pt-10">
+                      <div className="text-sm text-white/40">
                         注册即表示同意{' '}
-                        <button
-                          type="button"
-                          onClick={() => setError('服务条款页面建设中')}
-                          className="underline text-white/40 hover:text-white/60 transition-colors"
-                        >
-                          服务条款
-                        </button>{' '}
+                        <LegalDialog
+                          trigger={
+                            <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
+                              服务条款
+                            </span>
+                          }
+                          title="服务条款"
+                          sections={termsSections}
+                        />{' '}
                         和{' '}
-                        <button
-                          type="button"
-                          onClick={() => setError('隐私政策页面建设中')}
-                          className="underline text-white/40 hover:text-white/60 transition-colors"
-                        >
-                          隐私政策
-                        </button>
-                      </p>
+                        <LegalDialog
+                          trigger={
+                            <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
+                              隐私政策
+                            </span>
+                          }
+                          title="隐私政策"
+                          sections={privacySections}
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 )}
 
+                {/* ── Step 4: 成功 ── */}
                 {step === 'success' && (
                   <motion.div
                     key="success-step"
@@ -737,7 +1061,6 @@ export default function LoginPage() {
                         加入九木社区
                       </p>
                     </div>
-
                     <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
@@ -759,13 +1082,12 @@ export default function LoginPage() {
                         </svg>
                       </div>
                     </motion.div>
-
                     <motion.button
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
                       onClick={() => navigate('/', { replace: true })}
-                      className="w-full rounded-full bg-white text-black font-medium py-3 hover:bg-white/90 transition-colors"
+                      className="w-full rounded-full bg-white text-black font-medium py-3 hover:bg-white/90 transition-colors cursor-pointer"
                     >
                       进入首页
                     </motion.button>

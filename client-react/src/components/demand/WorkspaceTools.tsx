@@ -119,12 +119,12 @@ export function WorkspaceTools() {
             <AlertTriangle className="size-3 text-amber-400/60" />
             缺失信息
             {missingQueue.length > 0 && (
-              <span className="text-red-400/70">
+              <span className="text-red-600 dark:text-red-400/70">
                 （{missingQueue.length} 项待回答）
               </span>
             )}
             {answeredQueue.length > 0 && (
-              <span className="text-gray-400/70">
+              <span className="text-gray-600 dark:text-gray-400/70">
                 （{answeredQueue.length} 项已收集，待分析）
               </span>
             )}
@@ -137,29 +137,29 @@ export function WorkspaceTools() {
 
               let border = 'border-amber-500/15'
               let bg = 'bg-amber-500/[0.04]'
-              let textColor = 'text-amber-300/70'
+              let textColor = 'text-amber-700 dark:text-amber-300/70'
               let Icon = Sparkles
-              let iconColor = 'text-amber-400/50'
+              let iconColor = 'text-amber-600 dark:text-amber-400/50'
               let hover = ''
 
               if (isResolved) {
                 border = 'border-emerald-500/20'
                 bg = 'bg-emerald-500/[0.04]'
-                textColor = 'text-emerald-300/60'
+                textColor = 'text-emerald-700 dark:text-emerald-300/60'
                 Icon = CheckCircle2
-                iconColor = 'text-emerald-400/50'
+                iconColor = 'text-emerald-600 dark:text-emerald-400/50'
               } else if (isAnswered) {
                 border = 'border-gray-500/20'
                 bg = 'bg-gray-500/[0.04]'
-                textColor = 'text-gray-300/50'
+                textColor = 'text-gray-600 dark:text-gray-300/50'
                 Icon = PencilLine
-                iconColor = 'text-gray-400/50'
+                iconColor = 'text-gray-600 dark:text-gray-400/50'
               } else if (isQueued) {
                 border = 'border-red-500/30'
                 bg = 'bg-red-500/[0.06]'
-                textColor = 'text-red-300/80'
+                textColor = 'text-red-600 dark:text-red-300/80'
                 Icon = XCircle
-                iconColor = 'text-red-400/60'
+                iconColor = 'text-red-600 dark:text-red-400/60'
                 hover = 'hover:border-red-500/40 hover:bg-red-500/[0.10]'
               } else {
                 hover = 'hover:border-amber-500/30 hover:bg-amber-500/[0.08]'
@@ -176,17 +176,17 @@ export function WorkspaceTools() {
                   <Icon className={`size-3 shrink-0 ${iconColor}`} />
                   <span className={`text-sm ${textColor} flex-1`}>{info}</span>
                   {isQueued && (
-                    <span className="text-sm text-red-400/40 font-medium">
+                    <span className="text-sm text-red-600/60 dark:text-red-400/40 font-medium">
                       待回答
                     </span>
                   )}
                   {isAnswered && (
-                    <span className="text-sm text-gray-400/40 font-medium">
+                    <span className="text-sm text-gray-600/60 dark:text-gray-400/40 font-medium">
                       已收集
                     </span>
                   )}
                   {isResolved && (
-                    <span className="text-sm text-emerald-400/40 font-medium">
+                    <span className="text-sm text-emerald-600/60 dark:text-emerald-400/40 font-medium">
                       已解决
                     </span>
                   )}

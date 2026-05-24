@@ -32,6 +32,12 @@ export const config = {
   // 快速模式用轻量模型；未设置则回退到 aiModel
   aiFastModel: process.env.AI_FAST_MODEL || '',
 
+  // hCaptcha 人机验证
+  hcaptcha: {
+    siteKey: process.env.HCAPTCHA_SITE_KEY || '',
+    secretKey: process.env.HCAPTCHA_SECRET_KEY || '',
+  },
+
   // Tencent Cloud SMS
   sms: {
     secretId: process.env.TENCENT_SECRET_ID || '',
