@@ -12,6 +12,7 @@ authRouter.use(authLimiter);
 
 const sendCodeSchema = z.object({
   phone: z.string().regex(/^\d{11}$/, '请输入有效的手机号'),
+  captchaToken: z.string().min(1, '请先完成人机验证'),
 });
 
 const registerSchema = z.object({
@@ -99,11 +100,19 @@ const loginSchema = z.object({
  *         description: 密码错误
  */
 
-// POST /api/auth/send-code — only for new users
+// POST /api/auth/send-code — 人机验证 → 短信验证码
 authRouter.post('/send-code', async (req: Request, res: Response) => {
   try {
-    const { phone } = sendCodeSchema.parse(req.body);
+    const { phone, captchaToken } = sendCodeSchema.parse(req.body);
+    // 校验人机验证
+    const { verifyCaptcha, consumeCaptcha } = await import('./captcha.js');
+    if (!verifyCaptcha(captchaToken)) {
+      return fail(res, '人机验证未通过或已过期', 400);
+    }
+    // 发送短信
     const result = await authService.sendCode(phone);
+    // 消费人机验证 token
+    consumeCaptcha(captchaToken);
     success(res, result, '验证码已发送');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);

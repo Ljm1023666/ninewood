@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
+import React, { useReducer, useMemo, useRef, useEffect } from 'react'
 import { cx } from 'class-variance-authority'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -214,70 +214,83 @@ export function MorphPanel({
 }: MorphPanelProps = {}) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
-  const [showForm, setShowForm] = useState(false)
 
-  const closingRef = useRef(false)
+  // ── 状态机 ──
+  type PanelState = 'idle' | 'open'
+  type Action = { type: 'OPEN' } | { type: 'CLOSE' }
 
-  const triggerClose = useCallback(() => {
-    closingRef.current = true
-    setShowForm(false)
-    textareaRef.current?.blur()
-    setTimeout(() => {
-      closingRef.current = false
-    }, 500)
+  const [panel, dispatch] = useReducer(
+    (state: PanelState, action: Action): PanelState => {
+      switch (action.type) {
+        case 'OPEN':
+          return 'open'
+        case 'CLOSE':
+          return 'idle'
+        default:
+          return state
+      }
+    },
+    'idle',
+  )
+
+  const isOpen = panel === 'open'
+
+  // 展开后自动聚焦
+  useEffect(() => {
+    if (isOpen) {
+      // 等 spring 动画完成后再聚焦
+      const id = setTimeout(() => textareaRef.current?.focus(), 300)
+      return () => clearTimeout(id)
+    }
+  }, [isOpen])
+
+  // 点击外部关闭
+  const isOpenRef = useRef(isOpen)
+  isOpenRef.current = isOpen
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node) &&
+        isOpenRef.current
+      ) {
+        dispatch({ type: 'CLOSE' })
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const triggerOpen = useCallback(() => {
-    if (closingRef.current) return
-    setShowForm(true)
-    setTimeout(() => {
-      textareaRef.current?.focus()
-    }, 200)
-  }, [])
-
-  const handleSuccess = useCallback(() => {
+  function handleSubmit() {
     const text = textareaRef.current?.value?.trim()
     if (text && onSend) {
       onSend(text)
       if (textareaRef.current) textareaRef.current.value = ''
     }
-    triggerClose()
-  }, [onSend, triggerClose])
-
-  const showFormRef = useRef(showForm)
-  showFormRef.current = showForm
-
-  useEffect(() => {
-    function clickOutsideHandler(e: MouseEvent) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(e.target as Node) &&
-        showFormRef.current
-      ) {
-        triggerClose()
-      }
-    }
-    document.addEventListener('mousedown', clickOutsideHandler)
-    return () => document.removeEventListener('mousedown', clickOutsideHandler)
-  }, [triggerClose])
+    dispatch({ type: 'CLOSE' })
+  }
 
   function handleKeys(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Escape') triggerClose()
+    if (e.key === 'Escape') dispatch({ type: 'CLOSE' })
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSuccess()
+      handleSubmit()
     }
   }
 
   const ctx = useMemo(
-    () => ({ showForm, triggerOpen, triggerClose }),
-    [showForm, triggerOpen, triggerClose],
+    () => ({
+      showForm: isOpen,
+      triggerOpen: () => dispatch({ type: 'OPEN' }),
+      triggerClose: () => dispatch({ type: 'CLOSE' }),
+    }),
+    [isOpen],
   )
 
   return (
     <div
       className="fixed right-6 bottom-6 z-[9999]"
-      style={{ width: FORM_WIDTH, height: showForm ? FORM_HEIGHT + 44 : 44 }}
+      style={{ width: FORM_WIDTH, height: isOpen ? FORM_HEIGHT + 44 : 44 }}
     >
       <motion.div
         ref={wrapperRef}
@@ -288,9 +301,9 @@ export function MorphPanel({
         style={{ border: '0.5px solid var(--border-color)' }}
         initial={false}
         animate={{
-          width: showForm ? FORM_WIDTH : 200,
-          height: showForm ? FORM_HEIGHT + 44 : 44,
-          borderRadius: showForm ? 14 : 20,
+          width: isOpen ? FORM_WIDTH : 200,
+          height: isOpen ? FORM_HEIGHT + 44 : 44,
+          borderRadius: isOpen ? 14 : 20,
         }}
         transition={{
           type: 'spring',
@@ -301,11 +314,11 @@ export function MorphPanel({
       >
         <FormContext.Provider value={ctx}>
           <DockBar />
-          {showForm && (
+          {isOpen && (
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                handleSuccess()
+                handleSubmit()
               }}
               className="flex h-full w-full flex-col p-1"
               style={{ width: FORM_WIDTH, height: FORM_HEIGHT }}
