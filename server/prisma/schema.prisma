@@ -82,6 +82,18 @@ enum MessageType {
   SYSTEM
 }
 
+enum DemandStage {
+  active
+  compressed
+  completed
+}
+
+enum TagCategory {
+  service
+  demand
+  both
+}
+
 model User {
   id                 String    @id @default(uuid())
   phone              String    @unique
@@ -97,6 +109,11 @@ model User {
   role               String    @default("USER")
   passwordHash       String?
   bio                String?
+  pushBlocklist      Json      @default("{\"tags\":[],\"keywords\":[],\"ageRanges\":[]}")
+  hasVisitedCompletedList Boolean   @default(false)
+  serviceTags            String[]  @default([])
+  isBusy                 Boolean   @default(false)
+  allowSpecialSearch     Boolean   @default(false)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -115,38 +132,52 @@ model User {
   following           Follow[]    @relation("Following")
   followers           Follow[]    @relation("Followers")
   favorites           DemandFavorite[]
+  certifiedProvider   CertifiedProvider?
+  mergeMemberships    ConversationMergeMember[]
+  reviewsGiven        Review[]         @relation("Reviewer")
+  reviewsReceived     Review[]         @relation("Reviewee")
 
   @@index([cityCode])
   @@index([certificationLevel])
 }
 
 model Demand {
-  id             String       @id @default(uuid())
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title          String
-  description    String
-  minPrice       Decimal      @db.Decimal(10, 2)
-  category       String
-  taxonomyLeafId String?
-  serviceType    ServiceType
-  locationLat    Float?
-  locationLng    Float?
-  cityCode       String?
-  expireAt       DateTime
-  status         DemandStatus @default(PENDING)
-  circleId       String?
-  circle         Circle?      @relation(fields: [circleId], references: [id], onDelete: SetNull)
-  mediaUrls      Json         @default("[]")
-  applicantCount Int          @default(0)
-  isExample      Boolean      @default(false)
-  isPublic       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
+  id               String       @id @default(uuid())
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  description      String
+  minPrice         Decimal      @db.Decimal(10, 2)
+  category         String
+  taxonomyLeafId   String?
+  serviceType      ServiceType
+  cityCode         String?
+  regionId         Int?
+  region           Region?      @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  tagName          String?      // 关联的标签卡包（null=未分类?卡包）
+  isCertifiedOnly  Boolean      @default(false)
+  completedCoverImage String?   // 死池永久封面（完成时锁定，不可更改）
+  colorBar         String?      // 死池色条
+  pushConfig       Json?
+  stage            DemandStage  @default(active)
+  coverImage       String?
+  amountEstimate   Decimal?     @db.Decimal(10, 2)
+  expireAt         DateTime
+  status           DemandStatus @default(PENDING)
+  circleId         String?
+  circle           Circle?      @relation(fields: [circleId], references: [id], onDelete: SetNull)
+  mediaUrls        Json         @default("[]")
+  applicantCount   Int          @default(0)
+  isExample        Boolean      @default(false)
+  isPublic         Boolean      @default(true)
+  deletedAt        DateTime?
+  createdAt        DateTime     @default(now())
 
   applications     DemandApplication[]
   orders           Order[]
   favoritedBy      DemandFavorite[]
   depositRelations DepositDemand[]
+  activeDemand     ActiveDemand?
 
   @@index([userId])
   @@index([cityCode])
@@ -156,6 +187,8 @@ model Demand {
   @@index([category])
   @@index([taxonomyLeafId])
   @@index([isExample])
+  @@index([regionId, stage])
+  @@index([stage, createdAt])
 }
 
 model DemandApplication {
@@ -191,6 +224,7 @@ model Order {
   createdAt   DateTime    @default(now())
 
   messages Message[]
+  reviews  Review[]
 
   @@index([demandId])
   @@index([providerId])
@@ -273,6 +307,22 @@ model Complaint {
   @@index([demandId])
 }
 
+model Review {
+  id          String   @id @default(uuid())
+  orderId     String   @unique
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reviewerId  String
+  reviewer    User     @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  revieweeId  String
+  reviewee    User     @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+  rating      Int      // 1-5
+  content     String?
+  createdAt   DateTime @default(now())
+
+  @@index([reviewerId])
+  @@index([revieweeId])
+}
+
 model Message {
   id         String      @id @default(uuid())
   fromUserId String
@@ -328,8 +378,19 @@ model ConversationMerge {
   id        String   @id @default(uuid())
   userId    String
   title     String
-  memberIds String[]
   createdAt DateTime @default(now())
+
+  members ConversationMergeMember[]
+}
+
+model ConversationMergeMember {
+  mergeId String
+  merge   ConversationMerge @relation(fields: [mergeId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([mergeId, userId])
+  @@index([userId])
 }
 
 model DemandFavorite {
@@ -377,4 +438,52 @@ model AgentMessage {
 
   @@index([conversationId])
   @@index([createdAt])
+}
+
+// ── 行政区划表 ──
+
+model Region {
+  id       Int      @id
+  name     String   @db.VarChar(100)
+  level    Int      // 1=国家 2=省 3=市 4=区县
+  parentId Int      @default(0)
+
+  demands          Demand[]
+  certifiedProviders CertifiedProvider[]
+
+  @@index([parentId])
+}
+
+// ── 标签表 ──
+
+model Tag {
+  name                String     @id @db.VarChar(50)
+  category            TagCategory @default(both)
+  totalCompleted      Int        @default(0)
+  totalEstimatedAmount Decimal   @default(0) @db.Decimal(12, 2)
+  colorHistogram      Json       @default("[]")
+}
+
+// ── 认证服务者表 ──
+
+model CertifiedProvider {
+  userId         String   @id
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedAt     DateTime @default(now())
+  tags           String[] @default([])
+  regionId       Int?
+  region         Region?  @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  avgRating      Float    @default(0)
+  totalCompleted Int      @default(0)
+
+  @@index([regionId])
+}
+
+// ── 活池需求扩展表（时间杠杆） ──
+
+model ActiveDemand {
+  demandId           String    @id
+  demand             Demand    @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  totalExtendedMonths Int      @default(0)
+  nextCompressionDate DateTime?
 }

@@ -47,3 +47,26 @@ export const config = {
     templateId: process.env.TENCENT_SMS_TEMPLATE || '2631789',
   },
 };
+
+// ── 启动时环境检查 ──
+
+const isProd = process.env.NODE_ENV === 'production';
+
+if (isProd && !process.env.SENTRY_DSN) {
+  console.warn('[Ninewood] 警告: 生产环境未设置 SENTRY_DSN，错误将不会被上报');
+}
+
+if (!config.aiApiKey) {
+  const msg = isProd
+    ? '[Ninewood] 警告: AI_API_KEY 未设置，AI 功能将不可用'
+    : '[Ninewood] 提示: AI_API_KEY 未设置，AI 功能将不可用';
+  console.warn(msg);
+}
+
+if (isProd && !config.hcaptcha.secretKey) {
+  console.warn('[Ninewood] 警告: 生产环境未设置 HCAPTCHA_SECRET_KEY，人机验证将不可用');
+}
+
+if (isProd && (!config.sms.secretId || !config.sms.secretKey)) {
+  console.warn('[Ninewood] 警告: 生产环境未设置腾讯云 SMS 密钥，短信验证码将不可用');
+}

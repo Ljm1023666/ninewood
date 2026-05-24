@@ -118,7 +118,7 @@ export function DemandDiscoveryList({
   desktopGridRowCount,
   onDesktopGridRowCountChange,
   onDemandRowRecurse,
-  tags,
+  tagName,
   exact,
   paginationMode = 'infinite',
   pageSize = DEFAULT_PAGE_SIZE,
@@ -135,7 +135,7 @@ export function DemandDiscoveryList({
   desktopGridRowCount?: number
   onDesktopGridRowCountChange?: (n: number) => void
   onDemandRowRecurse?: (d: DemandRow) => void
-  tags?: string[]
+  tagName?: string
   exact?: boolean
   paginationMode?: 'infinite' | 'paged'
   pageSize?: number
@@ -151,7 +151,7 @@ export function DemandDiscoveryList({
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   // 稳定数组依赖：用字符串 key 避免每次渲染 [] !== [] 触发连锁重建
-  const tagsKey = tags?.join(',') ?? ''
+  const tagsKey = tagName || ''
   const leafIdsKey = taxonomyLeafIds?.join(',') ?? ''
 
   const fetchPage = useCallback(
@@ -164,7 +164,7 @@ export function DemandDiscoveryList({
       }
       if (kw) apiParams.keyword = kw
       if (serviceType !== 'ALL') apiParams.serviceType = serviceType
-      if (tags && tags.length > 0) apiParams.tags = tags.join(',')
+      if (tagName) apiParams.tagName = tagName
       if (taxonomyLeafIds && taxonomyLeafIds.length > 0)
         apiParams.taxonomyLeafIds = taxonomyLeafIds.join(',')
       if (exact) apiParams.exact = 'true'
