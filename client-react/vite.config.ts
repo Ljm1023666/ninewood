@@ -23,6 +23,7 @@ export default defineConfig({
     host: true,
     port: 5174,
     strictPort: true,
+    allowedHosts: ['ninewood.local', 'localhost'],
     proxy: {
       '/api': { target: 'http://localhost:3001', changeOrigin: true },
       '/uploads': { target: 'http://localhost:3001', changeOrigin: true },

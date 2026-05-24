@@ -93,11 +93,11 @@ function ThinkingPanel({
 
   return (
     <div className="rounded-xl border border-purple-500/20 bg-purple-500/[0.03] overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2 text-sm text-purple-400/60">
+      <div className="flex items-center gap-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400/60">
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex items-center gap-1.5 hover:text-purple-300 transition-colors"
+          className="flex items-center gap-1.5 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
         >
           <Brain className="size-3.5" />
           <span>思考过程</span>
@@ -114,7 +114,7 @@ function ThinkingPanel({
       {!collapsed && (
         <div
           ref={scrollRef}
-          className="px-4 pb-3 text-sm text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-[80px] overflow-y-auto"
+          className="px-4 pb-3 text-sm text-purple-600/60 dark:text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-[80px] overflow-y-auto"
           style={{ scrollbarWidth: 'thin', scrollbarColor: '#444 transparent' }}
         >
           {text.slice(0, len)}
@@ -902,7 +902,7 @@ export default function DemandCreate() {
             type="button"
             onClick={() => doPublish(true)}
             disabled={forcePublishing || publishing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-2 text-sm font-medium text-red-300/70 hover:border-red-500/30 hover:bg-red-500/[0.10] disabled:opacity-30 transition-all"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-2 text-sm font-medium text-red-600 dark:text-red-300/70 hover:border-red-500/30 hover:bg-red-500/[0.10] disabled:opacity-30 transition-all"
           >
             {forcePublishing ? (
               <span className="inline-block size-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
@@ -942,7 +942,7 @@ export default function DemandCreate() {
               {messages.length === 0 && !loading && (
                 <div className="flex flex-col items-center gap-4 py-4">
                   <div className="flex size-14 items-center justify-center rounded-2xl bg-bg-card border border-border">
-                    <Sparkles className="size-7 text-purple-400/60" />
+                    <Sparkles className="size-7 text-purple-500 dark:text-purple-400/60" />
                   </div>
                   <div className="text-center">
                     <h1 className="text-2xl font-bold text-text-primary">

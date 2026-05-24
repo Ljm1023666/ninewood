@@ -26,7 +26,9 @@ export function ConfirmDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-bold mb-2">{title}</h3>
-        <p className="text-sm text-text-secondary mb-6">{message}</p>
+        <p className="text-sm text-text-secondary mb-6 leading-relaxed">
+          {message}
+        </p>
         <div className="flex gap-3">
           <button
             onClick={onCancel}

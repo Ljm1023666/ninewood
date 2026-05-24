@@ -179,6 +179,33 @@ export default function Settings() {
           </button>
         </section>
 
+        {/* ── 法律信息 ── */}
+        <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-muted">
+            法律
+          </h2>
+          <button
+            type="button"
+            onClick={() => navigate('/privacy')}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-accent/6"
+          >
+            <span className="flex-1 text-sm font-semibold text-text-primary">
+              隐私政策
+            </span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/terms')}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-accent/6"
+          >
+            <span className="flex-1 text-sm font-semibold text-text-primary">
+              服务条款
+            </span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+        </section>
+
         {/* ── 退出登录 ── */}
         <button
           type="button"
