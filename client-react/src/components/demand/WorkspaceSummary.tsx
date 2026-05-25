@@ -23,7 +23,6 @@ function LockToggle({ fieldKey }: { fieldKey: string }) {
 export function WorkspaceSummary() {
   const fields = useDemandWorkspaceStore((s) => s.fields)
   const updateField = useDemandWorkspaceStore((s) => s.updateField)
-  const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
 
   return (
     <div className="space-y-3">
@@ -42,7 +41,7 @@ export function WorkspaceSummary() {
           placeholder="需求标题（AI 自动生成）"
           className="flex-1 rounded-xl border border-border bg-bg-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
         />
-        {!speedMode && <LockToggle fieldKey="title" />}
+        <LockToggle fieldKey="title" />
       </div>
 
       {/* 描述 */}
@@ -54,11 +53,9 @@ export function WorkspaceSummary() {
           rows={4}
           className="flex-1 rounded-xl border border-border bg-bg-card px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors resize-none"
         />
-        {!speedMode && (
-          <div className="-mt-3 shrink-0">
-            <LockToggle fieldKey="description" />
-          </div>
-        )}
+        <div className="-mt-3 shrink-0">
+          <LockToggle fieldKey="description" />
+        </div>
       </div>
     </div>
   )

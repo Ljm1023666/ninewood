@@ -1,0 +1,275 @@
+[
+  {
+    "name": "@hookform/resolvers",
+    "version": "5.4.0",
+    "license": "MIT",
+    "publisher": "bluebill1049",
+    "repository": "https://github.com/react-hook-form/resolvers"
+  },
+  {
+    "name": "@radix-ui/react-avatar",
+    "version": "1.1.11",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-dialog",
+    "version": "1.1.15",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-dropdown-menu",
+    "version": "2.1.16",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-label",
+    "version": "2.1.8",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-radio-group",
+    "version": "1.3.8",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-scroll-area",
+    "version": "1.2.10",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-select",
+    "version": "2.2.6",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-separator",
+    "version": "1.1.8",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-slot",
+    "version": "1.2.4",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-switch",
+    "version": "1.2.6",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-tabs",
+    "version": "1.1.13",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@radix-ui/react-tooltip",
+    "version": "1.2.8",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/radix-ui/primitives"
+  },
+  {
+    "name": "@sentry/react",
+    "version": "10.53.1",
+    "license": "MIT",
+    "publisher": "Sentry",
+    "repository": "https://github.com/getsentry/sentry-javascript"
+  },
+  {
+    "name": "@tsparticles/engine",
+    "version": "4.0.5",
+    "license": "MIT",
+    "publisher": "Matteo Bruni",
+    "repository": "https://github.com/tsparticles/tsparticles"
+  },
+  {
+    "name": "@tsparticles/react",
+    "version": "4.0.5",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/tsparticles/tsparticles"
+  },
+  {
+    "name": "@tsparticles/slim",
+    "version": "4.0.5",
+    "license": "MIT",
+    "publisher": "Matteo Bruni",
+    "repository": "https://github.com/tsparticles/tsparticles"
+  },
+  {
+    "name": "axios",
+    "version": "1.16.1",
+    "license": "MIT",
+    "publisher": "Matt Zabriskie",
+    "repository": "https://github.com/axios/axios"
+  },
+  {
+    "name": "class-variance-authority",
+    "version": "0.7.1",
+    "license": "Apache-2.0",
+    "publisher": "Joe Bell",
+    "repository": "https://github.com/joe-bell/cva"
+  },
+  {
+    "name": "clsx",
+    "version": "2.1.1",
+    "license": "MIT",
+    "publisher": "Luke Edwards",
+    "repository": "https://github.com/lukeed/clsx"
+  },
+  {
+    "name": "cmdk",
+    "version": "1.1.1",
+    "license": "MIT",
+    "publisher": "Paco",
+    "repository": "https://github.com/pacocoursey/cmdk"
+  },
+  {
+    "name": "framer-motion",
+    "version": "12.40.0",
+    "license": "MIT",
+    "publisher": "Matt Perry",
+    "repository": "https://github.com/motiondivision/motion/"
+  },
+  {
+    "name": "gsap",
+    "version": "3.15.0",
+    "license": "Custom: https://gsap.com/GSAP-share-image.png",
+    "publisher": "",
+    "repository": "https://github.com/greensock/GSAP"
+  },
+  {
+    "name": "lucide-react",
+    "version": "1.16.0",
+    "license": "ISC",
+    "publisher": "Eric Fennis",
+    "repository": "https://github.com/lucide-icons/lucide"
+  },
+  {
+    "name": "motion",
+    "version": "12.40.0",
+    "license": "MIT",
+    "publisher": "Matt Perry",
+    "repository": "https://github.com/motiondivision/motion"
+  },
+  {
+    "name": "react-dom",
+    "version": "19.2.6",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/facebook/react"
+  },
+  {
+    "name": "react-element-to-jsx-string",
+    "version": "17.0.1",
+    "license": "MIT",
+    "publisher": "Algolia, Inc.",
+    "repository": "https://github.com/algolia/react-element-to-jsx-string"
+  },
+  {
+    "name": "react-hook-form",
+    "version": "7.76.0",
+    "license": "MIT",
+    "publisher": "Beier",
+    "repository": "https://github.com/react-hook-form/react-hook-form"
+  },
+  {
+    "name": "react-resizable-panels",
+    "version": "4.11.1",
+    "license": "MIT",
+    "publisher": "Brian Vaughn",
+    "repository": "https://github.com/bvaughn/react-resizable-panels"
+  },
+  {
+    "name": "react-router-dom",
+    "version": "7.15.1",
+    "license": "MIT",
+    "publisher": "Remix Software",
+    "repository": "https://github.com/remix-run/react-router"
+  },
+  {
+    "name": "react",
+    "version": "19.2.6",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/facebook/react"
+  },
+  {
+    "name": "recharts",
+    "version": "3.8.1",
+    "license": "MIT",
+    "publisher": "recharts group",
+    "repository": "https://github.com/recharts/recharts"
+  },
+  {
+    "name": "socket.io-client",
+    "version": "4.8.3",
+    "license": "MIT",
+    "publisher": "",
+    "repository": "https://github.com/socketio/socket.io"
+  },
+  {
+    "name": "sonner",
+    "version": "2.0.7",
+    "license": "MIT",
+    "publisher": "Emil Kowalski",
+    "repository": "https://github.com/emilkowalski/sonner"
+  },
+  {
+    "name": "tailwind-merge",
+    "version": "3.6.0",
+    "license": "MIT",
+    "publisher": "Dany Castillo",
+    "repository": "https://github.com/dcastil/tailwind-merge"
+  },
+  {
+    "name": "three",
+    "version": "0.184.0",
+    "license": "MIT",
+    "publisher": "mrdoob",
+    "repository": "https://github.com/mrdoob/three.js"
+  },
+  {
+    "name": "vaul",
+    "version": "1.1.2",
+    "license": "MIT",
+    "publisher": "Emil Kowalski",
+    "repository": "https://github.com/emilkowalski/vaul"
+  },
+  {
+    "name": "zod",
+    "version": "3.25.76",
+    "license": "MIT",
+    "publisher": "Colin McDonnell",
+    "repository": "https://github.com/colinhacks/zod"
+  },
+  {
+    "name": "zustand",
+    "version": "5.0.13",
+    "license": "MIT",
+    "publisher": "Paul Henschel",
+    "repository": "https://github.com/pmndrs/zustand"
+  }
+]

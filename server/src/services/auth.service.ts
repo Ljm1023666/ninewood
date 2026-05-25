@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import * as tencentcloud from 'tencentcloud-sdk-nodejs-sms';
 import { prisma } from '../lib/prisma.js';
+import { ipToCity } from './ipgeo.service.js';
 import { config } from '../config.js';
 
 const SmsClient = tencentcloud.sms.v20210111.Client;
@@ -18,6 +19,7 @@ type LegacyUser = {
   demandCardCoverUrl: string | null;
   cityCode: string | null;
   bio: string | null;
+  birthday?: Date | null;
   certificationLevel: string | null;
   snatchCredits: number | null;
   creditScore: number | null;
@@ -61,6 +63,7 @@ function legacyUserResponse(user: LegacyUser) {
     demandCardCoverUrl: user.demandCardCoverUrl,
     cityCode: user.cityCode,
     bio: user.bio,
+    birthday: user.birthday?.toISOString?.() ?? user.birthday ?? null,
     certificationLevel: user.certificationLevel || 'NONE',
     snatchCredits: user.snatchCredits || 0,
     creditScore: user.creditScore || 60,
@@ -75,7 +78,7 @@ function modernUserResponse(user: LegacyUser) {
 async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> {
   try {
     const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
       phone,
     );
     return rows?.[0] || null;
@@ -87,7 +90,7 @@ async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> 
 async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
   try {
     const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
       userId,
     );
     return rows?.[0] || null;
@@ -129,6 +132,7 @@ async function findModernUserByPhone(phone: string): Promise<LegacyUser | null> 
         creditScore: true,
         passwordHash: true,
         bio: true,
+        birthday: true,
         createdAt: true,
       },
     });
@@ -154,6 +158,7 @@ async function findModernUserById(userId: string): Promise<LegacyUser | null> {
         creditScore: true,
         passwordHash: true,
         bio: true,
+        birthday: true,
         createdAt: true,
       },
     });
@@ -187,7 +192,7 @@ export const authService = {
     return { phone, code: smsOk ? undefined : code };
   },
 
-  async register(phone: string, code: string) {
+  async register(phone: string, code: string, ip?: string) {
     const stored = smsStore.get(phone);
     if (!stored || stored.expires < Date.now()) {
       throw { status: 400, message: '验证码已过期，请重新获取' };
@@ -224,6 +229,7 @@ export const authService = {
         phone,
         nickname: `用户_${tail}`,
         passwordHash,
+        cityCode: ip ? ipToCity(ip) : null,
       },
       select: {
         id: true,
@@ -238,6 +244,7 @@ export const authService = {
         creditScore: true,
         passwordHash: true,
         bio: true,
+        birthday: true,
         createdAt: true,
       },
     });

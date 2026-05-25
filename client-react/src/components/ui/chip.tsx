@@ -22,7 +22,7 @@ const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex h-8 max-w-full shrink-0 items-center justify-center gap-1 rounded-full border px-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'inline-flex h-8 max-w-full shrink-0 items-center justify-center gap-1 rounded-full border px-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/10 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         variant === 'outlined' &&
           (selected
             ? 'border-accent bg-accent/15 text-text-primary shadow-sm'

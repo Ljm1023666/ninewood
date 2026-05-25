@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/pixel-logo-grid'
 import { LimelightNav, type NavItem } from '@/components/ui/limelight-nav'
 import { AnimatedSearchBar } from '@/components/ui/animated-search-bar'
+import { DynamicIslandTOC } from '@/components/ui/dynamic-island-toc'
 import { cn } from '@/lib/utils'
 
 // ===================================================================
@@ -1713,6 +1714,35 @@ function FaqNavTree({
   )
 }
 
+// ---------- FAQ 答案内容（全量渲染用） ----------
+function FaqAnswerContent({ faq }: { faq: FaqEntry }) {
+  return (
+    <>
+      <p className="text-[16px] leading-relaxed text-foreground/70 max-w-[72ch] mb-5">{faq.intro}</p>
+      {faq.steps && faq.steps.length > 0 && (
+        <div className="mb-6">
+          <ol className="space-y-4">
+            {faq.steps.map((step, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent text-[12px] font-bold mt-0.5">{i + 1}</span>
+                <div>
+                  <h4 className="text-[16px] font-semibold text-foreground/85">{step.title}</h4>
+                  <p className="text-[15px] leading-relaxed text-foreground/60 mt-0.5">{step.content}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {faq.tips && faq.tips.length > 0 && (
+        <div className="mb-6">
+          {faq.tips.map((tip, i) => (<BlockquoteBlock key={i} type={tip.type} content={tip.content} />))}
+        </div>
+      )}
+    </>
+  )
+}
+
 // ---------- 中央内容面板 ----------
 function FaqDocContent({
   selectedQuestion,
@@ -1955,6 +1985,23 @@ function FaqTocPanel({
   )
 }
 
+// ---------- 搜索结果导航 ----------
+function SearchNav({ total, onPrev, onNext }: { total: number; onPrev: () => void; onNext: () => void }) {
+  return (
+    <div className="flex items-center justify-center gap-3 pt-2">
+      <span className="text-xs text-text-muted">找到 {total} 个结果</span>
+      <div className="flex gap-1">
+        <button onClick={onPrev} className="flex size-7 items-center justify-center rounded-md border border-border text-text-muted hover:text-text-primary hover:border-accent/40 transition-colors">
+          <ArrowUp className="size-3.5" />
+        </button>
+        <button onClick={onNext} className="flex size-7 items-center justify-center rounded-md border border-border text-text-muted hover:text-text-primary hover:border-accent/40 transition-colors">
+          <ChevronDown className="size-3.5" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ---------- 返回顶部 ----------
 function BackToTop() {
   const [visible, setVisible] = useState(false)
@@ -2120,11 +2167,14 @@ export default function Help() {
   const matchedFaq = useMemo(() => {
     if (!query.trim()) return []
     const q = query.toLowerCase()
-    return FAQ.filter(
-      (faq) =>
-        faq.q.toLowerCase().includes(q) ||
-        faq.keywords.some((kw) => kw.toLowerCase().includes(q)),
-    )
+    return FAQ.filter((faq) => {
+      if (faq.q.toLowerCase().includes(q)) return true
+      if (faq.keywords.some((kw) => kw.toLowerCase().includes(q))) return true
+      if (faq.intro.toLowerCase().includes(q)) return true
+      if (faq.steps?.some((s) => s.title.toLowerCase().includes(q) || s.content.toLowerCase().includes(q))) return true
+      if (faq.tips?.some((t) => t.content.toLowerCase().includes(q))) return true
+      return false
+    })
   }, [query])
 
   // —— 文档导航状态 ——
@@ -2208,6 +2258,29 @@ export default function Help() {
     return cats
   }, [submitted, matchedFaq, expandedCategories])
 
+  const scrollToAnchor = (id: string) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    const sc = document.querySelector('.help-scroll-container') as HTMLElement | null
+    const scrollTop = sc ? sc.scrollTop : window.scrollY
+    const containerTop = sc ? sc.getBoundingClientRect().top : 0
+    const y = el.getBoundingClientRect().top + scrollTop - containerTop - 80
+    ;(sc || window).scrollTo({ top: y, behavior: 'smooth' })
+  }
+
+  const tocItems = useMemo(() => {
+    const items: import('@/components/ui/dynamic-island-toc').TocItem[] = []
+    for (const cat of FAQ_CATEGORIES) {
+      const entries = FAQ.filter((f) => f.category === cat.id)
+      if (entries.length === 0) continue
+      items.push({ id: `cat-${cat.id}`, text: cat.title, level: 1, onClick: () => scrollToAnchor(`cat-${cat.id}`) })
+      for (const faq of entries) {
+        items.push({ id: `faq-${faq.id}`, text: faq.q, level: 2, onClick: () => scrollToAnchor(`faq-${faq.id}`) })
+      }
+    }
+    return items
+  }, [])
+
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground">
       {/* ====== 共享顶部工具栏 ====== */}
@@ -2225,107 +2298,40 @@ export default function Help() {
             limelightClassName="w-16"
           />
         </div>
-        <div className="flex items-center gap-3 px-6 pt-5 pb-4">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-accent/12 text-accent">
-            <HelpCircle className="size-5" />
-          </div>
-          <div>
-            <h1 className="text-[22px] font-bold tracking-tight text-foreground">
-              帮助中心
-            </h1>
-          </div>
-        </div>
-        <div className="flex flex-col items-center px-6 pb-5">
-          <AnimatedSearchBar
-            value={query}
-            onChange={(v) => {
-              setQuery(v)
-              if (submitted) setSubmitted(false)
-            }}
-            onEnter={handleSend}
-            placeholder={
-              mode === 'ask' ? '输入关键词搜索文档...' : '搜索页面...'
-            }
-          />
-        </div>
       </div>
 
       {/* ====== 模式内容 ====== */}
       {mode === 'ask' ? (
-        <div className="flex min-h-0 flex-1">
-          {/* 左侧导航栏 */}
-          <aside className="hidden w-56 shrink-0 overflow-y-auto border-r border-border/30 md:block">
-            <div className="px-3 py-5">
-              <FaqNavTree
-                expandedCategories={searchExpandedCategories}
-                selectedQuestion={selectedQuestion}
-                searchQuery={submitted ? query : ''}
-                onToggleCategory={toggleCategory}
-                onSelectQuestion={handleSelectQuestion}
-              />
-            </div>
-          </aside>
-
-          {/* 中央内容区 */}
-          <main className="help-scroll-container min-w-0 flex-1 overflow-y-auto px-6 py-6 sm:px-10 scroll-smooth">
-            {submitted && matchedFaq.length === 0 && query.trim() ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Search className="size-8 text-foreground/12 mb-3" />
-                <p className="text-base font-medium text-foreground/40">
-                  未找到相关问题
-                </p>
-                <p className="mt-1.5 text-[15px] text-foreground/25">
-                  试试更换关键词，例如搜索具体的功能或操作
-                </p>
-              </div>
-            ) : submitted && matchedFaq.length > 0 ? (
-              <div>
-                <p className="mb-4 text-[14px] font-medium text-foreground/35">
-                  找到 <span className="text-accent">{matchedFaq.length}</span>{' '}
-                  个相关问题
-                </p>
-                <div className="space-y-0.5">
-                  {matchedFaq.map((faq) => {
-                    const cat = FAQ_CATEGORIES.find(
-                      (c) => c.id === faq.category,
-                    )
-                    return (
-                      <button
-                        key={faq.id}
-                        type="button"
-                        onClick={() => handleSelectQuestion(faq)}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent/[0.04]"
-                      >
-                        <span className="shrink-0 text-[12px] font-medium text-foreground/25 min-w-[4.5rem]">
-                          {cat?.title ?? faq.category}
-                        </span>
-                        <span className="text-[15px] font-medium text-foreground/60 truncate">
-                          <HighlightText text={faq.q} query={query} />
-                        </span>
-                        <ArrowRight className="size-3.5 shrink-0 text-foreground/15 ml-auto" />
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : (
-              <FaqDocContent
-                selectedQuestion={selectedQuestion}
-                onSelectQuestion={handleSelectQuestion}
-              />
-            )}
-          </main>
-
-          {/* 右侧页内目录 */}
-          <aside className="hidden w-48 shrink-0 overflow-y-auto border-l border-border/30 lg:block">
-            <div className="px-3 py-5">
-              <FaqTocPanel
-                selectedQuestion={selectedQuestion}
-                onSelectQuestion={handleSelectQuestion}
-              />
-            </div>
-          </aside>
-        </div>
+        <article id="help-full-content" className="help-scroll-container min-w-0 flex-1 overflow-y-auto px-6 py-8 sm:px-12 scroll-smooth">
+          <div className="mx-auto max-w-3xl">
+            {FAQ_CATEGORIES.map((cat) => {
+                const entries = FAQ.filter((f) => f.category === cat.id)
+                if (entries.length === 0) return null
+                const CatIcon = cat.icon
+                return (
+                  <section key={cat.id} className="mb-12">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="flex size-9 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                        <CatIcon className="size-4.5" />
+                      </div>
+                      <h2 id={`cat-${cat.id}`} className="text-xl font-bold text-foreground">{cat.title}</h2>
+                    </div>
+                    <div className="space-y-8">
+                      {entries.map((faq) => (
+                        <div key={faq.id}>
+                          <h3 id={`faq-${faq.id}`} className="text-lg font-semibold text-foreground mb-3">
+                            {faq.q}
+                          </h3>
+                          <FaqAnswerContent faq={faq} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )
+              })
+            }
+          </div>
+        </article>
       ) : (
         /* ====== 跳转模式：品牌卡片矩阵 ====== */
         <div className="help-scroll-container flex min-h-0 flex-1 flex-col overflow-y-scroll thin-scroll">
@@ -2403,7 +2409,7 @@ export default function Help() {
         </div>
       )}
 
-      {/* 返回顶部按钮 */}
+      {mode === 'ask' && <DynamicIslandTOC items={tocItems} />}
       <BackToTop />
     </div>
   )

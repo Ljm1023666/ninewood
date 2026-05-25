@@ -17,6 +17,7 @@ export type DemandRow = {
   minPrice: number
   category: string
   taxonomyLeafId?: string | null
+  tagName?: string | null
   serviceType: string
   applicantCount: number
   createdAgo?: string
@@ -119,10 +120,13 @@ export function DemandDiscoveryList({
   onDesktopGridRowCountChange,
   onDemandRowRecurse,
   tagName,
+  tagNames,
   exact,
+  suppressEmptyAction,
   paginationMode = 'infinite',
   pageSize = DEFAULT_PAGE_SIZE,
   renderMode = 'list' as 'list' | 'timeline',
+  onTotalChange,
 }: {
   listScope?: Record<string, string>
   keyword: string
@@ -136,10 +140,13 @@ export function DemandDiscoveryList({
   onDesktopGridRowCountChange?: (n: number) => void
   onDemandRowRecurse?: (d: DemandRow) => void
   tagName?: string
+  tagNames?: string
   exact?: boolean
+  suppressEmptyAction?: boolean
   paginationMode?: 'infinite' | 'paged'
   pageSize?: number
   renderMode?: 'list' | 'timeline'
+  onTotalChange?: (total: number) => void
 }) {
   void interactionMode
   void layoutVariant
@@ -151,7 +158,7 @@ export function DemandDiscoveryList({
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   // 稳定数组依赖：用字符串 key 避免每次渲染 [] !== [] 触发连锁重建
-  const tagsKey = tagName || ''
+  const tagsKey = tagNames || tagName || ''
   const leafIdsKey = taxonomyLeafIds?.join(',') ?? ''
 
   const fetchPage = useCallback(
@@ -164,6 +171,7 @@ export function DemandDiscoveryList({
       }
       if (kw) apiParams.keyword = kw
       if (serviceType !== 'ALL') apiParams.serviceType = serviceType
+      if (tagNames) apiParams.tagNames = tagNames
       if (tagName) apiParams.tagName = tagName
       if (taxonomyLeafIds && taxonomyLeafIds.length > 0)
         apiParams.taxonomyLeafIds = taxonomyLeafIds.join(',')
@@ -192,6 +200,10 @@ export function DemandDiscoveryList({
     totalPages,
     totalCount,
   } = usePagination<DemandRow>(fetchPage)
+
+  useEffect(() => {
+    onTotalChange?.(totalCount)
+  }, [totalCount, onTotalChange])
 
   const loadMoreRef = useRef(loadMore)
   const hasMoreRef = useRef(hasMore)
@@ -267,29 +279,32 @@ export function DemandDiscoveryList({
 
       {!error && !loading && items.length === 0 ? (
         <div className="w-full">
-          <EmptyState
-            type="demand"
-            message="暂时还没有匹配的需求，先发一条占个坑吧。"
-            actionLabel="发布需求"
-            onAction={() => navigate('/demands/create')}
-            actionSlot={
-              <AcetInvertButton
-                type="button"
-                className="w-full max-w-xs"
-                onClick={() => navigate('/demands/create')}
-              >
-                发布需求
-              </AcetInvertButton>
-            }
-          />
+          {!suppressEmptyAction ? (
+            <EmptyState
+              type="demand"
+              message="暂时还没有匹配的需求，先发一条占个坑吧。"
+              actionLabel="发布需求"
+              onAction={() => navigate('/demands/create')}
+              actionSlot={
+                <AcetInvertButton
+                  type="button"
+                  className="w-full max-w-xs"
+                  onClick={() => navigate('/demands/create')}
+                >
+                  发布需求
+                </AcetInvertButton>
+              }
+            />
+          ) : null}
         </div>
       ) : null}
 
       <div className="flex w-full flex-col gap-3">
-        {timelineMode ? (
+        {timelineMode && items.length > 0 ? (
           <Timeline
             items={items.map((d) => ({
               title: d.title,
+              tagName: d.tagName,
               description: `${d.serviceType === 'ONLINE' ? '线上服务' : '线下服务'} · ¥${d.minPrice} · ${d.applicantCount} 人申请`,
               date: d.createdAgo ? `${d.createdAgo}前` : undefined,
               status: 'current' as const,

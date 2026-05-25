@@ -400,14 +400,15 @@ export function InteractiveProductCard({
               ) : null}
 
               <div
-                className="absolute inset-0 z-10 flex min-h-0 flex-col px-10 pt-16"
+                className="absolute inset-0 z-10 flex min-h-0 flex-col pt-16"
                 style={{ transform: 'translateZ(40px)' }}
               >
                 <div
                   className={cn(
-                    'relative shrink-0 flex w-full justify-center overflow-hidden px-4 py-3 [text-rendering:optimizeLegibility]',
+                    'relative shrink-0 flex w-full justify-center overflow-hidden px-4 backdrop-blur-sm [text-rendering:optimizeLegibility]',
                     titleBarShimmerVariant,
                   )}
+                  style={{ paddingTop: 16, paddingBottom: 16 }}
                 >
                   <h3
                     className={cn(

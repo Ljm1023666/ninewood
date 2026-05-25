@@ -2,10 +2,11 @@
  * 语义分类器客户端
  * 调用本地的 Python FastAPI 分类服务
  */
+import { getCache, setCache } from '../lib/redis.js'
 
 const CLASSIFIER_URL = 'http://127.0.0.1:8001/classify'
 const TIMEOUT_MS = 500
-const REQUEST_TIMEOUT_MS = 30000
+const REQUEST_TIMEOUT_MS = 2000
 
 export interface SemanticMatch {
   category_id: string
@@ -62,6 +63,12 @@ export async function routeClassify(
 }> {
   const text = keywords.join(' ')
 
+  const cacheKey = `classify:${text}`
+  const cached = await getCache<{ method: string; nodeIds: string[]; labels: string[] }>(cacheKey)
+  if (cached) {
+    return cached as { method: 'semantic' | 'rules' | 'fuzzy'; nodeIds: string[]; labels: string[] }
+  }
+
   // 阶段1：GPU 语义分类（高精度，优先）
   const semanticResults = await semanticClassify(text, 10, 0.2)
 
@@ -77,30 +84,32 @@ export async function routeClassify(
     return keywords.slice(1).some(kw => matchTarget.includes(kw.toLowerCase()))
   })
 
+  let result: { method: 'semantic' | 'rules' | 'fuzzy'; nodeIds: string[]; labels: string[] }
+
   if (filtered.length >= 2) {
     const nodeIds = filtered.map(r => r.category_id)
     const labels = filtered.map(r => r.name)
-    return { method: 'semantic', nodeIds, labels }
-  }
-
-  // 如果过滤后不足 2 个，退一步用不过滤的原始结果
-  if (semanticResults.length >= 2) {
+    result = { method: 'semantic', nodeIds, labels }
+  } else if (semanticResults.length >= 2) {
     const nodeIds = semanticResults.map(r => r.category_id)
     const labels = semanticResults.map(r => r.name)
-    return { method: 'semantic', nodeIds, labels }
-  }
-
-  // 阶段2：规则分类（关键词匹配）
-  try {
-    const { classifyForSearch } = await import('../classifier.js')
-    const result = classifyForSearch(keywords)
-    if (result.nodeIds.length > 0) {
-      return { method: 'rules', nodeIds: result.nodeIds, labels: result.labels }
+    result = { method: 'semantic', nodeIds, labels }
+  } else {
+    // 阶段2：规则分类（关键词匹配）
+    let rulesResult: { method: 'semantic' | 'rules' | 'fuzzy'; nodeIds: string[]; labels: string[] } | null = null
+    try {
+      const { classifyForSearch } = await import('../classifier.js')
+      const r = classifyForSearch(keywords)
+      if (r.nodeIds.length > 0) {
+        rulesResult = { method: 'rules', nodeIds: r.nodeIds, labels: r.labels }
+      }
+    } catch {
+      // 静默失败
     }
-  } catch {
-    // 静默失败
+    // 阶段3：降级到 keywords 模糊搜索
+    result = rulesResult || { method: 'fuzzy', nodeIds: [], labels: keywords }
   }
 
-  // 阶段3：降级到 keywords 模糊搜索
-  return { method: 'fuzzy', nodeIds: [], labels: keywords }
+  setCache(cacheKey, result, 300).catch(() => {})
+  return result
 }

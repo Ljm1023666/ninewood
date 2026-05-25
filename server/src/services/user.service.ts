@@ -18,7 +18,7 @@ export const userService = {
       where: { id: userId },
       select: {
         id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true,
-        certificationLevel: true, bio: true, creditScore: true, completedOrders: true, snatchCredits: true,
+        certificationLevel: true, bio: true, birthday: true, creditScore: true, completedOrders: true, snatchCredits: true,
       },
     });
     if (!user) throw { status: 404, message: '用户不存在' };
@@ -27,7 +27,7 @@ export const userService = {
     return user;
   },
 
-  async updateProfile(userId: string, data: { nickname?: string; avatarUrl?: string; coverUrl?: string; demandCardCoverUrl?: string | null; cityCode?: string; bio?: string }) {
+  async updateProfile(userId: string, data: { nickname?: string; avatarUrl?: string; coverUrl?: string; demandCardCoverUrl?: string | null; cityCode?: string; bio?: string; birthday?: string }) {
     const patch: typeof data = { ...data };
     if (patch.demandCardCoverUrl === '') patch.demandCardCoverUrl = null;
     const user = await prisma.user.update({
@@ -35,7 +35,7 @@ export const userService = {
       data: patch,
       select: {
         id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true,
-        certificationLevel: true, snatchCredits: true, creditScore: true, bio: true, completedOrders: true,
+        certificationLevel: true, snatchCredits: true, creditScore: true, bio: true, birthday: true, completedOrders: true,
       },
     });
     await delCache(`user:profile:${userId}`);
