@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BackButton } from '@/components/ui/back-button'
 
 interface SearchUser {
   id: string
@@ -56,7 +57,8 @@ export default function Search() {
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background text-text-primary">
       <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-3xl shrink-0 flex-col self-center">
         <div className="shrink-0 px-4 py-4 sm:px-6">
-          <div className="mb-1">
+          <BackButton />
+          <div className="mb-1 mt-2">
             <h1 className="text-xl font-bold text-text-primary">找人</h1>
             <p className="text-sm text-text-muted">搜索用户昵称或手机号</p>
           </div>

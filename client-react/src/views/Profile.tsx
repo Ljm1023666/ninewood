@@ -13,6 +13,7 @@ import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetFavouriteButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { ProfileEditDialog } from '@/components/ui/profile-edit-dialog'
 import { toast } from '@/components/ui/confirm-dialog'
+import { BackButton } from '@/components/ui/back-button'
 import {
   Settings,
   Edit3,
@@ -303,9 +304,9 @@ export default function Profile() {
                 animate={
                   intro.shrink
                     ? {
-                        left: 'var(--sidebar-w)',
-                        width: 'calc(100vw - var(--sidebar-w))',
-                        height: 'calc((100vw - var(--sidebar-w)) * 9 / 16)',
+                        left: 0,
+                        width: '100vw',
+                        height: 'calc(100vw * 9 / 16)',
                       }
                     : { x: 0, opacity: 1 }
                 }
@@ -370,6 +371,9 @@ export default function Profile() {
         </>
       ) : null}
 
+      <div className="absolute left-4 top-4 z-50">
+        <BackButton />
+      </div>
       <div
         className={cn(
           'relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto overflow-x-hidden thin-scroll transition-opacity duration-200',

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { orderApi } from '@/api/order'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
+import { BackButton } from '@/components/ui/back-button'
 import { Button } from '@/components/ui/button'
 import {
   AcetPrimaryButton,
@@ -60,11 +61,15 @@ export default function OrderDetail() {
 
   if (loading)
     return (
-      <div className="text-center py-16 text-text-muted text-sm">加载中...</div>
+      <>
+        <BackButton />
+        <div className="text-center py-16 text-text-muted text-sm">加载中...</div>
+      </>
     )
   if (error)
     return (
       <div className="text-center py-16">
+        <BackButton />
         <p className="text-text-muted text-sm">{error}</p>
         <Button
           variant="ghost"
@@ -90,6 +95,7 @@ export default function OrderDetail() {
 
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <BackButton />
       <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
         <div className="glass mx-auto w-full max-w-[500px] shrink-0 self-center rounded-xl p-6">
           <button

@@ -156,8 +156,8 @@
   {
     "name": "gsap",
     "version": "3.15.0",
-    "license": "Custom: https://gsap.com/GSAP-share-image.png",
-    "publisher": "",
+    "license": "GSAP Standard No-Charge License",
+    "publisher": "GreenSock",
     "repository": "https://github.com/greensock/GSAP"
   },
   {

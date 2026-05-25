@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { CheckCircle2, CreditCard, AlertCircle } from 'lucide-react'
 import { orderApi } from '@/api/order'
 import { AcetPrimaryButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { BackButton } from '@/components/ui/back-button'
 
 export default function Payment() {
   const { id } = useParams<{ id: string }>()
@@ -27,6 +28,7 @@ export default function Payment() {
 
   return (
     <div className="relative z-base flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+      <BackButton />
       <div className="relative z-content flex flex-1 flex-col items-center justify-center p-6">
         <div className="w-full max-w-sm shrink-0 text-center">
           {paid ? (

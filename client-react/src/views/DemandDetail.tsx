@@ -20,6 +20,7 @@ import { useUserStore } from '@/stores/user'
 import { Heart } from 'lucide-react'
 import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
 import { toast } from '@/components/ui/confirm-dialog'
+import { BackButton } from '@/components/ui/back-button'
 
 function stripDebugFromTitle(title: string): string {
   return title
@@ -97,6 +98,7 @@ function scheduleIdle(cb: () => void, timeoutMs: number) {
 function pageShell(inner: ReactNode) {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+      <BackButton />
       <div className="relative z-10 mx-auto flex w-full max-w-2xl shrink-0 flex-col items-center self-center px-6 py-12">
         {inner}
       </div>
@@ -373,6 +375,7 @@ export default function DemandDetail() {
 
   return (
     <div className="relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+      <BackButton />
       <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherCoverUrl} />
 
       {/* 不用 overflow-y-auto 包住卡片：会与 x 轴合成 auto，横向裁掉 3D 翻面/倾斜溢出；整页滚动交给外层 layout */}

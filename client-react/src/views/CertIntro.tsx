@@ -6,6 +6,7 @@ import { useThemeStore } from '@/stores/theme'
 import { certLabel, certColor, certGlow } from '@/constants/cert'
 import { cn } from '@/lib/utils'
 import { AcetGradientButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { BackButton } from '@/components/ui/back-button'
 import { ShieldCheck, Star, Zap, Users, Award, ArrowRight } from 'lucide-react'
 
 const levels = ['NONE', 'BASIC', 'INTERMEDIATE', 'ADVANCED', 'MASTER'] as const
@@ -60,6 +61,7 @@ export default function CertIntro() {
   const tMuted = isDark ? 'text-white/50' : 'text-text-muted'
   return (
     <motion.div className="relative min-h-full w-full overflow-y-auto thin-scroll bg-background">
+      <BackButton />
       <motion.div className="relative z-10 mx-auto w-full max-w-2xl px-4 pt-6 pb-8 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
