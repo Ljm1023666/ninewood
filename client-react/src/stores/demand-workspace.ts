@@ -16,6 +16,13 @@ export interface DemandFields {
   pushConfig?: Record<string, unknown>
   coverImage?: string
   amountEstimate?: number
+  // AI 2.5 新字段
+  expectedOutcome: string
+  visibilityWindow: number
+  maxApplicants: number
+  tags: string[]
+  aiTags: string[]
+  tagsConfirmed: boolean
 }
 
 interface DemandWorkspaceState {
@@ -91,6 +98,13 @@ const INITIAL_FIELDS: DemandFields = {
   pushConfig: undefined,
   coverImage: undefined,
   amountEstimate: undefined,
+  // AI 2.5
+  expectedOutcome: '',
+  visibilityWindow: 15,
+  maxApplicants: 10,
+  tags: [],
+  aiTags: [],
+  tagsConfirmed: false,
 }
 
 export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
@@ -259,7 +273,6 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
           )
         if (data.suggestedKeywords) {
           next.suggestedKeywords = data.suggestedKeywords
-          // Speed 模式：新关键词默认全部锁定
           if (speedMode) {
             set({
               lockedKeywords: new Set(
@@ -268,6 +281,15 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
             })
           }
         }
+        // AI 2.5: AI 返回的标签建议
+        const aiPayload = data as Record<string, unknown>
+        if (
+          !fieldOverrides.has('expectedOutcome') &&
+          typeof aiPayload.expectedOutcome === 'string'
+        )
+          next.expectedOutcome = aiPayload.expectedOutcome
+        if (aiPayload.aiTags && Array.isArray(aiPayload.aiTags))
+          next.aiTags = aiPayload.aiTags as string[]
         return {
           fields: next,
           missingInfo: data.missingInfo ?? s.missingInfo,

@@ -6,7 +6,7 @@ import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { ComboboxDemo } from '@/components/ui/filters-demo'
 import { useTableState } from '@/components/card-pool/useTableState'
-import { TableDiscard } from '@/components/card-pool/TableDiscard'
+import { CardPoolFooter } from '@/components/card-pool/CardPoolFooter'
 import { TableBreadcrumb } from '@/components/card-pool/TableBreadcrumb'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import {
@@ -28,7 +28,6 @@ import {
   ChildBlackCardGrid,
   AnimatedScopeCount,
 } from '@/components/card-pool/browse-black-cards'
-import { HandPile } from '@/components/card-pool/HandPile'
 import { PackOpeningAnimation } from '@/components/card-pool/PackOpeningAnimation'
 import {
   dragSurfaceSelectNoneClass,
@@ -38,21 +37,14 @@ import {
   loadSharedCardPoolFocus,
   saveSharedCardPoolFocus,
 } from '@/components/card-pool/tablePersistence'
+import {
+  useDesktopGridRows,
+  useUniqueHandScopes,
+  useHandTotals,
+  useChildTotals,
+} from '@/components/card-pool/useCardPoolShared'
 
 const PAGE = 24
-
-const DESKTOP_GRID_ROWS_LS = 'ninewood.cardPool.desktopGridRows'
-
-function readDesktopGridRows(): number {
-  try {
-    const raw = localStorage.getItem(DESKTOP_GRID_ROWS_LS)
-    const n = raw === null ? 2 : parseInt(raw, 10)
-    if (!Number.isFinite(n)) return 2
-    return Math.min(5, Math.max(1, n))
-  } catch {
-    return 2
-  }
-}
 
 export default function CardPool() {
   const navigate = useNavigate()
@@ -85,7 +77,6 @@ export default function CardPool() {
 
   const rangeLabel = '同城 5 km'
   const [scopeTotal, setScopeTotal] = useState<number | null>(null)
-  const [childTotals, setChildTotals] = useState<Record<string, number>>({})
   const [openingCarousel, setOpeningCarousel] = useState(false)
   const [packOpeningCards, setPackOpeningCards] = useState<
     PackCardData[] | null
@@ -94,12 +85,14 @@ export default function CardPool() {
     apiParams: Record<string, string>
     blackScope: BlackScope
   } | null>(null)
-  /** 每次打开/切换桌面时递增，强制需求列表重新挂载并重新请求 */
   const [desktopListNonce, setDesktopListNonce] = useState(0)
   const [rootBrowseExpanded, setRootBrowseExpanded] = useState(false)
   const [childPage, setChildPage] = useState(0)
-  const [handTotals, setHandTotals] = useState<Record<string, number>>({})
-  const [desktopGridRows, setDesktopGridRows] = useState(readDesktopGridRows)
+
+  const { desktopGridRows, setDesktopGridRows } = useDesktopGridRows()
+  const uniqueHandScopes = useUniqueHandScopes(hand)
+  const handTotals = useHandTotals(uniqueHandScopes)
+  const childTotals = useChildTotals(children)
 
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const handDropZoneRef = useRef<HTMLDivElement | null>(null)
@@ -129,14 +122,6 @@ export default function CardPool() {
   )
 
   const rootScopeInHand = handScopeKeys.has(scopeKey(focus))
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(DESKTOP_GRID_ROWS_LS, String(desktopGridRows))
-    } catch {
-      /* ignore */
-    }
-  }, [desktopGridRows])
 
   useEffect(() => {
     const key = scopeKey(focus)
@@ -182,68 +167,6 @@ export default function CardPool() {
       c = true
     }
   }, [focus])
-
-  useEffect(() => {
-    if (children.length === 0) return
-    let c = false
-    void Promise.all(
-      children.map(async (s) => {
-        const key = scopeKey(s)
-        try {
-          const n = await fetchTotalForScope(s)
-          return [key, n] as const
-        } catch {
-          return [key, 0] as const
-        }
-      }),
-    ).then((pairs) => {
-      if (c) return
-      const next: Record<string, number> = {}
-      for (const [k, v] of pairs) next[k] = v
-      setChildTotals(next)
-    })
-    return () => {
-      c = true
-    }
-  }, [children])
-
-  const uniqueHandScopes = useMemo(() => {
-    const m = new Map<string, BlackScope>()
-    for (const h of hand) {
-      const k = scopeKey(h.scope)
-      if (!m.has(k)) m.set(k, h.scope)
-    }
-    return [...m.values()]
-  }, [hand])
-
-  useEffect(() => {
-    if (uniqueHandScopes.length === 0) {
-      setHandTotals({})
-      return
-    }
-    let c = false
-    void Promise.all(
-      uniqueHandScopes.map(async (s) => {
-        const k = scopeKey(s)
-        try {
-          const n = await fetchTotalForScope(s)
-          return [k, n] as const
-        } catch {
-          return [k, 0] as const
-        }
-      }),
-    ).then((pairs) => {
-      if (c) return
-      setHandTotals((prev) => {
-        const next = { ...prev }
-        for (const [k, v] of pairs) next[k] = v
-        return next
-      })
-    })
-    return () => {
-      c = true
-    }
-  }, [uniqueHandScopes])
 
   const browseDemandCount = useMemo(() => {
     if (scopeTotal === null) return null
@@ -318,12 +241,6 @@ export default function CardPool() {
         }
         toast(err.response?.data?.message || err.message || '加载失败', 'error')
       })
-  }
-
-  function previewHand(entry: HandEntry) {
-    void fetchTotalForScope(entry.scope).then((n) => {
-      toast(`「${scopeTitle(entry.scope)}」约 ${n} 条需求`, 'success')
-    })
   }
 
   function renderBrowse() {
@@ -600,39 +517,24 @@ export default function CardPool() {
           )}
         </div>
 
-        <HandPile
+        <CardPoolFooter
           ref={handDropZoneRef}
-          entries={hand}
-          scopeTotals={handTotals}
-          busy={openingCarousel}
+          hand={hand}
+          discard={discard}
+          handTotals={handTotals}
+          openingCarousel={openingCarousel}
           onOpenDesktop={openHandDesktop}
           onRemove={removeHandEntry}
           onPin={pinToFront}
-          onDiscardToPile={discardHandEntryById}
-          onPreview={previewHand}
-          celebrateBlackScopeDropRef={celebrateBlackScopeDropRef}
-          pointerDropHighlight={pointerHandDropHover}
+          onDiscard={discardHandEntryById}
+          onRestore={restoreCard}
+          onClearHand={clearHand}
           onDropBlackScope={(scope) => {
             const added = addToHand(scope)
             if (!added) toast('该范围已在手牌中', 'info')
           }}
-        />
-        {hand.length > 0 && (
-          <button
-            type="button"
-            onClick={clearHand}
-            className="-mt-1 flex w-full items-center justify-center gap-1 border-t border-border/30 px-3 py-1.5 text-sm text-text-muted/50 hover:text-destructive/60 transition-colors"
-          >
-            清空手牌
-          </button>
-        )}
-
-        <TableDiscard
-          discard={discard}
-          onRestore={(c) => {
-            const ok = restoreCard(c)
-            if (!ok) toast('该范围已在手牌中', 'info')
-          }}
+          celebrateBlackScopeDropRef={celebrateBlackScopeDropRef}
+          pointerDropHighlight={pointerHandDropHover}
         />
       </div>
 

@@ -124,6 +124,59 @@ export function WorkspaceFields() {
 
       {/* 关键词标签 */}
       {fields.suggestedKeywords.length > 0 && <KeywordTags />}
+
+      {/* AI 2.5: 预期效果 */}
+      <div>
+        <div className="flex items-center gap-1 mb-1">
+          <label className="block text-sm text-text-muted">预期效果</label>
+          <LockToggleSlot fieldKey="expectedOutcome" />
+        </div>
+        <input
+          type="text"
+          value={fields.expectedOutcome}
+          onChange={(e) => updateField('expectedOutcome', e.target.value)}
+          placeholder="如：星耀二上王者"
+          className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
+        />
+      </div>
+
+      {/* AI 2.5: 窗口 + 上限 */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="block text-sm text-text-muted mb-1">
+            公开窗口 (分钟)
+          </label>
+          <input
+            type="number"
+            value={fields.visibilityWindow}
+            onChange={(e) =>
+              updateField(
+                'visibilityWindow',
+                Math.max(1, Math.min(1440, Number(e.target.value) || 15)),
+              )
+            }
+            min={1}
+            max={1440}
+            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-border focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm text-text-muted mb-1">接单上限</label>
+          <input
+            type="number"
+            value={fields.maxApplicants}
+            onChange={(e) =>
+              updateField(
+                'maxApplicants',
+                Math.max(1, Math.min(100, Number(e.target.value) || 10)),
+              )
+            }
+            min={1}
+            max={100}
+            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-border focus:outline-none"
+          />
+        </div>
+      </div>
     </div>
   )
 }
