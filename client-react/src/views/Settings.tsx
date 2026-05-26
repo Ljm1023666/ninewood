@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/confirm-dialog'
 import { BackButton } from '@/components/ui/back-button'
 import { userApi } from '@/api/user'
+import { userTagApi } from '@/api/user-tag'
 import {
   Palette,
   Check,
@@ -332,6 +333,9 @@ export default function Settings() {
           </div>
         </section>
 
+        {/* ── 服务标签（AI 2.5 标签状态机）── */}
+        <ServiceTagSection />
+
         {/* ── 法律信息 ── */}
         <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-muted">
@@ -380,5 +384,105 @@ export default function Settings() {
         </p>
       </div>
     </div>
+  )
+}
+
+/** AI 2.5 服务者标签状态机 */
+function ServiceTagSection() {
+  const [tags, setTags] = useState<
+    {
+      tagName: string
+      status: string
+      certified: boolean
+      orderCount: number
+    }[]
+  >([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<Record<string, boolean>>({})
+
+  const load = useCallback(async () => {
+    try {
+      const res = await userTagApi.list()
+      const data = (res.data as any).data || (res.data as any) || []
+      setTags(Array.isArray(data) ? data : [])
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  async function handleToggle(tagName: string) {
+    setBusy((prev) => ({ ...prev, [tagName]: true }))
+    try {
+      await userTagApi.toggle(tagName)
+      setTags((prev) =>
+        prev.map((t) =>
+          t.tagName === tagName
+            ? { ...t, status: t.status === 'HIDDEN' ? 'IDLE' : 'HIDDEN' }
+            : t,
+        ),
+      )
+    } catch (e: any) {
+      toast(e?.response?.data?.message || '操作失败', 'error')
+    } finally {
+      setBusy((prev) => ({ ...prev, [tagName]: false }))
+    }
+  }
+
+  if (loading) return null
+  if (tags.length === 0) return null
+
+  const statusLabel: Record<string, string> = {
+    IDLE: '空闲',
+    BUSY: '忙碌',
+    HIDDEN: '下线',
+  }
+  const statusColor: Record<string, string> = {
+    IDLE: 'bg-emerald-500',
+    BUSY: 'bg-amber-500',
+    HIDDEN: 'bg-zinc-500',
+  }
+
+  return (
+    <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
+      <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-muted">
+        服务标签状态
+      </h2>
+      <div className="space-y-2">
+        {tags.map((t) => (
+          <div
+            key={t.tagName}
+            className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className={`size-2 shrink-0 rounded-full ${statusColor[t.status] || 'bg-zinc-500'}`}
+              />
+              <span className="text-sm font-medium text-text-primary truncate">
+                {t.tagName}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs text-text-muted">
+                {statusLabel[t.status] || t.status}
+              </span>
+              <button
+                type="button"
+                disabled={busy[t.tagName] || t.status === 'BUSY'}
+                onClick={() => handleToggle(t.tagName)}
+                className="rounded px-2 py-0.5 text-xs border border-border hover:bg-accent/10 disabled:opacity-30 transition-colors"
+              >
+                {t.status === 'HIDDEN' ? '上线' : '下线'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
