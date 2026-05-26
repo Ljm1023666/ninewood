@@ -107,7 +107,7 @@ export default function MyBids() {
               type="search"
               message="还没有发出过应标，去发现页寻找合适的需吧"
               actionLabel="去发现"
-              onAction={() => navigate('/discover')}
+              onAction={() => navigate('/')}
             />
           )}
 

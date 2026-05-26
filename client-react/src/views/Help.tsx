@@ -240,10 +240,20 @@ const PAGE_MAP: PageEntry[] = [
     },
   },
   {
+    id: 'providers',
+    path: '/providers',
+    icon: Users,
+    title: '找服务者',
+    desc: '按标签搜索空闲/忙碌的服务者',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['找服务者', '服务者', '搜索服务', '找人服务', '出租车', '司机'],
+  },
+  {
     id: 'discover',
-    path: '/discover',
+    path: '/',
     icon: Compass,
-    title: '需求搜索',
+    title: '首页',
     desc: '浏览所有可接的需求，按分类筛选匹配',
     accepts: ['discover'],
     acceptsEntities: ['game', 'service'],
@@ -437,6 +447,7 @@ const PAGE_MAP: PageEntry[] = [
 
 const PAGE_PALETTES: Record<string, string[]> = {
   'demand-create': ['#f97316', '#ea580c', '#fb923c', '#fdba74', '#fed7aa'],
+  providers: ['#7C3AED', '#6D28D9', '#A78BFA', '#C4B5FD', '#EDE9FE'],
   discover: ['#06b6d4', '#0891b2', '#22d3ee', '#67e8f9', '#a5f3fc'],
   'my-demands': ['#8b5cf6', '#7c3aed', '#a78bfa', '#c4b5fd', '#ddd6fe'],
   orders: ['#10b981', '#059669', '#34d399', '#6ee7b7', '#a7f3d0'],

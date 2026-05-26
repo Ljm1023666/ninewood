@@ -10,7 +10,7 @@ export function Header({ children }: { children?: React.ReactNode }) {
   const hasCustomSearch = !!children
 
   const links = [
-    { label: '发现', href: '/discover' },
+    { label: '发现', href: '/' },
     { label: '发布', href: '/demands/create' },
   ];
 

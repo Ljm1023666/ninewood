@@ -29,10 +29,20 @@ const sMap: Record<
     icon: Clock,
     className: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   },
+  ACTIVE: {
+    label: '发布中',
+    icon: Clock,
+    className: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  },
   FROZEN: {
     label: '已冻结',
     icon: XCircle,
     className: 'bg-red-500/20 text-red-400 border-red-500/30',
+  },
+  IN_PROGRESS: {
+    label: '进行中',
+    icon: CheckCircle2,
+    className: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
   },
   COMPLETED: {
     label: '已完成',
@@ -43,6 +53,11 @@ const sMap: Record<
     label: '已关闭',
     icon: X,
     className: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  },
+  WITHDRAWN: {
+    label: '已撤回',
+    icon: X,
+    className: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   },
 }
 const aMap: Record<
@@ -117,7 +132,7 @@ function DemandCard({
         </div>
         <ArrowRight className="size-5 shrink-0 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
-      {d.status === 'FROZEN' && onDelete && (
+      {(d.status === 'FROZEN' || d.status === 'WITHDRAWN') && onDelete && (
         <div className="mt-3 pt-3 border-t border-border/50 flex justify-end">
           <Button
             type="button"
@@ -280,7 +295,7 @@ export default function MyDemands() {
               type="search"
               message="还没有申请过任何需求，去发现页看看吧"
               actionLabel="去发现"
-              onAction={() => navigate('/discover')}
+              onAction={() => navigate('/')}
             />
           )}
 

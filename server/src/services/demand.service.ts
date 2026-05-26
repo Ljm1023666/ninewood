@@ -46,6 +46,15 @@ export const demandService = {
     expireAt: string;
     circleId?: string;
     mediaUrls?: string[];
+    // AI 2.5 新字段
+    expectedOutcome?: string;
+    visibilityWindow?: number;
+    maxApplicants?: number;
+    tags?: string[];
+    aiTags?: string[];
+    tagsConfirmed?: boolean;
+    lat?: number;
+    lng?: number;
   }) {
     // Check frozen demands
     const frozenCount = await prisma.demand.count({
@@ -60,6 +69,35 @@ export const demandService = {
       });
       if (!member) throw { status: 403, message: '请先加入该需求圈' };
     }
+
+    // AI 2.5: 押金计算
+    const activeCount = await prisma.demand.count({
+      where: {
+        userId: params.userId,
+        status: { in: ['PENDING', 'ACTIVE', 'IN_PROGRESS'] },
+      },
+    });
+    let deposit = 0;
+    if (activeCount >= 1) {
+      deposit = Math.round(Number(params.minPrice) * 0.01 * 100) / 100;
+    }
+
+    // AI 2.5: 位置模糊
+    let fuzzyLat: number | null = null;
+    let fuzzyLng: number | null = null;
+    if (params.lat !== undefined && params.lng !== undefined) {
+      const { fuzzLocation } = await import('../utils/location-fuzz.js');
+      const fuzzed = fuzzLocation(params.lat, params.lng);
+      fuzzyLat = fuzzed.lat;
+      fuzzyLng = fuzzed.lng;
+    }
+
+    const win = params.visibilityWindow || 15;
+    const visibleUntil = new Date(Date.now() + win * 60000);
+
+    // AI 2.8: 初始化生命周期
+    const { initLifecycle } = await import('../services/card-lifecycle.js');
+    const lifecycle = initLifecycle(win / (24 * 60)); // 转换分钟为天
 
     const demand = await prisma.demand.create({
       data: {
@@ -82,6 +120,21 @@ export const demandService = {
         circleId: params.circleId || null,
         isPublic: params.circleId ? false : true,
         mediaUrls: params.mediaUrls || [],
+        // AI 2.5
+        expectedOutcome: params.expectedOutcome || null,
+        visibilityWindow: win,
+        visibleUntil,
+        maxApplicants: params.maxApplicants || 10,
+        tags: params.tags || [],
+        aiTags: params.aiTags || [],
+        tagsConfirmed: params.tagsConfirmed || false,
+        fuzzyLat,
+        fuzzyLng,
+        deposit,
+        status: 'ACTIVE',
+        coverDeletedAt: lifecycle.coverDeletedAt,
+        detailDeletedAt: lifecycle.detailDeletedAt,
+        fullDeletedAt: lifecycle.fullDeletedAt,
       },
       include: {
         user: { select: { id: true, nickname: true, avatarUrl: true, demandCardCoverUrl: true, certificationLevel: true } },
@@ -393,6 +446,15 @@ export const demandService = {
       mediaUrls: d.mediaUrls,
       isSnatched: false,
       createdAt: d.createdAt,
+      // AI 2.5
+      status: d.status,
+      visibilityWindow: d.visibilityWindow,
+      expectedOutcome: d.expectedOutcome,
+      maxApplicants: d.maxApplicants,
+      tags: d.tags,
+      acceptedProviderId: d.acceptedProviderId,
+      deposit: d.deposit,
+      lifecycleStage: d.lifecycleStage,
       descriptionPreview:
         d.description && d.description.length > 0
           ? d.description.length > 160
@@ -620,5 +682,150 @@ export const demandService = {
 
   async getFrozenCount(userId: string) {
     return prisma.demand.count({ where: { userId, status: 'FROZEN' } });
+  },
+
+  // ═══ AI 2.5: 两段式接单 ═══
+
+  async requestDemand(demandId: string, userId: string, message: string) {
+    const demand = await prisma.demand.findUnique({ where: { id: demandId } });
+    if (!demand) throw Object.assign(new Error('需求不存在'), { status: 404 });
+    if (demand.status !== 'ACTIVE' && demand.status !== 'PENDING')
+      throw Object.assign(new Error('需求已过期'), { status: 400 });
+    if (demand.userId === userId)
+      throw Object.assign(new Error('不能申请自己的需求'), { status: 400 });
+
+    // 满员检查
+    if (demand.applicantCount >= (demand.maxApplicants || 10)) {
+      throw Object.assign(
+        new Error('申请人数已达上限，请等待发布者释放名额'),
+        { status: 429 },
+      );
+    }
+
+    // 是否仅认证用户可申请
+    if (demand.isCertifiedOnly) {
+      const cert = await prisma.certifiedProvider.findUnique({
+        where: { userId },
+      });
+      if (!cert)
+        throw Object.assign(new Error('仅认证用户可申请此需求'), { status: 403 });
+    }
+
+    const existing = await prisma.demandApplicantV2.findUnique({
+      where: { demandId_userId: { demandId, userId } },
+    });
+    if (existing)
+      throw Object.assign(new Error('你已申请过此需求'), { status: 409 });
+
+    const applicant = await prisma.demandApplicantV2.create({
+      data: { demandId, userId, message },
+    });
+
+    await prisma.demand.update({
+      where: { id: demandId },
+      data: { applicantCount: { increment: 1 } },
+    });
+
+    return applicant;
+  },
+
+  async acceptApplicant(demandId: string, applicantId: string, userId: string) {
+    const demand = await prisma.demand.findUnique({ where: { id: demandId } });
+    if (!demand) throw Object.assign(new Error('需求不存在'), { status: 404 });
+    if (demand.userId !== userId)
+      throw Object.assign(new Error('无权操作'), { status: 403 });
+
+    const applicant = await prisma.demandApplicantV2.findUnique({
+      where: { id: applicantId },
+    });
+    if (!applicant)
+      throw Object.assign(new Error('申请不存在'), { status: 404 });
+
+    // 原子操作
+    await prisma.$transaction([
+      // 标记正式接单
+      prisma.demand.update({
+        where: { id: demandId },
+        data: {
+          acceptedProviderId: applicant.userId,
+          status: 'IN_PROGRESS',
+        },
+      }),
+      // 接受该申请
+      prisma.demandApplicantV2.update({
+        where: { id: applicantId },
+        data: { status: 'ACCEPTED' },
+      }),
+      // 拒绝其他所有申请
+      prisma.demandApplicantV2.updateMany({
+        where: {
+          demandId,
+          id: { not: applicantId },
+          status: { in: ['PENDING', 'COMMUNICATING'] },
+        },
+        data: { status: 'REJECTED' },
+      }),
+    ]);
+
+    return { ok: true, acceptedUserId: applicant.userId };
+  },
+
+  async rejectApplicant(demandId: string, applicantId: string, userId: string) {
+    const demand = await prisma.demand.findUnique({ where: { id: demandId } });
+    if (!demand) throw Object.assign(new Error('需求不存在'), { status: 404 });
+    if (demand.userId !== userId)
+      throw Object.assign(new Error('无权操作'), { status: 403 });
+
+    await prisma.demandApplicantV2.update({
+      where: { id: applicantId },
+      data: { status: 'REJECTED' },
+    });
+
+    return { ok: true };
+  },
+
+  async getApplicantsV2(demandId: string, userId: string) {
+    const demand = await prisma.demand.findUnique({ where: { id: demandId } });
+    if (!demand) throw Object.assign(new Error('需求不存在'), { status: 404 });
+    if (demand.userId !== userId)
+      throw Object.assign(new Error('无权查看'), { status: 403 });
+
+    return prisma.demandApplicantV2.findMany({
+      where: { demandId },
+      include: {
+        user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+  },
+
+  async withdrawDemand(demandId: string, userId: string) {
+    const demand = await prisma.demand.findUnique({ where: { id: demandId } });
+    if (!demand) throw Object.assign(new Error('需求不存在'), { status: 404 });
+    if (demand.userId !== userId)
+      throw Object.assign(new Error('无权操作'), { status: 403 });
+
+    if (demand.status === 'COMPLETED')
+      throw Object.assign(new Error('已完成的需求无法撤回'), { status: 400 });
+
+    // 退回押金（99.99%）
+    const refund = demand.deposit > 0 ? Math.round(demand.deposit * 0.9999 * 100) / 100 : 0;
+
+    await prisma.$transaction([
+      prisma.demand.update({
+        where: { id: demandId },
+        data: { status: 'WITHDRAWN' },
+      }),
+      // 关闭所有申请
+      prisma.demandApplicantV2.updateMany({
+        where: {
+          demandId,
+          status: { in: ['PENDING', 'COMMUNICATING'] },
+        },
+        data: { status: 'WITHDRAWN' },
+      }),
+    ]);
+
+    return { ok: true, refund };
   },
 };

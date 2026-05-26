@@ -67,7 +67,7 @@ const SearchBar = ({ placeholder = "Search...", onSearch }: SearchBarProps) => {
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             className={cn(
-              "w-full py-2.5 bg-transparent outline-none placeholder:text-white/40 font-medium text-sm relative z-10",
+              "w-full py-2.5 bg-transparent outline-none placeholder:text-white/50 font-medium text-sm relative z-10",
               isFocused ? "text-white" : "text-white/80",
             )}
           />

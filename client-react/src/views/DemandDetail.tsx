@@ -9,6 +9,7 @@ import {
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { demandApi } from '@/api/demand'
+
 import { CometCard } from '@/components/ui/comet-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
@@ -119,8 +120,9 @@ export default function DemandDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { isLoggedIn, isFavorited, checkFavoriteStatus, toggleFavorite } =
+  const { user, isLoggedIn, isFavorited, checkFavoriteStatus, toggleFavorite } =
     useUserStore()
+  const currentUserId = user?.id
 
   const { addDemandToSingles, hand } = usePersistedGlobalHand()
   const singlesIdsRef = useRef<string[]>([])
@@ -440,6 +442,140 @@ export default function DemandDetail() {
             </div>
           </motion.div>
         </AnimatePresence>
+
+        {/* ═══ AI 2.5: 两段式接单面板 ═══ */}
+        {demand.status === 'ACTIVE' || demand.status === 'PENDING' ? (
+          <div className="relative z-10 mx-auto mt-6 w-full max-w-md px-3">
+            {demand.userId !== currentUserId ? (
+              <RequestPanel demandId={demand.id} />
+            ) : demand.applicantCount > 0 ? (
+              <ApplicantListPanel demandId={demand.id} />
+            ) : null}
+          </div>
+        ) : demand.status === 'IN_PROGRESS' ? (
+          <div className="relative z-10 mx-auto mt-6 w-full max-w-md px-3">
+            <p className="text-center text-sm text-white/60">
+              已有人接单，服务进行中
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+// ═══ AI 2.5: 请求接单面板（服务者视角）═══
+function RequestPanel({ demandId }: { demandId: string }) {
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit() {
+    if (!message.trim()) return
+    setLoading(true)
+    setError('')
+    try {
+      await demandApi.requestDemand(demandId, message.trim())
+      setDone(true)
+      toast('已申请，等待发布者回应')
+    } catch (e: any) {
+      setError(e.response?.data?.message || e.message || '请求失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (done) return <p className="text-center text-sm text-emerald-400">已提交申请</p>
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+      <p className="mb-3 text-sm font-medium text-white/80">请求接单</p>
+      <textarea
+        className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30"
+        rows={3}
+        placeholder="描述你能解决该需求的原因..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+      <div className="mt-3 flex justify-end">
+        <button
+          type="button"
+          disabled={loading || !message.trim()}
+          onClick={submit}
+          className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-40"
+        >
+          {loading ? '提交中...' : '提交申请'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ═══ AI 2.5: 申请人列表面板（发布者视角）═══
+function ApplicantListPanel({ demandId }: { demandId: string }) {
+  const [applicants, setApplicants] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    demandApi.getApplicantsV2(demandId)
+      .then((r: any) => setApplicants(r.data?.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [demandId])
+
+  async function accept(applicantId: string) {
+    try {
+      await demandApi.acceptApplicant(demandId, applicantId)
+      toast('已确认接单')
+      setApplicants((prev) => prev.filter((a) => a.id !== applicantId))
+    } catch (e: any) {
+      toast(e.response?.data?.message || '操作失败')
+    }
+  }
+
+  async function reject(applicantId: string) {
+    await demandApi.rejectApplicant(demandId, applicantId)
+    setApplicants((prev) => prev.filter((a) => a.id !== applicantId))
+  }
+
+  if (loading) return <p className="text-center text-sm text-white/40">加载中...</p>
+  if (applicants.length === 0) return null
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+      <p className="mb-3 text-sm font-medium text-white/80">
+        申请接单 ({applicants.length}人)
+      </p>
+      <div className="space-y-3">
+        {applicants.map((a) => (
+          <div
+            key={a.id}
+            className="flex items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-3"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-white">
+                {a.user?.nickname || '匿名'}
+              </p>
+              <p className="mt-1 text-xs text-white/50 line-clamp-2">{a.message}</p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <button
+                onClick={() => accept(a.id)}
+                className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-400"
+              >
+                接受
+              </button>
+              <button
+                onClick={() => reject(a.id)}
+                className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/60 hover:bg-red-500/30"
+              >
+                拒绝
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

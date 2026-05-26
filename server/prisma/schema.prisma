@@ -24,15 +24,57 @@ enum ServiceType {
 
 enum DemandStatus {
   PENDING
+  ACTIVE
   FROZEN
+  IN_PROGRESS
   COMPLETED
   CLOSED
+  WITHDRAWN
 }
 
 enum ApplicationStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+// ── AI 2.5+ 新增枚举 ──
+
+enum TagStatus {
+  IDLE
+  BUSY
+  HIDDEN
+}
+
+enum ApplicantStatusV2 {
+  PENDING
+  COMMUNICATING
+  ACCEPTED
+  REJECTED
+  TIMED_OUT
+  WITHDRAWN
+}
+
+enum LifecycleStage {
+  ACTIVE
+  NO_COVER
+  NO_DETAIL
+  ARCHIVED
+  DELETED
+}
+
+enum CircleLevel {
+  COUNTY
+  CITY
+  PROVINCE
+  NATIONAL
+}
+
+enum PushFrequency {
+  HIGH
+  NORMAL
+  LOW
+  OFF
 }
 
 enum OrderStatus {
@@ -138,6 +180,11 @@ model User {
   reviewsGiven        Review[]         @relation("Reviewer")
   reviewsReceived     Review[]         @relation("Reviewee")
 
+  // ── AI 2.5 ──
+  userTags           UserTag[]
+  applicantsV2       DemandApplicantV2[]
+  pushPreference     PushPreference?
+
   @@index([cityCode])
   @@index([certificationLevel])
 }
@@ -174,7 +221,36 @@ model Demand {
   deletedAt        DateTime?
   createdAt        DateTime     @default(now())
 
+  // ── AI 2.5: 紧急窗口 ──
+  visibilityWindow Int          @default(15)
+  visibleUntil     DateTime?
+  frozenAt         DateTime?
+  // ── AI 2.5: 效果导向 ──
+  expectedOutcome  String?
+  timeLimit        DateTime?
+  // ── AI 2.5: 押金 + 接单控制 ──
+  deposit          Float        @default(0)
+  maxApplicants    Int          @default(10)
+  // ── AI 2.5: 标签确认 ──
+  tags             String[]     @default([])
+  aiTags           String[]     @default([])
+  tagsConfirmed    Boolean      @default(false)
+  // ── AI 2.5: 位置模糊 ──
+  fuzzyLat         Float?
+  fuzzyLng         Float?
+  // ── AI 2.5: 正式接单 ──
+  acceptedProviderId String?
+  // ── AI 2.5: 生命周期 ──
+  lifecycleStage   LifecycleStage @default(ACTIVE)
+  coverDeletedAt   DateTime?
+  detailDeletedAt  DateTime?
+  fullDeletedAt    DateTime?
+  // ── AI 2.5: 公益 ──
+  isPublicWelfare  Boolean      @default(false)
+
   applications     DemandApplication[]
+  applicantsV2     DemandApplicantV2[]
+  circleDemands    CircleDemand[]
   orders           Order[]
   favoritedBy      DemandFavorite[]
   depositRelations DepositDemand[]
@@ -190,6 +266,8 @@ model Demand {
   @@index([isExample])
   @@index([regionId, stage])
   @@index([stage, createdAt])
+  @@index([status, visibleUntil])
+  @@index([frozenAt])
 }
 
 model DemandApplication {
@@ -249,6 +327,7 @@ model Circle {
 
   members CircleMember[]
   demands Demand[]
+  circleDemands CircleDemand[]
 
   @@index([ownerId])
   @@index([cityCode])
@@ -489,4 +568,107 @@ model ActiveDemand {
   demand             Demand    @relation(fields: [demandId], references: [id], onDelete: Cascade)
   totalExtendedMonths Int      @default(0)
   nextCompressionDate DateTime?
+}
+
+// ─── AI 2.5+ 新增模型 ───
+
+// 服务者标签状态
+model UserTag {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tagName     String    @db.VarChar(50)
+  status      TagStatus @default(IDLE)
+  regionId    Int?
+  certified   Boolean   @default(false)
+  autoReceive Boolean   @default(false)
+  rating      Float     @default(0)
+  orderCount  Int       @default(0)
+  metadata    Json?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, tagName])
+  @@index([status, tagName])
+  @@index([tagName, certified])
+  @@index([status, regionId])
+}
+
+// 需求申请记录（两段式接单 + 沟通窗口）
+model DemandApplicantV2 {
+  id              String           @id @default(uuid())
+  demandId        String
+  demand          Demand           @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  message         String           // 申请理由
+
+  status          ApplicantStatusV2 @default(PENDING)
+
+  // 沟通窗口
+  commStartAt     DateTime?
+  commDeadline    DateTime?
+  extensionMinutes Int             @default(0)
+
+  createdAt       DateTime         @default(now())
+
+  @@unique([demandId, userId])
+  @@index([demandId, status])
+  @@index([userId])
+}
+
+// 公益资金池
+model WelfareFundPool {
+  id           String   @id @default(uuid())
+  regionId     Int      @unique
+  balance      Float    @default(0)
+  totalInflow  Float    @default(0)
+  totalOutflow Float    @default(0)
+  updatedAt    DateTime @updatedAt
+}
+
+// 需求圈-需求关联
+model CircleDemand {
+  id         String   @id @default(uuid())
+  circleId   String
+  demandId   String
+  demand     Demand   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  isExternal Boolean  @default(false)
+  isPublic   Boolean  @default(false)
+  circle     Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([circleId, demandId])
+}
+
+// 推送偏好
+model PushPreference {
+  id              String        @id @default(uuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  excludeKeywords String[]      @default([])
+  excludeTags     String[]      @default([])
+  excludeRegions  Int[]         @default([])
+  receivePushes   Boolean       @default(true)
+  pushFrequency   PushFrequency @default(NORMAL)
+}
+
+// 标签统计
+model TagStats {
+  id               String   @id @default(uuid())
+  tagName          String   @db.VarChar(50)
+  regionId         Int
+  totalCards       Int      @default(0)
+  totalAmount      Float    @default(0)
+  avgAmount        Float    @default(0)
+  activeProviders  Int      @default(0)
+  activeDemands    Int      @default(0)
+  periodStart      DateTime
+  periodEnd        DateTime
+  updatedAt        DateTime @updatedAt
+
+  @@unique([tagName, regionId, periodStart])
+  @@index([tagName, regionId])
 }

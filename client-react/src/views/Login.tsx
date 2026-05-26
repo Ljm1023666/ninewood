@@ -73,7 +73,7 @@ function MiniNavbar({
 
   const navLinksData = [
     { label: '首页', to: '/' },
-    { label: '发现', to: '/discover' },
+    { label: '发现', to: '/' },
     { label: '圈子', to: '/circles' },
   ]
 
