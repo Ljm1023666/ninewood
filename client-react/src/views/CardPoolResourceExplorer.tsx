@@ -5,7 +5,7 @@ import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
 import { TAXONOMY } from '@/components/card-pool/taxonomy'
-import type { BlackScope, HandEntry } from '@/components/card-pool/types'
+import type { BlackScope } from '@/components/card-pool/types'
 import {
   nextBlackScopes,
   scopeKey,
@@ -14,11 +14,9 @@ import {
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import {
   fetchFirstDemandId,
-  fetchTotalForScope,
   scopeToApiParams,
 } from '@/components/card-pool/search-params'
-import { HandPile } from '@/components/card-pool/HandPile'
-import { TableDiscard } from '@/components/card-pool/TableDiscard'
+import { CardPoolFooter } from '@/components/card-pool/CardPoolFooter'
 import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
 import { categoryToLeafBlackScope } from '@/components/card-pool/category-to-scope'
 import {
@@ -29,19 +27,12 @@ import {
   loadSharedCardPoolFocus,
   saveSharedCardPoolFocus,
 } from '@/components/card-pool/tablePersistence'
-
-const DESKTOP_GRID_ROWS_LS = 'ninewood.cardPool.desktopGridRows'
-
-function readDesktopGridRows(): number {
-  try {
-    const raw = localStorage.getItem(DESKTOP_GRID_ROWS_LS)
-    const n = raw === null ? 2 : parseInt(raw, 10)
-    if (!Number.isFinite(n)) return 2
-    return Math.min(5, Math.max(1, n))
-  } catch {
-    return 2
-  }
-}
+import {
+  useDesktopGridRows,
+  useUniqueHandScopes,
+  useHandTotals,
+  useChildTotals,
+} from '@/components/card-pool/useCardPoolShared'
 
 /** 右侧：Windows 资源管理器「详细信息」式列表（无卡包大图） */
 function ExplorerDetailsScopeRow({
@@ -263,12 +254,12 @@ export default function CardPoolResourceExplorer() {
     pinToFront,
     discardHandEntryById,
     restoreCard,
+    clearHand,
   } = usePersistedGlobalHand()
 
   const [focus, setFocus] = useState<BlackScope>(
     () => loadSharedCardPoolFocus() ?? { path: ['root'], leafFilter: null },
   )
-  const [childTotals, setChildTotals] = useState<Record<string, number>>({})
   const [leafDesktop, setLeafDesktop] = useState<Record<string, string> | null>(
     null,
   )
@@ -279,99 +270,37 @@ export default function CardPoolResourceExplorer() {
     blackScope: BlackScope
   } | null>(null)
   const [desktopListNonce, setDesktopListNonce] = useState(0)
-  const [desktopGridRows, setDesktopGridRows] = useState(readDesktopGridRows)
-  const [handTotals, setHandTotals] = useState<Record<string, number>>({})
 
   const children = useMemo(() => nextBlackScopes(focus), [focus])
   const isLeaf = children.length === 0
   const focusPathKey = focus.path.join('/')
+
+  const { desktopGridRows, setDesktopGridRows } = useDesktopGridRows()
+  const uniqueHandScopes = useUniqueHandScopes(hand)
+  const handTotals = useHandTotals(uniqueHandScopes)
+  const childTotals = useChildTotals(children)
 
   useEffect(() => {
     saveSharedCardPoolFocus(focus)
   }, [focus])
 
   useEffect(() => {
-    try {
-      localStorage.setItem(DESKTOP_GRID_ROWS_LS, String(desktopGridRows))
-    } catch {
-      /* ignore */
-    }
-  }, [desktopGridRows])
-
-  useEffect(() => {
     setDesktopOpen(null)
   }, [focusPathKey])
 
+  // 叶子节点设置 leafDesktop
   useEffect(() => {
     if (isLeaf) {
       setLeafDesktop(scopeToApiParams(focus))
-      return
+    } else {
+      setLeafDesktop(null)
     }
-    setLeafDesktop(null)
-    if (children.length === 0) return
-    let c = false
-    void Promise.all(
-      children.map(async (s) => {
-        const k = scopeKey(s)
-        try {
-          const n = await fetchTotalForScope(s)
-          return [k, n] as const
-        } catch {
-          return [k, 0] as const
-        }
-      }),
-    ).then((pairs) => {
-      if (c) return
-      const next: Record<string, number> = {}
-      for (const [k, v] of pairs) next[k] = v
-      setChildTotals(next)
-    })
-    return () => {
-      c = true
-    }
-  }, [focus, children, isLeaf])
-
-  const uniqueHandScopes = useMemo(() => {
-    const m = new Map<string, BlackScope>()
-    for (const h of hand) {
-      const k = scopeKey(h.scope)
-      if (!m.has(k)) m.set(k, h.scope)
-    }
-    return [...m.values()]
-  }, [hand])
-
-  useEffect(() => {
-    if (uniqueHandScopes.length === 0) {
-      setHandTotals({})
-      return
-    }
-    let c = false
-    void Promise.all(
-      uniqueHandScopes.map(async (s) => {
-        const k = scopeKey(s)
-        try {
-          const n = await fetchTotalForScope(s)
-          return [k, n] as const
-        } catch {
-          return [k, 0] as const
-        }
-      }),
-    ).then((pairs) => {
-      if (c) return
-      setHandTotals((prev) => {
-        const next = { ...prev }
-        for (const [k, v] of pairs) next[k] = v
-        return next
-      })
-    })
-    return () => {
-      c = true
-    }
-  }, [uniqueHandScopes])
+  }, [focus, isLeaf])
 
   const closeDesktop = useCallback(() => setDesktopOpen(null), [])
 
-  function enterDesktop(scope: BlackScope) {
+  const enterDesktop = useCallback((scope: BlackScope) => {
+    setSelectedTab('browse')
     setOpeningCarousel(true)
     void fetchFirstDemandId(scope)
       .then((id) => {
@@ -393,17 +322,7 @@ export default function CardPoolResourceExplorer() {
         toast(err.response?.data?.message || err.message || '加载失败', 'error')
       })
       .finally(() => setOpeningCarousel(false))
-  }
-
-  function openHandDesktop(entry: HandEntry) {
-    void enterDesktop(entry.scope)
-  }
-
-  function previewHand(entry: HandEntry) {
-    void fetchTotalForScope(entry.scope).then((n) => {
-      toast(`「${scopeTitle(entry.scope)}」约 ${n} 条需求`, 'success')
-    })
-  }
+  }, [])
 
   const pickChild = useCallback((s: BlackScope) => {
     setSelectedTab('browse')
@@ -458,11 +377,16 @@ export default function CardPoolResourceExplorer() {
                     )}
                     onClick={() => {
                       if (isHand) {
-                        setSelectedTab('hand')
-                        handDropZoneRef.current?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'start',
-                        })
+                        // 切换：已打开则收起，未打开则展开并滚动
+                        if (selectedTab === 'hand') {
+                          setSelectedTab('browse')
+                        } else {
+                          setSelectedTab('hand')
+                          handDropZoneRef.current?.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                          })
+                        }
                       } else {
                         setSelectedTab('browse')
                         setFocus({ path: ['root', item.id], leafFilter: null })
@@ -562,22 +486,21 @@ export default function CardPoolResourceExplorer() {
           </div>
         </div>
 
-        <HandPile
+        <CardPoolFooter
           ref={handDropZoneRef}
-          entries={hand}
-          scopeTotals={handTotals}
-          busy={openingCarousel}
-          onOpenDesktop={openHandDesktop}
+          hand={hand}
+          discard={discard}
+          handTotals={handTotals}
+          openingCarousel={openingCarousel}
+          onOpenDesktop={(entry) => enterDesktop(entry.scope)}
           onRemove={removeHandEntry}
           onPin={pinToFront}
-          onDiscardToPile={discardHandEntryById}
-          onPreview={previewHand}
-        />
-
-        <TableDiscard
-          discard={discard}
-          onRestore={(c) => {
-            const ok = restoreCard(c)
+          onDiscard={discardHandEntryById}
+          onRestore={restoreCard}
+          onClearHand={clearHand}
+          forceOpen={selectedTab === 'hand'}
+          onDropBlackScope={(scope) => {
+            const ok = addToHand(scope)
             if (!ok) toast('该范围已在手牌中', 'info')
           }}
         />

@@ -187,6 +187,8 @@ interface HandPileProps {
   >
   /** 指针拖曳经过手牌矩形（非 HTML5） */
   pointerDropHighlight?: boolean
+  /** 强制展开面板（用于外部按钮触发） */
+  forceOpen?: boolean
 }
 
 export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
@@ -203,6 +205,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
       onDropBlackScope,
       celebrateBlackScopeDropRef,
       pointerDropHighlight = false,
+      forceOpen = false,
     },
     ref,
   ) {
@@ -313,6 +316,16 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
       },
       [clearLeaveTimer],
     )
+
+    // 外部按钮强制展开/折叠
+    useEffect(() => {
+      if (forceOpen) {
+        clearLeaveTimer()
+        setPanelOpen(true)
+      } else {
+        setPanelOpen(false)
+      }
+    }, [forceOpen, clearLeaveTimer])
 
     const closeCtx = useCallback(() => setCtx(null), [])
 
