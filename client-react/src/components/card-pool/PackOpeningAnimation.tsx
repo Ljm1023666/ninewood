@@ -88,6 +88,7 @@ function PackCard({
   onNavigate: (id: string) => void
 }) {
   const [flipped, setFlipped] = useState(false)
+  const [imgFailed, setImgFailed] = useState(false)
 
   // 色条/字号随变体动态：圆环阶段占 1/3 卡面、大字少字；底弧阶段紧凑
   const minScale = 1.3
@@ -132,16 +133,23 @@ function PackCard({
         {/* 正面：需求封面 + 流光色条 */}
         <div
           className="absolute inset-0 h-full w-full overflow-hidden rounded-lg shadow-lg"
-          style={{ backfaceVisibility: 'hidden' }}
+          style={{
+            backfaceVisibility: 'hidden',
+            backgroundColor: getShimmerColor(card.price),
+          }}
         >
-          {card.imageUrl ? (
+          {card.imageUrl && !imgFailed ? (
             <img
               src={card.imageUrl}
               alt={card.title}
               className="h-full w-full object-cover"
+              onError={() => setImgFailed(true)}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center p-2">
+            <div
+              className="flex h-full w-full items-center justify-center p-2"
+              style={{ backgroundColor: getShimmerColor(card.price) }}
+            >
               <span className="text-[10px] text-text-muted text-center leading-tight line-clamp-3">
                 {card.title}
               </span>
@@ -180,7 +188,11 @@ function PackCard({
         {/* 背面：价格，点击进入详情 */}
         <div
           className="absolute inset-0 h-full w-full overflow-hidden rounded-lg shadow-lg flex items-center justify-center p-2"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            backgroundColor: getShimmerColor(card.price),
+          }}
         >
           {card.price && (
             <button

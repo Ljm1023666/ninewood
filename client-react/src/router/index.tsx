@@ -5,7 +5,6 @@ import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
 
-const Home = lazy(() => import('@/views/Home'))
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
 const MessagesIndexPlaceholder = lazy(
@@ -71,17 +70,17 @@ function AuthGuard() {
 
 function GuestGuard() {
   const token = localStorage.getItem('token')
-  if (token) return <Navigate to="/discover" replace />
+  if (token) return <Navigate to="/" replace />
   return <LoginPage />
 }
 
 export const router = createBrowserRouter([
-  /* ── 公共首页（Landing Page，不需要登录） ── */
+  /* ── 首页（发现页，公开访问） ── */
   {
     path: '/',
     element: (
       <LazyLoad>
-        <Home />
+        <Discover />
       </LazyLoad>
     ),
   },
@@ -102,11 +101,7 @@ export const router = createBrowserRouter([
         children: [
           {
             path: 'discover',
-            element: (
-              <LazyLoad>
-                <Discover />
-              </LazyLoad>
-            ),
+            element: <Navigate to="/" replace />,
           },
           {
             path: 'card-pool/explorer',

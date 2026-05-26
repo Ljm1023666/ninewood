@@ -17,11 +17,14 @@ interface SectionContent {
 interface HorizonHeroSectionProps {
   sections?: SectionContent[]
   children?: React.ReactNode
+  /** 在滚动内容最底部渲染的页脚 */
+  footer?: React.ReactNode
 }
 
 export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   sections: externalSections,
   children,
+  footer,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -35,7 +38,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
 
   const [scrollProgress, setScrollProgress] = useState(0)
   const [currentSection, setCurrentSection] = useState(0)
-  const [sectionProgress, setSectionProgress] = useState(0)
   const [isReady, setIsReady] = useState(false)
 
   const defaultSections: SectionContent[] = [
@@ -174,7 +176,10 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           sizes[j] = Math.random() * 2 + 0.5
         }
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+        geometry.setAttribute(
+          'position',
+          new THREE.BufferAttribute(positions, 3),
+        )
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
 
@@ -284,6 +289,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       refs.nebula = nebula
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function createMountains() {
       const layers = [
         { distance: -50, height: 60, color: 0x1a1a2e, opacity: 1 },
@@ -327,6 +333,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       })
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function createBlackHole() {
       // 黑洞球体 — 事件视界
       const geo = new THREE.SphereGeometry(600, 48, 48)
@@ -374,7 +381,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       // 吸积盘 (accretion disk)
       const diskGeo = new THREE.RingGeometry(350, 800, 80)
       const posArr = diskGeo.attributes.position.array
-      const uvArr = new Float32Array(posArr.length / 3 * 2)
+      const uvArr = new Float32Array((posArr.length / 3) * 2)
       for (let i = 0; i < posArr.length / 3; i++) {
         const x = posArr[i * 3]
         const z = posArr[i * 3 + 2]
@@ -438,6 +445,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       refs.scene!.add(disk)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function saveLocations() {
       refs.locations = refs.mountains.map((m) => m.position.z)
       locationsRef.current = refs.locations
@@ -577,7 +585,8 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     }
 
     if (subtitleRef.current) {
-      const subtitleLines = subtitleRef.current.querySelectorAll('.subtitle-line')
+      const subtitleLines =
+        subtitleRef.current.querySelectorAll('.subtitle-line')
       tl.from(
         subtitleLines,
         {
@@ -640,40 +649,47 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1)
 
       setScrollProgress(progress)
-      const newSection = Math.min(Math.floor(progress * totalSections), totalSections - 1)
+      const newSection = Math.min(
+        Math.floor(progress * totalSections),
+        totalSections - 1,
+      )
       setCurrentSection(newSection)
 
       const refs = threeRefs.current
 
       const totalProgress = progress * totalSections
-      const sp = progress >= 0.99 && newSection === totalSections - 1 ? 1 : totalProgress % 1
+      const sp =
+        progress >= 0.99 && newSection === totalSections - 1
+          ? 1
+          : totalProgress % 1
 
-    const cameraPositions = [
-      { x: 0, y: 30, z: 300 },
-      { x: 0, y: 40, z: -50 },
-      { x: 0, y: 50, z: -700 },
-      { x: 0, y: 60, z: -1400 },
-      { x: 0, y: 70, z: -2100 },
-    ]
+      const cameraPositions = [
+        { x: 0, y: 30, z: 300 },
+        { x: 0, y: 40, z: -50 },
+        { x: 0, y: 50, z: -700 },
+        { x: 0, y: 60, z: -1400 },
+        { x: 0, y: 70, z: -2100 },
+      ]
 
-    const currentPos = cameraPositions[newSection] || cameraPositions[0]
-    const nextPos = cameraPositions[newSection + 1] || currentPos
+      const currentPos = cameraPositions[newSection] || cameraPositions[0]
+      const nextPos = cameraPositions[newSection + 1] || currentPos
 
-    refs.targetCameraX = currentPos.x + (nextPos.x - currentPos.x) * sp
-    refs.targetCameraY = currentPos.y + (nextPos.y - currentPos.y) * sp
-    refs.targetCameraZ = currentPos.z + (nextPos.z - currentPos.z) * sp
+      refs.targetCameraX = currentPos.x + (nextPos.x - currentPos.x) * sp
+      refs.targetCameraY = currentPos.y + (nextPos.y - currentPos.y) * sp
+      refs.targetCameraZ = currentPos.z + (nextPos.z - currentPos.z) * sp
 
-    refs.mountains.forEach((mountain, i) => {
-      if (progress > 0.7) {
-        mountain.position.z = 600000
-      } else {
-        mountain.position.z = locationsRef.current[i] ?? mountain.userData.baseZ
+      refs.mountains.forEach((mountain, i) => {
+        if (progress > 0.7) {
+          mountain.position.z = 600000
+        } else {
+          mountain.position.z =
+            locationsRef.current[i] ?? mountain.userData.baseZ
+        }
+      })
+
+      if (refs.nebula && refs.mountains.length > 3) {
+        refs.nebula.position.z = refs.mountains[3].position.z
       }
-    })
-
-    if (refs.nebula && refs.mountains.length > 3) {
-      refs.nebula.position.z = refs.mountains[3].position.z
-    }
     }) // end rAF
   }, [totalSections])
 
@@ -694,6 +710,12 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       </span>
     ))
   }
+
+  const firstSection = sections[0]
+  const renderedSection = React.useMemo(
+    () => firstSection?.render?.(),
+    [firstSection],
+  )
 
   return (
     <div ref={containerRef} className="hero-container cosmos-style">
@@ -822,7 +844,9 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       <canvas ref={canvasRef} className="hero-canvas" />
 
       {/* Hero content */}
-      <div ref={heroContentRef} className="hero-content cosmos-content"
+      <div
+        ref={heroContentRef}
+        className="hero-content cosmos-content"
         style={{ opacity: Math.max(0, 1 - scrollProgress * totalSections) }}
       >
         <h1 ref={titleRef} className="hero-title">
@@ -835,11 +859,8 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
         </div>
 
         {sections[0]?.render && (
-          <div
-            ref={searchBarRef}
-            className="relative z-20 w-full mx-auto mt-8"
-          >
-            {React.useMemo(() => sections[0].render?.(), [sections[0]])}
+          <div ref={searchBarRef} className="relative z-20 w-full mx-auto mt-8">
+            {renderedSection}
           </div>
         )}
       </div>
@@ -871,27 +892,32 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           const secOpacity = dist >= 1 ? 0 : 1 - dist
           return (
             <section key={i} className="content-section">
-              <div style={{ opacity: secOpacity, transition: 'opacity 0.3s linear' }}>
-              <h1 className="hero-title">{splitTitle(section.title)}</h1>
-              <div className="hero-subtitle cosmos-subtitle">
-                <p className="subtitle-line">{section.subtitle.line1}</p>
-                <p className="subtitle-line">{section.subtitle.line2}</p>
-              </div>
-              {section.render && (
-                <div className="relative z-10 mt-12">
-                  {section.render()}
+              <div
+                style={{
+                  opacity: secOpacity,
+                  transition: 'opacity 0.3s linear',
+                }}
+              >
+                <h1 className="hero-title">{splitTitle(section.title)}</h1>
+                <div className="hero-subtitle cosmos-subtitle">
+                  <p className="subtitle-line">{section.subtitle.line1}</p>
+                  <p className="subtitle-line">{section.subtitle.line2}</p>
                 </div>
-              )}
+                {section.render && (
+                  <div className="relative z-10 mt-12">{section.render()}</div>
+                )}
               </div>
             </section>
           )
-        }
-        )}
+        })}
         {children && (
           <section className="content-section">
-            <div className="relative z-10 w-full max-w-6xl mx-auto">{children}</div>
+            <div className="relative z-10 w-full max-w-6xl mx-auto">
+              {children}
+            </div>
           </section>
         )}
+        {footer && <div className="w-full">{footer}</div>}
       </div>
     </div>
   )

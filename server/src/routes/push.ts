@@ -59,7 +59,8 @@ const pushExecSchema = z.object({
 pushRouter.post('/execute/:demandId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const target = pushExecSchema.parse(req.body)
-    const result = await matchAndPush(req.params.demandId, target)
+    const io = req.app.get('io')
+    const result = await matchAndPush(req.params.demandId, target, io)
     success(res, result, '推送完成')
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '参数错误', 400, e.errors)

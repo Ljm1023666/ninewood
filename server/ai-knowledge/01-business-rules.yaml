@@ -1,0 +1,283 @@
+# ============================================================================
+# 九木业务规则 — 逻辑命题形式
+# AI 应当使用此文件中的规则校验用户意图和操作合法性
+# ============================================================================
+
+# ── 认证与权限规则 ──────────────────────────────────────────────────────────
+
+rules_auth:
+
+  - id: PUBLISH_REQUIRES_NO_FROZEN
+    rule: "用户有 FROZEN 状态需求时不能发布新需求"
+    check: "user.demands.where(status == 'FROZEN').count() == 0"
+    error: "您的账户存在已冻结的需求，无法发布新需求。请联系平台处理。"
+
+  - id: SNATCH_REQUIRES_CERT
+    rule: "抢单需要认证等级 >= INTERMEDIATE"
+    check: "user.certificationLevel >= 'INTERMEDIATE'"
+    error: "抢单功能需要中级及以上认证。"
+
+  - id: SNATCH_REQUIRES_CREDITS
+    rule: "抢单需要剩余抢单次数 > 0"
+    check: "user.snatchCredits > 0"
+    error: "抢单次数已用完，请等待恢复或完成订单获取新次数。"
+
+  - id: PUBLISH_REQUIRES_VERIFIED
+    rule: "发布需求需要实名认证"
+    check: "user.certificationLevel != 'NONE'"
+    error: "请先完成实名认证再发布需求。"
+
+  - id: CERTIFIED_ONLY_APPLY
+    rule: "需求设置了 isCertifiedOnly 时，仅认证服务者可申请"
+    check: "demand.isCertifiedOnly  ->  user.certified_provider != null"
+    error: "该需求仅限认证服务者申请。"
+
+  - id: ADMIN_ONLY_DASHBOARD
+    rule: "管理后台仅管理员可访问"
+    check: "user.role == 'ADMIN'"
+    error: "您没有管理员权限。"
+
+  - id: SELF_APPLY_FORBIDDEN
+    rule: "不能申请自己的需求"
+    check: "applicant.id != demand.userId"
+    error: "不能申请自己发布的需求。"
+
+# ── 发布规则 ────────────────────────────────────────────────────────────────
+
+rules_publish:
+
+  - id: TITLE_LENGTH
+    rule: "需求标题长度 2-100 字"
+    check: "2 <= len(title) <= 100"
+    error: "标题长度为 2-100 字。"
+
+  - id: DESCRIPTION_LENGTH
+    rule: "需求描述长度 2-2000 字"
+    check: "2 <= len(description) <= 2000"
+    error: "描述长度为 2-2000 字。"
+
+  - id: BUDGET_RANGE
+    rule: "预算范围 1-999,999 元"
+    check: "1 <= minPrice <= 999999"
+    error: "预算金额在 1-999,999 元之间。"
+
+  - id: EXPIRE_DAYS
+    rule: "有效期 1-30 天"
+    check: "1 <= expireDays <= 30"
+    error: "有效期设置为 1-30 天。"
+
+  - id: MAX_MEDIA
+    rule: "最多上传 9 张图片 + 1 个视频"
+    check: "images.count() <= 9 AND videos.count() <= 1"
+    error: "最多上传 9 张图片和 1 个视频。"
+
+  - id: CIRCLE_DEMAND_VISIBILITY
+    rule: "圈内发布的需求仅圈成员可见"
+    check: "demand.circleId != null  ->  demand.isPublic == false"
+    note: "圈内需求默认不公开到主市场"
+
+  - id: DUPLICATE_APPLY
+    rule: "不能重复申请同一个需求"
+    check: "application.count(demandId & userId) == 0"
+    error: "您已经申请过该需求了。"
+
+  - id: MAX_APPLICANTS_REACHED
+    rule: "需求申请者达到上限后不再接受新申请"
+    check: "demand.applicantCount < min(demand.maxApplicants, 10)"
+    error: "该需求的申请人已满，无法继续申请。"
+
+# ── 交易规则 ────────────────────────────────────────────────────────────────
+
+rules_trade:
+
+  - id: ESCROW_DEPOSIT
+    rule: "需求方付款后资金由平台托管，服务完成验收后才打款"
+    authority: "platform"
+    note: "pay -> platform_hold -> complete -> release_to_provider"
+
+  - id: AUTO_COMPLETE_ON_TIMEOUT
+    rule: "需求方在验收期不主动确认，系统自动完成并打款"
+    check: "waiting_review_duration > review_timeout"
+    error: "验收超时，系统已自动确认完成。"
+
+  - id: DISPUTE_FREEZES_ORDER
+    rule: "订单状态变为纠纷中时，双方交易暂停"
+    effect: "order.status == 'DISPUTED'  ->  payment_held, actions_paused"
+    resolution: "平台客服介入处理"
+
+  - id: CANCELLATION_PENALTY
+    rule: "取消订单可能涉及信用分扣除"
+    check: "if cancelled_by == 'provider' then credit_score -= penalty"
+    note: "具体罚则在 settings 服务协议中"
+
+  - id: OFF_PLATFORM_FORBIDDEN
+    rule: "私下交易不受平台保护"
+    warning: "不要通过平台以外的渠道进行交易。产生的纠纷平台无法介入处理。"
+
+# ── 信用与额度规则 ──────────────────────────────────────────────────────────
+
+rules_credit:
+
+  - id: INITIAL_CREDIT_SCORE
+    rule: "初始信用分 60"
+    check: "new_user.creditScore == 60"
+
+  - id: CREDIT_INCREASE
+    rule: "完成订单并获好评提升信用分"
+    condition: "order.status == 'COMPLETED' AND review.rating >= 4"
+    effect: "creditScore += 1~3"
+
+  - id: CREDIT_DECREASE
+    rule: "违约/纠纷败诉降低信用分"
+    condition: "complaint.status == 'UPHELD' OR order.cancelled_by_provider"
+    effect: "creditScore -= 5~20"
+
+  - id: SNATCH_CREDITS_BASE
+    rule: "基础抢单次数为 3"
+    check: "new_user.snatchCredits == 3"
+
+  - id: SNATCH_CREDITS_REGEN
+    rule: "抢单额度随时间自动恢复"
+    check: "snatchCredits regen_rate = '每24小时恢复全部额度'"
+    note: "完成订单也会返还部分额度"
+
+  - id: CERT_WEIGHT
+    rule: "认证等级越高，抢单权重和搜索排名越高"
+    effect: "higher CertLevel -> higher search_rank, more snatch_quota"
+
+# ── 标签规则 ────────────────────────────────────────────────────────────────
+
+rules_tags:
+
+  - id: TAG_LIMIT
+    rule: "每个用户最多 20 个服务标签"
+    check: "user.serviceTags.count() <= 20"
+    error: "服务标签最多 20 个。"
+
+  - id: TAG_SEARCH_LAST_ONLY
+    rule: "标签筛选以最后一个添加的标签为准"
+    check: "search.tags.last() == effective_filter"
+    note: "寻觅区域支持多标签叠加，但最终按末尾标签匹配"
+
+  - id: TAG_FUZZY_MATCH
+    rule: "标签支持模糊匹配"
+    example: "输入"王者"即可匹配"王者荣耀"相关需求"
+    note: "标签上限 10 个"
+
+# ── 推送规则 ────────────────────────────────────────────────────────────────
+
+rules_push:
+
+  - id: PUSH_BLOCKLIST_CHECK
+    rule: "推送前按屏蔽列表过滤"
+    check_chain:
+      - "if user.push_preference == null -> 接受推送"
+      - "if receivePushes == false -> GLOBAL_OFF"
+      - "if demand.title/description matches excludeKeywords -> EXCLUDE_KEYWORD"
+      - "if demand.tagName in excludeTags -> EXCLUDE_TAG"
+      - "if demand.regionId in excludeRegions -> EXCLUDE_REGION"
+      - "else -> 接受推送"
+    note: "短路判断，任一条件满足即停"
+
+  - id: PUSH_MATCH_SCOPE
+    rule: "推送匹配范围：UserTag 表中 IDLE 状态 + 标签/地区匹配的服务者"
+    check: "usertag.status == 'IDLE' AND usertag.tagName matches demand.tagName"
+    scope_limit: 500
+    note: "单次推送最多匹配 500 人，通过 Socket.IO push:new_demand 事件发送"
+
+# ── 两段式接单规则 ──────────────────────────────────────────────────────────
+
+rules_two_phase:
+
+  - id: PHASE_1_REQUEST
+    rule: "Phase 1 — 申请方发送接单请求"
+    checks:
+      - "demand.status in ['ACTIVE', 'PENDING']"
+      - "applicant.id != demand.userId"
+      - "applicantCount < maxApplicants"
+      - "not duplicate (demandId + userId)"
+      - "if isCertifiedOnly -> must be CertifiedProvider"
+    effect: "创建 DemandApplicantV2 (status=PENDING)"
+
+  - id: PHASE_2_ACCEPT
+    rule: "Phase 2 — 需求方接受申请"
+    checks:
+      - "只有需求方可以操作"
+    effect:
+      - "更新 demand.acceptedProviderId = applicantId"
+      - "更新 demand.status = IN_PROGRESS"
+      - "接受该申请人 (ACCEPTED)"
+      - "拒绝其他所有申请人 (PENDING/COMMUNICATING -> REJECTED)"
+
+  - id: WITHDRAW_DEMAND
+    rule: "撤回需求"
+    checks:
+      - "只有需求方可以操作"
+      - "COMPLETED 状态不可撤回"
+    effect:
+      - "更新 demand.status = WITHDRAWN"
+      - "关闭所有申请"
+      - "退回 99.99% 押金"
+
+# ── 活池/死池规则 ────────────────────────────────────────────────────────────
+
+rules_pool:
+
+  - id: ACTIVE_POOL
+    rule: "活池 = stage=active, status!=CLOSED 的需求"
+    check: "demand.stage == 'active' AND demand.status != 'CLOSED'"
+
+  - id: DEAD_POOL
+    rule: "死池 = stage=completed 且 status=COMPLETED 的需求"
+    check: "demand.stage == 'completed' AND demand.status == 'COMPLETED'"
+    note: "死池需求有永久封面 (completedCoverImage) 和色条 (colorBar)，不可修改"
+
+  - id: TIME_LEVERAGE
+    rule: "时间杠杆：延期延长需求在活池中的展示时间"
+    mechanism: "通过 extend 接口或 ActiveDemand 表的压缩日期机制"
+    limit: "totalExtendedMonths 记录总延期月数"
+
+# ── 应用分发市场规则 ──────────────────────────────────────────────────────
+
+rules_welfare:
+
+  - id: WELFARE_NO_FEE
+    rule: "公益需求不收取平台服务费"
+    check: "demand.isPublicWelfare == true -> settlement.serviceFee == 0"
+
+  - id: WELFARE_DEPOSIT_FREE
+    rule: "公益需求不需要缴纳保证金"
+    check: "demand.isPublicWelfare == true -> demand.deposit == 0"
+
+  - id: WELFARE_FALSE_PENALTY
+    rule: "虚假公益需求永久封号"
+    check: "welfare.fraud == true -> user.banned = permanent"
+
+  - id: WELFARE_REWARD
+    rule: "完成公益需求可获得随机奖励或精神奖励"
+    mechanism: "公益完成时抽成入资金池 + 随机奖励服务方"
+
+# ── 卡片生命周期规则 ──────────────────────────────────────────────────────
+
+rules_card_lifecycle:
+
+  - id: CARD_DECAY
+    rule: "需求卡片分阶段过期：cover -> detail -> full"
+    stages:
+      - "ACTIVE: 正常展示"
+      - "NO_COVER: 封面过期 (coverDeletedAt 非空)"
+      - "NO_DETAIL: 详情过期 (detailDeletedAt 非空)"
+      - "ARCHIVED: 完全归档"
+      - "DELETED: 已删除"
+    note: "用户可以通过 extend-lifecycle 接口弹性延期"
+
+# ── V1 申请特殊规则 ────────────────────────────────────────────────────────
+
+rules_v1_application:
+  - id: SNATCH_LIMITER
+    rule: "V1 抢单受 snatchLimiter 限流中间件限制"
+    note: "create_demand 的 handler 中 V2 使用 separate 接口"
+  - id: DEMAND_DELETE_ONLY_FROZEN
+    rule: "需求仅 FROZEN 状态可删除"
+    check: "demand.status == 'FROZEN'"
+    effect: "删除并退回押金"

@@ -78,7 +78,7 @@ export default function AdminDashboard() {
     const container = mainRef.current
     // 双 rAF：等 React 提交 DOM（尤其切换 Tab 后）
     let cancelled = false
-    requestAnimationFrame(() => {
+    const raf1 = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (cancelled) return
         if (scrollToAdminSection(sectionId, container)) {
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
         activeTab={tab}
         activeItem={activeItem}
         onNavigate={handleNavigate}
-        onBack={() => navigate('/discover')}
+        onBack={() => navigate('/')}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--admin-bg)]">

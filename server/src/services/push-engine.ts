@@ -1,9 +1,10 @@
 /**
  * AI 2.7 推送匹配引擎
- * 双向 opt-in/opt-out 规则引擎
+ * 7 步规则链 + 实际发送通知
  */
 
 import { prisma } from '../lib/prisma.js'
+import type { Server as SocketIOServer } from 'socket.io'
 
 interface PushTarget {
   ageMin?: number
@@ -57,6 +58,7 @@ export async function shouldReceivePush(
 export async function matchAndPush(
   demandId: string,
   target: PushTarget,
+  io?: SocketIOServer,
 ): Promise<PushResult> {
   const result: PushResult = {
     totalMatched: 0,
@@ -64,6 +66,11 @@ export async function matchAndPush(
     totalSent: 0,
     rejectReasons: {},
   }
+
+  const demand = await prisma.demand.findUnique({
+    where: { id: demandId },
+    select: { title: true, tagName: true, regionId: true },
+  })
 
   // 查找匹配的服务者 (IDLE 状态 + 目标标签)
   const where: any = { status: 'IDLE' }
@@ -83,6 +90,7 @@ export async function matchAndPush(
   result.totalMatched = providers.length
 
   // 逐个检查规则引擎
+  const accepted: string[] = []
   for (const p of providers) {
     const { accept, reason } = await shouldReceivePush(p.userId, target)
     if (!accept) {
@@ -90,13 +98,29 @@ export async function matchAndPush(
       if (reason) {
         result.rejectReasons[reason] = (result.rejectReasons[reason] || 0) + 1
       }
+    } else {
+      accepted.push(p.userId)
     }
   }
 
-  result.totalSent = result.totalMatched - result.totalRejected
+  result.totalSent = accepted.length
 
-  // TODO: 实际发送通知（MVP 阶段只返回结果）
-  // await batchNotify(acceptedUserIds, demandId)
+  // 实际发送通知
+  if (io && accepted.length > 0) {
+    for (const userId of accepted) {
+      try {
+        io.to(`user:${userId}`).emit('push:new_demand', {
+          demandId,
+          title: demand?.title || '',
+          tagName: demand?.tagName || '',
+          regionId: demand?.regionId || null,
+          pushedAt: new Date().toISOString(),
+        })
+      } catch {
+        // 单条失败不阻塞
+      }
+    }
+  }
 
   return result
 }

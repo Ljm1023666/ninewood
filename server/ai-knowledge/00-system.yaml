@@ -1,0 +1,434 @@
+# ============================================================================
+# 九木系统规格 — 数据模型、枚举、字段约束、状态机
+# 此文件由 AI 消费，格式化为结构化 YAML 而非自然语言段落
+# ============================================================================
+
+# ── 枚举值 ──────────────────────────────────────────────────────────────────
+
+enums:
+  CertLevel:
+    description: 用户认证等级
+    values: [NONE, BASIC, INTERMEDIATE, ADVANCED, MASTER]
+    order: NONE < BASIC < INTERMEDIATE < ADVANCED < MASTER
+
+  ServiceType:
+    description: 服务方式
+    values: [ONLINE, OFFLINE]
+
+  DemandStatus:
+    description: 需求状态
+    values: [PENDING, ACTIVE, FROZEN, IN_PROGRESS, COMPLETED, CLOSED, WITHDRAWN]
+
+  ApplicationStatus:
+    description: V1 申请状态
+    values: [PENDING, ACCEPTED, REJECTED]
+
+  ApplicantStatusV2:
+    description: V2 两段式接单申请状态
+    values: [PENDING, COMMUNICATING, ACCEPTED, REJECTED, TIMED_OUT, WITHDRAWN]
+
+  TagStatus:
+    description: 服务者标签状态
+    values: [IDLE, BUSY, HIDDEN]
+
+  LifecycleStage:
+    description: 需求卡片生命周期阶段
+    values: [ACTIVE, NO_COVER, NO_DETAIL, ARCHIVED, DELETED]
+
+  CircleType:
+    description: 圈子类型
+    values: [PRIVATE, PUBLIC]
+
+  CircleStatus:
+    description: 圈子状态
+    values: [ACTIVE, WARNING, DEFUNCT]
+
+  CircleLevel:
+    description: 圈子地域级别
+    values: [COUNTY, CITY, PROVINCE, NATIONAL]
+
+  MemberRole:
+    description: 圈子成员角色
+    values: [OWNER, ADMIN, MEMBER]
+
+  OrderStatus:
+    description: 订单状态
+    values: [PENDING, IN_PROGRESS, WAITING_REVIEW, COMPLETED, CANCELLED, REFUNDED, DISPUTED]
+
+  DepositStatus:
+    description: 押金状态
+    values: [PENDING, REFUNDED, FORFEITED]
+
+  ComplaintStatus:
+    description: 投诉状态
+    values: [PENDING, UPHELD, DISMISSED]
+
+  MessageType:
+    description: 消息类型
+    values: [TEXT, IMAGE, VIDEO, VOICE, SYSTEM]
+
+  DemandStage:
+    description: 需求池阶段
+    values: [active, compressed, completed]
+
+  PushFrequency:
+    description: 推送频率偏好
+    values: [HIGH, NORMAL, LOW, OFF]
+
+  TagCategory:
+    description: 标签分类用途
+    values: [service, demand, both]
+
+# ── 数据模型 ────────────────────────────────────────────────────────────────
+
+models:
+  User:
+    description: 用户
+    fields:
+      id: { type: String, format: uuid }
+      phone: { type: String, unique: true, pattern: "11位数字" }
+      nickname: { type: String }
+      avatarUrl: { type: String?, nullable: true }
+      coverUrl: { type: String?, nullable: true }
+      cityCode: { type: String?, nullable: true }
+      ipRegion: { type: String?, description: "IP属地缓存，如"北京"" }
+      certificationLevel: { type: CertLevel, default: NONE }
+      snatchCredits: { type: Int, default: 3, description: "抢单剩余次数" }
+      creditScore: { type: Int, default: 60, description: "信用分 0-100" }
+      completedOrders: { type: Int, default: 0 }
+      role: { type: String, default: "USER", description: "USER | ADMIN" }
+      bio: { type: String?, nullable: true, description: "个人简介" }
+      serviceTags: { type: String[], default: [] }
+      isBusy: { type: Boolean, default: false }
+      allowSpecialSearch: { type: Boolean, default: false }
+      pushBlocklist: { type: Json, description: '{"tags":[],"keywords":[],"ageRanges":[]}' }
+      createdAt: { type: DateTime, auto: now }
+
+    relations:
+      demands: Demand[]
+      applications: DemandApplication[]
+      orders_as_provider: Order[] (Provider)
+      orders_as_requester: Order[] (Requester)
+      owned_circles: Circle[] (CircleOwner)
+      memberships: CircleMember[]
+      deposits: Deposit[]
+      sent_messages: Message[] (Sender)
+      received_messages: Message[] (Receiver)
+      followers: Follow[] (Followers)
+      following: Follow[] (Following)
+      favorites: DemandFavorite[]
+      certified_provider: CertifiedProvider?
+      user_tags: UserTag[]
+      applicants_v2: DemandApplicantV2[]
+      push_preference: PushPreference?
+
+  Demand:
+    description: 需求
+    fields:
+      id: { type: String, format: uuid }
+      userId: { type: String, ref: User }
+      title: { type: String, constraints: "2-100字" }
+      description: { type: String, constraints: "2-2000字" }
+      minPrice: { type: Decimal(10,2), constraints: "最低价格，单位元", min: 1, max: 999999 }
+      category: { type: String, description: "需求分类，如"游戏""设计"" }
+      taxonomyLeafId: { type: String?, nullable: true }
+      serviceType: { type: ServiceType }
+      cityCode: { type: String?, nullable: true }
+      regionId: { type: Int?, ref: Region, nullable: true }
+      tagName: { type: String?, nullable: true, description: "关联标签" }
+      isCertifiedOnly: { type: Boolean, default: false, description: "仅认证用户可申请" }
+      coverImage: { type: String?, nullable: true }
+      expireAt: { type: DateTime, description: "过期时间" }
+      status: { type: DemandStatus, default: PENDING }
+      circleId: { type: String?, ref: Circle, nullable: true }
+      mediaUrls: { type: Json, default: "[]", description: "最多9图+1视频" }
+      applicantCount: { type: Int, default: 0 }
+      isExample: { type: Boolean, default: false }
+      isPublic: { type: Boolean, default: true }
+      visibilityWindow: { type: Int, default: 15, description: "紧急窗口(分钟)" }
+      visibleUntil: { type: DateTime?, nullable: true }
+      frozenAt: { type: DateTime?, nullable: true }
+      expectedOutcome: { type: String?, nullable: true, description: "预期交付物" }
+      timeLimit: { type: DateTime?, nullable: true }
+      deposit: { type: Float, default: 0 }
+      maxApplicants: { type: Int, default: 10 }
+      tags: { type: String[], default: [] }
+      aiTags: { type: String[], default: [] }
+      tagsConfirmed: { type: Boolean, default: false }
+      isPublicWelfare: { type: Boolean, default: false }
+      stage: { type: DemandStage, default: active }
+      lifecycleStage: { type: LifecycleStage, default: ACTIVE }
+      acceptedProviderId: { type: String?, nullable: true }
+
+    active_only_constraints:
+      - "用户有 FROZEN 需求时不能创建新需求"
+      - "已有 >=1 个活跃需求则需缴纳押金 (minPrice * 1%)"
+      - "circleId 需为成员圈子"
+      - "圈内需求 isPublic: false"
+
+  Order:
+    description: 订单（担保交易）
+    fields:
+      id: { type: String, format: uuid }
+      demandId: { type: String, ref: Demand }
+      providerId: { type: String, ref: User (Provider), description: "服务方" }
+      requesterId: { type: String, ref: User (Requester), description: "需求方" }
+      agreedPrice: { type: Decimal(10,2) }
+      status: { type: OrderStatus, default: PENDING }
+      paidAt: { type: DateTime?, nullable: true }
+      completedAt: { type: DateTime?, nullable: true }
+      createdAt: { type: DateTime, auto: now }
+
+  DemandApplication:
+    description: V1 申请记录
+    fields:
+      id: { type: String, format: uuid }
+      demandId: { type: String, ref: Demand }
+      userId: { type: String, ref: User }
+      offerPrice: { type: Decimal(10,2)?, nullable: true }
+      message: { type: String?, nullable: true }
+      isSnatched: { type: Boolean, default: false }
+      status: { type: ApplicationStatus, default: PENDING }
+    unique: [demandId, userId]
+
+  DemandApplicantV2:
+    description: V2 两段式接单申请
+    fields:
+      id: { type: String, format: uuid }
+      demandId: { type: String, ref: Demand }
+      userId: { type: String, ref: User }
+      message: { type: String, description: "申请理由" }
+      status: { type: ApplicantStatusV2, default: PENDING }
+      commStartAt: { type: DateTime?, nullable: true }
+      commDeadline: { type: DateTime?, nullable: true }
+      extensionMinutes: { type: Int, default: 0 }
+    unique: [demandId, userId]
+
+  Circle:
+    description: 圈子
+    fields:
+      id: { type: String, format: uuid }
+      name: { type: String }
+      type: { type: CircleType }
+      ownerId: { type: String, ref: User }
+      cityCode: { type: String?, nullable: true }
+      inviteCode: { type: String?, unique: true }
+      coverUrl: { type: String?, nullable: true }
+      memberCount: { type: Int, default: 1 }
+      activeScore: { type: Float, default: 0 }
+      status: { type: CircleStatus, default: ACTIVE }
+    constraints:
+      - "PUBLIC 圈子名称必须包含"需求圈""
+      - "类型创建后不可更改"
+
+  UserTag:
+    description: 服务者标签（AI 2.5+）
+    fields:
+      id: { type: String, format: uuid }
+      userId: { type: String, ref: User }
+      tagName: { type: String(50) }
+      status: { type: TagStatus, default: IDLE }
+      regionId: { type: Int?, nullable: true }
+      certified: { type: Boolean, default: false }
+      autoReceive: { type: Boolean, default: false }
+      rating: { type: Float, default: 0 }
+      orderCount: { type: Int, default: 0 }
+    unique: [userId, tagName]
+
+  PushPreference:
+    description: 推送偏好
+    fields:
+      userId: { type: String, unique: true, ref: User }
+      excludeKeywords: { type: String[], default: [] }
+      excludeTags: { type: String[], default: [] }
+      excludeRegions: { type: Int[], default: [] }
+      receivePushes: { type: Boolean, default: true }
+      pushFrequency: { type: PushFrequency, default: NORMAL }
+
+  TagStats:
+    description: 标签统计
+    fields:
+      tagName: { type: String(50) }
+      regionId: { type: Int }
+      totalCards: { type: Int }
+      totalAmount: { type: Float }
+      avgAmount: { type: Float }
+      activeProviders: { type: Int }
+      activeDemands: { type: Int }
+      periodStart: { type: DateTime }
+      periodEnd: { type: DateTime }
+    unique: [tagName, regionId, periodStart]
+    note: "数据每小时更新一次，反映近 30 天市场状态"
+
+  WelfareFundPool:
+    description: 公益资金池
+    fields:
+      regionId: { type: Int, unique: true }
+      balance: { type: Float, default: 0 }
+      totalInflow: { type: Float, default: 0 }
+      totalOutflow: { type: Float, default: 0 }
+
+  Settlement:
+    description: 结算记录
+    fields:
+      demandId: { type: String, unique: true }
+      minPrice: { type: Float }
+      finalPrice: { type: Float }
+      serviceFee: { type: Float }
+      demanderPaid: { type: Float }
+      providerReceived: { type: Float }
+      platformRevenue: { type: Float }
+      depositReturned: { type: Float }
+      isWelfare: { type: Boolean, default: false }
+
+  CertifiedProvider:
+    description: 认证服务者
+    fields:
+      userId: { type: String, unique: true, ref: User }
+      tags: { type: String[], default: [] }
+      regionId: { type: Int?, nullable: true }
+      avgRating: { type: Float, default: 0 }
+      totalCompleted: { type: Int, default: 0 }
+
+# ── 状态机 ──────────────────────────────────────────────────────────────────
+
+state_machines:
+
+  demand_lifecycle:
+    description: 需求全生命周期（简化版）
+    initial: draft
+    states:
+      draft:        { description: "草稿，未提交" }
+      pending:      { description: "PENDING — 待审核" }
+      active:       { description: "ACTIVE — 已上架，可见" }
+      frozen:       { description: "FROZEN — 冻结" }
+      in_progress:  { description: "IN_PROGRESS — 已有接单" }
+      completed:    { description: "COMPLETED — 已完成" }
+      closed:       { description: "CLOSED — 已关闭" }
+      withdrawn:    { description: "WITHDRAWN — 撤回" }
+    transitions:
+      - from: pending
+        to: [active, frozen]
+        via: [auto_review_pass, admin_review_pass, admin_reject]
+
+      - from: active
+        to: [in_progress, frozen, withdrawn, completed]
+        via:
+          in_progress: "需求方接受申请人 (acceptApplicant)"
+          frozen: "管理后台冻结 / 举报审核中"
+          withdrawn: "需求方自行撤回 (withdrawDemand)"
+          completed: "所有接单完成"
+
+      - from: in_progress
+        to: [completed, frozen]
+        via:
+          completed: "订单完成"
+          frozen: "纠纷中"
+
+      - from: frozen
+        to: [active, closed]
+        via:
+          active: "解冻"
+          closed: "确认违规关闭"
+
+      - from: completed
+        to: [closed]
+        via: "归档"
+
+  order_lifecycle:
+    description: 担保交易订单生命周期
+    initial: pending
+    states:
+      pending:        { description: "待付款" }
+      in_progress:    { description: "进行中（已付款，平台托管）" }
+      waiting_review: { description: "等待验收" }
+      completed:      { description: "已完成（款项已打给服务方）" }
+      cancelled:      { description: "已取消" }
+      refunded:       { description: "已退款" }
+      disputed:       { description: "纠纷中" }
+    transitions:
+      - from: pending
+        to: [in_progress, cancelled]
+        via:
+          in_progress: "需求方付款"
+          cancelled: "任意方取消"
+
+      - from: in_progress
+        to: [waiting_review, disputed]
+        via:
+          waiting_review: "服务方提交完成"
+          disputed: "需求方发起争议"
+
+      - from: waiting_review
+        to: [completed, disputed]
+        via:
+          completed: "需求方确认验收"
+          disputed: "需求方发起争议"
+
+      - from: completed
+        to: [refunded]
+        via: "平台仲裁退款"
+
+      - from: disputed
+        to: [completed, refunded]
+        via:
+          completed: "平台裁决继续履约"
+          refunded: "平台裁决退款"
+
+  circle_lifecycle:
+    description: 圈子生命周期
+    initial: active
+    states:
+      active:  { description: "正常运营" }
+      warning: { description: "警告中" }
+      defunct: { description: "已失效，不可加入或发布" }
+    transitions:
+      - from: active
+        to: [warning, defunct]
+        via:
+          warning: "违规内容警告"
+          defunct: "严重违规或主动解散"
+
+      - from: warning
+        to: [active, defunct]
+        via:
+          active: "整改通过"
+          defunct: "未整改"
+
+  demand_card_lifecycle:
+    description: 需求卡片生命周期（AI 2.8 弹性延期）
+    initial: ACTIVE
+    states:
+      ACTIVE:     { description: "正常展示" }
+      NO_COVER:   { description: "封面已过期" }
+      NO_DETAIL:  { description: "详情已过期" }
+      ARCHIVED:   { description: "已归档" }
+      DELETED:    { description: "已删除" }
+
+  service_tag_status:
+    description: 服务者标签状态机
+    initial: IDLE
+    states:
+      IDLE:   { description: "空闲 — 可接单，展示给需求方" }
+      BUSY:   { description: "忙碌 — 不可接单，隐藏活跃推送" }
+      HIDDEN: { description: "隐藏 — 不展示" }
+    transitions:
+      - from: IDLE
+        to: [BUSY, HIDDEN, IDLE]
+        via:
+          BUSY: "开始订单 (order-start)"
+          HIDDEN: "用户手动隐藏"
+
+      - from: BUSY
+        to: [IDLE, HIDDEN]
+        via:
+          IDLE: "完成订单 (order-finish)"
+          HIDDEN: "用户手动隐藏"
+
+# ── 地理围栏（Haversine 距离筛选） ────────────────────────────────────────
+
+geo_constraints:
+  service_type_ONLINE: "线上服务自动通过地理条件（任何距离均可匹配）"
+  demand_search_distance_field:
+    expression: "6371000 * 2 * ASIN(SQRT(POWER(SIN((target_lat - demand.fuzzyLat) * PI() / 180 / 2), 2) + COS(target_lat * PI() / 180) * COS(demand.fuzzyLat * PI() / 180) * POWER(SIN((target_lng - demand.fuzzyLng) * PI() / 180 / 2), 2)))"
+    unit: meters
