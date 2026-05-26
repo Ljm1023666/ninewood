@@ -330,7 +330,7 @@ export default function Circles() {
                   <div className="rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center">
                     <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-muted">
                       <Users
-                        className="size-6 text-muted-foreground"
+                        className="size-5 text-muted-foreground"
                         aria-hidden
                       />
                     </div>

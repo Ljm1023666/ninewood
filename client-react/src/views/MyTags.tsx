@@ -10,7 +10,11 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { userApi } from '@/api/user'
 
 export default function MyTags() {
-  const { tags: allTags, loading: allTagsLoading, error: allTagsError } = useTagLoader()
+  const {
+    tags: allTags,
+    loading: allTagsLoading,
+    error: allTagsError,
+  } = useTagLoader()
 
   const [myTags, setMyTags] = useState<string[]>([])
   const [isBusy, setIsBusy] = useState(false)
@@ -87,8 +91,8 @@ export default function MyTags() {
   // 全页 loading
   if (loading) {
     return (
-      <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background">
-        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6">
+      <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
+        <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
           <PageHeader title="我的标签" onBack="back" />
           <LoadingState lines={4} />
         </div>
@@ -99,8 +103,8 @@ export default function MyTags() {
   // 全页 error
   if (error) {
     return (
-      <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background">
-        <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-6">
+      <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
+        <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
           <PageHeader title="我的标签" onBack="back" />
           <ErrorState message={error} onRetry={loadData} />
         </div>
@@ -111,8 +115,8 @@ export default function MyTags() {
   const availableTags = allTags.filter((t) => !myTags.includes(t))
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background">
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-6">
+    <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-8 md:px-6">
         <PageHeader title="我的标签" onBack="back" />
 
         {/* 1. 我的标签开关 */}
@@ -178,16 +182,24 @@ export default function MyTags() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <p className="text-sm font-medium text-text-primary">忙碌中</p>
-                  <p className="text-xs text-text-muted">开启后不会出现在搜索结果中</p>
+                  <p className="text-sm font-medium text-text-primary">
+                    忙碌中
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    开启后不会出现在搜索结果中
+                  </p>
                 </div>
                 <Switch checked={isBusy} onCheckedChange={toggleBusy} />
               </div>
               {isBusy && (
                 <div className="flex items-center justify-between pt-3 border-t border-border/50">
                   <div className="space-y-0.5">
-                    <p className="text-sm font-medium text-text-primary">允许特殊搜索</p>
-                    <p className="text-xs text-text-muted">即使忙碌，特殊搜索仍能找到您</p>
+                    <p className="text-sm font-medium text-text-primary">
+                      允许特殊搜索
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      即使忙碌，特殊搜索仍能找到您
+                    </p>
                   </div>
                   <Switch
                     checked={allowSpecialSearch}

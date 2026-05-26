@@ -22,6 +22,10 @@ function buildBody(params: ChatCompletionParams, stream: boolean) {
     body.thinking = { type: 'enabled' };
   }
 
+  if (params.webSearch) {
+    body.web_search = { enable: true };
+  }
+
   return body;
 }
 
@@ -285,6 +289,10 @@ export async function agentStream(params: AgentStreamParams): Promise<void> {
 
   if (chatParams.thinking) {
     body.thinking = { type: 'enabled' };
+  }
+
+  if (chatParams.webSearch) {
+    body.web_search = { enable: true };
   }
 
   if (tools && tools.length > 0) {

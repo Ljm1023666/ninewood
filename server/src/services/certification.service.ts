@@ -51,10 +51,11 @@ export const certificationService = {
     tags?: string[];
     regionId?: number;
     minRating?: number;
+    maxRating?: number;
     page?: number;
     limit?: number;
   }) {
-    const { tags, regionId, minRating, page = 1, limit = 20 } = params;
+    const { tags, regionId, minRating, maxRating, page = 1, limit = 20 } = params;
 
     const where: any = {};
 
@@ -66,13 +67,16 @@ export const certificationService = {
       where.regionId = regionId;
     }
 
-    if (minRating !== undefined) {
-      where.avgRating = { gte: minRating };
+    if (minRating !== undefined || maxRating !== undefined) {
+      where.avgRating = {
+        ...(minRating !== undefined ? { gte: minRating } : {}),
+        ...(maxRating !== undefined ? { lte: maxRating } : {}),
+      };
     }
 
     const skip = (page - 1) * limit;
 
-    const [items, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       prisma.certifiedProvider.findMany({
         where,
         include: {
@@ -84,6 +88,7 @@ export const certificationService = {
               certificationLevel: true,
             },
           },
+          region: { select: { id: true, name: true } },
         },
         orderBy: { avgRating: 'desc' },
         skip,
@@ -91,6 +96,18 @@ export const certificationService = {
       }),
       prisma.certifiedProvider.count({ where }),
     ]);
+
+    // 扁平化为前端接口格式
+    const items = rows.map((r) => ({
+      id: r.user.id,
+      nickname: r.user.nickname,
+      avatarUrl: r.user.avatarUrl,
+      certificationLevel: r.user.certificationLevel,
+      tags: r.tags,
+      avgRating: r.avgRating,
+      totalCompleted: r.totalCompleted,
+      region: r.region ? { id: r.region.id, name: r.region.name } : undefined,
+    }));
 
     return { items, page, limit, total, totalPages: Math.ceil(total / limit) };
   },

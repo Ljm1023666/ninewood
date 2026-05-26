@@ -12,6 +12,7 @@ export interface AgentExecuteParams {
   message: string;
   history?: { role: 'user' | 'assistant'; content: string }[];
   thinking?: boolean;
+  webSearch?: boolean;
   model?: string;
   context?: Record<string, unknown>;
 }
@@ -87,6 +88,7 @@ export async function executeAgent(
     message,
     history,
     thinking = false,
+    webSearch = false,
     model,
   } = params;
 
@@ -122,6 +124,10 @@ export async function executeAgent(
 
     if (thinking) {
       body.thinking = { type: 'enabled' };
+    }
+
+    if (webSearch) {
+      body.web_search = { enable: true };
     }
 
     if (useTools) {

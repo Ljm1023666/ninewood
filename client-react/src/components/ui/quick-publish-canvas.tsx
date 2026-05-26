@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
-import { Zap, Loader2, Send, X } from 'lucide-react'
+import { Zap, Loader2, Send, X, Sparkles } from 'lucide-react'
 import { demandApi } from '@/api/demand'
 import { toast } from './confirm-dialog'
 import { useThemeStore } from '@/stores/theme'
@@ -58,7 +58,13 @@ export function QuickPublishCanvas({
     if (open) {
       setInputText('')
       setParsed(empty)
-      setForm({ title: '', description: '', minPrice: '', category: '', serviceType: 'ONLINE' })
+      setForm({
+        title: '',
+        description: '',
+        minPrice: '',
+        category: '',
+        serviceType: 'ONLINE',
+      })
     }
   }, [open])
 
@@ -183,7 +189,10 @@ export function QuickPublishCanvas({
   }, [preview, regionId, onPublished, onClose])
 
   const canPublish =
-    preview.title && preview.description && preview.minPrice > 0 && preview.category
+    preview.title &&
+    preview.description &&
+    preview.minPrice > 0 &&
+    preview.category
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey && canPublish && !isPublishing) {
@@ -210,17 +219,17 @@ export function QuickPublishCanvas({
               onClick={onClose}
               className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="size-5" />
             </button>
             <h2 className="text-lg font-semibold text-text-primary truncate flex items-center gap-2">
               {speedMode ? (
                 <>
-                  <Zap className="size-4 text-amber-400" />
+                  <Zap className="size-4 text-muted-foreground" />
                   快速填表
                 </>
               ) : (
                 <>
-                  <span className="text-[#3388FF]">✦</span>
+                  <Sparkles className="size-4 text-accent" />
                   AI 智能解析
                 </>
               )}
@@ -260,7 +269,9 @@ export function QuickPublishCanvas({
                   <input
                     placeholder="简短概括你的需求"
                     value={form.title}
-                    onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, title: e.target.value }))
+                    }
                     className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted/40 outline-none transition-colors focus:border-[#3388FF]/40"
                   />
                 </FieldGroup>
@@ -269,7 +280,9 @@ export function QuickPublishCanvas({
                     placeholder="详细描述需求内容"
                     rows={4}
                     value={form.description}
-                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, description: e.target.value }))
+                    }
                     className="w-full resize-none rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted/40 outline-none transition-colors focus:border-[#3388FF]/40"
                   />
                 </FieldGroup>
@@ -278,7 +291,9 @@ export function QuickPublishCanvas({
                     <input
                       placeholder="例如 3000"
                       value={form.minPrice}
-                      onChange={(e) => setForm((p) => ({ ...p, minPrice: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, minPrice: e.target.value }))
+                      }
                       className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted/40 outline-none transition-colors focus:border-[#3388FF]/40"
                     />
                   </FieldGroup>
@@ -286,7 +301,9 @@ export function QuickPublishCanvas({
                     <input
                       placeholder="例如 开发"
                       value={form.category}
-                      onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, category: e.target.value }))
+                      }
                       className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted/40 outline-none transition-colors focus:border-[#3388FF]/40"
                     />
                   </FieldGroup>
@@ -296,7 +313,9 @@ export function QuickPublishCanvas({
                     {(['ONLINE', 'OFFLINE'] as const).map((t) => (
                       <button
                         key={t}
-                        onClick={() => setForm((p) => ({ ...p, serviceType: t }))}
+                        onClick={() =>
+                          setForm((p) => ({ ...p, serviceType: t }))
+                        }
                         className={cn(
                           'rounded-lg px-4 py-1.5 text-sm font-medium transition-all',
                           form.serviceType === t
@@ -318,10 +337,10 @@ export function QuickPublishCanvas({
                     value={inputText}
                     onChange={(e) => handlePlanAInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="h-full w-full resize-none rounded-xl border border-border bg-bg-secondary p-4 text-sm text-text-primary placeholder:text-text-muted/30 outline-none transition-colors focus:border-[#3388FF]/30"
+                    className="h-full w-full resize-none rounded-xl border border-border bg-bg-secondary p-4 text-sm text-text-primary placeholder:text-text-muted/30 outline-none transition-colors focus:border-accent/30"
                   />
                   {isParsing && (
-                    <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-bg-tertiary px-2.5 py-1 text-xs text-[#3388FF]">
+                    <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-bg-tertiary px-2.5 py-1 text-xs text-accent">
                       <Loader2 className="size-3 animate-spin" />
                       AI 解析中
                     </div>
@@ -333,11 +352,11 @@ export function QuickPublishCanvas({
                   </p>
                 )}
                 {inputText.trim() && !isParsing && parsed.title && (
-                  <p className="mt-2 text-center text-xs text-[#3388FF]/70">
-                    AI 已解析{parsed.title ? ' ✓标题' : ''}
-                    {parsed.description ? ' ✓描述' : ''}
-                    {parsed.minPrice > 0 ? ' ✓预算' : ''}
-                    {parsed.category ? ' ✓分类' : ''} — 回车即可发布
+                  <p className="mt-2 text-center text-xs text-accent/70">
+                    AI 已解析{parsed.title ? ' 标题' : ''}
+                    {parsed.description ? ' 描述' : ''}
+                    {parsed.minPrice > 0 ? ' 预算' : ''}
+                    {parsed.category ? ' 分类' : ''} — 回车即可发布
                   </p>
                 )}
               </div>
@@ -378,12 +397,7 @@ function FieldGroup({
  * 卡牌背面 —— 与 InteractiveProductCard flip 后的背面完全一致。
  * InfoCard 内嵌 + 底部价格。顶部图片区域叠加分类/类型/发布目标角标。
  */
-function DemandCardBack({
-  data,
-}: {
-  data: ParsedFields
-  isDark: boolean
-}) {
+function DemandCardBack({ data }: { data: ParsedFields; isDark: boolean }) {
   const { title, description, minPrice, category, serviceType } = data
   const priceStr = minPrice > 0 ? `¥${minPrice.toLocaleString()}` : '¥?'
   const displayTitle = title || '标题待写入…'
@@ -413,7 +427,10 @@ function DemandCardBack({
       />
 
       {/* 图片区叠加：分类 + 服务类型 + 发布目标 */}
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-start justify-between p-4" style={{ height: '48%' }}>
+      <div
+        className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-start justify-between p-4"
+        style={{ height: '48%' }}
+      >
         <div className="flex flex-col gap-1">
           <span className="rounded-full bg-black/50 px-2 py-0.5 text-[10px] text-white/70 backdrop-blur-sm">
             {category || '待分类'}

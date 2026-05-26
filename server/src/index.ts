@@ -21,6 +21,7 @@ import { userTagRouter } from './routes/user-tag.js';
 import { pushRouter } from './routes/push.js';
 import { tagStatsRouter } from './routes/tag-stats.js';
 import { welfareRouter } from './routes/welfare.js';
+import { transactionRouter } from './routes/transaction.js';
 import { circleEnhancedRouter } from './routes/circle-enhanced.js';
 import { orderRouter } from './routes/order.js';
 import { circleRouter } from './routes/circle.js';
@@ -84,6 +85,7 @@ app.use('/api/user-tags', userTagRouter);
 app.use('/api/pushes', pushRouter);
 app.use('/api/tag-stats', tagStatsRouter);
 app.use('/api/welfare', welfareRouter);
+app.use('/api/transactions', transactionRouter);
 app.use('/api/circles-enhanced', circleEnhancedRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/regions', regionRouter);
@@ -109,8 +111,6 @@ app.use('/api', healthActionsRouter);
 
 // 独立监控页 — 前端挂了也能用
 const __public = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'public');
-app.get('/monitor', (_req, res) => res.sendFile(path.join(__public, 'monitor.html')));
-
 // Sentry error handler (must be before generic error handler)
 Sentry.setupExpressErrorHandler(app);
 

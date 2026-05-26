@@ -42,7 +42,7 @@ export function CanvasManager({ renderContent }: CanvasManagerProps) {
                 }}
                 className="flex h-4 w-4 items-center justify-center rounded-full opacity-0 transition-opacity hover:bg-bg-tertiary group-hover:opacity-100"
               >
-                <X className="h-3 w-3" />
+                <X className="size-3" />
               </span>
             </button>
           )

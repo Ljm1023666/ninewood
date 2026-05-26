@@ -10,7 +10,10 @@ import { useNavigate } from 'react-router-dom'
 import { X, Tag, Grid3X3, Layers, LayoutList } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PackCardData } from '@/components/card-pool/search-params'
-import { MorphingCardStack, type CardData } from '@/components/ui/morphing-card-stack'
+import {
+  MorphingCardStack,
+  type CardData,
+} from '@/components/ui/morphing-card-stack'
 
 type AnimationPhase = 'scatter' | 'line' | 'circle'
 
@@ -93,7 +96,7 @@ function PackCard({
     0,
     Math.min(1, (target.scale - minScale) / (maxScale - minScale)),
   )
-  const barH = lerp((cardHeight * MAX_SIZE_SCALE) / 5, 32, morphT)   // 字号与色条高度成正比，但不超过 4 字能放下的最大尺寸
+  const barH = lerp((cardHeight * MAX_SIZE_SCALE) / 5, 32, morphT) // 字号与色条高度成正比，但不超过 4 字能放下的最大尺寸
   const maxFontByWidth = (cardWidth * MAX_SIZE_SCALE - 16) / 4
   const titleFontSize = Math.min(barH * 0.7, maxFontByWidth)
   const titleMaxChars = Math.max(4, Math.round(lerp(4, 14, morphT)))
@@ -146,7 +149,12 @@ function PackCard({
           )}
           <motion.div
             animate={{ height: barH }}
-            transition={{ type: 'spring', stiffness: 200, damping: 30, mass: 0.5 }}
+            transition={{
+              type: 'spring',
+              stiffness: 200,
+              damping: 30,
+              mass: 0.5,
+            }}
             className={cn(
               'absolute top-0 left-0 right-0 flex items-center overflow-hidden px-2 backdrop-blur-sm',
               getShimmerClass(card.price),
@@ -154,7 +162,12 @@ function PackCard({
           >
             <motion.p
               animate={{ fontSize: titleFontSize }}
-              transition={{ type: 'spring', stiffness: 200, damping: 30, mass: 0.5 }}
+              transition={{
+                type: 'spring',
+                stiffness: 200,
+                damping: 30,
+                mass: 0.5,
+              }}
               className="w-full font-bold text-white text-center whitespace-nowrap leading-none"
             >
               {card.title.length > titleMaxChars
@@ -347,11 +360,11 @@ export function PackOpeningAnimation({
       >
         {/* 关闭/返回按钮 */}
         <button
-          onClick={() => showCardStack ? setShowCardStack(false) : onClose()}
+          onClick={() => (showCardStack ? setShowCardStack(false) : onClose())}
           className="absolute top-4 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary/80 text-text-muted hover:text-text-primary hover:bg-bg-tertiary transition-colors"
-          aria-label={showCardStack ? "返回散落视图" : "关闭"}
+          aria-label={showCardStack ? '返回散落视图' : '关闭'}
         >
-          <X size={20} />
+          <X className="size-5" />
         </button>
 
         <div
@@ -368,7 +381,10 @@ export function PackOpeningAnimation({
                     ? { opacity: 0.6 - morphValue * 2 }
                     : { opacity: 0 }
                 }
-                onClick={() => { setShowCardStack(true); setQueueStart(0) }}
+                onClick={() => {
+                  setShowCardStack(true)
+                  setQueueStart(0)
+                }}
                 className="text-sm text-text-muted tracking-widest cursor-pointer hover:text-text-primary transition-colors pointer-events-auto"
               >
                 点击聚拢卡牌
@@ -477,73 +493,79 @@ export function PackOpeningAnimation({
           </div>
 
           {/* 聚拢后的卡片堆叠 */}
-          {showCardStack && (() => {
-            const MAX_VISIBLE = 4
-            const allStackCards: CardData[] = cards.map(
-              (c): CardData => ({
-                id: c.id,
-                title: c.title,
-                description: c.description || c.price,
-                icon: <Tag className="h-5 w-5" />,
-                color: getShimmerColor(c.price),
-                shimmerClass: getShimmerClass(c.price),
-              }),
-            )
-            const visibleCards = allStackCards.slice(queueStart, queueStart + MAX_VISIBLE)
-            const queueRemaining = allStackCards.length - queueStart - visibleCards.length
+          {showCardStack &&
+            (() => {
+              const MAX_VISIBLE = 4
+              const allStackCards: CardData[] = cards.map(
+                (c): CardData => ({
+                  id: c.id,
+                  title: c.title,
+                  description: c.description || c.price,
+                  icon: <Tag className="size-5" />,
+                  color: getShimmerColor(c.price),
+                  shimmerClass: getShimmerClass(c.price),
+                }),
+              )
+              const visibleCards = allStackCards.slice(
+                queueStart,
+                queueStart + MAX_VISIBLE,
+              )
+              const queueRemaining =
+                allStackCards.length - queueStart - visibleCards.length
 
-            return (
-              <motion.div
-                key="stack-overlay"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6, duration: 0.4, ease: 'easeOut' }}
-                className="absolute inset-0 z-20"
-              >
-                {/* 卡片堆叠 — 绝对居中，固定外壳防止布局跳动 */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="pointer-events-auto">
-                    <MorphingCardStack
-                      cards={visibleCards}
-                      layout={stackLayout}
-                      onLayoutChange={setStackLayout}
-                      onCardClick={(card) => handleNavigate(card.id)}
-                    />
+              return (
+                <motion.div
+                  key="stack-overlay"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6, duration: 0.4, ease: 'easeOut' }}
+                  className="absolute inset-0 z-20"
+                >
+                  {/* 卡片堆叠 — 绝对居中，固定外壳防止布局跳动 */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="pointer-events-auto">
+                      <MorphingCardStack
+                        cards={visibleCards}
+                        layout={stackLayout}
+                        onLayoutChange={setStackLayout}
+                        onCardClick={(card) => handleNavigate(card.id)}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* 队列控制栏 — 绝对定位，不受卡片动画影响 */}
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
-                  <button
-                    onClick={() => setQueueStart((p) => Math.max(0, p - 1))}
-                    disabled={queueStart === 0}
-                    className="rounded-lg bg-white dark:bg-black px-3 py-1.5 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    ← 上一张
-                  </button>
-                  <span className="text-sm text-black dark:text-white tabular-nums min-w-[80px] text-center font-medium">
-                    {queueStart + 1}–{queueStart + visibleCards.length} / {allStackCards.length}
-                  </span>
-                  <button
-                    onClick={() => setQueueStart((p) => p + 1)}
-                    disabled={queueRemaining <= 0}
-                    className="rounded-lg bg-white dark:bg-black px-3 py-1.5 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15 disabled:opacity-30 disabled:cursor-not-allowed"
-                  >
-                    下一张 →
-                  </button>
-                </div>
-              </motion.div>
-            )
-          })()}
+                  {/* 队列控制栏 — 绝对定位，不受卡片动画影响 */}
+                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
+                    <button
+                      onClick={() => setQueueStart((p) => Math.max(0, p - 1))}
+                      disabled={queueStart === 0}
+                      className="rounded-lg bg-white dark:bg-black px-3 py-1.5 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ← 上一张
+                    </button>
+                    <span className="text-sm text-black dark:text-white tabular-nums min-w-[80px] text-center font-medium">
+                      {queueStart + 1}–{queueStart + visibleCards.length} /{' '}
+                      {allStackCards.length}
+                    </span>
+                    <button
+                      onClick={() => setQueueStart((p) => p + 1)}
+                      disabled={queueRemaining <= 0}
+                      className="rounded-lg bg-white dark:bg-black px-3 py-1.5 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15 disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      下一张 →
+                    </button>
+                  </div>
+                </motion.div>
+              )
+            })()}
 
           {/* 布局切换 */}
           {showCardStack && (
             <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center gap-1 rounded-lg bg-secondary/50 p-1">
-              {([
+              {[
                 { mode: 'stack' as const, icon: Layers },
                 { mode: 'grid' as const, icon: Grid3X3 },
                 { mode: 'list' as const, icon: LayoutList },
-              ]).map(({ mode, icon: Icon }) => (
+              ].map(({ mode, icon: Icon }) => (
                 <button
                   key={mode}
                   onClick={() => setStackLayout(mode)}
@@ -555,7 +577,7 @@ export function PackOpeningAnimation({
                   )}
                   aria-label={`切换到 ${mode} 布局`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="size-4" />
                 </button>
               ))}
             </div>

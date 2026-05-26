@@ -63,6 +63,11 @@
   /* 无霓虹发光 */
   --glow-primary: 0 0 20px rgba(51, 136, 255, 0.12);
 
+  /* ── 文件树 ── */
+  --file-tree-bg: #0A0A0A;
+  --file-tree-hover: rgba(255, 255, 255, 0.06);
+  --folder-icon: #5A5A5A;
+
   /* ── 动效 ── */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
@@ -119,6 +124,9 @@
   --color-popover: #ffffff;
   --color-popover-foreground: var(--bg-primary);
   --color-accent-foreground: var(--text-primary);
+  /* shadcn destructive 语义色 */
+  --color-destructive: var(--error-color);
+  --color-destructive-foreground: #ffffff;
   /* shadcn sidebar / chat-template 依赖 */
   --color-secondary: var(--bg-card);
   --color-secondary-foreground: var(--text-secondary);
@@ -139,6 +147,9 @@
   --z-overlay: var(--z-overlay);
   --z-modal: var(--z-modal);
   --z-max: var(--z-max);
+  --color-file-tree-bg: var(--file-tree-bg);
+  --color-file-tree-hover: var(--file-tree-hover);
+  --color-folder-icon: var(--folder-icon);
 
   @keyframes shimmer {
     from {
@@ -149,9 +160,17 @@
     }
   }
   --animate-shimmer: shimmer 2s linear infinite;
+  /* border-beam 动画 */
+  --animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 全局 lucide 图标：细笔画 + 继承颜色 */
+svg.lucide {
+  stroke-width: 1.5;
+  stroke: currentColor;
+}
 
 /* 全局 focus ring — 分两层确保鼠标点击绝不出现环 */
 :where(button, select, [tabindex], [role="button"], a[href]):focus:not(:focus-visible) {
@@ -722,3 +741,100 @@ html[data-appearance="dark"] {
 .sheet-slide-right[data-state="closed"] { animation: sheet-out-right 0.3s cubic-bezier(0.4, 0, 1, 1); }
 [data-slot="sheet-overlay"][data-state="open"]  { animation: sheet-overlay-in 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 [data-slot="sheet-overlay"][data-state="closed"] { animation: sheet-overlay-out 0.3s cubic-bezier(0.4, 0, 1, 1); }
+
+/* ── starfall-portfolio-landing 组件样式 ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  transition: all 0.25s ease;
+}
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.primary-button {
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+.primary-button:hover {
+  background: #e0e0e0;
+}
+
+.skill-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+.project-image {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+}
+
+.geist-font {
+  font-family: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+.inter-font {
+  font-family: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+
+/* ── border-beam ── */
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+/* ── 管理后台浅色主题 ── */
+.admin-light {
+  --admin-bg: #F9FAFB;
+  --admin-card-bg: #FFFFFF;
+  --admin-border: #E5E7EB;
+  --admin-text: #111827;
+  --admin-text-secondary: #6B7280;
+  --admin-text-muted: #9CA3AF;
+  --admin-primary: #000000;
+  --admin-sidebar-bg: #09090B;
+  --admin-sidebar-text: #A1A1AA;
+  --admin-sidebar-active: #FFFFFF;
+  --admin-sidebar-hover: rgba(255,255,255,0.08);
+  --admin-accent-blue: #3B82F6;
+  --admin-accent-green: #22C55E;
+  --admin-accent-red: #EF4444;
+  --admin-accent-orange: #F97316;
+  --admin-accent-teal: #14B8A6;
+  --admin-radius: 12px;
+  --admin-font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.admin-dashboard-content {
+  background-color: var(--admin-bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}

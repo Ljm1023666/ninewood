@@ -36,7 +36,6 @@ const NAV_BOTTOM = [
   { path: '/profile', icon: User, label: '我的' },
 ]
 
-
 export default function Sidebar() {
   const logout = useUserStore((s) => s.logout)
   const unreadCount = useChatStore((s) => s.unreadCount)
@@ -88,7 +87,9 @@ export default function Sidebar() {
               <NavItem
                 key={item.path}
                 {...item}
-                unreadCount={item.path === '/messages' ? unreadCount : undefined}
+                unreadCount={
+                  item.path === '/messages' ? unreadCount : undefined
+                }
               />
             ))}
           </nav>
@@ -104,7 +105,9 @@ export default function Sidebar() {
               <NavItem
                 key={item.path}
                 {...item}
-                unreadCount={item.path === '/messages' ? unreadCount : undefined}
+                unreadCount={
+                  item.path === '/messages' ? unreadCount : undefined
+                }
               />
             ))}
           </nav>
@@ -124,7 +127,7 @@ export default function Sidebar() {
             className="flex size-14 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl text-[var(--text-muted)] transition-all duration-200 hover:bg-[var(--error-color)]/10 hover:text-[var(--error-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
             aria-label="注销"
           >
-            <LogOut size={24} />
+            <LogOut className="size-6" />
             <span className="text-[13px] font-medium leading-none">注销</span>
           </button>
         </div>
@@ -171,11 +174,11 @@ function NavItem({
         <>
           <div className="relative">
             <Icon
-              size={26}
               className={cn(
                 'transition-all duration-200 ease-out',
                 'group-hover:scale-110',
                 isActive ? 'opacity-100' : 'opacity-70',
+                'size-6',
               )}
             />
             {unreadCount !== undefined && unreadCount > 0 && (

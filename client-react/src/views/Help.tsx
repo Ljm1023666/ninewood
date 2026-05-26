@@ -1,9 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
-  HelpCircle,
   Search,
-  ChevronDown,
   FileText,
   Layers,
   Users,
@@ -17,23 +15,24 @@ import {
   Target,
   ArrowRight,
   ArrowUp,
-  Skull,
+  Archive,
   Gavel,
   Tags,
   BadgeCheck,
   type LucideIcon,
-  Lightbulb,
-  AlertTriangle,
-  Info,
-  CheckCircle2,
-  Activity,
+  Bell,
+  Heart,
+  BarChart3,
+  LayoutDashboard,
+  Receipt,
+  Bot,
+  Eye,
 } from 'lucide-react'
 import {
   PixelCanvas,
   Component as LogoGrid,
 } from '@/components/ui/pixel-logo-grid'
 import { LimelightNav, type NavItem } from '@/components/ui/limelight-nav'
-import { AnimatedSearchBar } from '@/components/ui/animated-search-bar'
 import { BackButton } from '@/components/ui/back-button'
 import { DynamicIslandTOC } from '@/components/ui/dynamic-island-toc'
 import { cn } from '@/lib/utils'
@@ -250,30 +249,6 @@ const PAGE_MAP: PageEntry[] = [
     keywords: ['找服务者', '服务者', '搜索服务', '找人服务', '出租车', '司机'],
   },
   {
-    id: 'discover',
-    path: '/',
-    icon: Compass,
-    title: '首页',
-    desc: '浏览所有可接的需求，按分类筛选匹配',
-    accepts: ['discover'],
-    acceptsEntities: ['game', 'service'],
-    keywords: ['找需求', '接单', '搜索需求', '发现', '找服务', '接活'],
-    buildParams: (e) => {
-      const kw = [e.gameName, e.serviceType].filter(Boolean).join(' ')
-      return kw ? { keyword: kw } : null
-    },
-    describeFor: (e) => {
-      const parts = [e.gameName, e.serviceType].filter(Boolean)
-      if (parts.length > 0) {
-        return {
-          title: `找${parts.join('')}相关需求`,
-          desc: `搜索「${parts.join(' ')}」相关需求，快速匹配`,
-        }
-      }
-      return null
-    },
-  },
-  {
     id: 'my-demands',
     path: '/my-demands',
     icon: ClipboardList,
@@ -356,7 +331,7 @@ const PAGE_MAP: PageEntry[] = [
   {
     id: 'dead-pool',
     path: '/card-pool/dead',
-    icon: Skull,
+    icon: Archive,
     title: '死池',
     desc: '浏览已过期或流拍的需求，捡漏机会',
     accepts: [],
@@ -404,16 +379,6 @@ const PAGE_MAP: PageEntry[] = [
     keywords: ['找人', '用户', '搜索用户', '个人主页', '找师傅'],
   },
   {
-    id: 'help',
-    path: '/help',
-    icon: HelpCircle,
-    title: '帮助中心',
-    desc: '使用帮助和常见问题（当前页面）',
-    accepts: [],
-    acceptsEntities: [],
-    keywords: ['帮助', '帮助中心', '使用指南', '教程'],
-  },
-  {
     id: 'licenses',
     path: '/licenses',
     icon: FileText,
@@ -424,14 +389,54 @@ const PAGE_MAP: PageEntry[] = [
     keywords: ['许可', 'license', '开源', 'MIT', '依赖', '第三方', '版权'],
   },
   {
-    id: 'monitor',
-    path: '/monitor',
-    icon: Activity,
-    title: '监控',
-    desc: '服务器运行状态与性能监控面板',
+    id: 'my-tags-manage',
+    path: '/my-tags-manage',
+    icon: Tags,
+    title: '标签管理',
+    desc: '管理服务标签开关与可见性',
     accepts: [],
     acceptsEntities: [],
-    keywords: ['监控', '服务器', '状态', '性能', '运行'],
+    keywords: ['标签', '服务标签', '开关', '空闲', '忙碌'],
+  },
+  {
+    id: 'push-settings',
+    path: '/push-settings',
+    icon: Bell,
+    title: '推送设置',
+    desc: '管理推送偏好，拒绝不想收到的内容',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['推送', '通知', '偏好', '排除'],
+  },
+  {
+    id: 'welfare',
+    path: '/welfare',
+    icon: Heart,
+    title: '公益中心',
+    desc: '发布公益需求，查看公益资金池',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['公益', '慈善', '求助', '捐赠', '寻人'],
+  },
+  {
+    id: 'circles-list',
+    path: '/circles-list',
+    icon: Users,
+    title: '需求圈',
+    desc: '浏览公开需求圈，加入参与',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['需求圈', '圈子', '公开圈', '加入'],
+  },
+  {
+    id: 'tag-stats',
+    path: '/tag-stats',
+    icon: BarChart3,
+    title: '市场分析',
+    desc: '按标签查看市场指标与趋势',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['统计', '市场', '分析', '指标', '趋势'],
   },
   {
     id: 'home',
@@ -442,6 +447,46 @@ const PAGE_MAP: PageEntry[] = [
     accepts: [],
     acceptsEntities: [],
     keywords: ['首页', '主页', '返回首页'],
+  },
+  {
+    id: 'dashboard',
+    path: '/dashboard',
+    icon: LayoutDashboard,
+    title: '管理后台',
+    desc: '业务指标监控、用户管理和系统资源面板',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['管理', '后台', '管理员', 'dashboard', 'admin', '数据', '监控'],
+  },
+  {
+    id: 'transactions',
+    path: '/transactions',
+    icon: Receipt,
+    title: '交易记录',
+    desc: '查看所有已完成交易的结算明细',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['交易', '记录', '结算', '明细', '账单', '收支'],
+  },
+  {
+    id: 'discover',
+    path: '/discover',
+    icon: Eye,
+    title: '发现页',
+    desc: '星空主题发现页，搜索和筛选需求',
+    accepts: ['discover'],
+    acceptsEntities: ['game', 'service'],
+    keywords: ['发现', '搜索', '浏览', '寻觅', '遇见', '星空'],
+  },
+  {
+    id: 'agent',
+    path: '/agent',
+    icon: Bot,
+    title: 'AI 助手',
+    desc: '智能 AI 对话助手，回答问题并辅助操作',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['AI', '助手', '机器人', '对话', 'agent', '智能'],
   },
 ]
 
@@ -462,11 +507,17 @@ const PAGE_PALETTES: Record<string, string[]> = {
   'certified-search': ['#3b82f6', '#2563eb', '#60a5fa', '#93c5fd', '#bfdbfe'],
   circles: ['#e11d48', '#be123c', '#fb7185', '#fda4af', '#fecdd3'],
   search: ['#a855f7', '#9333ea', '#c084fc', '#d8b4fe', '#e9d5ff'],
-  help: ['#64748b', '#475569', '#94a3b8', '#cbd5e1', '#e2e8f0'],
   home: ['#6366f1', '#4f46e5', '#818cf8', '#a5b4fc', '#c7d2fe'],
   licenses: ['#22c55e', '#16a34a', '#4ade80', '#86efac', '#bbf7d0'],
   agent: ['#a855f7', '#9333ea', '#c084fc', '#d8b4fe', '#e9d5ff'],
-  monitor: ['#14b8a6', '#0d9488', '#2dd4bf', '#5eead4', '#99f6e4'],
+  'my-tags-manage': ['#10b981', '#059669', '#34d399', '#6ee7b7', '#a7f3d0'],
+  'push-settings': ['#f59e0b', '#d97706', '#fbbf24', '#fcd34d', '#fde68a'],
+  welfare: ['#ef4444', '#dc2626', '#f87171', '#fca5a5', '#fecaca'],
+  'circles-list': ['#3b82f6', '#2563eb', '#60a5fa', '#93c5fd', '#bfdbfe'],
+  'tag-stats': ['#8b5cf6', '#7c3aed', '#a78bfa', '#c4b5fd', '#ddd6fe'],
+  dashboard: ['#FFFFFF', '#CCCCCC', '#9A9A9A', '#5A5A5A', '#2A2A2A'],
+  transactions: ['#f59e0b', '#d97706', '#fbbf24', '#fcd34d', '#fde68a'],
+  discover: ['#06b6d4', '#0891b2', '#22d3ee', '#67e8f9', '#a5f3fc'],
 }
 
 const PAGE_BRANDS: Record<string, string> = {
@@ -485,11 +536,17 @@ const PAGE_BRANDS: Record<string, string> = {
   'certified-search': '#3b82f6',
   circles: '#e11d48',
   search: '#a855f7',
-  help: '#64748b',
   home: '#6366f1',
   licenses: '#22c55e',
   agent: '#a855f7',
-  monitor: '#14b8a6',
+  'my-tags-manage': '#10b981',
+  'push-settings': '#f59e0b',
+  welfare: '#ef4444',
+  'circles-list': '#3b82f6',
+  'tag-stats': '#8b5cf6',
+  dashboard: '#FFFFFF',
+  transactions: '#f59e0b',
+  discover: '#06b6d4',
 }
 
 const helpNavItems: NavItem[] = [
@@ -879,7 +936,18 @@ const FAQ: FaqEntry[] = [
       { text: '如何申请接单？', faqId: 'how-to-apply' },
     ],
     category: 'discover',
-    keywords: ['找需求', '接单', '匹配', '发现', '搜索需求', '接活', '浏览', '寻觅', '遇见', '星空'],
+    keywords: [
+      '找需求',
+      '接单',
+      '匹配',
+      '发现',
+      '搜索需求',
+      '接活',
+      '浏览',
+      '寻觅',
+      '遇见',
+      '星空',
+    ],
   },
   {
     id: 'how-to-apply',
@@ -962,9 +1030,7 @@ const FAQ: FaqEntry[] = [
           'Ask AI 搜索也会自动生成标签并同步到寻觅区域，两者可以协同使用。',
       },
     ],
-    relatedLinks: [
-      { text: '如何找到适合自己的需求？', faqId: 'how-to-find' },
-    ],
+    relatedLinks: [{ text: '如何找到适合自己的需求？', faqId: 'how-to-find' }],
     category: 'discover',
     keywords: ['标签', '筛选', '寻觅', '关键词', 'tag', '分类', '精确查找'],
   },
@@ -1561,66 +1627,6 @@ const FAQ: FaqEntry[] = [
 // ===================================================================
 
 // ---------- 搜索关键词高亮 ----------
-function HighlightText({ text, query }: { text: string; query: string }) {
-  if (!query.trim()) return <>{text}</>
-  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  const parts = text.split(new RegExp(`(${escaped})`, 'gi'))
-  return (
-    <>
-      {parts.map((part, i) =>
-        part.toLowerCase() === query.toLowerCase() ? (
-          <mark
-            key={i}
-            className="rounded-sm bg-yellow-300/25 px-0.5 text-inherit dark:bg-yellow-500/20"
-          >
-            {part}
-          </mark>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
-    </>
-  )
-}
-
-// ---------- 引用块（提示/警告/危险） ----------
-const BLOCKQUOTE_STYLES: Record<
-  TipType,
-  { icon: LucideIcon; border: string; bg: string; text: string }
-> = {
-  tip: {
-    icon: Lightbulb,
-    border: 'border-l-emerald-500/60',
-    bg: 'bg-emerald-500/[0.04]',
-    text: 'text-emerald-300/80',
-  },
-  warning: {
-    icon: AlertTriangle,
-    border: 'border-l-amber-500/60',
-    bg: 'bg-amber-500/[0.04]',
-    text: 'text-amber-300/80',
-  },
-  danger: {
-    icon: AlertTriangle,
-    border: 'border-l-red-500/60',
-    bg: 'bg-red-500/[0.04]',
-    text: 'text-red-300/80',
-  },
-  info: {
-    icon: Info,
-    border: 'border-l-blue-500/60',
-    bg: 'bg-blue-500/[0.04]',
-    text: 'text-blue-300/80',
-  },
-}
-
-const BLOCKQUOTE_LABELS: Record<TipType, string> = {
-  tip: '提示',
-  warning: '注意',
-  danger: '警告',
-  info: '说明',
-}
-
 function BlockquoteBlock({
   type,
   content,
@@ -1647,75 +1653,9 @@ function BlockquoteBlock({
   )
 }
 
-// ---------- 步骤指示器 ----------
-function StepIndicator({
-  steps,
-  currentStep,
-}: {
-  steps: { title: string }[]
-  currentStep?: number
-}) {
-  return (
-    <div className="mb-4 flex items-center gap-1.5 text-[11px] font-medium">
-      {steps.map((_step, i) => (
-        <span key={i} className="flex items-center gap-1.5">
-          <span
-            className={cn(
-              'flex size-5 items-center justify-center rounded-full text-[10px] font-bold',
-              currentStep !== undefined && i === currentStep
-                ? 'bg-accent text-accent-foreground'
-                : currentStep !== undefined && i < currentStep
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'bg-foreground/8 text-foreground/30',
-            )}
-          >
-            {currentStep !== undefined && i < currentStep ? (
-              <CheckCircle2 className="size-3" />
-            ) : (
-              i + 1
-            )}
-          </span>
-          {i < steps.length - 1 && (
-            <span className="h-px w-3 bg-foreground/10" />
-          )}
-        </span>
-      ))}
-    </div>
-  )
-}
-
-// ---------- 可折叠区块 ----------
-function CollapsibleBlock({
-  title,
-  children,
-  defaultOpen,
-}: {
-  title: string
-  children: React.ReactNode
-  defaultOpen?: boolean
-}) {
-  const [open, setOpen] = useState(defaultOpen ?? false)
-  return (
-    <div className="my-3">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[15px] font-medium text-foreground/60 transition-colors hover:bg-accent/[0.04] hover:text-foreground/80"
-      >
-        <ChevronDown
-          className={cn(
-            'size-4 shrink-0 transition-transform duration-200',
-            open && 'rotate-180',
-          )}
-        />
-        {title}
-      </button>
-      {open && <div className="mt-2 pl-9">{children}</div>}
-    </div>
-  )
-}
-
 // ---------- 左侧文档导航树 ----------
+// (unused — kept for reference)
+/*
 function FaqNavTree({
   expandedCategories,
   selectedQuestion,
@@ -1801,21 +1741,30 @@ function FaqNavTree({
     </nav>
   )
 }
+*/
 
 // ---------- FAQ 答案内容（全量渲染用） ----------
 function FaqAnswerContent({ faq }: { faq: FaqEntry }) {
   return (
     <>
-      <p className="text-[16px] leading-relaxed text-foreground/70 max-w-[72ch] mb-5">{faq.intro}</p>
+      <p className="text-[16px] leading-relaxed text-foreground/70 max-w-[72ch] mb-5">
+        {faq.intro}
+      </p>
       {faq.steps && faq.steps.length > 0 && (
         <div className="mb-6">
           <ol className="space-y-4">
             {faq.steps.map((step, i) => (
               <li key={i} className="flex gap-3">
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent text-[12px] font-bold mt-0.5">{i + 1}</span>
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent text-[12px] font-bold mt-0.5">
+                  {i + 1}
+                </span>
                 <div>
-                  <h4 className="text-[16px] font-semibold text-foreground/85">{step.title}</h4>
-                  <p className="text-[15px] leading-relaxed text-foreground/60 mt-0.5">{step.content}</p>
+                  <h4 className="text-[16px] font-semibold text-foreground/85">
+                    {step.title}
+                  </h4>
+                  <p className="text-[15px] leading-relaxed text-foreground/60 mt-0.5">
+                    {step.content}
+                  </p>
                 </div>
               </li>
             ))}
@@ -1824,269 +1773,12 @@ function FaqAnswerContent({ faq }: { faq: FaqEntry }) {
       )}
       {faq.tips && faq.tips.length > 0 && (
         <div className="mb-6">
-          {faq.tips.map((tip, i) => (<BlockquoteBlock key={i} type={tip.type} content={tip.content} />))}
-        </div>
-      )}
-    </>
-  )
-}
-
-// ---------- 中央内容面板 ----------
-function FaqDocContent({
-  selectedQuestion,
-  onSelectQuestion,
-}: {
-  selectedQuestion: FaqEntry | null
-  onSelectQuestion: (faq: FaqEntry | null) => void
-}) {
-  if (!selectedQuestion) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center max-w-sm">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-accent/[0.06]">
-            <HelpCircle className="size-7 text-foreground/15" />
-          </div>
-          <p className="text-base font-medium text-foreground/40">
-            从左侧导航树选择一个问题，查看详细解答
-          </p>
-          <p className="mt-2 text-[14px] text-foreground/25">
-            也可通过顶部搜索框输入关键词进行搜索
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  const cat = FAQ_CATEGORIES.find((c) => c.id === selectedQuestion.category)
-  const siblings = cat ? FAQ.filter((f) => f.category === cat.id) : []
-  const idx = siblings.findIndex((f) => f.id === selectedQuestion.id)
-  const relatedFaqs = selectedQuestion.relatedLinks
-    ?.map((link) => FAQ.find((f) => f.id === link.faqId))
-    .filter(Boolean) as FaqEntry[] | undefined
-
-  return (
-    <div id={`faq-${selectedQuestion.id}`}>
-      {/* 面包屑 */}
-      <nav className="mb-5 flex items-center gap-1.5 text-[14px] text-foreground/40">
-        <button
-          type="button"
-          onClick={() => onSelectQuestion(null)}
-          className="transition-colors hover:text-foreground/70"
-        >
-          帮助中心
-        </button>
-        {cat && (
-          <>
-            <span className="text-foreground/15 select-none">&gt;</span>
-            <button
-              type="button"
-              onClick={() => onSelectQuestion(null)}
-              className="transition-colors hover:text-foreground/70"
-            >
-              {cat.title}
-            </button>
-          </>
-        )}
-        <span className="text-foreground/15 select-none">&gt;</span>
-        <span className="text-foreground/70 font-medium truncate max-w-64">
-          {selectedQuestion.q}
-        </span>
-      </nav>
-
-      {/* 标题 */}
-      <h2 className="text-[24px] font-bold tracking-tight text-foreground mb-2">
-        {selectedQuestion.q}
-      </h2>
-
-      {/* 步骤指示器（有步骤时显示） */}
-      {selectedQuestion.steps && selectedQuestion.steps.length > 1 && (
-        <StepIndicator steps={selectedQuestion.steps} />
-      )}
-
-      {/* 引言 */}
-      <p className="text-[18px] leading-relaxed text-foreground/80 max-w-[72ch] mb-5">
-        {selectedQuestion.intro}
-      </p>
-
-      {/* 操作步骤 */}
-      {selectedQuestion.steps && selectedQuestion.steps.length > 0 && (
-        <div className="mb-6">
-          {selectedQuestion.steps.length > 2 ? (
-            <CollapsibleBlock
-              title={`查看全部 ${selectedQuestion.steps.length} 个步骤`}
-              defaultOpen={selectedQuestion.steps.length <= 3}
-            >
-              <ol className="space-y-4">
-                {selectedQuestion.steps.map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent text-[12px] font-bold mt-0.5">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <h4 className="text-[16px] font-semibold text-foreground/85">
-                        {step.title}
-                      </h4>
-                      <p className="text-[15px] leading-relaxed text-foreground/60 mt-0.5">
-                        {step.content}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </CollapsibleBlock>
-          ) : (
-            <ol className="space-y-4">
-              {selectedQuestion.steps.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent text-[12px] font-bold mt-0.5">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <h4 className="text-[16px] font-semibold text-foreground/85">
-                      {step.title}
-                    </h4>
-                    <p className="text-[15px] leading-relaxed text-foreground/60 mt-0.5">
-                      {step.content}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-      )}
-
-      {/* 引用块 */}
-      {selectedQuestion.tips && selectedQuestion.tips.length > 0 && (
-        <div className="mb-6">
-          {selectedQuestion.tips.map((tip, i) => (
+          {faq.tips.map((tip, i) => (
             <BlockquoteBlock key={i} type={tip.type} content={tip.content} />
           ))}
         </div>
       )}
-
-      {/* 相关链接 */}
-      {relatedFaqs && relatedFaqs.length > 0 && (
-        <div className="mt-8 border-t border-border/40 pt-5">
-          <h4 className="text-[14px] font-semibold uppercase tracking-wider text-foreground/25 mb-3">
-            继续阅读
-          </h4>
-          <div className="space-y-1.5">
-            {relatedFaqs.map((faq) => (
-              <button
-                key={faq.id}
-                type="button"
-                onClick={() => onSelectQuestion(faq)}
-                className="flex items-center gap-2 text-[15px] text-accent/70 transition-colors hover:text-accent"
-              >
-                <ArrowRight className="size-3.5" />
-                {faq.q}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 上一篇 / 下一篇 */}
-      {(idx > 0 || idx < siblings.length - 1) && (
-        <div className="mt-10 flex items-center justify-between border-t border-border/40 pt-5">
-          {idx > 0 ? (
-            <button
-              type="button"
-              onClick={() => onSelectQuestion(siblings[idx - 1])}
-              className="group flex items-center gap-1.5 text-[14px] font-medium text-foreground/35 transition-colors hover:text-accent"
-            >
-              <ArrowRight className="size-3.5 rotate-180 transition-transform group-hover:-translate-x-0.5" />
-              <span className="max-w-48 truncate">{siblings[idx - 1].q}</span>
-            </button>
-          ) : (
-            <div />
-          )}
-          {idx < siblings.length - 1 ? (
-            <button
-              type="button"
-              onClick={() => onSelectQuestion(siblings[idx + 1])}
-              className="group flex items-center gap-1.5 text-[14px] font-medium text-foreground/35 transition-colors hover:text-accent"
-            >
-              <span className="max-w-48 truncate">{siblings[idx + 1].q}</span>
-              <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-            </button>
-          ) : (
-            <div />
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ---------- 右侧页内目录 TOC ----------
-function FaqTocPanel({
-  selectedQuestion,
-  onSelectQuestion,
-}: {
-  selectedQuestion: FaqEntry | null
-  onSelectQuestion: (faq: FaqEntry | null) => void
-}) {
-  if (!selectedQuestion) return null
-
-  const cat = FAQ_CATEGORIES.find((c) => c.id === selectedQuestion.category)
-  if (!cat) return null
-
-  const entries = FAQ.filter((f) => f.category === cat.id)
-
-  return (
-    <div>
-      <h4 className="mb-3 px-2 text-[12px] font-semibold uppercase tracking-widest text-foreground/30">
-        本页内容
-      </h4>
-      <div className="space-y-px">
-        {entries.map((faq) => {
-          const isActive = selectedQuestion.id === faq.id
-          return (
-            <a
-              key={faq.id}
-              href={`#faq-${faq.id}`}
-              onClick={(e) => {
-                e.preventDefault()
-                onSelectQuestion(faq)
-              }}
-              className={cn(
-                'flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[14px] leading-snug transition-colors no-underline',
-                isActive
-                  ? 'text-accent font-medium'
-                  : 'text-foreground/35 font-normal hover:text-foreground/60',
-              )}
-            >
-              <span
-                className={cn(
-                  'size-1 shrink-0 rounded-full transition-colors',
-                  isActive ? 'bg-accent' : 'bg-foreground/12',
-                )}
-              />
-              <span className="line-clamp-2">{faq.q}</span>
-            </a>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// ---------- 搜索结果导航 ----------
-function SearchNav({ total, onPrev, onNext }: { total: number; onPrev: () => void; onNext: () => void }) {
-  return (
-    <div className="flex items-center justify-center gap-3 pt-2">
-      <span className="text-xs text-text-muted">找到 {total} 个结果</span>
-      <div className="flex gap-1">
-        <button onClick={onPrev} className="flex size-7 items-center justify-center rounded-md border border-border text-text-muted hover:text-text-primary hover:border-accent/40 transition-colors">
-          <ArrowUp className="size-3.5" />
-        </button>
-        <button onClick={onNext} className="flex size-7 items-center justify-center rounded-md border border-border text-text-muted hover:text-text-primary hover:border-accent/40 transition-colors">
-          <ChevronDown className="size-3.5" />
-        </button>
-      </div>
-    </div>
+    </>
   )
 }
 
@@ -2148,12 +1840,7 @@ function JumpBrandCard({
           'shadow-[inset_0_-48px_32px_-16px_color-mix(in_srgb,var(--brand)_10%,transparent)]',
         )}
       />
-      <Icon
-        className={cn(
-          'relative z-[3] size-7 transition-all duration-500',
-          'text-foreground/25 group-hover:text-[var(--brand)] group-hover:scale-110',
-        )}
-      />
+      <Icon className="relative z-[3] size-7 transition-all duration-500 group-hover:scale-110 text-foreground/35 group-hover:text-[var(--brand)]" />
       <span
         className={cn(
           'relative z-[3] text-[14px] font-semibold transition-all duration-500',
@@ -2225,9 +1912,11 @@ type HelpMode = 'ask' | 'jump'
 export default function Help() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [mode, setMode] = useState<HelpMode>('ask')
-  const [query, setQuery] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [mode, setMode] = useState<HelpMode>(
+    () => (sessionStorage.getItem('helpTab') as HelpMode) || 'ask',
+  )
+  const [query] = useState('')
+  const [, setSubmitted] = useState(false)
 
   // —— 页面过滤（跳转模式）——
   const filteredPages = useMemo(() => {
@@ -2251,25 +1940,9 @@ export default function Help() {
     return classifyIntent(q)
   }, [query])
 
-  // —— FAQ 匹配 ——
-  const matchedFaq = useMemo(() => {
-    if (!query.trim()) return []
-    const q = query.toLowerCase()
-    return FAQ.filter((faq) => {
-      if (faq.q.toLowerCase().includes(q)) return true
-      if (faq.keywords.some((kw) => kw.toLowerCase().includes(q))) return true
-      if (faq.intro.toLowerCase().includes(q)) return true
-      if (faq.steps?.some((s) => s.title.toLowerCase().includes(q) || s.content.toLowerCase().includes(q))) return true
-      if (faq.tips?.some((t) => t.content.toLowerCase().includes(q))) return true
-      return false
-    })
-  }, [query])
-
   // —— 文档导航状态 ——
-  const [selectedQuestion, setSelectedQuestion] = useState<FaqEntry | null>(
-    null,
-  )
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+  const [, setSelectedQuestion] = useState<FaqEntry | null>(null)
+  const [, setExpandedCategories] = useState<Set<string>>(
     () => new Set(FAQ_CATEGORIES.map((c) => c.id)),
   )
 
@@ -2281,6 +1954,7 @@ export default function Help() {
       const faq = FAQ.find((f) => f.id === faqId)
       if (faq) {
         setMode('ask')
+        sessionStorage.setItem('helpTab', 'ask')
         setSelectedQuestion(faq)
         setExpandedCategories((prev) => {
           const next = new Set(prev)
@@ -2290,26 +1964,6 @@ export default function Help() {
       }
     }
   }, [location.hash])
-
-  const toggleCategory = useCallback((id: string) => {
-    setExpandedCategories((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }, [])
-
-  // —— 选择问题时更新 URL hash ——
-  const handleSelectQuestion = useCallback((faq: FaqEntry | null) => {
-    setSelectedQuestion(faq)
-    setSubmitted(false)
-    if (faq) {
-      window.history.replaceState(null, '', `#faq-${faq.id}`)
-    } else {
-      window.history.replaceState(null, '', window.location.pathname)
-    }
-  }, [])
 
   // —— 跳转导航 ——
   const handleJumpNavigate = useCallback(
@@ -2324,32 +1978,12 @@ export default function Help() {
     [navigate],
   )
 
-  // —— 发送 ——
-  const handleSend = useCallback(() => {
-    if (!query.trim()) return
-    if (mode === 'jump') {
-      if (intentResults.length > 0) {
-        const top = intentResults[0]
-        handleJumpNavigate(top.page.path, top.params)
-        return
-      }
-    }
-    setSubmitted(true)
-    setSelectedQuestion(null)
-  }, [query, mode, handleJumpNavigate, intentResults])
-
-  // 计算搜索结果中匹配的 FAQ 分类展开
-  const searchExpandedCategories = useMemo(() => {
-    if (!submitted || matchedFaq.length === 0) return expandedCategories
-    const cats = new Set(expandedCategories)
-    matchedFaq.forEach((f) => cats.add(f.category))
-    return cats
-  }, [submitted, matchedFaq, expandedCategories])
-
   const scrollToAnchor = (id: string) => {
     const el = document.getElementById(id)
     if (!el) return
-    const sc = document.querySelector('.help-scroll-container') as HTMLElement | null
+    const sc = document.querySelector(
+      '.help-scroll-container',
+    ) as HTMLElement | null
     const scrollTop = sc ? sc.scrollTop : window.scrollY
     const containerTop = sc ? sc.getBoundingClientRect().top : 0
     const y = el.getBoundingClientRect().top + scrollTop - containerTop - 80
@@ -2361,9 +1995,19 @@ export default function Help() {
     for (const cat of FAQ_CATEGORIES) {
       const entries = FAQ.filter((f) => f.category === cat.id)
       if (entries.length === 0) continue
-      items.push({ id: `cat-${cat.id}`, text: cat.title, level: 1, onClick: () => scrollToAnchor(`cat-${cat.id}`) })
+      items.push({
+        id: `cat-${cat.id}`,
+        text: cat.title,
+        level: 1,
+        onClick: () => scrollToAnchor(`cat-${cat.id}`),
+      })
       for (const faq of entries) {
-        items.push({ id: `faq-${faq.id}`, text: faq.q, level: 2, onClick: () => scrollToAnchor(`faq-${faq.id}`) })
+        items.push({
+          id: `faq-${faq.id}`,
+          text: faq.q,
+          level: 2,
+          onClick: () => scrollToAnchor(`faq-${faq.id}`),
+        })
       }
     }
     return items
@@ -2381,7 +2025,9 @@ export default function Help() {
             items={helpNavItems}
             activeIndex={mode === 'ask' ? 0 : 1}
             onTabChange={(index) => {
-              setMode(index === 0 ? 'ask' : 'jump')
+              const nextMode = index === 0 ? 'ask' : 'jump'
+              setMode(nextMode)
+              sessionStorage.setItem('helpTab', nextMode)
               setSubmitted(false)
               setSelectedQuestion(null)
               window.history.replaceState(null, '', window.location.pathname)
@@ -2393,40 +2039,50 @@ export default function Help() {
 
       {/* ====== 模式内容 ====== */}
       {mode === 'ask' ? (
-        <article id="help-full-content" className="help-scroll-container min-w-0 flex-1 overflow-y-auto px-6 py-8 sm:px-12 scroll-smooth">
+        <article
+          id="help-full-content"
+          className="help-scroll-container flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-6 py-8 sm:px-12 scroll-smooth"
+        >
           <div className="mx-auto max-w-3xl">
             {FAQ_CATEGORIES.map((cat) => {
-                const entries = FAQ.filter((f) => f.category === cat.id)
-                if (entries.length === 0) return null
-                const CatIcon = cat.icon
-                return (
-                  <section key={cat.id} className="mb-12">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="flex size-9 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                        <CatIcon className="size-4.5" />
+              const entries = FAQ.filter((f) => f.category === cat.id)
+              if (entries.length === 0) return null
+              const CatIcon = cat.icon
+              return (
+                <section key={cat.id} className="mb-12">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex size-9 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                      <CatIcon className="size-4.5" />
+                    </div>
+                    <h2
+                      id={`cat-${cat.id}`}
+                      className="text-xl font-bold text-foreground"
+                    >
+                      {cat.title}
+                    </h2>
+                  </div>
+                  <div className="space-y-8">
+                    {entries.map((faq) => (
+                      <div key={faq.id}>
+                        <h3
+                          id={`faq-${faq.id}`}
+                          className="text-lg font-semibold text-foreground mb-3"
+                        >
+                          {faq.q}
+                        </h3>
+                        <FaqAnswerContent faq={faq} />
                       </div>
-                      <h2 id={`cat-${cat.id}`} className="text-xl font-bold text-foreground">{cat.title}</h2>
-                    </div>
-                    <div className="space-y-8">
-                      {entries.map((faq) => (
-                        <div key={faq.id}>
-                          <h3 id={`faq-${faq.id}`} className="text-lg font-semibold text-foreground mb-3">
-                            {faq.q}
-                          </h3>
-                          <FaqAnswerContent faq={faq} />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )
-              })
-            }
+                    ))}
+                  </div>
+                </section>
+              )
+            })}
           </div>
         </article>
       ) : (
         /* ====== 跳转模式：品牌卡片矩阵 ====== */
-        <div className="help-scroll-container flex min-h-0 flex-1 flex-col overflow-y-scroll thin-scroll">
-          <div className="flex-1 overflow-y-auto p-8">
+        <div className="help-scroll-container flex min-h-0 flex-1 flex-col items-center overflow-y-scroll thin-scroll">
+          <div className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6">
             {intentResults.length > 0 && (
               <div className="mx-auto mb-8 max-w-3xl">
                 <p className="mb-3 px-1 text-[14px] font-medium text-foreground/35">
@@ -2478,7 +2134,7 @@ export default function Help() {
             ) : (
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-accent/[0.05]">
-                  <Target className="size-6 text-foreground/12" />
+                  <Target className="size-5 text-foreground/12" />
                 </div>
                 <p className="text-base font-medium text-foreground/35">
                   未找到匹配的页面

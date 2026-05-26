@@ -144,6 +144,7 @@ model User {
   coverUrl           String?
   demandCardCoverUrl String?
   cityCode           String?
+  ipRegion           String?   // IP属地缓存，如"北京"
   certificationLevel CertLevel @default(NONE)
   snatchCredits      Int       @default(3)
   creditScore        Int       @default(60)
@@ -653,6 +654,38 @@ model PushPreference {
   excludeRegions  Int[]         @default([])
   receivePushes   Boolean       @default(true)
   pushFrequency   PushFrequency @default(NORMAL)
+}
+
+// 结算记录
+model Settlement {
+  id               String   @id @default(uuid())
+  demandId         String   @unique
+  minPrice         Float
+  finalPrice       Float
+  serviceFee       Float
+  demanderPaid     Float
+  providerReceived Float
+  platformRevenue  Float
+  depositReturned  Float
+  isWelfare        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// 公益随机奖励
+model WelfareReward {
+  id           String   @id @default(uuid())
+  demandId     String
+  providerId   String
+  amount       Float    @default(0)
+  isSpiritual  Boolean  @default(false)
+  badge        String?
+  fundPoolId   String?
+  createdAt    DateTime @default(now())
+
+  @@index([providerId])
+  @@index([demandId])
 }
 
 // 标签统计

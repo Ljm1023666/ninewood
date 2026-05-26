@@ -84,7 +84,7 @@ function ExplorerDetailsScopeRow({
         <td className="px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-2">
             {hasKids ? (
-              <Folder className="size-4 shrink-0 text-accent" aria-hidden />
+              <Folder className="size-4 shrink-0 text-foreground" aria-hidden />
             ) : (
               <FileType2
                 className="size-4 shrink-0 text-text-muted"

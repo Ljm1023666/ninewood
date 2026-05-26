@@ -502,7 +502,7 @@ export default function CardPool() {
         <BackButton />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <Layers className="size-5 shrink-0 text-accent" />
+            <Layers className="size-5 shrink-0 text-foreground" />
             <h1 className="text-lg font-bold text-text-primary">卡池</h1>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-muted">

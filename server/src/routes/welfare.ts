@@ -3,6 +3,8 @@ import { authMiddleware } from '../middleware/auth.js'
 import { z } from 'zod'
 import { success, fail } from '../utils/response.js'
 import { prisma } from '../lib/prisma.js'
+import { welfareRewardService } from '../services/welfare-reward.js'
+import { transactionService } from '../services/transaction.service.js'
 
 export const welfareRouter = Router()
 
@@ -62,6 +64,17 @@ welfareRouter.post('/demands', authMiddleware, async (req: Request, res: Respons
     })
 
     success(res, { demand, circle }, '公益需求已发布', 201)
+  } catch (e: any) {
+    fail(res, e.message || 'server error', 500)
+  }
+})
+
+// GET /api/welfare/rewards — 我的公益奖励历史
+welfareRouter.get('/rewards', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1
+    const result = await welfareRewardService.getUserRewards(req.user!.userId, page)
+    success(res, result)
   } catch (e: any) {
     fail(res, e.message || 'server error', 500)
   }
@@ -132,31 +145,41 @@ welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, r
     if (demand.userId !== req.user!.userId) return fail(res, '无权操作', 403)
 
     const finalPrice = Number(req.body.finalPrice || demand.minPrice)
+    const regionId = demand.regionId || 0
 
-    // 结算（公益抽成 10%）
-    const serviceFee = Math.round(finalPrice * 0.1 * 100) / 100
+    // 创建结算记录
+    const settlement = await transactionService.createWelfareSettlement(demand.id, finalPrice)
 
-    await prisma.$transaction([
-      prisma.demand.update({
-        where: { id: demand.id },
-        data: { status: 'COMPLETED' },
-      }),
-      // 抽成划入公益资金池
-      prisma.welfareFundPool.upsert({
-        where: { regionId: demand.regionId || 0 },
-        update: {
-          balance: { increment: serviceFee },
-          totalInflow: { increment: serviceFee },
-        },
-        create: {
-          regionId: demand.regionId || 0,
-          balance: serviceFee,
-          totalInflow: serviceFee,
-        },
-      }),
-    ])
+    // 抽成划入公益资金池
+    await prisma.welfareFundPool.upsert({
+      where: { regionId },
+      update: {
+        balance: { increment: settlement.serviceFee },
+        totalInflow: { increment: settlement.serviceFee },
+      },
+      create: {
+        regionId,
+        balance: settlement.serviceFee,
+        totalInflow: settlement.serviceFee,
+      },
+    })
 
-    success(res, { serviceFee, finalPrice }, '公益需求已完成')
+    // 更新需求状态
+    await prisma.demand.update({
+      where: { id: demand.id },
+      data: { status: 'COMPLETED' },
+    })
+
+    // 随机奖励
+    const provider = await prisma.demandApplicantV2.findFirst({
+      where: { demandId: demand.id, status: 'ACCEPTED' },
+    })
+    let reward: { type: 'monetary' | 'spiritual'; amount: number; badge: string | null } | null = null
+    if (provider) {
+      reward = await welfareRewardService.grantReward(demand.id, provider.userId, regionId)
+    }
+
+    success(res, { settlement, reward, finalPrice }, '公益需求已完成')
   } catch (e: any) {
     fail(res, e.message || 'server error', 500)
   }

@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Check,
   ChevronUp,
   ListFilter,
   Menu,
@@ -392,7 +393,7 @@ function LeftChatListPanel({
                   >
                     <MessageSquareDot />
                     未读
-                    {filter === 'unread' && ' ✓'}
+                    {filter === 'unread' && <Check className="size-3 ml-0.5" />}
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
@@ -428,7 +429,7 @@ function LeftChatListPanel({
                   <Avatar className="size-12 shrink-0">
                     {contact.type === 'merge' ? (
                       <AvatarFallback className="bg-[var(--primary-start)]/15 text-[var(--primary-start)]">
-                        <Users className="h-5 w-5" />
+                        <Users className="size-5" />
                       </AvatarFallback>
                     ) : (
                       <>

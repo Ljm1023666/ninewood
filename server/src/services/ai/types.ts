@@ -4,8 +4,10 @@ export interface ChatCompletionParams {
   model?: string;
   maxTokens?: number;
   temperature?: number;
-  /** MiniMax 思考模式 */
+  /** MiniMax/DeepSeek 思考模式 */
   thinking?: boolean;
+  /** DeepSeek 联网搜索 */
+  webSearch?: boolean;
 }
 
 /** 非流式调用结果 */

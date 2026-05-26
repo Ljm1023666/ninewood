@@ -10,14 +10,14 @@ const CERT_UPGRADE_REQUIREMENTS: Record<string, { next: CertLevel; needed: numbe
 
 export const userService = {
   async getProfile(userId: string) {
-    const cacheKey = `user:profile:${userId}`;
+    const cacheKey = `user:profile:v2:${userId}`;
     const cached = await getCache<any>(cacheKey);
     if (cached) return cached;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true,
+        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true, ipRegion: true,
         certificationLevel: true, bio: true, birthday: true, creditScore: true, completedOrders: true, snatchCredits: true,
       },
     });
@@ -34,7 +34,7 @@ export const userService = {
       where: { id: userId },
       data: patch,
       select: {
-        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true,
+        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true, ipRegion: true,
         certificationLevel: true, snatchCredits: true, creditScore: true, bio: true, birthday: true, completedOrders: true,
       },
     });

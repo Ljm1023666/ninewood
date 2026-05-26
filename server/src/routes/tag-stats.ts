@@ -15,11 +15,21 @@ tagStatsRouter.get('/', async (req: Request, res: Response) => {
     if (tagName) where.tagName = tagName
     if (regionId) where.regionId = regionId
 
-    const stats = await prisma.tagStats.findMany({
+    let stats = await prisma.tagStats.findMany({
       where,
       orderBy: { totalAmount: 'desc' },
       take: 50,
     })
+
+    // 表为空时自动刷新一次
+    if (stats.length === 0) {
+      await refreshTagStats()
+      stats = await prisma.tagStats.findMany({
+        where,
+        orderBy: { totalAmount: 'desc' },
+        take: 50,
+      })
+    }
 
     success(res, {
       stats,

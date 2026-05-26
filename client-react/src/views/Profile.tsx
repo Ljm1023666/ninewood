@@ -488,17 +488,19 @@ export default function Profile() {
             <p className={`mt-3 text-sm leading-relaxed ${textSecondary}`}>
               {displayUser?.bio || '这个人很懒，什么都没写...'}
             </p>
-            {displayUser?.cityCode && (
-              <p className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}>
-                <MapPin size={14} />
-                IP 属地：{displayUser.cityCode}
+            {(displayUser?.ipRegion || displayUser?.cityCode) && (
+              <p
+                className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}
+              >
+                <MapPin className="size-3.5" />
+                IP 属地：{displayUser.ipRegion || displayUser.cityCode}
               </p>
             )}
             {displayUser?.birthday && (
               <p
                 className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}
               >
-                <Cake size={14} />
+                <Cake className="size-3.5" />
                 {new Date(displayUser.birthday).toLocaleDateString('zh-CN', {
                   year: 'numeric',
                   month: 'long',
@@ -519,7 +521,7 @@ export default function Profile() {
                       : 'border-black/[0.08] bg-black/[0.04] text-text-primary hover:bg-black/[0.08]',
                   )}
                 >
-                  <Edit3 size={14} />
+                  <Edit3 className="size-3.5" />
                   编辑资料
                 </button>
               ) : (
@@ -536,7 +538,7 @@ export default function Profile() {
                           : 'border-black/[0.08] bg-black/[0.04] text-text-primary',
                       )}
                     >
-                      <UserCheck size={15} />
+                      <UserCheck className="size-4" />
                       已关注
                     </button>
                   ) : (
@@ -546,7 +548,7 @@ export default function Profile() {
                       disabled={isFollowLoading}
                       className="flex flex-1 items-center justify-center gap-2 !rounded-xl !py-3 !text-sm font-bold"
                     >
-                      <UserPlus size={15} />
+                      <UserPlus className="size-4" />
                       关注
                     </AcetFavouriteButton>
                   )}
@@ -561,7 +563,7 @@ export default function Profile() {
                     )}
                     aria-label="发消息"
                   >
-                    <MessageCircle size={18} />
+                    <MessageCircle className="size-4.5" />
                   </button>
                 </>
               )}
@@ -618,7 +620,7 @@ export default function Profile() {
               className={`flex-1 p-4 ${cardSurface}`}
             >
               <div className="flex flex-col items-center gap-1">
-                <ShieldCheck size={22} style={{ color }} />
+                <ShieldCheck className="size-5" style={{ color }} />
                 <span className="text-sm font-bold" style={{ color }}>
                   {certLabel[level]}
                 </span>
@@ -695,7 +697,7 @@ export default function Profile() {
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
                     style={{ background: `${item.c}22`, color: item.c }}
                   >
-                    <item.icon size={15} />
+                    <item.icon className="size-4" />
                   </div>
                   <div className="min-w-0">
                     <p className={`text-sm ${textSubtle}`}>{item.label}</p>
@@ -734,8 +736,11 @@ export default function Profile() {
                     className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
                   >
                     <item.icon
-                      size={18}
-                      className={isDark ? 'text-white/90' : 'text-text-primary'}
+                      className={
+                        isDark
+                          ? 'text-white/90 size-4.5'
+                          : 'text-text-primary size-4.5'
+                      }
                     />
                     <span className={`text-sm ${textMuted}`}>{item.label}</span>
                   </button>
@@ -801,7 +806,7 @@ export default function Profile() {
                             onClick={() => toggleFavorite(demand.id)}
                             className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
                           >
-                            <Heart size={16} className="fill-red-500" />
+                            <Heart className="fill-red-500 size-4" />
                           </button>
                         </div>
                       </LiquidGlassCard>
@@ -842,7 +847,6 @@ export default function Profile() {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         user={displayUser}
-        isDark={isDark}
         onSave={handleProfileSave}
         onAvatarChange={async (file) => {
           await uploadImage('avatar', file)

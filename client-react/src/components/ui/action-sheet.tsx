@@ -29,7 +29,7 @@ export function ActionSheet({ visible, onClose, onSelect }: ActionSheetProps) {
               onClick={() => onSelect(key)}
               className="flex flex-col items-center gap-2 bg-transparent border-none text-text-primary cursor-pointer py-3 px-2 rounded-xl hover:bg-bg-tertiary"
             >
-              <Icon className="size-8" />
+              <Icon className="size-5" />
               <span className="text-sm text-text-secondary">{label}</span>
             </button>
           ))}

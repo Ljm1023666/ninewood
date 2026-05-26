@@ -80,7 +80,7 @@ export default function Search() {
                   onClick={handleClear}
                   className="absolute right-3 text-text-muted transition-colors hover:text-text-primary"
                 >
-                  <X size={14} />
+                  <X className="size-3.5" />
                 </button>
               )}
             </div>

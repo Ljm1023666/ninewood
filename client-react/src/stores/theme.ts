@@ -139,9 +139,9 @@ function getInitial() {
     return { config: preset, darkPreset: saved, darkMode: false }
   }
   return {
-    config: presets['morning-mist'],
+    config: presets['light'],
     darkPreset: 'morning-mist',
-    darkMode: false,
+    darkMode: true,
   }
 }
 
