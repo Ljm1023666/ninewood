@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { TagSelector, useTagLoader } from '@/components/ui/tag-selector'
 import { Chip } from '@/components/ui/chip'
 import { Switch } from '@/components/ui/switch'
@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { LoadingState } from '@/components/ui/loading-state'
 import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { InternalPageShell } from '@/components/layout/internal-ui'
 import { userApi } from '@/api/user'
 
 export default function MyTags() {
@@ -91,33 +92,28 @@ export default function MyTags() {
   // 全页 loading
   if (loading) {
     return (
-      <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
-        <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
-          <PageHeader title="我的标签" onBack="back" />
-          <LoadingState lines={4} />
-        </div>
-      </div>
+      <InternalPageShell width="narrow">
+        <PageHeader title="我的标签" onBack="back" />
+        <LoadingState lines={4} />
+      </InternalPageShell>
     )
   }
 
   // 全页 error
   if (error) {
     return (
-      <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
-        <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
-          <PageHeader title="我的标签" onBack="back" />
-          <ErrorState message={error} onRetry={loadData} />
-        </div>
-      </div>
+      <InternalPageShell width="narrow">
+        <PageHeader title="我的标签" onBack="back" />
+        <ErrorState message={error} onRetry={loadData} />
+      </InternalPageShell>
     )
   }
 
   const availableTags = allTags.filter((t) => !myTags.includes(t))
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-8 md:px-6">
-        <PageHeader title="我的标签" onBack="back" />
+    <InternalPageShell width="narrow" contentClassName="gap-4">
+      <PageHeader title="我的标签" onBack="back" />
 
         {/* 1. 我的标签开关 */}
         <Card>
@@ -140,7 +136,7 @@ export default function MyTags() {
                       className="flex size-5 items-center justify-center rounded-full text-text-muted opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400 transition-all"
                       aria-label={`移除标签 ${tag}`}
                     >
-                      <X className="size-3" />
+                      <MsIcon name="close" size={12} />
                     </button>
                   </div>
                 ))}
@@ -210,7 +206,6 @@ export default function MyTags() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </InternalPageShell>
   )
 }

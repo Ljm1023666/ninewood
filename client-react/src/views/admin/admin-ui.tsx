@@ -18,67 +18,105 @@ export function formatCompact(value: number) {
   return value.toLocaleString('zh-CN')
 }
 
-/* ── 指标卡片 ── */
+/* ── 图表主题（克制配色） ── */
 
-const ACCENT_MAP = {
-  orange: 'bg-[var(--admin-accent-orange)]',
-  blue: 'bg-[var(--admin-accent-blue)]',
-  green: 'bg-[var(--admin-accent-green)]',
-  red: 'bg-[var(--admin-accent-red)]',
-  teal: 'bg-[var(--admin-accent-teal)]',
-  zinc: 'bg-zinc-400',
-} as const
+export const ADMIN_CHART_COLORS = [
+  '#3388FF',
+  '#111111',
+  '#71717A',
+  '#A1A1AA',
+  '#D4D4D8',
+  '#E4E4E7',
+]
 
-export type AccentKey = keyof typeof ACCENT_MAP
+export const adminChartGrid = { stroke: 'var(--admin-hairline)', strokeDasharray: '3 3' }
 
-interface MetricCardProps {
-  icon: LucideIcon
-  label: string
-  value: number | string
-  hint?: string
-  accent?: AccentKey
-  className?: string
+export const adminChartAxis = {
+  tick: { fill: '#9A9A9A', fontSize: 11, fontFamily: 'var(--admin-mono)' },
+  axisLine: false as const,
+  tickLine: false as const,
 }
 
-export function AdminMetricCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-  accent = 'orange',
+export const adminChartTooltipStyle = {
+  background: '#fff',
+  border: '1px solid var(--admin-hairline)',
+  borderRadius: 4,
+  fontSize: 12,
+  fontFamily: 'var(--admin-mono)',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+}
+
+/* ── 指标网格（发丝线连接） ── */
+
+export function AdminMetricGrid({
+  children,
+  cols = 6,
   className,
-}: MetricCardProps) {
+}: {
+  children: React.ReactNode
+  cols?: 3 | 4 | 6
+  className?: string
+}) {
+  const colClass =
+    cols === 6
+      ? 'grid-cols-6'
+      : cols === 4
+        ? 'grid-cols-4'
+        : 'grid-cols-3'
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card-bg)] p-5',
-        'transition-[border-color,box-shadow] duration-200 hover:border-zinc-300 hover:shadow-sm',
+        'grid gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]',
+        colClass,
         className,
       )}
     >
-      <div
-        className={cn('absolute inset-x-0 top-0 h-0.5', ACCENT_MAP[accent])}
-      />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[13px] text-[var(--admin-text-secondary)]">
-            {label}
-          </p>
-          <p className="mt-1 text-[28px] font-semibold leading-none tracking-tight text-[var(--admin-text)] tabular-nums">
-            {typeof value === 'number' ? value.toLocaleString('zh-CN') : value}
-          </p>
-          {hint && (
-            <p className="mt-2 text-xs text-[var(--admin-text-muted)]">
-              {hint}
-            </p>
-          )}
-        </div>
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 transition-colors duration-200 group-hover:bg-zinc-100">
-          <Icon className="size-[18px]" strokeWidth={1.75} />
-        </div>
-      </div>
+      {children}
     </div>
   )
+}
+
+interface MetricTileProps {
+  label: string
+  value: number | string
+  hint?: string
+  delta?: string
+}
+
+export function AdminMetricTile({ label, value, hint, delta }: MetricTileProps) {
+  return (
+    <div className="min-h-24 bg-[var(--admin-card-bg)] px-[18px] py-5">
+      <p className="font-[family-name:var(--admin-mono)] text-[10px] uppercase tracking-[0.08em] text-[var(--admin-text-muted)]">
+        {label}
+      </p>
+      <p className="mt-2 text-[28px] font-medium leading-none tracking-[-0.03em] tabular-nums text-[var(--admin-text)]">
+        {typeof value === 'number' ? value.toLocaleString('zh-CN') : value}
+      </p>
+      {(hint || delta) && (
+        <p className="mt-2 font-[family-name:var(--admin-mono)] text-[10px] text-[var(--admin-text-muted)]">
+          {delta && <span className="text-[var(--admin-accent)]">{delta}</span>}
+          {delta && hint && ' · '}
+          {hint}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** 兼容旧调用，内部使用 AdminMetricTile */
+export function AdminMetricCard({
+  label,
+  value,
+  hint,
+}: {
+  icon?: LucideIcon
+  label: string
+  value: number | string
+  hint?: string
+  accent?: string
+  className?: string
+}) {
+  return <AdminMetricTile label={label} value={value} hint={hint} />
 }
 
 /* ── 面板容器 ── */
@@ -87,56 +125,132 @@ interface PanelProps {
   id?: string
   title: string
   description?: string
+  sectionLabel?: string
   action?: React.ReactNode
   children: React.ReactNode
   className?: string
   bodyClassName?: string
+  noPadding?: boolean
 }
 
 export function AdminPanel({
   id,
   title,
   description,
+  sectionLabel,
   action,
   children,
   className,
   bodyClassName,
+  noPadding,
 }: PanelProps) {
   return (
-    <section
-      id={id}
-      className={cn(
-        'rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card-bg)]',
-        className,
+    <section id={id} className={cn('bg-[var(--admin-card-bg)]', className)}>
+      {sectionLabel && (
+        <p className="mb-4 font-[family-name:var(--admin-mono)] text-[10px] uppercase tracking-[0.12em] text-[var(--admin-text-muted)]">
+          {sectionLabel}
+        </p>
       )}
-    >
-      <div className="flex items-start justify-between gap-4 border-b border-[var(--admin-border)] px-5 py-4">
-        <div>
-          <h3 className="text-[15px] font-medium text-[var(--admin-text)]">
-            {title}
-          </h3>
-          {description && (
-            <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">
-              {description}
-            </p>
-          )}
+      <div className="border border-[var(--admin-hairline)]">
+        <div className="flex items-start justify-between gap-4 border-b border-[var(--admin-hairline)] px-5 py-4">
+          <div>
+            <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--admin-text)]">
+              {title}
+            </h3>
+            {description && (
+              <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">
+                {description}
+              </p>
+            )}
+          </div>
+          {action}
         </div>
-        {action}
+        <div className={cn(!noPadding && 'p-5', bodyClassName)}>{children}</div>
       </div>
-      <div className={cn('p-5', bodyClassName)}>{children}</div>
     </section>
   )
 }
 
-/* ── 状态徽章 ── */
+/* ── 图表网格（2fr + 1fr） ── */
 
-const STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-blue-50 text-blue-700 ring-blue-100',
-  IN_PROGRESS: 'bg-blue-50 text-blue-700 ring-blue-100',
-  WAITING_REVIEW: 'bg-orange-50 text-orange-700 ring-orange-100',
-  COMPLETED: 'bg-green-50 text-green-700 ring-green-100',
-  CANCELLED: 'bg-zinc-100 text-zinc-500 ring-zinc-200',
+export function AdminChartGrid({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        'grid grid-cols-3 gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
 }
+
+export function AdminChartCell({
+  children,
+  className,
+  span = 1,
+  id,
+}: {
+  children: React.ReactNode
+  className?: string
+  span?: 1 | 2 | 3
+  id?: string
+}) {
+  const spanClass =
+    span === 2 ? 'col-span-2' : span === 3 ? 'col-span-3' : 'col-span-1'
+  return (
+    <div
+      id={id}
+      className={cn(
+        'min-h-[280px] bg-[var(--admin-card-bg)] p-5',
+        spanClass,
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+/* ── 子导航 ── */
+
+export function AdminSubNav({
+  items,
+  activeId,
+  onSelect,
+}: {
+  items: { id: string; label: string }[]
+  activeId: string
+  onSelect: (id: string) => void
+}) {
+  if (items.length === 0) return null
+  return (
+    <nav className="admin-subnav">
+      {items.map((item) => {
+        const active = activeId === item.id
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onSelect(item.id)}
+            className={cn('admin-subnav__btn', active && 'is-active')}
+          >
+            {item.label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
+/* ── 状态标签（Mono） ── */
 
 export function AdminStatusBadge({
   label,
@@ -145,18 +259,90 @@ export function AdminStatusBadge({
   label: string
   status?: string
 }) {
-  const style =
-    (status && STATUS_STYLES[status]) ||
-    'bg-zinc-100 text-zinc-500 ring-zinc-200'
+  const accent =
+    status === 'COMPLETED'
+      ? 'text-[var(--admin-accent-green)]'
+      : status === 'WAITING_REVIEW' || status === 'PENDING'
+        ? 'text-[var(--admin-accent)]'
+        : ''
   return (
     <span
       className={cn(
-        'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset',
-        style,
+        'inline-flex border border-[var(--admin-hairline)] px-2 py-0.5 font-[family-name:var(--admin-mono)] text-[10px] tracking-[0.04em] text-[var(--admin-text-secondary)]',
+        accent,
       )}
     >
       {label}
     </span>
+  )
+}
+
+/* ── 列表行 ── */
+
+export function AdminListRow({
+  icon: Icon,
+  title,
+  meta,
+  trailing,
+  badge,
+}: {
+  icon?: LucideIcon
+  title: string
+  meta?: string
+  trailing?: React.ReactNode
+  badge?: React.ReactNode
+}) {
+  return (
+    <div className="grid min-h-12 grid-cols-[40px_1fr_auto_auto] items-center gap-4 border-b border-[var(--admin-hairline)] px-4 py-3 transition-colors duration-150 last:border-b-0 hover:bg-black/[0.02]">
+      <div className="flex size-8 items-center justify-center border border-[var(--admin-hairline)] text-[var(--admin-text-muted)]">
+        {Icon && <Icon className="size-3.5" strokeWidth={1.75} />}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-[var(--admin-text)]">
+          {title}
+        </p>
+        {meta && (
+          <p className="mt-0.5 truncate text-xs text-[var(--admin-text-muted)]">
+            {meta}
+          </p>
+        )}
+      </div>
+      {trailing && (
+        <span className="font-[family-name:var(--admin-mono)] text-[13px] tabular-nums text-[var(--admin-text)]">
+          {trailing}
+        </span>
+      )}
+      {badge}
+    </div>
+  )
+}
+
+export function AdminList({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)]">
+      {children}
+    </div>
+  )
+}
+
+/* ── 搜索框 ── */
+
+export function AdminSearchInput({
+  placeholder = '搜索…',
+  className,
+}: {
+  placeholder?: string
+  className?: string
+}) {
+  return (
+    <input
+      type="text"
+      placeholder={placeholder}
+      className={cn(
+        'w-full max-w-[360px] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-3.5 py-2.5 text-sm text-[var(--admin-text)] outline-none transition-[border-color] duration-150 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]',
+        className,
+      )}
+    />
   )
 }
 
@@ -171,21 +357,6 @@ export function AdminEmpty({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-zinc-50">
-        <svg
-          className="size-6 text-zinc-300"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
-          />
-        </svg>
-      </div>
       <p className="text-sm font-medium text-[var(--admin-text)]">{title}</p>
       {description && (
         <p className="mt-1 text-sm text-[var(--admin-text-muted)]">
@@ -211,29 +382,14 @@ export function AdminErrorState({
 }) {
   return (
     <div className="flex h-full min-h-[480px] items-center justify-center">
-      <div className="w-full max-w-sm rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card-bg)] px-8 py-12 text-center">
-        <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-xl bg-red-50">
-          <svg
-            className="size-6 text-red-400"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
-            />
-          </svg>
-        </div>
+      <div className="w-full max-w-sm border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-8 py-12 text-center">
         <p className="mb-4 text-sm text-[var(--admin-text-secondary)]">
           {message}
         </p>
         <button
           type="button"
           onClick={onRetry}
-          className="rounded-lg border border-[var(--admin-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--admin-text)] transition-colors duration-200 hover:bg-zinc-50"
+          className="border border-[var(--admin-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--admin-text)] transition-colors duration-150 hover:bg-black/[0.02]"
         >
           重试
         </button>
@@ -245,17 +401,22 @@ export function AdminErrorState({
 /* ── 骨架屏 ── */
 
 export function AdminMetricSkeleton({ count = 4 }: { count?: number }) {
+  const colClass =
+    count === 6 ? 'grid-cols-6' : count === 3 ? 'grid-cols-3' : 'grid-cols-4'
   return (
     <div
-      className={cn('grid gap-4', count === 6 ? 'grid-cols-6' : 'grid-cols-4')}
+      className={cn(
+        'grid gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]',
+        colClass,
+      )}
     >
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card-bg)] p-5"
+          className="animate-pulse min-h-24 bg-[var(--admin-card-bg)] px-[18px] py-5"
         >
-          <div className="mb-3 h-3 w-16 rounded bg-zinc-200" />
-          <div className="h-8 w-24 rounded bg-zinc-200" />
+          <div className="mb-3 h-2.5 w-16 bg-zinc-200" />
+          <div className="h-8 w-20 bg-zinc-200" />
         </div>
       ))}
     </div>
@@ -270,12 +431,12 @@ export function AdminPanelSkeleton({
   return (
     <div
       className={cn(
-        'animate-pulse rounded-xl border border-[var(--admin-border)] bg-[var(--admin-card-bg)] p-5',
+        'animate-pulse border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5',
         height,
       )}
     >
-      <div className="mb-4 h-4 w-28 rounded bg-zinc-200" />
-      <div className="h-[calc(100%-2rem)] rounded-lg bg-zinc-100" />
+      <div className="mb-4 h-4 w-28 bg-zinc-200" />
+      <div className="h-[calc(100%-2rem)] bg-zinc-100" />
     </div>
   )
 }

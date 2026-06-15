@@ -13,10 +13,10 @@ export const USER_COVER_PRESET_URLS = [
   '/uploads/card-covers/10008.jpg',
   '/uploads/card-covers/10009.jpg',
   '/uploads/card-covers/10010.jpg',
-  '/uploads/card-covers/10011.jpeg',
-  '/uploads/card-covers/10012.png',
-  '/uploads/card-covers/10013.png',
-  '/uploads/card-covers/10014.png',
+  '/uploads/card-covers/10011.jpg',
+  '/uploads/card-covers/10012.jpg',
+  '/uploads/card-covers/10013.jpg',
+  '/uploads/card-covers/10014.jpg',
 ] as const
 
 function stableIndexFromUserId(userId: string, len: number): number {
@@ -35,12 +35,8 @@ export function isDemandDetailRoute(pathname: string): boolean {
   return m[1] !== 'create'
 }
 
-/** 不铺 Layout 里「当前用户 / 他人」模糊封面（与白底表单同屏时易在宽屏比例下露出边缝色差） */
-export function suppressLayoutAmbient(pathname: string): boolean {
-  return (
-    pathname === '/demands/create' || pathname.startsWith('/demands/create/')
-  )
-}
+/** @deprecated 请从 @/utils/internal-routes 导入 */
+export { suppressLayoutAmbient } from '@/utils/internal-routes'
 
 /** 发布者 id → 固定预设封面 URL */
 export function publisherUserCoverPreset(

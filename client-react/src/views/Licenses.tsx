@@ -1,7 +1,10 @@
 import { useMemo } from 'react'
 import licensesData from '@/data/licenses.json'
 import { COPYRIGHT_BY_NAME, LICENSE_NOTES } from '@/data/copyright-notices'
-import { BackButton } from '@/components/ui/back-button'
+import {
+  InternalPageShell,
+  ProseDocument,
+} from '@/components/layout/internal-ui'
 
 type License = {
   name: string
@@ -65,21 +68,13 @@ export default function Licenses() {
   const licenseTypes = useMemo(() => Object.keys(licenseGroups).sort(), [licenseGroups])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
-      <BackButton />
-      {/* ======== 页面标题 ======== */}
-      <div>
-        <h1 className="text-xl font-bold text-[var(--text-primary)]">开源许可</h1>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
+    <InternalPageShell width="medium">
+      <ProseDocument title="开源许可">
+        <p>
           本应用使用了以下第三方开源组件，在此表示感谢。各组件的版权归各自作者所有。
         </p>
-      </div>
 
-      {/* ======== 版权声明（MIT/Apache-2.0/ISC 均要求保留） ======== */}
-      <section>
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-          第三方开源组件版权声明
-        </h2>
+        <h2>第三方开源组件版权声明</h2>
         <p className="mb-3 text-xs text-[var(--text-muted)]">
           MIT / Apache-2.0 / ISC 协议要求分发时完整保留以下版权声明。
           版权年份可能因版本而异，具体请查阅各项目源码仓库。
@@ -90,11 +85,8 @@ export default function Licenses() {
 ${sorted.map((pkg) => `${pkg.name} (${pkg.license.split(':')[0]}) — ${resolveCopyright(pkg)}`).join('\n')}
 `}
         </pre>
-      </section>
 
-      {/* ======== 组件列表 ======== */}
-      <section>
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">依赖组件清单</h2>
+        <h2>依赖组件清单</h2>
         <div className="mt-3 flex flex-col gap-2">
           {sorted.map((pkg) => {
             const copyright = resolveCopyright(pkg)
@@ -145,17 +137,13 @@ ${sorted.map((pkg) => `${pkg.name} (${pkg.license.split(':')[0]}) — ${resolveC
             )
           })}
         </div>
-      </section>
 
-      {/* ======== 许可证全文（按类型分组） ======== */}
       {licenseTypes.map((type) => {
         if (type === 'MIT' || type === 'Apache-2.0' || type === 'ISC') return null
         const pkgs = licenseGroups[type]
         return (
-          <section key={type}>
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-              其他许可协议
-            </h2>
+          <div key={type}>
+            <h2>其他许可协议</h2>
             <p className="mt-2 text-sm text-[var(--text-muted)]">
               以下组件使用非标准开源协议，请查看各自官方页面了解完整条款：
             </p>
@@ -181,16 +169,13 @@ ${sorted.map((pkg) => `${pkg.name} (${pkg.license.split(':')[0]}) — ${resolveC
                 </li>
               ))}
             </ul>
-          </section>
+          </div>
         )
       })}
 
-      {/* MIT 全文 */}
       {licenseGroups['MIT'] && (
-        <section>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            MIT 许可证全文
-          </h2>
+        <>
+          <h2>MIT 许可证全文</h2>
           <p className="mb-2 text-xs text-[var(--text-muted)]">
             适用于：{licenseGroups['MIT'].map((p) => p.name).join('、')}
           </p>
@@ -215,15 +200,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`}
           </pre>
-        </section>
+        </>
       )}
 
-      {/* Apache-2.0 全文 */}
       {licenseGroups['Apache-2.0'] && (
-        <section>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            Apache License 2.0 全文
-          </h2>
+        <>
+          <h2>Apache License 2.0 全文</h2>
           <p className="mb-2 text-xs text-[var(--text-muted)]">
             适用于：{licenseGroups['Apache-2.0'].map((p) => p.name).join('、')}
           </p>
@@ -405,15 +387,12 @@ SOFTWARE.`}
 
    END OF TERMS AND CONDITIONS`}
           </pre>
-        </section>
+        </>
       )}
 
-      {/* ISC 全文 */}
       {licenseGroups['ISC'] && (
-        <section>
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            ISC 许可证全文
-          </h2>
+        <>
+          <h2>ISC 许可证全文</h2>
           <p className="mb-2 text-xs text-[var(--text-muted)]">
             适用于：{licenseGroups['ISC'].map((p) => p.name).join('、')}
           </p>
@@ -432,14 +411,14 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.`}
           </pre>
-        </section>
+        </>
       )}
 
-      {/* ======== 页脚 ======== */}
-      <p className="text-xs text-[var(--text-muted)]">
-        本页面组件清单通过 license-checker 自动生成，版权声明为手动维护。
-        如有遗漏或错误请联系维护者修正。
-      </p>
-    </div>
+        <p className="text-xs text-text-muted">
+          本页面组件清单通过 license-checker 自动生成，版权声明为手动维护。
+          如有遗漏或错误请联系维护者修正。
+        </p>
+      </ProseDocument>
+    </InternalPageShell>
   )
 }

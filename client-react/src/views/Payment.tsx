@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CheckCircle2, CreditCard, AlertCircle } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { orderApi } from '@/api/order'
 import { AcetPrimaryButton } from '@/components/ui/tailwindcss-buttons-variants'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { InternalPageShell } from '@/components/layout/internal-ui'
 
 export default function Payment() {
   const { id } = useParams<{ id: string }>()
@@ -27,24 +28,26 @@ export default function Payment() {
   }
 
   return (
-    <div className="relative z-base flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
-      <BackButton />
-      <div className="relative z-content flex flex-1 flex-col items-center justify-center p-6">
+    <InternalPageShell width="narrow" contentClassName="flex min-h-full flex-col">
+      <PageHeader title="模拟支付" onBack="back" />
+
+      <div className="flex flex-1 flex-col items-center justify-center py-12">
         <div className="w-full max-w-sm shrink-0 text-center">
           {paid ? (
             <div className="animate-fadeIn">
-              <CheckCircle2 className="mx-auto mb-4 size-14 text-success" />
-              <h1 className="mb-2 text-2xl font-bold text-text-primary">支付成功</h1>
+              <MsIcon name="check_circle" size={56} className="mx-auto mb-4 text-success" />
+              <h2 className="mb-2 text-2xl font-bold text-text-primary">
+                支付成功
+              </h2>
               <p className="text-sm text-text-muted">即将跳转...</p>
             </div>
           ) : (
             <div>
-              <CreditCard className="mx-auto mb-4 size-14 text-accent" />
-              <h1 className="mb-2 text-2xl font-bold text-text-primary">模拟支付</h1>
-              <p className="mb-2 text-sm text-text-muted">模拟支付页面</p>
+              <MsIcon name="credit_card" size={56} className="mx-auto mb-4 text-accent" />
+              <p className="mb-6 text-sm text-text-muted">模拟支付页面</p>
               {error && (
                 <div className="mb-4 flex items-center justify-center gap-1.5 rounded-lg bg-error/10 px-3 py-2 text-sm text-error">
-                  <AlertCircle className="size-4" />
+                  <MsIcon name="error" size={16} />
                   {error}
                 </div>
               )}
@@ -60,6 +63,6 @@ export default function Payment() {
           )}
         </div>
       </div>
-    </div>
+    </InternalPageShell>
   )
 }

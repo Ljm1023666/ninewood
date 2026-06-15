@@ -1,40 +1,22 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
-import { useThemeStore } from '@/stores/theme'
 import { userApi } from '@/api/user'
 import { authApi } from '@/api/auth'
 import { cn } from '@/lib/utils'
-import { certLabel, certColor } from '@/constants/cert'
-import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
-import { AcetFavouriteButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { certLabel } from '@/constants/cert'
 import { ProfileEditDialog } from '@/components/ui/profile-edit-dialog'
 import { toast } from '@/components/ui/confirm-dialog'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  Settings,
-  Edit3,
-  MessageCircle,
-  UserPlus,
-  UserCheck,
-  Award,
-  FileText,
-  ShoppingBag,
-  Star,
-  TrendingUp,
-  Zap,
-  Users,
-  ShieldCheck,
-  Heart,
-  Cake,
-  MapPin,
-} from 'lucide-react'
+  InternalPageShell,
+  SettingsActionButton,
+} from '@/components/layout/internal-ui'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { STITCH_PROFILE_ICONS } from '@/constants/stitch-icons'
 
-const PROFILE_HERO_FALLBACK =
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80'
 
 export default function Profile() {
   const { id } = useParams()
@@ -48,25 +30,6 @@ export default function Profile() {
   const displayUser = isMe ? myUser : user
   const profileIntroKey = isMe ? `me:${myUser?.id || ''}` : `user:${id || ''}`
   const level = displayUser?.certificationLevel || 'NONE'
-  const color = certColor[level as keyof typeof certColor] || '#6b7280'
-  const isDark = useThemeStore((s) => s.current.dark)
-
-  // 浅色/深色模式适配
-  const cardSurface = isDark
-    ? 'text-white bg-white/[0.08]'
-    : 'text-text-primary bg-bg-card'
-  const textMuted = isDark ? 'text-white/60' : 'text-text-muted'
-  const textSecondary = isDark ? 'text-white/75' : 'text-text-secondary'
-  const textSubtle = isDark ? 'text-white/55' : 'text-text-muted'
-
-  const heroBackgroundUrl = useMemo(() => {
-    if (!displayUser) return PROFILE_HERO_FALLBACK
-    return (
-      displayUser.coverUrl ||
-      publisherUserCoverPreset(displayUser.id) ||
-      PROFILE_HERO_FALLBACK
-    )
-  }, [displayUser])
 
   // ===== 封面开场动画（首帧即展示，避免闪出主页内容） =====
   const [intro, setIntro] = useState({
@@ -147,9 +110,6 @@ export default function Profile() {
   // 认证进度
   const promo = certStatus?.promotion
   const promoProgress = promo ? Math.round(promo.progress * 100) : 0
-  const promoColor = promo
-    ? certColor[promo.next as keyof typeof certColor] || '#f59e0b'
-    : '#f59e0b'
 
   const loadUser = useCallback(async () => {
     setLoading(true)
@@ -280,7 +240,7 @@ export default function Profile() {
 
   if (loading && !displayUser)
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex min-h-0 flex-1 items-center justify-center">
         <span className="loader" />
       </div>
     )
@@ -319,7 +279,7 @@ export default function Profile() {
                 style={{
                   backgroundImage: displayUser?.coverUrl
                     ? `url(${displayUser.coverUrl})`
-                    : `linear-gradient(180deg, ${color}44, var(--bg-primary))`,
+                    : `linear-gradient(180deg, #3388FF44, #000000)`,
                 }}
               />
 
@@ -344,503 +304,337 @@ export default function Profile() {
         document.body,
       )}
 
-      {isMe ? (
-        <>
-          <input
-            ref={avatarInputRef}
-            type="file"
-            accept="image/*"
-            title="上传头像"
-            aria-label="上传头像"
-            className="hidden"
-            onChange={(e) =>
-              void uploadImage('avatar', e.currentTarget.files?.[0] || null)
-            }
-          />
-          <input
-            ref={coverInputRef}
-            type="file"
-            accept="image/*"
-            title="上传背景"
-            aria-label="上传背景"
-            className="hidden"
-            onChange={(e) =>
-              void uploadImage('cover', e.currentTarget.files?.[0] || null)
-            }
-          />
-        </>
-      ) : null}
-
-      <div className="absolute left-4 top-4 z-50">
-        <BackButton />
-      </div>
       <div
         className={cn(
-          'relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto overflow-x-hidden thin-scroll transition-opacity duration-200',
+          'flex min-h-0 flex-1 flex-col',
+          'transition-opacity duration-200',
           intro.show && !intro.shrink ? 'opacity-0' : 'opacity-100',
         )}
       >
-        <div
-          className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBackgroundUrl})` }}
-        />
-        <div
-          className={cn(
-            'pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b',
-            isDark
-              ? 'from-black/50 via-bg-primary/85 to-bg-primary'
-              : 'from-white/25 via-bg-primary/38 to-bg-primary/82',
-          )}
-        />
+        {isMe ? (
+          <>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              title="上传头像"
+              aria-label="上传头像"
+              className="hidden"
+              onChange={(e) =>
+                void uploadImage('avatar', e.currentTarget.files?.[0] || null)
+              }
+            />
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              title="上传背景"
+              aria-label="上传背景"
+              className="hidden"
+              onChange={(e) =>
+                void uploadImage('cover', e.currentTarget.files?.[0] || null)
+              }
+            />
+          </>
+        ) : null}
 
-        {/* items-center + 显式宽度；min-h-full + justify-center：大屏下内容不贴顶，与底部留白更均衡 */}
-        <div className="relative z-10 box-border flex min-h-full w-full max-w-2xl shrink-0 self-center flex-col justify-center gap-4 px-4 pb-28 pt-16">
-          {isMe ? (
-            <button
-              type="button"
-              onClick={() => coverInputRef.current?.click()}
-              disabled={uploadingKind !== null}
-              className={cn(
-                'h-10 w-full rounded-xl',
-                uploadingKind !== null && 'cursor-not-allowed opacity-60',
-              )}
-              aria-label="更换背景"
-              title="更换背景"
-            >
-              <span className="sr-only">
-                {uploadingKind === 'cover' ? '背景上传中' : '更换背景'}
-              </span>
-            </button>
-          ) : null}
+        <InternalPageShell
+          width="profile"
+          className="min-h-0 flex-1"
+          contentClassName="min-h-0"
+        >
+          <PageHeader
+            title={displayUser?.nickname || '个人主页'}
+            onBack="back"
+            divider={false}
+          />
 
-          <LiquidGlassCard
-            draggable={true}
-            shadowIntensity="xs"
-            glowIntensity="none"
-            borderRadius="16px"
-            className={`p-5 ${cardSurface}`}
-          >
-            <div className="flex items-start gap-3">
-              {isMe ? (
-                <button
-                  type="button"
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={uploadingKind !== null}
-                  className={cn(
-                    'group relative flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl font-bold shadow-lg transition',
-                    isDark ? 'border-white/25' : 'border-black/[0.08]',
-                    uploadingKind !== null && 'cursor-not-allowed opacity-70',
-                  )}
-                  style={{
-                    boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)`,
-                  }}
-                  aria-label="更换头像"
-                  title="更换头像"
-                >
-                  {displayUser?.avatarUrl ? (
-                    <img
-                      src={displayUser.avatarUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    (displayUser?.nickname || '?')[0]
-                  )}
-                </button>
-              ) : (
-                <div
-                  className={cn(
-                    'flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 text-2xl font-bold shadow-lg',
-                    isDark ? 'border-white/25' : 'border-black/[0.08]',
-                  )}
-                  style={{
-                    boxShadow: `0 0 24px ${color}55, 0 8px 24px rgba(0,0,0,0.35)`,
-                  }}
-                >
-                  {displayUser?.avatarUrl ? (
-                    <img
-                      src={displayUser.avatarUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    (displayUser?.nickname || '?')[0]
-                  )}
-                </div>
-              )}
-              <div className="min-w-0 flex-1 pt-0.5">
-                <h2 className="truncate text-lg font-extrabold tracking-tight drop-shadow-sm">
-                  {displayUser?.nickname}
-                </h2>
-                <span
-                  className="mt-1 inline-block rounded px-2 py-0.5 text-sm font-semibold"
-                  style={{
-                    color: isDark ? '#fff' : color,
-                    border: `1px solid ${color}66`,
-                    background: `${color}22`,
-                  }}
-                >
-                  {certLabel[level]}
-                </span>
-              </div>
-            </div>
-
-            <p className={`mt-3 text-sm leading-relaxed ${textSecondary}`}>
-              {displayUser?.bio || '这个人很懒，什么都没写...'}
-            </p>
-            {(displayUser?.ipRegion || displayUser?.cityCode) && (
-              <p
-                className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}
-              >
-                <MapPin className="size-3.5" />
-                IP 属地：{displayUser.ipRegion || displayUser.cityCode}
-              </p>
-            )}
-            {displayUser?.birthday && (
-              <p
-                className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}
-              >
-                <Cake className="size-3.5" />
-                {new Date(displayUser.birthday).toLocaleDateString('zh-CN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            )}
-
-            <div className="mt-4 flex gap-2">
-              {isMe ? (
-                <button
-                  type="button"
-                  onClick={() => setEditDialogOpen(true)}
-                  className={cn(
-                    'flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold backdrop-blur-sm',
-                    isDark
-                      ? 'border-white/20 bg-white/10 text-white hover:bg-white/18'
-                      : 'border-black/[0.08] bg-black/[0.04] text-text-primary hover:bg-black/[0.08]',
-                  )}
-                >
-                  <Edit3 className="size-3.5" />
-                  编辑资料
-                </button>
-              ) : (
-                <>
-                  {isFollowing ? (
-                    <button
-                      type="button"
-                      onClick={handleFollow}
-                      disabled={isFollowLoading}
-                      className={cn(
-                        'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-[color,background-color,border-color] disabled:opacity-50',
-                        isDark
-                          ? 'border-white/25 bg-white/10 text-white'
-                          : 'border-black/[0.08] bg-black/[0.04] text-text-primary',
-                      )}
-                    >
-                      <UserCheck className="size-4" />
-                      已关注
-                    </button>
-                  ) : (
-                    <AcetFavouriteButton
-                      type="button"
-                      onClick={handleFollow}
-                      disabled={isFollowLoading}
-                      className="flex flex-1 items-center justify-center gap-2 !rounded-xl !py-3 !text-sm font-bold"
-                    >
-                      <UserPlus className="size-4" />
-                      关注
-                    </AcetFavouriteButton>
-                  )}
+          <div className="internal-profile-page">
+            <section className="internal-profile-hero">
+              <div className="internal-profile-hero__head">
+                {isMe ? (
                   <button
                     type="button"
-                    onClick={() => navigate(`/messages/${displayUser?.id}`)}
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingKind !== null}
                     className={cn(
-                      'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border',
-                      isDark
-                        ? 'border-white/20 bg-white/10 text-white hover:bg-white/18'
-                        : 'border-black/[0.08] bg-black/[0.04] text-text-primary hover:bg-black/[0.08]',
+                      'internal-profile-hero__avatar',
+                      uploadingKind !== null && 'cursor-not-allowed opacity-70',
                     )}
-                    aria-label="发消息"
+                    aria-label="更换头像"
+                    title="更换头像"
                   >
-                    <MessageCircle className="size-4.5" />
+                    {displayUser?.avatarUrl ? (
+                      <img src={displayUser.avatarUrl} alt="" />
+                    ) : (
+                      (displayUser?.nickname || '?')[0]
+                    )}
                   </button>
-                </>
-              )}
-            </div>
-          </LiquidGlassCard>
+                ) : (
+                  <div className="internal-profile-hero__avatar">
+                    {displayUser?.avatarUrl ? (
+                      <img src={displayUser.avatarUrl} alt="" />
+                    ) : (
+                      (displayUser?.nickname || '?')[0]
+                    )}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h2 className="internal-profile-hero__name">
+                    {displayUser?.nickname}
+                  </h2>
+                  <p className="internal-profile-hero__badge">
+                    {certLabel[level]}
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex gap-3">
-            {/* 关注 */}
-            <LiquidGlassCard
-              draggable={true}
-              shadowIntensity="xs"
-              glowIntensity="none"
-              borderRadius="16px"
-              className={`flex-1 p-4 ${cardSurface}`}
-            >
+              <p className="internal-profile-hero__bio">
+                {displayUser?.bio || '这个人很懒，什么都没写...'}
+              </p>
+              {(displayUser?.ipRegion || displayUser?.cityCode) && (
+                <p className="internal-profile-hero__meta">
+                  <MsIcon name={STITCH_PROFILE_ICONS.location} size={14} className="shrink-0" />
+                  IP 属地：{displayUser.ipRegion || displayUser.cityCode}
+                </p>
+              )}
+              {displayUser?.birthday && (
+                <p className="internal-profile-hero__meta">
+                  <MsIcon name="cake" size={14} className="shrink-0" />
+                  {new Date(displayUser.birthday).toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
+                </p>
+              )}
+
+              <div className="internal-profile-hero__actions">
+                {isMe ? (
+                  <>
+                    <SettingsActionButton onClick={() => setEditDialogOpen(true)}>
+                      <MsIcon name={STITCH_PROFILE_ICONS.edit} size={14} className="mr-1.5 inline" />
+                      编辑资料
+                    </SettingsActionButton>
+                    <SettingsActionButton
+                      onClick={() => coverInputRef.current?.click()}
+                      disabled={uploadingKind !== null}
+                    >
+                      {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
+                    </SettingsActionButton>
+                  </>
+                ) : (
+                  <>
+                    <SettingsActionButton
+                      variant={isFollowing ? 'default' : 'primary'}
+                      onClick={handleFollow}
+                      disabled={isFollowLoading}
+                    >
+                      {isFollowing ? (
+                        <>
+                          <MsIcon name="how_to_reg" size={14} className="mr-1.5 inline" />
+                          已关注
+                        </>
+                      ) : (
+                        <>
+                          <MsIcon name="person_add" size={14} className="mr-1.5 inline" />
+                          关注
+                        </>
+                      )}
+                    </SettingsActionButton>
+                    <SettingsActionButton
+                      onClick={() => navigate(`/messages/${displayUser?.id}`)}
+                      aria-label="发消息"
+                    >
+                      <MsIcon name={STITCH_PROFILE_ICONS.message} size={14} />
+                    </SettingsActionButton>
+                  </>
+                )}
+              </div>
+            </section>
+
+            <section className="internal-profile-metrics-row">
               <button
                 type="button"
                 onClick={() => gotoFollowList('following')}
-                className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
+                className="internal-profile-metrics-row__cell"
               >
-                <span className="text-2xl font-extrabold tabular-nums">
+                <span className="internal-profile-metrics-row__value">
                   {followCounts.following}
                 </span>
-                <span className={`text-sm ${textMuted}`}>关注</span>
+                <span className="internal-profile-metrics-row__label">关注</span>
               </button>
-            </LiquidGlassCard>
-
-            {/* 粉丝 */}
-            <LiquidGlassCard
-              draggable={true}
-              shadowIntensity="xs"
-              glowIntensity="none"
-              borderRadius="16px"
-              className={`flex-1 p-4 ${cardSurface}`}
-            >
               <button
                 type="button"
                 onClick={() => gotoFollowList('followers')}
-                className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
+                className="internal-profile-metrics-row__cell"
               >
-                <span className="text-2xl font-extrabold tabular-nums">
+                <span className="internal-profile-metrics-row__value">
                   {followCounts.followers}
                 </span>
-                <span className={`text-sm ${textMuted}`}>粉丝</span>
+                <span className="internal-profile-metrics-row__label">粉丝</span>
               </button>
-            </LiquidGlassCard>
-
-            {/* 认证等级 */}
-            <LiquidGlassCard
-              draggable={true}
-              shadowIntensity="xs"
-              glowIntensity="none"
-              borderRadius="16px"
-              className={`flex-1 p-4 ${cardSurface}`}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <ShieldCheck className="size-5" style={{ color }} />
-                <span className="text-sm font-bold" style={{ color }}>
+              <div className="internal-profile-metrics-row__cell">
+                <MsIcon name={STITCH_PROFILE_ICONS.verified} size={20} className="text-text-secondary" />
+                <span className="internal-profile-metrics-row__label">
                   {certLabel[level]}
                 </span>
-                {promo && (
-                  <div className="mt-1 w-full">
+                {promo ? (
+                  <div className="mt-1 h-1 w-full max-w-[120px] overflow-hidden bg-white/10">
                     <div
-                      className={cn(
-                        'h-1 overflow-hidden rounded-full',
-                        isDark ? 'bg-white/10' : 'bg-black/[0.06]',
-                      )}
-                    >
-                      <div
-                        className="h-full rounded-full transition-[width_0.8s]"
-                        style={{
-                          width: `${promoProgress}%`,
-                          background: promoColor,
-                        }}
-                      />
-                    </div>
+                      className="h-full bg-[var(--internal-accent)] transition-[width_0.8s]"
+                      style={{ width: `${promoProgress}%` }}
+                    />
                   </div>
-                )}
+                ) : null}
               </div>
-            </LiquidGlassCard>
-          </div>
+            </section>
 
-          <LiquidGlassCard
-            draggable={true}
-            shadowIntensity="xs"
-            glowIntensity="none"
-            borderRadius="16px"
-            className={`p-4 ${cardSurface}`}
-          >
-            <div className="grid grid-cols-2 gap-2">
+            <section className="internal-profile-grid">
               {[
                 {
-                  icon: Star,
+                  icon: STITCH_PROFILE_ICONS.star,
                   label: '信誉积分',
                   value: user?.creditScore || certStatus?.creditScore || 60,
-                  c: '#34d399',
                 },
                 {
-                  icon: Zap,
+                  icon: STITCH_PROFILE_ICONS.bolt,
                   label: '本月抢单',
                   value: `${user?.snatchCredits || certStatus?.snatchCredits || 0}/3`,
-                  c: '#f87171',
                 },
                 {
-                  icon: TrendingUp,
+                  icon: STITCH_PROFILE_ICONS.trending,
                   label: '完成订单',
                   value:
                     user?.completedOrders || certStatus?.completedOrders || 0,
-                  c: color,
                 },
                 {
-                  icon: Users,
+                  icon: STITCH_PROFILE_ICONS.group,
                   label: '关注/粉丝比',
                   value:
                     followCounts.followers > 0
                       ? `${Math.round((followCounts.following / Math.max(followCounts.followers, 1)) * 100)}%`
                       : '0%',
-                  c: '#c4b5fd',
                 },
               ].map((item, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl border p-3',
-                    isDark
-                      ? 'border-white/10 bg-white/5'
-                      : 'border-black/[0.06] bg-black/[0.02]',
-                  )}
-                >
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                    style={{ background: `${item.c}22`, color: item.c }}
-                  >
-                    <item.icon className="size-4" />
+                <div key={i} className="internal-profile-grid__cell">
+                  <div className="internal-profile-grid__icon">
+                    <MsIcon name={item.icon} size={16} />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-sm ${textSubtle}`}>{item.label}</p>
-                    <p className="truncate text-sm font-extrabold tabular-nums">
-                      {item.value}
-                    </p>
+                    <p className="internal-profile-grid__label">{item.label}</p>
+                    <p className="internal-profile-grid__value">{item.value}</p>
                   </div>
                 </div>
               ))}
-            </div>
-          </LiquidGlassCard>
+            </section>
 
-          {isMe && (
-            <div className="flex gap-3">
-              {[
-                { icon: Award, label: '认证', path: '/cert-center' },
-                { icon: FileText, label: '需求', path: '/my-demands' },
-                { icon: Heart, label: '收藏', tab: 'favorites' as const },
-                { icon: ShoppingBag, label: '订单', path: '/orders' },
-                { icon: MessageCircle, label: '消息', path: '/messages' },
-                { icon: Settings, label: '设置', path: '/settings' },
-              ].map((item) => (
-                <LiquidGlassCard
-                  key={item.tab || item.path}
-                  draggable={true}
-                  shadowIntensity="xs"
-                  glowIntensity="none"
-                  borderRadius="16px"
-                  className={`flex-1 p-3 ${cardSurface}`}
-                >
+            {isMe ? (
+              <nav className="internal-profile-dock" aria-label="个人中心导航">
+                {[
+                  { icon: STITCH_PROFILE_ICONS.cert, label: '认证', path: '/cert-center' },
+                  { icon: STITCH_PROFILE_ICONS.demands, label: '需求', path: '/my-demands' },
+                  { icon: STITCH_PROFILE_ICONS.favorites, label: '收藏', tab: 'favorites' as const },
+                  { icon: STITCH_PROFILE_ICONS.orders, label: '订单', path: '/orders' },
+                  { icon: STITCH_PROFILE_ICONS.chat, label: '消息', path: '/messages' },
+                  { icon: STITCH_PROFILE_ICONS.settings, label: '设置', path: '/settings' },
+                ].map((item) => (
                   <button
+                    key={item.tab || item.path}
                     type="button"
                     onClick={() =>
                       item.tab ? setContentTab(item.tab) : navigate(item.path!)
                     }
-                    className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:bg-accent/5 active:scale-[0.98]"
+                    className="internal-profile-dock__btn"
                   >
-                    <item.icon
-                      className={
-                        isDark
-                          ? 'text-white/90 size-4.5'
-                          : 'text-text-primary size-4.5'
-                      }
-                    />
-                    <span className={`text-sm ${textMuted}`}>{item.label}</span>
+                    <MsIcon name={item.icon} size={20} aria-hidden />
+                    <span>{item.label}</span>
                   </button>
-                </LiquidGlassCard>
-              ))}
-            </div>
-          )}
+                ))}
+              </nav>
+            ) : null}
 
-          {contentTab === 'favorites' && isMe && (
-            <div className="mt-4 flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setContentTab('profile')}
-                  className={cn(
-                    'flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium',
-                    isDark
-                      ? 'bg-white/10 text-white'
-                      : 'bg-black/5 text-text-primary',
-                  )}
-                >
-                  ← 返回
-                </button>
-                <span className="text-sm font-semibold text-text-primary">
-                  我的收藏
-                </span>
-              </div>
-              {favoriteLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <span className="loader" />
+            {contentTab === 'favorites' && isMe ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <SettingsActionButton onClick={() => setContentTab('profile')}>
+                    ← 返回
+                  </SettingsActionButton>
+                  <span className="text-sm font-medium text-text-primary">
+                    我的收藏
+                  </span>
                 </div>
-              ) : favoriteDemands.length === 0 ? (
-                <div className="text-center py-8 text-text-muted text-sm">
-                  暂无收藏
-                </div>
-              ) : (
-                <>
-                  <div className="flex flex-col gap-2">
-                    {favoriteDemands.map((demand) => (
-                      <LiquidGlassCard
-                        key={demand.id}
-                        draggable={true}
-                        shadowIntensity="xs"
-                        glowIntensity="none"
-                        borderRadius="16px"
-                        className={`p-4 ${cardSurface}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/demands/${demand.id}`)}
-                            className="flex-1 min-w-0 text-left"
-                          >
-                            <p className="truncate text-sm font-semibold text-text-primary">
-                              {demand.title}
-                            </p>
-                            <p className="text-sm text-text-muted mt-0.5">
-                              ¥{demand.minPrice} · {demand.category}
-                            </p>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => toggleFavorite(demand.id)}
-                            className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
-                          >
-                            <Heart className="fill-red-500 size-4" />
-                          </button>
-                        </div>
-                      </LiquidGlassCard>
-                    ))}
+                {favoriteLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <span className="loader" />
                   </div>
-                  {favoriteTotalPages > 1 && (
-                    <div className="flex justify-center gap-2 mt-2">
-                      {Array.from(
-                        { length: Math.min(5, favoriteTotalPages) },
-                        (_, i) => i + 1,
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => loadFavPage(page)}
-                          className={cn(
-                            'h-8 w-8 rounded-lg text-sm font-medium',
-                            page === favPage
-                              ? 'bg-accent text-white'
-                              : isDark
-                                ? 'bg-white/10 text-white'
-                                : 'bg-black/5 text-text-primary',
-                          )}
-                        >
-                          {page}
-                        </button>
+                ) : favoriteDemands.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-text-muted">
+                    暂无收藏
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      {favoriteDemands.map((demand) => (
+                        <div key={demand.id} className="settings-panel p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/demands/${demand.id}`)}
+                              className="min-w-0 flex-1 text-left"
+                            >
+                              <p className="truncate text-sm font-medium text-[#e2e2e2]">
+                                {demand.title}
+                              </p>
+                              <p className="mt-0.5 font-mono text-xs text-text-muted">
+                                ¥{demand.minPrice} · {demand.category}
+                              </p>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleFavorite(demand.id)}
+                              className="settings-action-btn !px-2"
+                              aria-label="取消收藏"
+                            >
+                              <MsIcon
+                                name={STITCH_PROFILE_ICONS.favorites}
+                                size={16}
+                                filled
+                                className="text-[var(--internal-accent)]"
+                              />
+                            </button>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </div>
+                    {favoriteTotalPages > 1 ? (
+                      <div className="mt-2 flex justify-center gap-2">
+                        {Array.from(
+                          { length: Math.min(5, favoriteTotalPages) },
+                          (_, i) => i + 1,
+                        ).map((page) => (
+                          <button
+                            key={page}
+                            type="button"
+                            onClick={() => loadFavPage(page)}
+                            className={cn(
+                              'h-8 w-8 border font-mono text-xs',
+                              page === favPage
+                                ? 'border-[var(--internal-accent)] bg-[var(--internal-accent)]/10 text-text-primary'
+                                : 'border-[var(--internal-hairline)] text-text-muted hover:text-text-primary',
+                            )}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </InternalPageShell>
       </div>
 
       <ProfileEditDialog

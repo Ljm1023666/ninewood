@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  Heart,
-  Handshake,
-  Clock,
-  Gift,
-  Award,
-  Receipt,
-  ExternalLink,
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { BackButton } from '@/components/ui/back-button'
+  InternalPageShell,
+  InternalContentBlock,
+  InternalStatCard,
+  SettingsPanel,
+  SettingsInput,
+  SettingsActionButton,
+  StatusChip,
+} from '@/components/layout/internal-ui'
 import { Link } from 'react-router-dom'
 import api from '@/api'
 
@@ -79,165 +77,134 @@ export default function WelfareCenter() {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
-      <div className="absolute top-4 left-4 z-10">
-        <BackButton />
-      </div>
-      <div className="h-16 shrink-0" />
-      <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
-        <h1 className="text-xl font-bold text-text-primary mb-1 flex items-center gap-2">
-          <Heart className="size-5 text-error" />
-          公益中心
-        </h1>
-        <p className="text-sm text-text-primary/40 mb-6">
-          发布公益需求，帮助需要帮助的人。平台抽成 10% 全额投入公益资金池。
-        </p>
+    <InternalPageShell width="narrow">
+      <PageHeader
+        title="公益中心"
+        subtitle="发布公益需求，帮助需要帮助的人。平台抽成 10% 全额投入公益资金池。"
+        onBack="back"
+      />
 
-        {/* 资金池 */}
-        {pool && (
-          <Card className="border-border bg-bg-secondary backdrop-blur-md mb-4">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-text-primary/40">本地公益资金池</p>
-                <p className="text-2xl font-bold text-emerald-400">
-                  ¥{pool.balance?.toFixed(2) || '0.00'}
-                </p>
-                <p className="text-xs text-text-primary/30 mt-1">
-                  累计流入 ¥{pool.totalInflow?.toFixed(2) || '0.00'} · 累计支出
-                  ¥{pool.totalOutflow?.toFixed(2) || '0.00'}
-                </p>
-              </div>
-              <Handshake className="size-10 text-emerald-400/30" />
-            </CardContent>
-          </Card>
+      <InternalContentBlock>
+        <div className="grid grid-cols-2 gap-4">
+          {pool && (
+            <InternalStatCard
+              icon={<MsIcon name="volunteer_activism" size={24} />}
+              title="公益资金池"
+              description={`累计流入 ¥${pool.totalInflow?.toFixed(2) || '0.00'} · 累计支出 ¥${pool.totalOutflow?.toFixed(2) || '0.00'}`}
+              value={`¥${pool.balance?.toFixed(2) || '0.00'}`}
+            />
+          )}
+          <InternalStatCard
+            icon={<MsIcon name="workspace_premium" size={24} />}
+            title="我的贡献"
+            description={
+              totalEarned > 0
+                ? `累计奖励 ¥${totalEarned.toFixed(2)}`
+                : '参与公益服务，积累贡献记录'
+            }
+            value={totalEarned > 0 ? `¥${totalEarned.toFixed(2)}` : '—'}
+          />
+        </div>
+
+        {badges.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {[...new Set(badges)].map((b) => (
+              <StatusChip
+                key={b}
+                label={b}
+                className="border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted"
+              />
+            ))}
+          </div>
         )}
 
-        {/* 我的奖励 */}
-        {totalEarned > 0 && (
-          <Card className="border-border bg-bg-secondary backdrop-blur-md mb-4">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Award className="size-4 text-amber-400" />
-                <span className="text-sm font-medium text-text-primary">
-                  我的公益奖励
-                </span>
-              </div>
-              <p className="text-lg font-bold text-amber-400">
-                累计 ¥{totalEarned.toFixed(2)}
-              </p>
-              {badges.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {[...new Set(badges)].map((b) => (
-                    <Badge
-                      key={b}
-                      className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-xs"
-                    >
-                      <Gift className="size-3 mr-0.5" />
-                      {b}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* 最近奖励 */}
         {rewards.length > 0 && (
-          <Card className="border-border bg-bg-secondary backdrop-blur-md mb-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-text-primary text-sm flex items-center gap-1">
-                <Gift className="size-3.5" />
+          <SettingsPanel>
+            <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
+              <p className="flex items-center gap-1.5 font-semibold text-text-primary">
+                <MsIcon name="redeem" size={14} />
                 最近奖励
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
+              </p>
+            </div>
+            <div className="flex flex-col px-6 py-2">
               {rewards.slice(0, 5).map((r: any) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between text-xs"
+                  className="flex items-center justify-between border-b border-[var(--internal-hairline)] py-3 font-mono text-xs last:border-b-0"
                 >
-                  <span className="text-text-primary/40">
+                  <span className="text-text-secondary">
                     {r.isSpiritual ? r.badge : `¥${r.amount.toFixed(2)}`}
                   </span>
-                  <span className="text-text-primary/20">
+                  <span className="text-text-muted">
                     {new Date(r.createdAt).toLocaleDateString('zh-CN')}
                   </span>
                 </div>
               ))}
+            </div>
+            <div className="border-t border-[var(--internal-hairline)] px-6 py-3">
               <Link
                 to="/transactions"
-                className="text-xs text-amber-400/60 hover:text-amber-400 flex items-center gap-1 mt-1"
+                className="flex items-center gap-1 font-mono text-xs text-[var(--internal-accent)] hover:underline"
               >
-                <Receipt className="size-3" />
-                查看全部交易记录 <ExternalLink className="size-3" />
+                <MsIcon name={STITCH_PAGE_ICONS.transactions} size={12} />
+                查看全部交易记录
+                <MsIcon name="open_in_new" size={12} />
               </Link>
-            </CardContent>
-          </Card>
+            </div>
+          </SettingsPanel>
         )}
 
-        {/* 发布表单 */}
-        <Card className="border-border bg-bg-secondary backdrop-blur-md">
-          <CardHeader>
-            <CardTitle className="text-text-primary text-base">
-              发布公益需求
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Input
-              className="border-border bg-bg-secondary text-text-primary placeholder:text-text-primary/30"
-              placeholder="标题（如：走失儿童寻找）"
+        <SettingsPanel>
+          <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
+            <h2 className="font-semibold text-text-primary">发布公益需求</h2>
+          </div>
+          <div className="flex flex-col gap-4 px-6 py-5">
+            <SettingsInput
               value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              onChange={(v) => setForm({ ...form, title: v })}
+              placeholder="标题（如：走失儿童寻找）"
             />
             <textarea
-              className="border border-border bg-bg-secondary text-text-primary placeholder:text-text-primary/30 rounded-lg px-3 py-2 text-sm h-24 resize-none"
+              className="settings-input min-h-24 resize-none"
               placeholder="详细描述..."
               value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
-            <Input
-              className="border-border bg-bg-secondary text-text-primary placeholder:text-text-primary/30"
-              placeholder="预期效果"
+            <SettingsInput
               value={form.expectedOutcome}
-              onChange={(e) =>
-                setForm({ ...form, expectedOutcome: e.target.value })
-              }
+              onChange={(v) => setForm({ ...form, expectedOutcome: v })}
+              placeholder="预期效果"
             />
             <div className="flex gap-2">
-              <Input
-                className="border-border bg-bg-secondary text-text-primary placeholder:text-text-primary/30 flex-1"
-                type="number"
+              <SettingsInput
+                value={String(form.minPrice)}
+                onChange={(v) => setForm({ ...form, minPrice: Number(v) || 0 })}
                 placeholder="最低报酬 (¥)"
-                value={form.minPrice}
-                onChange={(e) =>
-                  setForm({ ...form, minPrice: Number(e.target.value) })
-                }
+                className="flex-1"
               />
-              <Input
-                className="border-border bg-bg-secondary text-text-primary placeholder:text-text-primary/30 w-24"
-                placeholder="区域ID"
+              <SettingsInput
                 value={form.regionId}
-                onChange={(e) => setForm({ ...form, regionId: e.target.value })}
+                onChange={(v) => setForm({ ...form, regionId: v })}
+                placeholder="区域ID"
+                className="w-28"
               />
             </div>
-            <p className="text-xs text-text-primary/30 flex items-center gap-1">
-              <Clock className="size-3" />
+            <p className="flex items-center gap-1 font-mono text-xs text-text-muted">
+              <MsIcon name="schedule" size={12} />
               公益需求有 15 天公开期
             </p>
-            <Button
+            <SettingsActionButton
               onClick={createDemand}
               disabled={creating}
-              className="bg-red-500 hover:bg-red-600"
+              variant="primary"
+              className="w-full"
             >
-              <Heart className="size-4 mr-1" />{' '}
-              {creating ? '发布中...' : '发布公益需求'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+              <MsIcon name={STITCH_PAGE_ICONS.welfare} size={16} className="mr-1 inline" />
+              {creating ? '发布中…' : '发布公益需求'}
+            </SettingsActionButton>
+          </div>
+        </SettingsPanel>
+      </InternalContentBlock>
+    </InternalPageShell>
   )
 }

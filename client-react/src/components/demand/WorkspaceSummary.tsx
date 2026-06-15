@@ -15,7 +15,7 @@ function LockToggle({ fieldKey }: { fieldKey: string }) {
       checkedIcon={<Lock className="size-2.5" />}
       uncheckedIcon={<LockOpen className="size-2.5" />}
       haptic="light"
-      className="-mt-4"
+      className="shrink-0"
     />
   )
 }
@@ -25,37 +25,27 @@ export function WorkspaceSummary() {
   const updateField = useDemandWorkspaceStore((s) => s.updateField)
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-text-muted uppercase tracking-wider">
-          需求摘要
-        </label>
-      </div>
-
-      {/* 标题 */}
-      <div className="flex items-center gap-2">
+    <div>
+      <span className="ws-section-label">需求摘要</span>
+      <div className="ws-field-row" style={{ marginBottom: 12 }}>
         <input
           type="text"
           value={fields.title}
           onChange={(e) => updateField('title', e.target.value)}
           placeholder="需求标题（AI 自动生成）"
-          className="flex-1 rounded-xl border border-border bg-bg-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
+          className="ws-input"
         />
         <LockToggle fieldKey="title" />
       </div>
-
-      {/* 描述 */}
-      <div className="flex items-start gap-2">
+      <div className="ws-field-row">
         <textarea
           value={fields.description}
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="需求描述（AI 自动整理）"
           rows={4}
-          className="flex-1 rounded-xl border border-border bg-bg-card px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors resize-none"
+          className="ws-textarea"
         />
-        <div className="-mt-3 shrink-0">
-          <LockToggle fieldKey="description" />
-        </div>
+        <LockToggle fieldKey="description" />
       </div>
     </div>
   )

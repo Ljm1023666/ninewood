@@ -1,8 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Receipt, ArrowUpRight, ArrowDownLeft, Gift } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { BackButton } from '@/components/ui/back-button'
-import { Badge } from '@/components/ui/badge'
+import { useState, useEffect, useMemo } from 'react'
+import { PageHeader } from '@/components/layout/PageHeader'
+import {
+  InternalPageShell,
+  InternalContentBlock,
+  SegmentedFilter,
+  StatusChip,
+} from '@/components/layout/internal-ui'
+import { ListItemCard } from '@/components/ui/list-item-card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { LoadingState } from '@/components/ui/loading-state'
+import { cn } from '@/lib/utils'
+import { MsIcon } from '@/components/ui/ms-icon'
 import api from '@/api'
 
 interface TransactionItem {
@@ -21,11 +29,21 @@ interface TransactionItem {
   createdAt: string
 }
 
+type FilterTab = 'all' | 'income' | 'expense'
+
+function netAmount(item: TransactionItem) {
+  if (item.role === 'DEMANDER') {
+    return item.demanderPaid - item.depositReturned
+  }
+  return item.providerReceived
+}
+
 export default function TransactionHistory() {
   const [items, setItems] = useState<TransactionItem[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [filter, setFilter] = useState<FilterTab>('all')
 
   async function load(pageNum = 1) {
     setLoading(true)
@@ -43,118 +61,134 @@ export default function TransactionHistory() {
   }
 
   useEffect(() => {
-    load()
+    void load()
   }, [])
 
   function goPage(p: number) {
     setPage(p)
-    load(p)
+    void load(p)
   }
 
+  const filtered = useMemo(() => {
+    if (filter === 'all') return items
+    if (filter === 'income') {
+      return items.filter((item) => item.role === 'PROVIDER')
+    }
+    return items.filter((item) => item.role === 'DEMANDER')
+  }, [filter, items])
+
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
-      <div className="absolute top-4 left-4 z-10">
-        <BackButton />
-      </div>
-      <div className="h-16 shrink-0" />
-      <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
-        <h1 className="text-xl font-bold text-text-primary mb-1 flex items-center gap-2">
-          <Receipt className="size-5 text-amber-400" />
-          交易历史
-        </h1>
-        <p className="text-sm text-text-primary/40 mb-6">
-          查看所有已完成交易的明细
-        </p>
+    <InternalPageShell width="medium">
+      <PageHeader
+        title="交易历史"
+        subtitle="查看所有已完成交易的明细"
+        onBack="back"
+      />
 
-        {loading ? (
-          <div className="text-center text-text-primary/30 py-12">
-            加载中...
-          </div>
-        ) : items.length === 0 ? (
-          <Card className="border-border bg-bg-secondary backdrop-blur-md">
-            <CardContent className="p-8 text-center">
-              <Receipt className="size-12 text-text-primary/10 mx-auto mb-3" />
-              <p className="text-text-primary/30">暂无交易记录</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {items.map((item) => (
-              <Card
-                key={item.id}
-                className="border-border bg-bg-secondary backdrop-blur-md hover:border-amber-500/30 transition-colors"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {item.role === 'DEMANDER' ? (
-                        <ArrowUpRight className="size-4 text-red-400" />
-                      ) : (
-                        <ArrowDownLeft className="size-4 text-emerald-400" />
-                      )}
-                      <span className="text-sm font-medium text-text-primary">
+      <InternalContentBlock>
+        <SegmentedFilter
+          options={[
+            { value: 'all', label: '全部' },
+            { value: 'income', label: '收入' },
+            { value: 'expense', label: '支出' },
+          ]}
+          value={filter}
+          onChange={setFilter}
+        />
+
+        {loading ? <LoadingState variant="internal" lines={3} /> : null}
+
+        {!loading && filtered.length === 0 ? (
+          <EmptyState variant="internal" type="order" message="暂无交易记录" />
+        ) : null}
+
+        {!loading && filtered.length > 0 ? (
+          <div className="flex w-full flex-col gap-3">
+            {filtered.map((item) => {
+              const amount = netAmount(item)
+              const isExpense = item.role === 'DEMANDER'
+              return (
+                <ListItemCard
+                  key={item.id}
+                  variant="internal"
+                  clickable={false}
+                  className="p-4 opacity-90"
+                >
+                  <div className="relative z-[1] flex flex-col gap-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <h2 className="min-w-0 flex-1 text-lg font-semibold tracking-wide text-text-primary">
                         {item.demandTitle}
-                      </span>
-                      {item.isWelfare && (
-                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs">
-                          <Gift className="size-3 mr-0.5" />
-                          公益
-                        </Badge>
-                      )}
+                      </h2>
+                      <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                        {item.isWelfare ? (
+                          <StatusChip
+                            label="公益"
+                            className="border-red-500/30 bg-red-500/20 text-red-400"
+                          />
+                        ) : null}
+                        <StatusChip
+                          label="已结算"
+                          className="border-emerald-500/35 bg-emerald-500/10 text-emerald-300"
+                        />
+                      </div>
                     </div>
-                    <span className="text-xs text-text-primary/30">
-                      {new Date(item.createdAt).toLocaleDateString('zh-CN')}
-                    </span>
+                    <div className="flex items-end justify-between gap-4">
+                      <span className="flex items-center gap-1 text-sm text-text-secondary">
+                        <MsIcon name="calendar_today" size={16} className="opacity-70" aria-hidden />
+                        {new Date(item.createdAt).toLocaleDateString('zh-CN')}
+                      </span>
+                      <span
+                        className={cn(
+                          'font-mono text-lg font-semibold',
+                          isExpense ? 'text-red-400' : 'text-emerald-400',
+                        )}
+                      >
+                        {isExpense ? '-' : '+'}¥{amount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 border-t border-[var(--internal-hairline)] pt-2 font-mono text-xs text-text-muted">
+                      <span>成交金额</span>
+                      <span className="text-right text-text-secondary">
+                        ¥{item.finalPrice.toFixed(2)}
+                      </span>
+                      <span>平台服务费</span>
+                      <span className="text-right">¥{item.serviceFee.toFixed(2)}</span>
+                      {item.depositReturned > 0 ? (
+                        <>
+                          <span>押金退回</span>
+                          <span className="text-right text-emerald-400">
+                            +¥{item.depositReturned.toFixed(2)}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <span className="text-text-primary/40">成交金额</span>
-                    <span className="text-text-primary text-right">
-                      ¥{item.finalPrice.toFixed(2)}
-                    </span>
-                    <span className="text-text-primary/40">平台服务费</span>
-                    <span className="text-text-primary/30 text-right">
-                      ¥{item.serviceFee.toFixed(2)}
-                    </span>
-                    {item.depositReturned > 0 && (
-                      <>
-                        <span className="text-text-primary/40">押金退回</span>
-                        <span className="text-emerald-400 text-right">
-                          +¥{item.depositReturned.toFixed(2)}
-                        </span>
-                      </>
-                    )}
-                    <span className="text-text-primary/40 pt-1 border-t border-border mt-1">
-                      {item.role === 'DEMANDER' ? '你支付' : '你收到'}
-                    </span>
-                    <span
-                      className={`text-right pt-1 border-t border-border mt-1 font-bold ${item.role === 'DEMANDER' ? 'text-red-400' : 'text-emerald-400'}`}
-                    >
-                      {item.role === 'DEMANDER' ? '-' : '+'}¥
-                      {item.role === 'DEMANDER'
-                        ? (item.demanderPaid - item.depositReturned).toFixed(2)
-                        : item.providerReceived.toFixed(2)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-4">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => goPage(i + 1)}
-                    className={`px-3 py-1 rounded text-xs ${page === i + 1 ? 'bg-amber-500/20 text-amber-400' : 'text-text-primary/30 hover:text-text-primary/60'}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-            )}
+                </ListItemCard>
+              )
+            })}
           </div>
-        )}
-      </div>
-    </div>
+        ) : null}
+
+        {!loading && totalPages > 1 ? (
+          <div className="flex justify-center gap-2">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => goPage(i + 1)}
+                className={cn(
+                  'rounded px-3 py-1 font-mono text-xs transition-colors',
+                  page === i + 1
+                    ? 'bg-[var(--internal-accent)]/20 text-[var(--internal-accent)]'
+                    : 'text-text-muted hover:text-text-secondary',
+                )}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </InternalContentBlock>
+    </InternalPageShell>
   )
 }

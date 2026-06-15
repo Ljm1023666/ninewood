@@ -19,6 +19,8 @@ interface TagSelectorProps {
   /** 错误信息 */
   error?: string | null
   className?: string
+  /** internal 设置页：硬朗矩形，非胶囊 */
+  shape?: 'pill' | 'rect'
 }
 
 const MAX_DEFAULT = 20
@@ -31,6 +33,7 @@ function TagSelectorInner({
   loading = false,
   error = null,
   compact = false,
+  shape = 'pill',
   className,
 }: TagSelectorProps & { compact?: boolean }) {
   const handleToggle = useCallback(
@@ -78,6 +81,25 @@ function TagSelectorInner({
       {tags.map((tag) => {
         const isSelected = selected.includes(tag)
         const isDisabled = !isSelected && isAtMax
+
+        if (shape === 'rect') {
+          return (
+            <button
+              key={tag}
+              type="button"
+              disabled={isDisabled}
+              onClick={() => handleToggle(tag)}
+              className={cn(
+                'settings-tag cursor-pointer transition-colors',
+                isSelected &&
+                  'border-[var(--internal-accent)] bg-[var(--internal-accent)]/10 text-[var(--internal-text)]',
+                isDisabled && 'cursor-not-allowed opacity-50',
+              )}
+            >
+              {tag}
+            </button>
+          )
+        }
 
         return (
           <Chip

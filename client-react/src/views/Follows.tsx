@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Users, UserCheck, Loader2 } from 'lucide-react'
-import { BackButton } from '@/components/ui/back-button'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { PageHeader } from '@/components/layout/PageHeader'
+import {
+  InternalPageShell,
+  SegmentedFilter,
+} from '@/components/layout/internal-ui'
 import { userApi } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -79,49 +83,27 @@ export default function Follows() {
   }
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto thin-scroll bg-background text-text-primary">
-      <div className="mx-auto w-full max-w-[36rem] px-4 py-6">
-        {/* 顶部：返回 + Tab 切换 */}
-        <div className="mb-5 flex items-center gap-3">
-          <BackButton />
-          <div className="flex rounded-xl border border-border bg-bg-secondary p-1">
-            <button
-              type="button"
-              onClick={() =>
-                navigate(`/follows/${userId}?mode=followers`, { replace: true })
-              }
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200',
-                mode === 'followers'
-                  ? 'bg-background text-text-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-secondary',
-              )}
-            >
-              <Users className="size-3.5" />
-              粉丝
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                navigate(`/follows/${userId}?mode=following`, { replace: true })
-              }
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200',
-                mode === 'following'
-                  ? 'bg-background text-text-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-secondary',
-              )}
-            >
-              <UserCheck className="size-3.5" />
-              关注
-            </button>
-          </div>
-        </div>
+    <InternalPageShell width="narrow" className="bg-background text-text-primary">
+      <PageHeader
+        title={mode === 'followers' ? '粉丝' : '关注'}
+        onBack="back"
+      />
 
-        {/* Loading */}
+      <SegmentedFilter
+        options={[
+          { value: 'followers', label: '粉丝' },
+          { value: 'following', label: '关注' },
+        ]}
+        value={mode}
+        onChange={(v) =>
+          navigate(`/follows/${userId}?mode=${v}`, { replace: true })
+        }
+      />
+
+      {/* Loading */}
         {loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="animate-spin text-accent size-7" />
+            <MsIcon name="progress_activity" size={28} className="animate-spin text-accent" />
             <p className="mt-3 text-sm text-text-muted">加载中...</p>
           </div>
         )}
@@ -131,9 +113,9 @@ export default function Follows() {
           <div className="flex flex-col items-center justify-center py-20">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-bg-secondary">
               {mode === 'followers' ? (
-                <Users className="text-text-muted size-6" />
+                <MsIcon name="group" size={24} className="text-text-muted" />
               ) : (
-                <UserCheck className="text-text-muted size-6" />
+                <MsIcon name="how_to_reg" size={24} className="text-text-muted" />
               )}
             </div>
             <p className="mt-4 text-sm font-medium text-text-primary">
@@ -252,9 +234,11 @@ export default function Follows() {
                   </button>
                 )}
 
-                <ChevronLeft
+                <MsIcon
+                  name="chevron_right"
+                  size={14}
                   className={cn(
-                    'shrink-0 rotate-180 text-text-muted/40 opacity-0 transition-opacity group-hover:opacity-100 size-3.5',
+                    'shrink-0 text-text-muted/40 opacity-0 transition-opacity group-hover:opacity-100',
                   )}
                 />
               </div>
@@ -279,7 +263,7 @@ export default function Follows() {
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="animate-spin size-3.5" />
+                  <MsIcon name="progress_activity" size={14} className="animate-spin" />
                   加载中...
                 </span>
               ) : (
@@ -288,7 +272,6 @@ export default function Follows() {
             </button>
           </div>
         )}
-      </div>
-    </div>
+    </InternalPageShell>
   )
 }

@@ -1,4 +1,5 @@
 import api from './index'
+import type { AgentAccessMode } from '@/types/agent-access'
 
 export interface AgentConversation {
   id: string
@@ -44,11 +45,23 @@ export interface AgentSkill {
   source: string
 }
 
+export type LlmProviderId = 'minimax' | 'deepseek' | 'qwen'
+
+export interface LlmProviderStatus {
+  defaultModel: string
+  thinkModel: string
+  fastModel: string
+  configured: boolean
+}
+
 export interface AgentProvider {
-  provider: string
+  provider: LlmProviderId
   model: string
   thinkModel: string
   fastModel: string
+  platformConfigured: LlmProviderId[]
+  byokRequired: boolean
+  providers: Record<LlmProviderId, LlmProviderStatus>
 }
 
 /** 语义导航 — 调用本地 8001 分类器识别页面意图 */
@@ -144,13 +157,32 @@ export async function deleteConversation(id: string) {
   await api.delete(`/agent/conversations/${id}`)
 }
 
+/** 批准或拒绝待执行工具（请求批准模式） */
+export async function approveAgentTool(
+  conversationId: string,
+  params: {
+    toolName: string
+    arguments: Record<string, unknown>
+    approved: boolean
+  },
+) {
+  const res = await api.post<{
+    success: boolean
+    approved: boolean
+    message: string
+    data?: unknown
+    error?: string
+  }>(`/agent/conversations/${conversationId}/approve-tool`, params)
+  return res.data
+}
+
 /** 流式发送消息（返回 SSE EventSource 类似接口） */
 export function streamMessage(
   conversationId: string,
   message: string,
   thinkMode = false,
   context?: Record<string, unknown>,
-  webSearch = false,
+  accessMode: AgentAccessMode = 'approval',
   model?: string,
 ): {
   abort: () => void
@@ -195,7 +227,8 @@ export function streamMessage(
             message,
             thinkMode,
             context,
-            webSearch,
+            accessMode,
+            webSearch: accessMode === 'full',
             model,
           }),
           signal: controller.signal,

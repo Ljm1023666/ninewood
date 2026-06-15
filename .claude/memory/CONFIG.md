@@ -34,10 +34,11 @@
 
 | 项目 | 值 |
 |------|-----|
+| 版本 | **PostgreSQL 18**（端口 **5433**；16 占用 5432，勿混用） |
 | 数据库 | nine_db |
 | 用户 | postgres |
-| 密码 | 123456 |
-| 连接 | localhost:5432 |
+| 密码 | 198514 |
+| 连接 | `postgresql://postgres:198514@localhost:5433/nine_db` |
 
 ## 域名
 
@@ -97,7 +98,20 @@
 | http://localhost:5174 | 本地 Vite (备用端口) |
 | app://. | Electron 客户端 |
 
-## 桌面快捷方式
+## 本地素材库（头像 / 主页背景 / 卡面）
+
+| 项目 | 值 |
+|------|-----|
+| 源目录 | `D:\picture`（勿提交 Git） |
+| `avatar/` | 用户头像 → `server/uploads/avatars/avatar_XX.{ext}` |
+| `backgrounds/` | 个人主页背景 → `server/uploads/covers/cover_XX.{ext}` |
+| `cards/` | 需求卡封面 → `server/uploads/card-covers/100XX.{ext}` |
+| 同步命令 | `cd server && npm run assets:sync` |
+| 写入数据库 | `cd server && FORCE_ASSET_ASSIGN=1 npm run assets:assign` |
+| 清单文件 | `server/uploads/.asset-manifest.json`（同步后生成） |
+
+当前规模（2026-06-15）：头像 12 · 背景 45 · 卡面 19
+
 
 | 项目 | 值 |
 |------|-----|

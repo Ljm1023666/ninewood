@@ -3,9 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { messageApi } from '@/api/message'
 import { useChatStore } from '@/stores/chat'
 import { Home, type TemplateContact } from '@/components/ui/chat-template'
-import { ResizablePanel } from '@/components/ui/resizable'
 import { SidebarProvider } from '@/components/blocks/sidebar'
-import { BackButton } from '@/components/ui/back-button'
 
 export default function MessagesLayout() {
   const navigate = useNavigate()
@@ -18,7 +16,6 @@ export default function MessagesLayout() {
     if (!location.pathname.startsWith('/messages/')) return null
     const rest = location.pathname.slice('/messages/'.length)
     const seg = rest.split('/')[0] || null
-    // 如果是 merge 路径，返回 merge:xxx
     if (seg === 'merge') {
       const mergeId = rest.split('/')[1] || null
       return mergeId ? `merge:${mergeId}` : null
@@ -49,8 +46,8 @@ export default function MessagesLayout() {
         id: c.user.id,
         name: c.user.nickname,
         message: c.lastMessage?.content || '',
-        image: c.user.avatarUrl || 'https://github.com/rayimanoj8.png',
-        unreadCount: (c as any).unreadCount ?? 0,
+        image: c.user.avatarUrl || '',
+        unreadCount: (c as { unreadCount?: number }).unreadCount ?? 0,
         type: 'user' as const,
       }))
 
@@ -87,15 +84,9 @@ export default function MessagesLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-background">
-        <div className="shrink-0 px-4 pt-3">
-          <BackButton />
-        </div>
-        {/**
-         * showNavigateRail={false}：模板内 shadcn Sidebar 为 fixed;left:0，会盖住会话列表并与 Ninewood 全局侧栏重叠。
-         * 独立全屏预览请用 ChatTemplateDemoPage（带 SidebarProvider + showNavigateRail 默认 true）。
-         */}
+      <div className="internal-shell internal-messages-layout flex h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden">
         <Home
+          variant="internal"
           showNavigateRail={false}
           contacts={rows}
           currentChat={currentChat}
@@ -110,13 +101,9 @@ export default function MessagesLayout() {
             }
           }}
           rightColumn={
-            <ResizablePanel
-              defaultSize={75}
-              minSize={40}
-              className="min-h-0 min-w-0"
-            >
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col">
               <Outlet />
-            </ResizablePanel>
+            </div>
           }
         />
       </div>
