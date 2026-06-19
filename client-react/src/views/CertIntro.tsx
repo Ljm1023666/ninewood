@@ -6,8 +6,10 @@ import { useThemeStore } from '@/stores/theme'
 import { certLabel, certColor, certGlow } from '@/constants/cert'
 import { cn } from '@/lib/utils'
 import { AcetGradientButton } from '@/components/ui/tailwindcss-buttons-variants'
-import { BackButton } from '@/components/ui/back-button'
-import { ShieldCheck, Star, Zap, Users, Award, ArrowRight } from 'lucide-react'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { InternalPageShell } from '@/components/layout/internal-ui'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { STITCH_PROFILE_ICONS } from '@/constants/stitch-icons'
 
 const levels = ['NONE', 'BASIC', 'INTERMEDIATE', 'ADVANCED', 'MASTER'] as const
 
@@ -60,40 +62,29 @@ export default function CertIntro() {
   const tSecondary = isDark ? 'text-white/70' : 'text-text-secondary'
   const tMuted = isDark ? 'text-white/50' : 'text-text-muted'
   return (
-    <motion.div className="relative min-h-full w-full overflow-y-auto thin-scroll bg-background">
-      <BackButton />
-      <motion.div className="relative z-10 mx-auto w-full max-w-2xl px-4 pt-6 pb-8 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-3"
-        >
-          <p
-            className={cn(
-              'flex items-center gap-2 text-sm font-semibold uppercase tracking-wider',
-              tMuted,
-            )}
-          >
-            <ShieldCheck className="text-foreground size-3.5" aria-hidden />
-            认证体系
-          </p>
-          <h1
-            className={cn(
-              'text-balance text-2xl font-bold tracking-tight sm:text-3xl',
-              tPrimary,
-            )}
-          >
-            层层进阶，<span className="text-accent">解锁更多能力</span>
-          </h1>
-          <p className={cn('max-w-xl text-sm leading-relaxed', tMuted)}>
-            从新手到大师，5 个认证等级，每升一级解锁更强权限。
-          </p>
-        </motion.div>
-      </motion.div>
+    <InternalPageShell width="narrow" contentClassName="pb-0">
+      <PageHeader
+        title="层层进阶，解锁更多能力"
+        subtitle="从新手到大师，5 个认证等级，每升一级解锁更强权限。"
+        onBack="back"
+        divider={false}
+        className="mb-2"
+      />
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={cn(
+          'mb-4 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-wider',
+          tMuted,
+        )}
+      >
+        <MsIcon name="verified_user" size={14} className="text-foreground" aria-hidden />
+        认证体系
+      </motion.p>
 
       {/* 等级说明（保留叠卡展示，不改动卡片本体） */}
-      <ContainerScroll className="mx-auto w-full max-w-2xl px-4 pb-40">
+      <ContainerScroll className="pb-40">
         {levels.map((level, i) => {
           const color = certColor[level]
           const info = levelInfo[level]
@@ -186,13 +177,13 @@ export default function CertIntro() {
                           style={{ background: `${color}18`, color }}
                         >
                           {j === 0 ? (
-                            <Zap className="size-3" />
+                            <MsIcon name={STITCH_PROFILE_ICONS.bolt} size={12} />
                           ) : j === 1 ? (
-                            <Star className="size-3" />
+                            <MsIcon name={STITCH_PROFILE_ICONS.star} size={12} />
                           ) : j === 2 ? (
-                            <Users className="size-3" />
+                            <MsIcon name={STITCH_PROFILE_ICONS.group} size={12} />
                           ) : (
-                            <Award className="size-3" />
+                            <MsIcon name={STITCH_PROFILE_ICONS.cert} size={12} />
                           )}
                         </div>
                         <span
@@ -221,7 +212,7 @@ export default function CertIntro() {
             borderRadius="24px"
             className={`p-8 text-center ${tPrimary}`}
           >
-            <Award className="mx-auto mb-4 text-foreground size-10" />
+            <MsIcon name={STITCH_PROFILE_ICONS.cert} size={40} className="mx-auto mb-4 text-foreground" />
             <h2 className="mb-2 text-xl font-bold">准备好了吗？</h2>
             <p className={`mb-6 text-sm ${tMuted}`}>
               前往认证中心查看你的当前进度
@@ -232,11 +223,11 @@ export default function CertIntro() {
               className="inline-flex items-center gap-2 !rounded-xl !px-6 !py-3 !text-sm font-semibold"
             >
               进入认证中心
-              <ArrowRight className="size-4" />
+              <MsIcon name="arrow_forward" size={16} />
             </AcetGradientButton>
           </LiquidGlassCard>
         </CardSticky>
       </ContainerScroll>
-    </motion.div>
+    </InternalPageShell>
   )
 }

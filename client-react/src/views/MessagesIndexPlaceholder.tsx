@@ -8,6 +8,7 @@ export default function MessagesIndexPlaceholder() {
   return (
     <TemplateChatRightShell
       embedInLayout
+      variant="internal"
       currentChat={null}
       middle={
         <div className="flex h-full min-h-0 flex-col items-center justify-center bg-bg-primary/50 px-6 text-center">

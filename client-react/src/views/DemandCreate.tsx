@@ -12,9 +12,9 @@ import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { useUserStore } from '@/stores/user'
 import { InfoCard } from '@/components/ui/info-card'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import { BackButton } from '@/components/ui/back-button'
 import {
   Sparkles,
-  ArrowLeft,
   Monitor,
   MapPin,
   Send,
@@ -50,7 +50,7 @@ function formatAIText(text: string): string {
   // 加粗 **text**
   html = html.replace(
     /\*\*(.+?)\*\*/g,
-    '<strong class="font-semibold text-text-primary">$1</strong>',
+    '<strong class="font-semibold">$1</strong>',
   )
 
   // 按双换行分段
@@ -143,34 +143,24 @@ function ThinkingPanel({
   if (!text) return null
 
   return (
-    <div className="rounded-xl border border-purple-500/20 bg-purple-500/[0.03] overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400/60">
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className="flex items-center gap-1.5 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
-        >
-          <Brain className="size-3.5" />
-          <span>思考过程</span>
-          <span
-            className={`inline-block transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
-          >
-            <ChevronDown className="size-3.5" />
-          </span>
-        </button>
-        {isLoading && (
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-        )}
-      </div>
+    <div className="ws-thinking">
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        className="ws-thinking-head"
+      >
+        <Brain className="size-3.5" />
+        <span>思考过程</span>
+        <ChevronDown
+          className={cn('size-3.5 ml-auto transition-transform', !collapsed && 'rotate-180')}
+        />
+        {isLoading && <span className="ws-spinner" style={{ width: 6, height: 6, borderWidth: 1.5 }} />}
+      </button>
       {!collapsed && (
-        <div
-          ref={scrollRef}
-          className="px-4 pb-3 text-sm text-purple-600/60 dark:text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-[80px] overflow-y-auto"
-          style={{ scrollbarWidth: 'thin', scrollbarColor: '#444 transparent' }}
-        >
+        <div ref={scrollRef} className="ws-thinking-body">
           {text.slice(0, len)}
           {len < text.length && (
-            <span className="inline-block w-0.5 h-3.5 bg-purple-400/60 ml-0.5 animate-pulse" />
+            <span className="ai-cursor" style={{ display: 'inline-block', width: 2, height: '1em' }} />
           )}
         </div>
       )}
@@ -197,30 +187,6 @@ export default function DemandCreate() {
   const [draftInput, setDraftInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // 注入 AI 光标动画样式
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
-      .ai-cursor {
-        display: inline-block;
-        width: 2px;
-        height: 1.1em;
-        background: #a78bfa;
-        margin-left: 1px;
-        vertical-align: text-bottom;
-        animation: ai-cursor-blink 1s step-end infinite;
-      }
-      @keyframes ai-cursor-blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-      }
-    `
-    document.head.appendChild(style)
-    return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
 
   const workspaceFields = useDemandWorkspaceStore((s) => s.fields)
   const workspaceReady = useDemandWorkspaceStore((s) => s.readyToPublish)
@@ -968,33 +934,14 @@ export default function DemandCreate() {
   )
 
   return (
-    <div className="demand-create-root min-h-screen flex flex-col relative overflow-x-hidden">
-      <div className="hidden gap-[10rem] rotate-[-20deg] absolute top-[-40rem] right-[-30rem] z-[0] blur-[5rem] skew-[-40deg] opacity-40">
-        <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-purple-400" />
-        <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-blue-400" />
-        <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-violet-400" />
-      </div>
-      <div className="hidden gap-[10rem] rotate-[-20deg] absolute top-[-50rem] right-[-50rem] z-[0] blur-[5rem] skew-[-40deg] opacity-30">
-        <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-purple-400" />
-        <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-blue-400" />
-        <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-violet-400" />
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 shrink-0">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-muted hover:border-border hover:text-text-primary hover:bg-bg-tertiary transition-all duration-200"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-text-muted tracking-wide">
-            需求工作区
-          </span>
+    <div className="demand-workspace-codex ws-root internal-shell flex min-h-0 flex-1 flex-col overflow-hidden">
+      <header className="ws-header">
+        <BackButton compact />
+        <h1 className="ws-title">需求工作区</h1>
+        <div className="ws-actions">
           <button
             type="button"
+            className="ws-btn"
             onClick={() => {
               if (messages.length > 0 || workspaceFields.title) {
                 if (
@@ -1006,22 +953,17 @@ export default function DemandCreate() {
               clearDraft()
               useDemandWorkspaceStore.getState().setSpeedMode(true)
             }}
-            className="inline-flex items-center gap-1 rounded-lg border border-border bg-bg-card px-2.5 py-1 text-sm text-text-muted hover:border-border hover:text-text-secondary transition-all"
           >
-            <Plus className="size-3" />
+            <Plus className="size-3.5" />
             新建
           </button>
-        </div>
-        <div className="flex items-center gap-2">
           {workspaceFields.title && (
             <span
-              className={`rounded-full px-2.5 py-1 text-sm font-medium ${
-                confidence === 'high'
-                  ? 'bg-emerald-500/10 text-emerald-400/70'
-                  : confidence === 'medium'
-                    ? 'bg-amber-500/10 text-amber-400/70'
-                    : 'bg-red-500/10 text-red-400/70'
-              }`}
+              className={cn(
+                'ws-chip',
+                confidence === 'medium' && 'ws-chip--medium',
+                confidence === 'low' && 'ws-chip--low',
+              )}
             >
               {confidence === 'high'
                 ? '高置信度'
@@ -1032,25 +974,25 @@ export default function DemandCreate() {
           )}
           <button
             type="button"
+            className="ws-btn ws-btn--danger"
             onClick={() => doPublish(true)}
             disabled={forcePublishing || publishing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-4 py-2 text-sm font-medium text-red-600 dark:text-red-300/70 hover:border-red-500/30 hover:bg-red-500/[0.10] disabled:opacity-30 transition-all"
           >
             {forcePublishing ? (
-              <span className="inline-block size-3 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+              <span className="ws-spinner" style={{ width: 12, height: 12 }} />
             ) : (
-              <Zap className="size-3" />
+              <Zap className="size-3.5" />
             )}
             强制发布
           </button>
           <button
             type="button"
+            className="ws-btn ws-btn--primary"
             onClick={() => doPublish()}
             disabled={publishing || forcePublishing}
-            className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
           >
             {publishing ? (
-              <span className="inline-block size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span className="ws-spinner" style={{ width: 12, height: 12, borderTopColor: 'currentColor' }} />
             ) : (
               <Send className="size-3.5" />
             )}
@@ -1059,30 +1001,28 @@ export default function DemandCreate() {
         </div>
       </header>
 
-      {/* 双栏内容区 */}
-      <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
-        {/* 左栏：对话 */}
-        <div className="flex w-[42%] min-w-0 shrink-0 flex-col border-r border-border">
+      <div className="ws-body">
+        <section className="ws-chat">
           <motion.div
             ref={scrollRef}
             animate={{ opacity: canvasMode && speedMode ? 0 : 1 }}
             transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            className="flex-1 overflow-y-auto thin-scroll"
-            style={{ padding: '0 1rem', scrollbarGutter: 'stable' }}
+            className="ws-chat-scroll thin-scroll"
           >
             <div
-              className={`w-full max-w-xl mx-auto space-y-4 ${messages.length === 0 ? 'flex flex-col justify-center h-full' : 'py-6'}`}
+              className={cn(
+                'ws-chat-inner',
+                messages.length === 0 && !loading && 'ws-chat-inner--center',
+              )}
             >
               {messages.length === 0 && !loading && (
-                <div className="flex flex-col items-center gap-4 py-4">
-                  <div className="flex size-14 items-center justify-center rounded-2xl bg-bg-card border border-border">
-                    <Sparkles className="size-5 text-foreground" />
+                <div className="ws-empty-hero">
+                  <div className="ws-empty-icon">
+                    <Sparkles className="size-5" />
                   </div>
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-text-primary">
-                      你想找什么样的服务者？
-                    </h1>
-                    <p className="text-sm text-text-muted mt-2">
+                  <div>
+                    <h2 className="ws-empty-title">你想找什么样的服务者？</h2>
+                    <p className="ws-empty-desc">
                       用自然语言描述需求，AI 会帮你理清并追问细节
                     </p>
                   </div>
@@ -1098,17 +1038,12 @@ export default function DemandCreate() {
                     return (
                       <motion.div
                         key={msg.id}
+                        className="ws-msg ws-msg--user"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <div className="flex justify-end">
-                          <div className="max-w-[99%] rounded-sm border border-border bg-bg-card px-4 py-3">
-                            <span className="text-sm text-text-primary">
-                              {msg.content}
-                            </span>
-                          </div>
-                        </div>
+                        <div className="ws-bubble-user">{msg.content}</div>
                       </motion.div>
                     )
                   }
@@ -1120,6 +1055,7 @@ export default function DemandCreate() {
                     return (
                       <motion.div
                         key={msg.id}
+                        className="ws-msg"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.15 }}
@@ -1129,12 +1065,10 @@ export default function DemandCreate() {
                           onClick={() =>
                             setExpandedIds((prev) => new Set([...prev, msg.id]))
                           }
-                          className="py-1 text-left w-full hover:bg-bg-secondary/30 rounded-sm px-1 -mx-1 transition-colors"
+                          className="ws-collapsed"
                         >
-                          <span className="text-sm text-text-muted line-clamp-1">
-                            {msg.content.slice(0, 80)}
-                            {msg.content.length > 80 ? '…' : ''}
-                          </span>
+                          {msg.content.slice(0, 80)}
+                          {msg.content.length > 80 ? '…' : ''}
                         </button>
                       </motion.div>
                     )
@@ -1144,132 +1078,107 @@ export default function DemandCreate() {
                   return (
                     <motion.div
                       key={msg.id}
+                      className="ws-msg"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      <div className="py-1">
-                        {!isLastMsg && !msg.isStreaming && (
-                          <div className="flex justify-end mb-1">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedIds((prev) => {
-                                  const next = new Set(prev)
-                                  next.delete(msg.id)
-                                  return next
-                                })
-                              }
-                              className="text-xs text-text-muted hover:text-text-secondary"
-                            >
-                              收起 ↑
-                            </button>
-                          </div>
-                        )}
-                        {msg.isStreaming && !msg.content ? (
-                          <span className="text-sm text-text-muted italic">
-                            填写中...
-                          </span>
-                        ) : (
-                          <div
-                            className={`text-sm text-text-primary`}
-                            dangerouslySetInnerHTML={{
-                              __html:
-                                formatAIText(msg.content) +
-                                (msg.isStreaming
-                                  ? '<span class="ai-cursor"></span>'
-                                  : ''),
-                            }}
-                          />
-                        )}
+                      {!isLastMsg && !msg.isStreaming && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedIds((prev) => {
+                              const next = new Set(prev)
+                              next.delete(msg.id)
+                              return next
+                            })
+                          }
+                          className="ws-collapse-toggle"
+                        >
+                          收起 ↑
+                        </button>
+                      )}
+                      {msg.isStreaming && !msg.content ? (
+                        <span className="ws-bubble-ai" style={{ fontStyle: 'italic', color: 'var(--ws-text-muted)' }}>
+                          填写中...
+                        </span>
+                      ) : (
+                        <div
+                          className="ws-bubble-ai"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              formatAIText(msg.content) +
+                              (msg.isStreaming ? '<span class="ai-cursor"></span>' : ''),
+                          }}
+                        />
+                      )}
 
-                        {msg.toolCall && (
-                          <div className="mt-3 pt-3 border-t border-border">
-                            <div className="flex items-center gap-2 mb-3 text-sm text-emerald-400/80">
-                              <Check className="size-3.5" />
-                              <span>AI 已确认信息完整，可以发布</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-                              {msg.toolCall.arguments.title && (
-                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">标题</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.title}
-                                  </p>
-                                </div>
-                              )}
-                              {msg.toolCall.arguments.serviceType && (
-                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">
-                                    服务类型
-                                  </span>
-                                  <p className="text-text-secondary mt-0.5 inline-flex items-center gap-1">
-                                    {msg.toolCall.arguments.serviceType ===
-                                    'ONLINE' ? (
-                                      <Monitor className="size-3 text-accent/60" />
-                                    ) : (
-                                      <MapPin className="size-3 text-warning/60" />
-                                    )}
-                                    {msg.toolCall.arguments.serviceType ===
-                                    'ONLINE'
-                                      ? '线上'
-                                      : '线下'}
-                                  </p>
-                                </div>
-                              )}
-                              {msg.toolCall.arguments.budget && (
-                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">预算</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.budget}
-                                  </p>
-                                </div>
-                              )}
-                              {msg.toolCall.arguments.schedule && (
-                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">时间</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.schedule}
-                                  </p>
-                                </div>
-                              )}
-                              {msg.toolCall.arguments.category && (
-                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">分类</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.category}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                            {msg.toolCall.arguments.description && (
-                              <div className="rounded-lg bg-bg-secondary px-3 py-2 mb-3 text-sm">
-                                <span className="text-text-muted">
-                                  详细描述
-                                </span>
-                                <p className="text-text-secondary mt-0.5">
-                                  {msg.toolCall.arguments.description}
+                      {msg.toolCall && (
+                        <div className="ws-tool-confirm">
+                          <div className="ws-tool-confirm-head">
+                            <Check className="size-3.5" />
+                            <span>AI 已确认信息完整，可以发布</span>
+                          </div>
+                          <div className="ws-kv-grid">
+                            {msg.toolCall.arguments.title && (
+                              <div className="ws-kv">
+                                <span>标题</span>
+                                <p>{msg.toolCall.arguments.title}</p>
+                              </div>
+                            )}
+                            {msg.toolCall.arguments.serviceType && (
+                              <div className="ws-kv">
+                                <span>服务类型</span>
+                                <p className="inline-flex items-center gap-1">
+                                  {msg.toolCall.arguments.serviceType === 'ONLINE' ? (
+                                    <Monitor className="size-3" />
+                                  ) : (
+                                    <MapPin className="size-3" />
+                                  )}
+                                  {msg.toolCall.arguments.serviceType === 'ONLINE' ? '线上' : '线下'}
                                 </p>
                               </div>
                             )}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handlePublishFromChat(msg.toolCall!)
-                              }
-                              disabled={publishing}
-                              className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
-                            >
-                              {publishing ? (
-                                <span className="inline-block size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                              ) : (
-                                <Send className="size-3.5" />
-                              )}
-                              确认发布
-                            </button>
+                            {msg.toolCall.arguments.budget && (
+                              <div className="ws-kv">
+                                <span>预算</span>
+                                <p>{msg.toolCall.arguments.budget}</p>
+                              </div>
+                            )}
+                            {msg.toolCall.arguments.schedule && (
+                              <div className="ws-kv">
+                                <span>时间</span>
+                                <p>{msg.toolCall.arguments.schedule}</p>
+                              </div>
+                            )}
+                            {msg.toolCall.arguments.category && (
+                              <div className="ws-kv" style={{ gridColumn: 'span 2' }}>
+                                <span>分类</span>
+                                <p>{msg.toolCall.arguments.category}</p>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                          {msg.toolCall.arguments.description && (
+                            <div className="ws-kv" style={{ marginBottom: 12 }}>
+                              <span>详细描述</span>
+                              <p>{msg.toolCall.arguments.description}</p>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handlePublishFromChat(msg.toolCall!)}
+                            disabled={publishing}
+                            className="ws-btn ws-btn--primary"
+                          >
+                            {publishing ? (
+                              <span className="ws-spinner" style={{ width: 12, height: 12, borderTopColor: 'currentColor' }} />
+                            ) : (
+                              <Send className="size-3.5" />
+                            )}
+                            确认发布
+                          </button>
+                        </div>
+                      )}
                     </motion.div>
                   )
                 })}
@@ -1279,28 +1188,27 @@ export default function DemandCreate() {
                 !messages.some(
                   (m) => m.role === 'assistant' && m.isStreaming,
                 ) && (
-                  <div className="flex items-center gap-2 px-4 py-2">
-                    <span className="inline-block size-3.5 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
-                    <span className="text-sm text-text-muted">AI 分析中…</span>
+                  <div className="ws-loading">
+                    <span className="ws-spinner" />
+                    <span>AI 分析中…</span>
                   </div>
                 )}
             </div>
           </motion.div>
 
-          {/* 输入区域 */}
-          <div className="shrink-0 px-4 py-3">
-            <div className="w-full max-w-xl mx-auto">
-              {isThinkMode && (
-                <div className="mb-2">
-                  <ThinkingPanel
-                    text={thinkText}
-                    isLoading={loading}
-                    collapsed={thinkCollapsed}
-                    onToggleCollapse={() => setThinkCollapsed(!thinkCollapsed)}
-                  />
-                </div>
+          <div className="ws-composer-wrap">
+            <div className="ws-composer-inner">
+              {isThinkMode && (loading || thinkText) && (
+                <ThinkingPanel
+                  text={thinkText}
+                  isLoading={loading}
+                  collapsed={thinkCollapsed}
+                  onToggleCollapse={() => setThinkCollapsed(!thinkCollapsed)}
+                />
               )}
               <PromptInputBox
+                variant="codex"
+                onThinkChange={setIsThinkMode}
                 onSend={(message) => sendMessage(message)}
                 isLoading={loading}
                 onAbort={() => abortRef.current?.abort()}
@@ -1317,33 +1225,44 @@ export default function DemandCreate() {
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* 右栏：工作区 / Canvas 卡牌背面 */}
-        <div className="flex-1 min-w-0 overflow-y-auto thin-scroll">
-          <div className="w-full max-w-lg mx-auto py-6 px-6">
+        <section
+          className={cn(
+            'ws-workspace thin-scroll',
+            canvasMode && 'ws-workspace--canvas',
+          )}
+        >
+          <div
+            className={cn(
+              'ws-workspace-inner',
+              canvasMode && 'ws-workspace-inner--canvas',
+            )}
+          >
             {canvasMode ? (
-              <div className="flex items-start justify-center pt-12">
-                <CanvasCardBack fields={workspaceFields} />
+              <div className="ws-canvas-wrap">
+                <div className="ws-canvas-scaler">
+                  <CanvasCardBack fields={workspaceFields} />
+                </div>
               </div>
             ) : messages.length === 0 && !workspaceFields.title ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-bg-card border border-border mb-4">
-                  <Sparkles className="size-5 text-text-muted/60" />
+              <div className="ws-workspace-empty">
+                <div className="ws-empty-icon ws-empty-icon--sm">
+                  <Sparkles className="size-5" />
                 </div>
-                <p className="text-sm text-text-muted max-w-48 leading-relaxed">
+                <p className="ws-empty-desc" style={{ marginTop: 16 }}>
                   在左侧描述你的需求，AI 会同步整理到这里
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="ws-stack">
                 <WorkspaceSummary />
                 <WorkspaceFields />
                 <WorkspaceTools />
               </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )
@@ -1372,7 +1291,7 @@ function CanvasCardBack({
 
   return (
     <div
-      className="relative aspect-[9/16] w-[min(440px,90%)] max-w-full shrink-0 cursor-pointer select-none rounded-3xl"
+      className="ws-canvas-card relative cursor-pointer select-none rounded-3xl"
       style={{ perspective: '1400px' }}
       onClick={handleFlip}
     >

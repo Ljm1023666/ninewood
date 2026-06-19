@@ -3,41 +3,41 @@ import { useNavigate } from 'react-router-dom'
 import { useThemeStore, presets as themePresets } from '@/stores/theme'
 import { useUserStore } from '@/stores/user'
 import { cn } from '@/lib/utils'
-import { ThemeToggleButton } from '@/components/ui/theme-toggle'
+import { certLabel } from '@/constants/cert'
 import { TagSelector, useTagLoader } from '@/components/ui/tag-selector'
-import { Chip } from '@/components/ui/chip'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/confirm-dialog'
-import { BackButton } from '@/components/ui/back-button'
+import {
+  AppearanceSegment,
+  InternalContentBlock,
+  InternalSection,
+  SettingsAccountCard,
+  SettingsActionButton,
+  SettingsInput,
+  SettingsLinkRow,
+  SettingsPanel,
+  SettingsProShell,
+  SettingsRow,
+  SettingsSectionIntro,
+} from '@/components/layout/internal-ui'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { userApi } from '@/api/user'
 import { userTagApi } from '@/api/user-tag'
-import {
-  Palette,
-  Check,
-  ChevronRight,
-  LogOut,
-  Award,
-  UserRound,
-  BellOff,
-  Plus,
-  X,
-} from 'lucide-react'
 
 const themeNames: Record<string, string> = {
   'morning-mist': '薄雾晨光',
 }
 
-/** 暗色预设列表（排除 light） */
 const darkPresetEntries = Object.keys(themeNames)
 
 export default function Settings() {
   const navigate = useNavigate()
+  const user = useUserStore((s) => s.user)
   const logout = useUserStore((s) => s.logout)
   const themeStore = useThemeStore()
   const current = themeStore.current
+  // store 命名反直觉：darkMode=true 表示当前为浅色模式
+  const isLightMode = themeStore.darkMode
 
-  // ── 推送屏蔽 ──
   const { tags: allTags, loading: tagLoading, error: tagError } = useTagLoader()
   const [keywords, setKeywords] = useState<string[]>([])
   const [newKeyword, setNewKeyword] = useState('')
@@ -94,300 +94,212 @@ export default function Settings() {
     }
   }
 
-  function handleSetTheme(name: string) {
-    themeStore.setTheme(name)
-  }
-
   function handleLogout() {
     logout()
     navigate('/login', { replace: true })
   }
 
+  const level = user?.certificationLevel || 'NONE'
+  const accountLabel =
+    user?.phone || user?.email || user?.nickname || '当前账户'
+
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col items-center overflow-y-auto thin-scroll">
-      <div className="absolute top-4 left-4 z-10">
-        <BackButton />
-      </div>
-      <div className="h-16 shrink-0" />
-      <div className="mx-auto my-auto w-full max-w-2xl shrink-0 px-4 py-8 md:px-6">
-        {/* ── Header ── */}
-        <header className="mb-8 text-center">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-text-muted">
-            账户
-          </p>
-          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
-            设置
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">外观与常用入口</p>
-        </header>
-
-        {/* ── 外观 ── */}
-        <section
-          className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5"
-          aria-labelledby="appearance-heading"
-        >
-          <div className="mb-4 flex items-center gap-2 text-text-secondary">
-            <Palette className="size-4 shrink-0" aria-hidden />
-            <h2
-              id="appearance-heading"
-              className="text-sm font-bold uppercase tracking-wider"
-            >
-              外观
-            </h2>
-          </div>
-
-          {/* 显示模式 */}
-          <p className="mb-2 text-sm text-text-muted" id="display-mode-label">
-            显示模式
-          </p>
-          <div
-            className="mb-6"
-            role="group"
-            aria-labelledby="display-mode-label"
-          >
-            <ThemeToggleButton />
-          </div>
-
-          {/* 主题色 */}
-          <p className="mb-2 text-sm text-text-muted" id="theme-color-label">
-            主题色
-          </p>
-          <div
-            className="grid grid-cols-3 gap-2 sm:gap-3"
-            role="radiogroup"
-            aria-labelledby="theme-color-label"
-          >
-            {darkPresetEntries.map((name) => {
-              const cfg = themePresets[name]
-              const active = current.name === name && !themeStore.darkMode
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => handleSetTheme(name)}
-                  className={cn(
-                    'relative rounded-xl border p-3 text-center transition-[background-color,border-color,box-shadow]',
-                    'border-border bg-bg-card/40 hover:border-accent/50 hover:bg-accent/6',
-                    active &&
-                      'border-accent/60 bg-accent/6 ring-1 ring-accent/30',
+    <SettingsProShell active="account">
+      <InternalContentBlock>
+        <InternalSection label="账户">
+          <div className="settings-account-grid">
+            <SettingsSectionIntro
+              title="个人资料"
+              description="管理核心身份凭证与公开资料。"
+            />
+            <SettingsAccountCard>
+              <div className="settings-account-card__identity">
+                <div className="settings-account-card__avatar">
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt="" />
+                  ) : (
+                    <span>{(user?.nickname || '?')[0]}</span>
                   )}
-                >
-                  <div
-                    className="mb-2 h-9 rounded-lg shadow-inner"
-                    style={{
-                      background: `linear-gradient(135deg, ${cfg.primaryStart}, ${cfg.primaryEnd})`,
-                    }}
-                  />
-                  <span className="text-sm font-medium text-text-primary">
-                    {themeNames[name]}
-                  </span>
-                  {active && (
-                    <span
-                      className={cn(
-                        'absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full',
-                        'bg-accent text-white',
-                      )}
-                      aria-hidden
-                    >
-                      <Check className="size-3" strokeWidth={3} />
-                    </span>
-                  )}
-                </button>
-              )
-            })}
+                </div>
+                <div className="min-w-0">
+                  <p className="settings-account-card__email">{accountLabel}</p>
+                  <p className="settings-account-card__role">
+                    认证：{certLabel[level]}
+                  </p>
+                </div>
+              </div>
+              <div className="settings-account-card__actions flex shrink-0 flex-wrap gap-2">
+                <SettingsActionButton onClick={() => navigate('/profile')}>
+                  个人主页
+                </SettingsActionButton>
+                <SettingsActionButton onClick={() => navigate('/cert-center')}>
+                  认证中心
+                </SettingsActionButton>
+                <SettingsActionButton variant="danger" onClick={handleLogout}>
+                  <MsIcon name="logout" size={14} className="mr-1.5 inline" aria-hidden />
+                  退出登录
+                </SettingsActionButton>
+              </div>
+            </SettingsAccountCard>
           </div>
-        </section>
+        </InternalSection>
 
-        {/* ── 快捷入口 ── */}
-        <section
-          className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5"
-          aria-labelledby="shortcuts-heading"
-        >
-          <h2
-            id="shortcuts-heading"
-            className="mb-3 text-sm font-bold uppercase tracking-wider text-text-muted"
-          >
-            快捷入口
-          </h2>
-
-          <button
-            type="button"
-            onClick={() => navigate('/profile')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-accent/6"
-            aria-label="前往个人主页"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-card">
-              <UserRound className="size-5 text-text-primary" aria-hidden />
-            </span>
-            <span className="flex-1 text-sm font-semibold text-text-primary">
-              个人主页
-            </span>
-            <ChevronRight className="size-4 text-text-muted" aria-hidden />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/cert-center')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-accent/6"
-            aria-label="前往认证中心"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-card">
-              <Award className="size-5 text-text-primary" aria-hidden />
-            </span>
-            <span className="flex-1 text-sm font-semibold text-text-primary">
-              认证中心
-            </span>
-            <ChevronRight className="size-4 text-text-muted" aria-hidden />
-          </button>
-        </section>
-
-        {/* ── 推送屏蔽 ── */}
-        <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
-          <div className="mb-4 flex items-center gap-2 text-text-secondary">
-            <BellOff className="size-4 shrink-0" aria-hidden />
-            <h2 className="text-sm font-bold uppercase tracking-wider">
-              推送屏蔽
-            </h2>
-          </div>
-          <p className="mb-4 text-sm text-text-muted">
-            设置屏蔽条件后，匹配的推送将不会通知你
-          </p>
-
-          {/* 关键词屏蔽 */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              屏蔽关键词
-            </label>
-            <div className="flex gap-2">
-              <Input
-                value={newKeyword}
-                onChange={(e) => setNewKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
-                placeholder="输入关键词"
-                className="flex-1"
+        <InternalSection label="外观">
+          <SettingsPanel>
+            <SettingsRow label="显示模式" description="选择视觉环境密度">
+              <AppearanceSegment
+                options={[
+                  { value: 'dark' as const, label: 'OLED' },
+                  { value: 'light' as const, label: '浅色' },
+                ]}
+                value={isLightMode ? 'light' : 'dark'}
+                onChange={(v) => {
+                  if (v === 'dark' && isLightMode) themeStore.toggleDarkMode()
+                  if (v === 'light' && !isLightMode) themeStore.toggleDarkMode()
+                }}
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addKeyword}
-                disabled={!newKeyword.trim()}
-                className="gap-1"
-              >
-                <Plus className="size-3.5" />
-                添加
-              </Button>
-            </div>
-            {keywords.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {keywords.map((kw) => (
-                  <Chip
-                    key={kw}
-                    variant="outlined"
-                    className="gap-1"
-                    tabIndex={-1}
+            </SettingsRow>
+            <SettingsRow
+              label="主题色"
+              description="暗色环境下的强调色预设"
+              last
+            >
+              <div className="flex flex-wrap justify-end gap-2">
+                {darkPresetEntries.map((name) => {
+                  const cfg = themePresets[name]
+                  const active = current.name === name
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => themeStore.setTheme(name)}
+                      className={cn(
+                        'relative border px-3 py-2 text-center transition-colors',
+                        active
+                          ? 'border-[var(--internal-accent)]/50 bg-[var(--internal-accent)]/5'
+                          : 'border-[var(--internal-hairline)] hover:border-white/15',
+                      )}
+                    >
+                      <div
+                        className="mx-auto mb-1.5 h-6 w-10"
+                        style={{
+                          background: `linear-gradient(135deg, ${cfg.primaryStart}, ${cfg.primaryEnd})`,
+                        }}
+                      />
+                      <span className="text-xs text-text-muted">
+                        {themeNames[name]}
+                      </span>
+                      {active ? (
+                        <MsIcon
+                          name="check"
+                          size={12}
+                          className="absolute right-1 top-1 text-[var(--internal-accent)]"
+                          aria-hidden
+                        />
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </div>
+            </SettingsRow>
+          </SettingsPanel>
+        </InternalSection>
+
+        <InternalSection label="推送屏蔽">
+          <SettingsPanel>
+            <SettingsRow
+              label="屏蔽关键词"
+              description="匹配关键词的推送将不会通知你"
+            >
+              <div className="flex w-full min-w-[200px] max-w-xs flex-col gap-2 sm:items-end">
+                <div className="flex w-full gap-2">
+                  <SettingsInput
+                    value={newKeyword}
+                    onChange={setNewKeyword}
+                    onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
+                    placeholder="输入关键词"
+                  />
+                  <SettingsActionButton
+                    onClick={addKeyword}
+                    disabled={!newKeyword.trim()}
                   >
+                    <MsIcon name="add" size={12} className="mr-1 inline" />
+                    添加
+                  </SettingsActionButton>
+                </div>
+              </div>
+            </SettingsRow>
+            {keywords.length > 0 ? (
+              <div className="flex flex-wrap gap-2 px-6 pb-4">
+                {keywords.map((kw) => (
+                  <span key={kw} className="settings-tag">
                     {kw}
                     <button
                       type="button"
+                      className="settings-tag__remove"
                       onClick={() => removeKeyword(kw)}
-                      className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-text-muted hover:text-text-primary transition-colors"
-                      aria-label={`删除关键词 ${kw}`}
+                      aria-label={`删除 ${kw}`}
                     >
-                      <X className="size-3" />
+                      <MsIcon name="close" size={12} />
                     </button>
-                  </Chip>
+                  </span>
                 ))}
               </div>
-            )}
-          </div>
-
-          {/* 标签屏蔽 */}
-          <div className="mb-5">
-            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
-              屏蔽标签
-            </label>
-            <TagSelector
-              tags={allTags}
-              selected={blockedTags}
-              onChange={setBlockedTags}
-              loading={tagLoading}
-              error={tagError}
-              max={20}
-            />
-          </div>
-
-          {/* 保存按钮 */}
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              size="sm"
-              loading={savingBlocklist}
-              disabled={loadingBlocklist}
-              onClick={saveBlocklist}
+            ) : null}
+            <SettingsRow
+              label="屏蔽标签"
+              description="选择不想接收推送的标签"
+              last={keywords.length === 0}
             >
-              保存屏蔽设置
-            </Button>
-          </div>
-        </section>
+              <div className="w-full min-w-[200px] max-w-sm">
+                <TagSelector
+                  tags={allTags}
+                  selected={blockedTags}
+                  onChange={setBlockedTags}
+                  loading={tagLoading}
+                  error={tagError}
+                  max={20}
+                  shape="rect"
+                />
+              </div>
+            </SettingsRow>
+            <div className="flex justify-end border-t border-[var(--internal-hairline)] px-6 py-4">
+              <SettingsActionButton
+                variant="primary"
+                onClick={saveBlocklist}
+                disabled={loadingBlocklist}
+              >
+                {savingBlocklist ? '保存中…' : '保存屏蔽设置'}
+              </SettingsActionButton>
+            </div>
+          </SettingsPanel>
+        </InternalSection>
 
-        {/* ── 服务标签（AI 2.5 标签状态机）── */}
         <ServiceTagSection />
 
-        {/* ── 法律信息 ── */}
-        <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-muted">
-            法律
-          </h2>
-          <button
-            type="button"
-            onClick={() => navigate('/privacy')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-accent/6"
-          >
-            <span className="flex-1 text-sm font-semibold text-text-primary">
-              隐私政策
-            </span>
-            <ChevronRight className="size-4 text-text-muted" />
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/terms')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-accent/6"
-          >
-            <span className="flex-1 text-sm font-semibold text-text-primary">
-              服务条款
-            </span>
-            <ChevronRight className="size-4 text-text-muted" />
-          </button>
-        </section>
+        <InternalSection label="法律">
+          <SettingsPanel>
+            <SettingsLinkRow
+              label="隐私政策"
+              onClick={() => navigate('/privacy')}
+            />
+            <SettingsLinkRow
+              label="服务条款"
+              onClick={() => navigate('/terms')}
+              last
+            />
+          </SettingsPanel>
+        </InternalSection>
 
-        {/* ── 退出登录 ── */}
-        <button
-          type="button"
-          onClick={handleLogout}
-          className={cn(
-            'flex w-full items-center justify-center gap-2 rounded-[14px] border px-8 py-4 text-sm font-semibold transition-colors',
-            'border-error/30 bg-error/10 text-error hover:bg-error/20',
-            'focus-visible:ring-[3px] focus-visible:ring-error/35',
-          )}
-          aria-label="退出当前账户"
-        >
-          <LogOut className="size-4" aria-hidden />
-          退出登录
-        </button>
-
-        {/* ── 版本 ── */}
-        <p className="mt-8 text-center text-sm text-text-muted">
+        <p className="text-center font-mono text-xs text-text-muted">
           九木平台 v1.0.0
         </p>
-      </div>
-    </div>
+      </InternalContentBlock>
+    </SettingsProShell>
   )
 }
 
-/** AI 2.5 服务者标签状态机 */
 function ServiceTagSection() {
   const [tags, setTags] = useState<
     {
@@ -434,55 +346,33 @@ function ServiceTagSection() {
     }
   }
 
-  if (loading) return null
-  if (tags.length === 0) return null
+  if (loading || tags.length === 0) return null
 
   const statusLabel: Record<string, string> = {
     IDLE: '空闲',
     BUSY: '忙碌',
     HIDDEN: '下线',
   }
-  const statusColor: Record<string, string> = {
-    IDLE: 'bg-emerald-500',
-    BUSY: 'bg-amber-500',
-    HIDDEN: 'bg-zinc-500',
-  }
 
   return (
-    <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
-      <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-text-muted">
-        服务标签状态
-      </h2>
-      <div className="space-y-2">
-        {tags.map((t) => (
-          <div
+    <InternalSection label="服务标签">
+      <SettingsPanel>
+        {tags.map((t, i) => (
+          <SettingsRow
             key={t.tagName}
-            className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2"
+            label={t.tagName}
+            description={`状态：${statusLabel[t.status] || t.status}`}
+            last={i === tags.length - 1}
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className={`size-2 shrink-0 rounded-full ${statusColor[t.status] || 'bg-zinc-500'}`}
-              />
-              <span className="text-sm font-medium text-text-primary truncate">
-                {t.tagName}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-xs text-text-muted">
-                {statusLabel[t.status] || t.status}
-              </span>
-              <button
-                type="button"
-                disabled={busy[t.tagName] || t.status === 'BUSY'}
-                onClick={() => handleToggle(t.tagName)}
-                className="rounded px-2 py-0.5 text-xs border border-border hover:bg-accent/10 disabled:opacity-30 transition-colors"
-              >
-                {t.status === 'HIDDEN' ? '上线' : '下线'}
-              </button>
-            </div>
-          </div>
+            <SettingsActionButton
+              onClick={() => handleToggle(t.tagName)}
+              disabled={busy[t.tagName] || t.status === 'BUSY'}
+            >
+              {t.status === 'HIDDEN' ? '上线' : '下线'}
+            </SettingsActionButton>
+          </SettingsRow>
         ))}
-      </div>
-    </section>
+      </SettingsPanel>
+    </InternalSection>
   )
 }

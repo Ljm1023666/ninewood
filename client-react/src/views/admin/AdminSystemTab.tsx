@@ -1,6 +1,25 @@
-import { Server, Gauge, Activity, CheckCircle2 } from 'lucide-react'
+import {
+  AreaChart,
+  Area,
+  RadialBarChart,
+  RadialBar,
+  Tooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts'
 import type { DashboardData } from './use-admin-data'
-import { AdminMetricCard, AdminPanel } from './admin-ui'
+import {
+  AdminMetricGrid,
+  AdminMetricTile,
+  AdminPanel,
+  AdminChartGrid,
+  AdminChartCell,
+  adminChartGrid,
+  adminChartAxis,
+  adminChartTooltipStyle,
+} from './admin-ui'
 
 interface AdminSystemTabProps {
   data: DashboardData | null
@@ -9,51 +28,41 @@ interface AdminSystemTabProps {
 }
 
 const SERVICES = [
-  {
-    label: 'API 服务',
-    status: '运行中',
-    icon: Server,
-    accent: 'green' as const,
-  },
-  { label: '数据库', status: '运行中', icon: Gauge, accent: 'blue' as const },
-  {
-    label: '缓存服务',
-    status: '运行中',
-    icon: Activity,
-    accent: 'teal' as const,
-  },
+  { label: 'API 服务', status: '运行中' },
+  { label: '数据库', status: '运行中' },
+  { label: '缓存服务', status: '运行中' },
 ]
 
 const METRICS = [
-  { label: 'CPU 使用率', value: '23%', width: '23%' },
-  { label: '内存使用率', value: '45%', width: '45%' },
-  { label: '磁盘使用率', value: '62%', width: '62%' },
+  { label: 'CPU 使用率', value: 23, fill: '#111111' },
+  { label: '内存使用率', value: 45, fill: '#71717A' },
+  { label: '磁盘使用率', value: 62, fill: '#3388FF' },
+]
+
+const LATENCY_MOCK = [
+  { t: '00:00', ms: 42 },
+  { t: '04:00', ms: 38 },
+  { t: '08:00', ms: 55 },
+  { t: '12:00', ms: 48 },
+  { t: '16:00', ms: 61 },
+  { t: '20:00', ms: 44 },
+  { t: '24:00', ms: 40 },
 ]
 
 const LOGS = [
-  '[2026-05-27 10:23:15] INFO  Admin dashboard loaded',
-  '[2026-05-27 10:20:02] INFO  System health check: OK',
-  '[2026-05-27 09:45:30] INFO  Scheduled cleanup completed',
-  '[2026-05-27 08:00:00] INFO  Daily backup started',
-  '[2026-05-27 07:59:55] INFO  Server uptime: 7d 12h 34m',
+  '[2026-06-15 10:23:15] INFO  Admin dashboard loaded',
+  '[2026-06-15 10:20:02] INFO  System health check: OK',
+  '[2026-06-15 09:45:30] INFO  Scheduled cleanup completed',
+  '[2026-06-15 08:00:00] INFO  Daily backup started',
+  '[2026-06-15 07:59:55] INFO  Server uptime: 7d 12h 34m',
 ]
 
 export default function AdminSystemTab({ data, loading }: AdminSystemTabProps) {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-xl border border-[var(--admin-border)] bg-white p-5"
-            >
-              <div className="mb-3 size-10 rounded-lg bg-zinc-200" />
-              <div className="h-3 w-16 rounded bg-zinc-200" />
-            </div>
-          ))}
-        </div>
-        <div className="animate-pulse h-64 rounded-xl border border-[var(--admin-border)] bg-white" />
+        <div className="animate-pulse h-24 border border-[var(--admin-hairline)] bg-white" />
+        <div className="animate-pulse h-64 border border-[var(--admin-hairline)] bg-white" />
       </div>
     )
   }
@@ -62,60 +71,126 @@ export default function AdminSystemTab({ data, loading }: AdminSystemTabProps) {
 
   return (
     <div className="space-y-6">
-      <div id="admin-section-service-status" className="grid grid-cols-3 gap-4">
-        {SERVICES.map((svc) => (
-          <AdminMetricCard
-            key={svc.label}
-            icon={svc.icon}
-            label={svc.label}
-            value={svc.status}
-            hint="状态正常"
-            accent={svc.accent}
-          />
-        ))}
+      <p className="font-[family-name:var(--admin-mono)] text-[10px] uppercase tracking-[0.12em] text-[var(--admin-text-muted)]">
+        系统状态
+      </p>
+
+      <div id="admin-section-service-status">
+        <AdminMetricGrid cols={3}>
+          {SERVICES.map((svc) => (
+            <AdminMetricTile
+              key={svc.label}
+              label={svc.label}
+              value={svc.status}
+              hint="状态正常"
+            />
+          ))}
+        </AdminMetricGrid>
       </div>
 
-      <AdminPanel
-        id="admin-section-performance"
-        title="性能指标"
-        description="本地开发环境模拟数据"
-      >
-        <div className="space-y-5">
-          {METRICS.map((metric) => (
-            <div key={metric.label} className="flex items-center gap-4">
-              <span className="w-24 text-sm text-[var(--admin-text-secondary)]">
-                {metric.label}
-              </span>
-              <div className="flex-1">
-                <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
+      <AdminChartGrid>
+        <AdminChartCell span={2} id="admin-section-performance">
+          <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
+            API 响应延迟（24h）
+          </h3>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={LATENCY_MOCK}
+                margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="latencyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3388FF" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#3388FF" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid {...adminChartGrid} vertical={false} />
+                <XAxis dataKey="t" {...adminChartAxis} />
+                <YAxis
+                  {...adminChartAxis}
+                  unit="ms"
+                  domain={[0, 80]}
+                />
+                <Tooltip
+                  contentStyle={adminChartTooltipStyle}
+                  formatter={(val: number) => [`${val} ms`, '延迟']}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="ms"
+                  stroke="#3388FF"
+                  strokeWidth={2}
+                  fill="url(#latencyGrad)"
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </AdminChartCell>
+
+        <AdminChartCell>
+          <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
+            资源占用
+          </h3>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart
+                cx="50%"
+                cy="50%"
+                innerRadius="20%"
+                outerRadius="90%"
+                data={METRICS}
+                startAngle={180}
+                endAngle={0}
+              >
+                <RadialBar
+                  background={{ fill: 'var(--admin-hairline)' }}
+                  dataKey="value"
+                  cornerRadius={2}
+                />
+                <Tooltip
+                  contentStyle={adminChartTooltipStyle}
+                  formatter={(val: number) => [`${val}%`, '占用']}
+                />
+              </RadialBarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-2 space-y-2">
+            {METRICS.map((m) => (
+              <div key={m.label}>
+                <div className="mb-1 flex justify-between text-xs text-[var(--admin-text-secondary)]">
+                  <span>{m.label}</span>
+                  <span className="font-[family-name:var(--admin-mono)] tabular-nums">
+                    {m.value}%
+                  </span>
+                </div>
+                <div className="h-1 bg-[var(--admin-hairline)]">
                   <div
-                    className="h-full rounded-full bg-[var(--admin-accent-orange)] transition-[width] duration-300"
-                    style={{ width: metric.width }}
+                    className="h-full transition-[width] duration-300"
+                    style={{ width: `${m.value}%`, background: m.fill }}
                   />
                 </div>
               </div>
-              <span className="w-10 text-right text-sm font-mono tabular-nums text-[var(--admin-text)]">
-                {metric.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </AdminPanel>
+            ))}
+          </div>
+        </AdminChartCell>
+      </AdminChartGrid>
 
       <AdminPanel
         id="admin-section-logs"
         title="操作日志"
         description="最近系统事件"
       >
-        <div className="rounded-lg bg-zinc-950 px-4 py-4">
-          <div className="space-y-2 font-mono text-xs leading-relaxed text-zinc-400">
-            {LOGS.map((line) => (
-              <p key={line} className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 size-3 shrink-0 text-green-500/70" />
-                <span>{line}</span>
-              </p>
-            ))}
-          </div>
+        <div className="space-y-0 font-[family-name:var(--admin-mono)] text-[11px] leading-relaxed text-[var(--admin-text-secondary)]">
+          {LOGS.map((line) => (
+            <div
+              key={line}
+              className="border-b border-[var(--admin-hairline)] py-2 last:border-b-0"
+            >
+              {line}
+            </div>
+          ))}
         </div>
       </AdminPanel>
     </div>

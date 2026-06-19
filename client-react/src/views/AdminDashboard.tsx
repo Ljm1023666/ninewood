@@ -7,10 +7,11 @@ import api from '@/api'
 import {
   AdminSidebar,
   MAIN_NAV,
+  sidebarConfigs,
   getDefaultSectionId,
 } from '@/components/ui/admin-sidebar'
 import { scrollToAdminSection } from './admin/scroll-to-section'
-import { AdminComingSoon, AdminErrorState } from './admin/admin-ui'
+import { AdminComingSoon, AdminErrorState, AdminSubNav } from './admin/admin-ui'
 import AdminOverviewTab from './admin/AdminOverviewTab'
 import AdminAnalyticsTab from './admin/AdminAnalyticsTab'
 import AdminUsersTab from './admin/AdminUsersTab'
@@ -122,11 +123,19 @@ export default function AdminDashboard() {
       })
     : '—'
 
+  const subNavItems =
+    sidebarConfigs[tab]?.flatMap((section) =>
+      section.items.map((item) => ({ id: item.id, label: item.label })),
+    ) ?? []
+
+  const handleSubNav = useCallback((itemId: string) => {
+    pendingScrollRef.current = itemId
+    setActiveItem(itemId)
+    setScrollTick((n) => n + 1)
+  }, [])
+
   return (
-    <div
-      className="admin-light admin-dashboard flex h-screen w-full overflow-hidden"
-      style={{ fontFamily: 'var(--admin-font)' }}
-    >
+    <div className="admin-light admin-dashboard flex h-screen w-full overflow-hidden">
       <AdminSidebar
         activeTab={tab}
         activeItem={activeItem}
@@ -135,52 +144,41 @@ export default function AdminDashboard() {
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--admin-bg)]">
-        {/* 顶栏 */}
-        <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-[var(--admin-border)] bg-[var(--admin-card-bg)]/80 px-6 py-4 backdrop-blur-sm">
+        <header className="admin-topbar">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold tracking-tight text-[var(--admin-text)]">
-                监控中心
-              </h1>
-              <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
-                {TAB_LABELS[tab] || tab}
-              </span>
-            </div>
-            <p className="mt-0.5 text-xs text-[var(--admin-text-muted)]">
-              平台运营数据与系统状态一览
-            </p>
+            <h1 className="admin-topbar__title">
+              监控中心
+              <span className="admin-topbar__badge">{TAB_LABELS[tab] || tab}</span>
+            </h1>
+            <p className="admin-topbar__sub">平台运营数据与系统状态一览</p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 text-xs text-[var(--admin-text-muted)] xl:flex">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-40" />
-                <span className="relative inline-flex size-2 rounded-full bg-green-500" />
-              </span>
+            <div className="admin-topbar__sync hidden xl:flex">
+              <span className="size-1.5 rounded-full bg-[var(--admin-accent-green)] shadow-[0_0_0_2px_rgba(34,197,94,0.2)]" />
               已同步 {syncLabel}
             </div>
             <button
               type="button"
               onClick={fetchData}
               disabled={loading}
-              className={cn(
-                'inline-flex items-center gap-2 rounded-lg border border-[var(--admin-border)] bg-white px-3.5 py-2 text-sm font-medium text-[var(--admin-text-secondary)]',
-                'transition-[background-color,border-color,color] duration-200 hover:border-zinc-300 hover:text-[var(--admin-text)]',
-                'disabled:cursor-not-allowed disabled:opacity-60',
-              )}
+              className="admin-topbar__refresh inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <RefreshCw
-                className={cn('size-3.5', loading && 'animate-spin')}
-              />
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} />
               刷新数据
             </button>
           </div>
         </header>
 
-        {/* 主内容 */}
+        <AdminSubNav
+          items={subNavItems}
+          activeId={activeItem}
+          onSelect={handleSubNav}
+        />
+
         <div
           ref={mainRef}
-          className="admin-dashboard-content min-h-0 flex-1 overflow-y-auto px-6 py-6"
+          className="admin-dashboard-content min-h-0 flex-1 overflow-y-auto"
         >
           {renderContent()}
         </div>

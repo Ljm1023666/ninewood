@@ -1,29 +1,22 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { orderApi } from '@/api/order'
-import { ListItemCard } from '@/components/ui/list-item-card'
 import { LoadingState } from '@/components/ui/loading-state'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
+import {
+  InternalPageShell,
+  InternalContentBlock,
+  SegmentedFilter,
+  TransactionListItem,
+} from '@/components/layout/internal-ui'
 
-const statusLabel: Record<string, string> = {
-  PENDING: '待确认',
-  IN_PROGRESS: '服务中',
-  WAITING_REVIEW: '待验收',
-  COMPLETED: '已完成',
-  DISPUTED: '争议中',
-}
-const statusTheme = (s: string) =>
-  (
-    ({
-      COMPLETED: 'bg-success/15 text-success border border-success/25',
-      DISPUTED: 'bg-error/15 text-error border border-error/25',
-      IN_PROGRESS: 'bg-warning/15 text-warning border border-warning/25',
-      WAITING_REVIEW: 'bg-warning/10 text-warning border border-warning/20',
-      PENDING: 'bg-accent/10 text-accent border border-accent/20',
-    }) as Record<string, string>
-  )[s] || 'bg-card text-text-muted border border-border'
+const ROLE_TABS = [
+  { value: '', label: '全部' },
+  { value: 'provider', label: '我接的单' },
+  { value: 'requester', label: '我发的单' },
+] as const
 
 export default function Orders() {
   const [searchParams] = useSearchParams()
@@ -51,71 +44,44 @@ export default function Orders() {
   }, [fetchOrders])
 
   return (
-    <div className="relative flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary ">
-      <div className="absolute top-4 left-4 z-10">
-        <BackButton />
-      </div>
-      <div className="h-16 shrink-0" />
-      <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
-        <div className="mb-4 flex gap-2">
-          {[
-            { value: '', label: '全部' },
-            { value: 'provider', label: '我接的单' },
-            { value: 'requester', label: '我发的单' },
-          ].map((t) => (
-            <button
-              key={t.value}
-              onClick={() => setRole(t.value)}
-              className={`flex-1 rounded-xl py-3 text-sm font-semibold transition-all duration-300 ${
-                role === t.value
-                  ? 'bg-[var(--primary-start)] text-white shadow-lg'
-                  : 'glass-input text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+    <InternalPageShell width="medium">
+      <PageHeader title="我的订单" onBack="back" />
 
-        {error && <ErrorState message={error} onRetry={fetchOrders} />}
+      <InternalContentBlock>
+        <SegmentedFilter
+          options={[...ROLE_TABS]}
+          value={role as (typeof ROLE_TABS)[number]['value']}
+          onChange={setRole}
+        />
 
-        {loading && <LoadingState />}
+        {error ? <ErrorState message={error} onRetry={fetchOrders} /> : null}
 
-        {!error && !loading && orders.length === 0 && (
-          <EmptyState type="order" />
-        )}
+        {loading ? <LoadingState variant="internal" lines={3} /> : null}
 
-        {!loading && orders.length > 0 && (
-          <div className="flex flex-col gap-3">
+        {!error && !loading && orders.length === 0 ? (
+          <EmptyState type="order" variant="internal" />
+        ) : null}
+
+        {!error && !loading && orders.length > 0 ? (
+          <div className="flex w-full flex-col gap-3">
             {orders.map((o: any) => (
-              <ListItemCard
+              <TransactionListItem
                 key={o.id}
+                title={o.demand?.title || '订单'}
+                status={o.status}
+                date={
+                  o.createdAt
+                    ? new Date(o.createdAt).toLocaleDateString('zh-CN')
+                    : undefined
+                }
+                price={o.agreedPrice ?? 0}
+                completed={o.status === 'COMPLETED'}
                 onClick={() => navigate(`/orders/${o.id}`)}
-                className="p-4 list-item-base"
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-text-primary">
-                    {o.demand?.title || '订单'}
-                  </span>
-                  <span
-                    className={`px-2.5 py-1 rounded-lg text-sm font-bold ${statusTheme(o.status)}`}
-                  >
-                    {statusLabel[o.status] || ''}
-                  </span>
-                </div>
-                <div className="flex justify-between mt-2 text-[13px] text-text-secondary">
-                  <span className="font-semibold text-accent">
-                    ¥{o.agreedPrice}
-                  </span>
-                  <span>
-                    {o.provider?.nickname} → {o.requester?.nickname}
-                  </span>
-                </div>
-              </ListItemCard>
+              />
             ))}
           </div>
-        )}
-      </div>
-    </div>
+        ) : null}
+      </InternalContentBlock>
+    </InternalPageShell>
   )
 }
