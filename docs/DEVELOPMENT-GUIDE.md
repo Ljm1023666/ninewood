@@ -115,7 +115,7 @@
 (a) 回归测试补全（#2c 完成切断、冻结后窗口存续），
 (b) #3/#11/#12 后期范围，
 (c) 旧 `Deposit/DepositDemand` 表与 `deposit.service.ts` 清理，
-(d) `timeLimit` 字段保留但 UI/逻辑未接（后期）。
+
 
 ---
 
@@ -180,11 +180,11 @@
   - `Demand.expectedOutcome`：后端 `POST /api/demands` zod `min(1)` 必填；前端 `DemandCreate` / `WelfareCenter` 同步校验。
   - 验收状态机：`acceptance.service.ts` — 服务者 `complete` → `WAITING_REVIEW` → 需求方 `confirm` 结算 / `reject-acceptance` 拒付并举证 → `Complaint` + `DISPUTED`；7 天无操作 cron 自动验收。
   - 举证：`Complaint.evidenceUrls String[]`；`POST /api/uploads/evidence` 上传图片；`OrderDetail.tsx` 拒付弹窗支持上传 + 链接粘贴。
-  - `Demand.timeLimit`：schema 字段保留，**UI 与业务逻辑未接**（后期）。
-- **差距**：平台裁决 `Complaint` 人工处理流未做管理端闭环；`timeLimit` 未用于超时验收。
+  - **`Demand.timeLimit`**：✅ Stage 1.3 落地 — `POST /api/demands` 接受可选 `timeLimitMinutes`（>=15 且 <=10080），服务端换算为绝对 `timeLimit = new Date(Date.now() + N*60_000)` 落库；`order.service.getById` 的 demand select 含 `timeLimit`；`OrderDetail.tsx` 展示剩余/已超时；`processTimeLimitReminders` cron（60s）按 Order 锚点扫描 `IN_PROGRESS + timeLimit<=now`，命中时给 requester + provider 各发一条以 `[TIME_LIMIT]` 起头的 SYSTEM 消息（**仅提醒，不改订单状态**），同 orderId 幂等去重。7 个新单测（`time-limit.test.ts` A–G）覆盖接线 + 扫描 + 幂等。
+- **差距**：平台裁决 `Complaint` 人工处理流未做管理端闭环；timeLimit 接线**仅提醒、不自动进入拒付/争议**（与已决策『公益接单沿用两段式 + 不擅自扣款』原则一致），且语义为『从发布起算』而非『从接单起算』。
 - **下一步任务（后期）**
   - [ ] 管理端争议裁决 UI 对接 `complaint.ts`。
-  - [ ] `timeLimit` 可选字段 + 发布表单 + 超时提醒。
+  - [ ] 若产品要改『从接单起算』，新增 `serviceDeadlineFromAccept` 字段（Stage 1.3+ 后续）。
 
 ### 5. 押金与多单规则 ✅（2026-06-15 修复轮升级）
 
@@ -373,3 +373,4 @@
 |  · §3 #3 段落重写（实现+差距+下一步）；§2 状态矩阵 #3 行同步。
 |  · ACTION-PLAN.md v1.3 同步：§2 阶段 1 表 1.1 行 ✅。
 |  · 未来项（不在本期范围）：认证撤销防漏推、重复推送防重、计数/进度接口。 |
+| 2026-06-19 | v1.8 | Stage 1.3 落地后回写：#4 中 timeLimit 从"后期"升为 Stage 1.3 已落地；发布表单可选「服务时限（分钟）」（15–10080），服务端换算为绝对截止时间落库；processTimeLimitReminders cron（60s）仅提醒不改订单状态，同 orderId 幂等去重。7 个新单测（A–G）全绿。pnpm --filter server test -- time-limit 7/7 passed；server + client tsc 均 clean。ACTION-PLAN.md v1.4 同步。未动 schema / Stage 1.2/2 / socket 底层。 |
