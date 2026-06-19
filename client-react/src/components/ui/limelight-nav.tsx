@@ -70,6 +70,10 @@ export type LimelightNavProps = {
   limelightClassName?: string
   iconContainerClassName?: string
   iconClassName?: string
+  labelClassName?: string
+  activeLabelClassName?: string
+  inactiveLabelClassName?: string
+  coneClassName?: string
 }
 
 /**
@@ -84,6 +88,10 @@ export const LimelightNav = ({
   limelightClassName,
   iconContainerClassName,
   iconClassName,
+  labelClassName,
+  activeLabelClassName,
+  inactiveLabelClassName,
+  coneClassName,
 }: LimelightNavProps) => {
   const [internalIndex, setInternalIndex] = useState(defaultActiveIndex)
   const activeIndex =
@@ -143,9 +151,11 @@ export const LimelightNav = ({
             })}
           {label && (
             <span
-              className={`text-base font-bold whitespace-nowrap transition-all duration-200 ease-in-out ${
-                activeIndex === index ? 'text-foreground' : 'text-foreground/35'
-              }`}
+              className={`whitespace-nowrap transition-all duration-200 ease-in-out ${
+                activeIndex === index
+                  ? activeLabelClassName ?? 'text-foreground font-bold text-base'
+                  : inactiveLabelClassName ?? 'text-foreground/35 font-bold text-base'
+              } ${labelClassName ?? ''}`}
             >
               {label}
             </span>
@@ -160,7 +170,9 @@ export const LimelightNav = ({
         } ${limelightClassName}`}
         style={{ left: '-999px' }}
       >
-        <div className="absolute left-[-35%] top-[5px] w-[170%] h-20 [clip-path:polygon(8%_100%,22%_0,78%_0,92%_100%)] bg-gradient-to-b from-primary/30 to-transparent pointer-events-none" />
+        <div
+          className={`absolute left-[-35%] top-[5px] h-20 w-[170%] [clip-path:polygon(8%_100%,22%_0,78%_0,92%_100%)] bg-gradient-to-b from-primary/30 to-transparent pointer-events-none ${coneClassName ?? ''}`}
+        />
       </div>
     </nav>
   )

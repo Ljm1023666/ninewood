@@ -14,10 +14,7 @@ import {
   Eye,
   Gauge,
   Server,
-  ChevronLeft,
-  Radio,
 } from 'lucide-react'
-import { useState } from 'react'
 
 export interface NavSection {
   label: string
@@ -108,110 +105,63 @@ export function AdminSidebar({
   onNavigate,
   onBack,
 }: Omit<AdminSidebarProps, 'activeItem'> & { activeItem?: string }) {
-  const [collapsed, setCollapsed] = useState(false)
   const user = useUserStore((s) => s.user)
 
   return (
-    <aside
-      className={cn(
-        'flex shrink-0 flex-col self-stretch border-r border-white/[0.06] bg-[var(--admin-sidebar-bg)] text-white transition-[width] duration-200',
-        collapsed ? 'w-[68px]' : 'w-[248px]',
-      )}
-    >
-      {/* 品牌区 */}
-      <div className="flex h-14 items-center gap-2 border-b border-white/[0.06] px-4">
-        {!collapsed && (
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-white/10">
-              <Radio className="size-3.5 text-orange-400" strokeWidth={2} />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium tracking-tight text-zinc-100">
-                九木监控
-              </p>
-              <p className="truncate text-[10px] text-zinc-500">
-                Control Center
-              </p>
-            </div>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setCollapsed(!collapsed)}
-          className="ml-auto rounded-md p-1.5 text-zinc-500 transition-colors duration-200 hover:bg-white/10 hover:text-zinc-300"
-          aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
-        >
-          <ChevronLeft
-            className={cn(
-              'size-3.5 transition-transform duration-200',
-              collapsed && 'rotate-180',
-            )}
-          />
-        </button>
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar__brand">
+        <div className="admin-sidebar__brand-icon">◎</div>
+        <div className="min-w-0">
+          <p className="admin-sidebar__brand-title">九木监控</p>
+          <p className="admin-sidebar__brand-sub">Control Center</p>
+        </div>
       </div>
 
-      {/* 一级导航 */}
-      <nav className="flex-1 space-y-1 px-3 py-3 border-t border-white/[0.06]">
+      <nav className="admin-sidebar__nav">
         {MAIN_NAV.map((item) => {
           const active = activeTab === item.id
           return (
             <button
               key={item.id}
               type="button"
-              title={collapsed ? item.label : undefined}
               onClick={() => onNavigate(item.id, getDefaultSectionId(item.id))}
               className={cn(
-                'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200',
-                active
-                  ? 'bg-white/10 text-white'
-                  : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200',
+                'admin-sidebar__nav-btn',
+                active && 'is-active',
               )}
             >
-              <item.icon className="size-4 shrink-0" strokeWidth={1.75} />
-              {!collapsed && <span className="font-medium">{item.label}</span>}
+              <item.icon strokeWidth={1.75} />
+              <span>{item.label}</span>
             </button>
           )
         })}
       </nav>
 
-      {/* 底部 */}
-      <div className="mt-auto space-y-2 border-t border-white/[0.06] p-3">
-        {onBack && !collapsed && (
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-zinc-500 transition-colors duration-200 hover:bg-white/5 hover:text-zinc-300"
-          >
-            <ChevronLeft className="size-3.5" />
+      <div className="admin-sidebar__foot">
+        {onBack && (
+          <button type="button" onClick={onBack} className="admin-sidebar__back">
+            <span aria-hidden>←</span>
             返回应用
           </button>
         )}
-        <div
-          className={cn(
-            'flex items-center gap-3 rounded-lg bg-white/[0.04] p-2.5',
-            collapsed && 'justify-center',
-          )}
-        >
+        <div className="admin-sidebar__user">
           {user?.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              className="size-8 shrink-0 rounded-full object-cover"
-            />
+            <div className="admin-sidebar__avatar">
+              <img src={user.avatarUrl} alt="" />
+            </div>
           ) : (
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-[11px] font-medium">
+            <div className="admin-sidebar__avatar">
               {user?.nickname?.charAt(0) || 'A'}
             </div>
           )}
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium leading-tight text-zinc-200">
-                {user?.nickname || '用户'}
-              </p>
-              <p className="truncate text-[11px] text-zinc-500">
-                {user?.phone || '—'}
-              </p>
-            </div>
-          )}
+          <div className="min-w-0">
+            <p className="admin-sidebar__user-name">
+              {user?.nickname || '用户'}
+            </p>
+            <p className="admin-sidebar__user-phone">
+              {user?.phone || '—'}
+            </p>
+          </div>
         </div>
       </div>
     </aside>

@@ -466,6 +466,8 @@ interface PromptInputBoxProps {
   isLoading?: boolean
   placeholder?: string
   className?: string
+  /** Codex 需求工作区：圆角 Composer + 图标工具栏 */
+  variant?: 'default' | 'codex'
   /** 外部控制输入值（受控模式） */
   value?: string
   /** 外部值变更回调 */
@@ -480,6 +482,7 @@ export const PromptInputBox = React.forwardRef(
       isLoading = false,
       placeholder = '输入你的需求...',
       className,
+      variant = 'default',
       onThinkChange,
       enableSpeed,
       speedMode: externalSpeedMode,
@@ -498,6 +501,7 @@ export const PromptInputBox = React.forwardRef(
       onPublish?: () => Promise<void>
     }
     const speedMode = externalSpeedMode ?? true
+    const isCodex = variant === 'codex'
     const [input, setInput] = React.useState(externalValue ?? '')
 
     // 受控模式：外部值变化时同步
@@ -656,8 +660,11 @@ export const PromptInputBox = React.forwardRef(
           isLoading={isLoading}
           onSubmit={handleSubmit}
           className={cn(
-            'w-full bg-bg-card border-border shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out',
-            isRecording && 'border-red-500/70',
+            'w-full transition-all duration-300 ease-in-out',
+            isCodex
+              ? 'rounded-none border-0 bg-transparent p-0 shadow-none'
+              : 'bg-bg-card border-border shadow-[0_8px_30px_rgba(0,0,0,0.24)]',
+            isRecording && !isCodex && 'border-red-500/70',
             className,
           )}
           disabled={isRecording}
@@ -701,15 +708,19 @@ export const PromptInputBox = React.forwardRef(
             className={cn(
               'transition-all duration-300',
               isRecording ? 'h-0 overflow-hidden opacity-0' : 'opacity-100',
-              'rounded-2xl',
+              isCodex ? 'ws-composer' : 'rounded-2xl',
             )}
-            style={{
-              background: 'rgba(0,0,0,0.06)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              padding: 16,
-            }}
+            style={
+              isCodex
+                ? undefined
+                : {
+                    background: 'rgba(0,0,0,0.06)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    padding: 16,
+                  }
+            }
           >
             <AnimatePresence mode="sync">
               {showCanvas && speedMode ? (
@@ -775,7 +786,11 @@ export const PromptInputBox = React.forwardRef(
                             ? '画布创作...'
                             : placeholder
                     }
-                    className="text-base"
+                    className={cn(
+                      isCodex
+                        ? 'min-h-[44px] px-0 py-0 text-[15px] text-[var(--ws-text)] placeholder:text-[var(--ws-text-muted)]'
+                        : 'text-base',
+                    )}
                   />
                 </motion.div>
               )}
@@ -789,6 +804,74 @@ export const PromptInputBox = React.forwardRef(
               />
             )}
 
+            {isCodex ? (
+              <div className="ws-composer-bar">
+                <div className="ws-composer-tools">
+                  <button
+                    type="button"
+                    className="ws-icon-btn"
+                    title="上传图片"
+                    onClick={() => uploadInputRef.current?.click()}
+                    disabled={isRecording}
+                  >
+                    <Paperclip className="size-4" />
+                    <input
+                      ref={uploadInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0)
+                          processFile(e.target.files[0])
+                        if (e.target) e.target.value = ''
+                      }}
+                      accept="image/*"
+                    />
+                  </button>
+                  {enableSpeed && (
+                    <button
+                      type="button"
+                      className={cn('ws-icon-btn', speedMode && 'ws-icon-btn--on')}
+                      title="极速模式"
+                      onClick={() => handleToggleChange('aggressive')}
+                    >
+                      <Zap className="size-4" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={cn('ws-icon-btn', showThink && 'ws-icon-btn--on')}
+                    title="思考模式"
+                    onClick={() => handleToggleChange('think')}
+                  >
+                    <BrainCog className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className={cn('ws-icon-btn', showCanvas && 'ws-icon-btn--on')}
+                    title="Canvas"
+                    onClick={handleCanvasToggle}
+                  >
+                    <FolderCode className="size-4" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="ws-submit"
+                  aria-label={isLoading ? '停止生成' : '发送'}
+                  onClick={() => {
+                    if (isLoading) onAbort?.()
+                    else if (hasContent) handleSubmit()
+                  }}
+                  disabled={!isLoading && !hasContent}
+                >
+                  {isLoading ? (
+                    <Square className="size-3.5" />
+                  ) : (
+                    <ArrowUp className="size-4" />
+                  )}
+                </button>
+              </div>
+            ) : (
             <PromptInputActions className="flex items-center justify-between gap-2 p-0 pt-2">
               <div
                 className={cn(
@@ -1032,6 +1115,7 @@ export const PromptInputBox = React.forwardRef(
                 </Button>
               </PromptInputAction>
             </PromptInputActions>
+            )}
           </div>
         </PromptInput>
 

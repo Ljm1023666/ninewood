@@ -1,12 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-
-gsap.registerPlugin(ScrollTrigger)
 
 interface SectionContent {
   title: string
@@ -38,7 +34,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
 
   const [scrollProgress, setScrollProgress] = useState(0)
   const [currentSection, setCurrentSection] = useState(0)
-  const [isReady, setIsReady] = useState(false)
 
   const defaultSections: SectionContent[] = [
     {
@@ -138,8 +133,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
 
     // Start animation
     animate()
-
-    setIsReady(true)
 
     function createStarField() {
       const starCount = 5000
@@ -554,84 +547,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     }
   }, [])
 
-  // GSAP entrance animations
-  useEffect(() => {
-    if (!isReady) return
-    gsap.set(
-      [titleRef.current, subtitleRef.current, scrollProgressRef.current],
-      { visibility: 'visible' },
-    )
-
-    const tl = gsap.timeline()
-
-    // 先让 hero content 整体出现，消除闪现
-    if (heroContentRef.current) {
-      tl.to(heroContentRef.current, { opacity: 1, duration: 0.3 })
-    }
-
-    if (titleRef.current) {
-      const titleChars = titleRef.current.querySelectorAll('.title-char')
-      tl.from(
-        titleChars,
-        {
-          y: 200,
-          opacity: 0,
-          duration: 1.5,
-          stagger: 0.05,
-          ease: 'power4.out',
-        },
-        '-=0.5',
-      )
-    }
-
-    if (subtitleRef.current) {
-      const subtitleLines =
-        subtitleRef.current.querySelectorAll('.subtitle-line')
-      tl.from(
-        subtitleLines,
-        {
-          y: 50,
-          opacity: 0,
-          duration: 1,
-          stagger: 0.2,
-          ease: 'power3.out',
-        },
-        '-=0.8',
-      )
-    }
-
-    if (searchBarRef.current) {
-      gsap.set(searchBarRef.current, { opacity: 0, y: 30 })
-      tl.to(
-        searchBarRef.current,
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: 'power2.out',
-        },
-        '-=0.3',
-      )
-    }
-
-    if (scrollProgressRef.current) {
-      tl.from(
-        scrollProgressRef.current,
-        {
-          opacity: 0,
-          y: 50,
-          duration: 1,
-          ease: 'power2.out',
-        },
-        '-=0.5',
-      )
-    }
-
-    return () => {
-      tl.kill()
-    }
-  }, [isReady])
-
   // Scroll handling
   const rafRef = useRef<number | null>(null)
 
@@ -745,7 +660,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
         .hero-content {
           position: relative;
           z-index: 3;
-          opacity: 0;
+          opacity: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -869,7 +784,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       <div
         ref={scrollProgressRef}
         className="scroll-progress"
-        style={{ visibility: 'hidden' as const }}
       >
         <div className="scroll-text">SCROLL</div>
         <div className="progress-track">

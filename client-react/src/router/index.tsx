@@ -32,6 +32,7 @@ const TagStatsDashboard = lazy(() => import('@/views/TagStatsDashboard'))
 const CertifiedSearch = lazy(() => import('@/views/CertifiedSearch'))
 const MyBids = lazy(() => import('@/views/MyBids'))
 const Help = lazy(() => import('@/views/Help'))
+const HelpDocs = lazy(() => import('@/views/HelpDocs'))
 const AgentChat = lazy(() => import('@/views/AgentChat'))
 const Privacy = lazy(() => import('@/views/Privacy'))
 const Terms = lazy(() => import('@/views/Terms'))
@@ -360,6 +361,14 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <Help />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'help/docs',
+            element: (
+              <LazyLoad>
+                <HelpDocs />
               </LazyLoad>
             ),
           },

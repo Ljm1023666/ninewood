@@ -54,6 +54,7 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { BackButton } from '@/components/ui/back-button'
 
 /** 与模板一致的联系人条目（应用侧可带 id 用于路由） */
 export type TemplateContact = {
@@ -190,6 +191,8 @@ export type HomeProps = {
    * 在 Ninewood 主 Layout 内应设为 false：该侧栏为 position:fixed;left:0，会盖住会话列表并与全局侧栏叠在一起。
    */
   showNavigateRail?: boolean
+  /** Stitch internal-shell 消息布局（320px 列表 + 发丝线） */
+  variant?: 'default' | 'internal'
 }
 
 /** 模板右侧：中间消息区 + 与模板一致的底栏（由业务传入 Input 等交互） */
@@ -201,6 +204,7 @@ export function TemplateChatRightShell({
   headerLeading,
   avatarFallback,
   onProfileClick,
+  variant = 'default',
 }: {
   currentChat: TemplateContact | null
   middle: React.ReactNode
@@ -210,6 +214,7 @@ export function TemplateChatRightShell({
   avatarFallback?: string
   /** 点击"联系人信息" → 跳转 /profile/:id */
   onProfileClick?: () => void
+  variant?: 'default' | 'internal'
 }) {
   const fb =
     avatarFallback?.trim() ||
@@ -221,11 +226,21 @@ export function TemplateChatRightShell({
   return (
     <div
       className={cn(
-        'ml-1 flex min-h-0 flex-col border-l border-border bg-background',
+        'ml-1 flex min-h-0 min-w-0 flex-1 flex-col',
+        variant === 'internal'
+          ? 'border-l border-[var(--internal-hairline)] bg-[var(--bg-primary)]'
+          : 'border-l border-border bg-background',
         embedInLayout ? 'h-full' : 'h-screen',
       )}
     >
-      <div className="flex h-16 shrink-0 items-center border-b border-border px-2">
+      <div
+        className={cn(
+          'flex shrink-0 items-center border-b px-2',
+          variant === 'internal'
+            ? 'h-12 border-[var(--internal-hairline)] px-6'
+            : 'h-16 border-border',
+        )}
+      >
         {headerLeading ? (
           <div className="mr-1 flex shrink-0 items-center">{headerLeading}</div>
         ) : null}
@@ -317,6 +332,7 @@ function LeftChatListPanel({
   embedInLayout = false,
   onNewChat,
   onNavigateToSearch,
+  variant = 'default',
 }: {
   contactList: TemplateContact[]
   onPick: (c: TemplateContact, index: number) => void
@@ -326,6 +342,7 @@ function LeftChatListPanel({
   onNewChat?: () => void
   /** 点击"新建群聊" */
   onNavigateToSearch?: () => void
+  variant?: 'default' | 'internal'
 }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
@@ -343,6 +360,69 @@ function LeftChatListPanel({
     }
     filtered.push({ contact: c, origIndex: i })
   })
+
+  const isInternal = variant === 'internal'
+
+  if (isInternal) {
+    return (
+      <aside
+        className={cn(
+          'flex w-[320px] shrink-0 flex-col border-r border-[var(--internal-hairline)] bg-[var(--bg-primary)]',
+          embedInLayout ? 'h-full min-h-0' : 'h-screen',
+        )}
+      >
+        <header className="internal-page-header shrink-0 border-b border-[var(--internal-hairline)] px-4">
+          <BackButton compact />
+          <h1 className="internal-display-title ml-4">消息</h1>
+        </header>
+        <ScrollArea className="min-h-0 flex-1">
+          {filtered.map(({ contact, origIndex }) => {
+            const selected = !!contact.id && contact.id === selectedContactId
+            const initial = contact.name?.charAt(0) ?? '?'
+            return (
+              <button
+                key={contact.id ?? `${contact.name}-${origIndex}`}
+                type="button"
+                onClick={() => onPick(contact, origIndex)}
+                className={cn(
+                  'internal-message-row w-full text-left',
+                  selected && 'internal-message-row--active',
+                )}
+              >
+                {contact.type === 'merge' ? (
+                  <div className="internal-message-avatar">
+                    <Users className="size-4 text-[var(--internal-accent)]" />
+                  </div>
+                ) : contact.image ? (
+                  <img
+                    src={contact.image}
+                    alt=""
+                    className="size-10 shrink-0 border border-[var(--internal-hairline)] object-cover"
+                  />
+                ) : (
+                  <div className="internal-message-avatar">{initial}</div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-medium text-text-primary">
+                      {contact.name}
+                    </span>
+                    {(contact.unreadCount ?? 0) > 0 ? (
+                      <span className="mt-1 size-2 shrink-0 rounded-full bg-[var(--internal-accent)]" />
+                    ) : null}
+                  </div>
+                  <p className="mt-1 truncate text-sm text-text-muted">
+                    {contact.message}
+                  </p>
+                </div>
+              </button>
+            )
+          })}
+        </ScrollArea>
+      </aside>
+    )
+  }
+
   return (
     <ResizablePanel
       defaultSize={25}
@@ -461,12 +541,27 @@ function LeftChatListPanel({
 function DefaultRightChatPanel({
   currentChat,
   embedInLayout = false,
+  variant = 'default',
 }: {
   currentChat: TemplateContact | null
   embedInLayout?: boolean
+  variant?: 'default' | 'internal'
 }) {
   const navigateTo = useNavigate()
-  return (
+  return variant === 'internal' ? (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <TemplateChatRightShell
+        currentChat={currentChat}
+        middle={<div className="h-full w-full" />}
+        inputRow={<TemplateChatInputRow inputProps={{ readOnly: true }} />}
+        embedInLayout={embedInLayout}
+        variant="internal"
+        onProfileClick={() => {
+          if (currentChat?.id) navigateTo(`/profile/${currentChat.id}`)
+        }}
+      />
+    </div>
+  ) : (
     <ResizablePanel defaultSize={75} minSize={40} className="min-h-0 min-w-0">
       <TemplateChatRightShell
         currentChat={currentChat}
@@ -567,6 +662,7 @@ export function Home({
   onSelectContact,
   rightColumn,
   showNavigateRail = true,
+  variant = 'default',
 }: HomeProps = {}) {
   const contacts = contactsProp ?? DEFAULT_CONTACT_LIST
   const navigateTo = useNavigate()
@@ -599,7 +695,33 @@ export function Home({
     if (!isControlled) setInternalChat(contact)
   }
 
-  const mainPanels = (
+  const isInternal = variant === 'internal'
+
+  const mainPanels = isInternal ? (
+    <div
+      className={cn(
+        'flex min-h-0 min-w-0 flex-1',
+        embedInLayout ? 'h-full' : 'h-screen',
+      )}
+    >
+      <LeftChatListPanel
+        contactList={contacts}
+        onPick={pick}
+        selectedContactId={selectedContactId}
+        embedInLayout={embedInLayout}
+        onNewChat={() => navigateTo('/search')}
+        onNavigateToSearch={() => navigateTo('/messages/new-group')}
+        variant="internal"
+      />
+      {rightColumn ?? (
+        <DefaultRightChatPanel
+          currentChat={currentChat}
+          embedInLayout={embedInLayout}
+          variant="internal"
+        />
+      )}
+    </div>
+  ) : (
     <ResizablePanelGroup
       direction="horizontal"
       className={cn(embedInLayout ? 'h-full min-h-0' : 'h-screen')}

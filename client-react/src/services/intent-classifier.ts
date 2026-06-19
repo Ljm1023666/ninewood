@@ -63,7 +63,7 @@ const NAV_PATTERNS: PatternEntry[] = [
   },
   {
     patterns: [/^帮助$/i, /^帮助文档$/i, /^怎么用$/i, /^使用帮助$/i],
-    action: { type: 'navigate', path: '/help', title: '帮助文档' },
+    action: { type: 'navigate', path: '/help/docs', title: '帮助文档' },
   },
   {
     patterns: [/^消(息)?$/i, /^看消息$/i, /^我的消息$/i, /^私信$/i, /^聊天$/i],

@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# Ninewood 前端（client-react）
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+九木平台 React 渲染层，同时作为 Electron 桌面应用的 UI 入口。
 
-Currently, two official plugins are available:
+完整的环境搭建、数据库初始化与测试账号见仓库根目录 [README.md](../README.md)。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 技术栈
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript 6
+- Vite 8（开发端口 **5174**）
+- Tailwind CSS v4（`@tailwindcss/vite`）
+- React Router 7
+- Zustand
+- Axios
+- Radix UI + 项目内 UI 组件
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 开发
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+在仓库根目录执行：
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm run dev:client        # 仅前端
+pnpm run dev               # 前后端并行（推荐）
+pnpm run dev:electron      # Electron 桌面模式
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+本地地址：http://localhost:5174
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Vite 将 `/api`、`/uploads`、`/socket.io` 代理到 `http://localhost:3001`。
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## 目录说明
+
+```text
+src/
+├── views/           # 页面级组件（路由入口）
+├── components/      # 可复用组件（ui/、layout/、card-pool/ …）
+├── stores/          # Zustand 状态
+├── api/             # HTTP 封装
+├── router/          # 路由配置
+└── styles/          # 全局与子系统 CSS
+
+electron/
+├── main.cjs         # 主进程
+└── preload.cjs      # 预加载桥（window.electronAPI）
 ```
+
+路径别名：`@` → `src/`（见 `vite.config.ts`、`tsconfig.app.json`）。
+
+---
+
+## 质量检查
+
+```bash
+pnpm run typecheck              # 在仓库根目录
+pnpm run lint -w client-react
+pnpm run test -w client-react
+```
+
+---
+
+## 用户帮助
+
+- **帮助中心** `/help`：智能跳转 + 常见问题入口
+- **帮助文档** `/help/docs`：完整 FAQ（数据源 `src/views/help-faq-data.ts`）
+
+更新产品说明时，请同步修改 `help-faq-data.ts` 中的对应条目。

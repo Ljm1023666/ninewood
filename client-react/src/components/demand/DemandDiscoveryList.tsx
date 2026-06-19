@@ -39,10 +39,62 @@ const CERT_BG_CLASS: Record<string, string> = {
   MASTER: 'bg-red-500',
 }
 
-export function DemandCardInner({ d }: { d: DemandRow }) {
+export function DemandCardInner({
+  d,
+  visual = 'discover',
+}: {
+  d: DemandRow
+  visual?: 'discover' | 'internal'
+}) {
   const isDark = useThemeStore((s) => s.current.dark)
   const certLevel = d.user?.certificationLevel ?? 'NONE'
   const certBgClass = CERT_BG_CLASS[certLevel] ?? CERT_BG_CLASS.NONE
+
+  if (visual === 'internal') {
+    return (
+      <div className="relative z-[1] flex items-start gap-4">
+        <div
+          className={cn(
+            'relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white ring-2 ring-[var(--internal-accent)]/30',
+            certBgClass,
+          )}
+        >
+          {d.user?.avatarUrl ? (
+            <img
+              src={d.user.avatarUrl}
+              alt=""
+              className="size-full object-cover"
+            />
+          ) : (
+            (d.user?.nickname || '?').charAt(0)
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <h3 className="truncate font-bold text-text-primary">{d.title}</h3>
+              <span className="shrink-0 rounded-sm border border-[var(--internal-accent)]/30 px-1.5 py-0.5 font-mono text-[10px] text-[var(--internal-accent)]">
+                {d.serviceType === 'ONLINE' ? '线上' : '线下'}
+              </span>
+            </div>
+            <span className="shrink-0 font-semibold text-[var(--internal-accent)]">
+              ¥{d.minPrice.toLocaleString('zh-CN')}
+            </span>
+          </div>
+          <div className="mb-3 flex flex-wrap gap-3 font-mono text-xs text-text-secondary">
+            <span>{d.category}</span>
+            <span>{d.applicantCount ?? 0} 人申请</span>
+            {d.createdAgo ? <span>{d.createdAgo}</span> : null}
+          </div>
+          <div className="flex items-center gap-1 font-mono text-xs text-text-muted">
+            <MapPin className="size-3.5 opacity-70" />
+            <span className="truncate">{d.user?.nickname || '用户'}</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex gap-3">
       <div
@@ -127,6 +179,7 @@ export function DemandDiscoveryList({
   pageSize = DEFAULT_PAGE_SIZE,
   renderMode = 'list' as 'list' | 'timeline',
   onTotalChange,
+  cardVariant = 'default' as 'default' | 'internal',
 }: {
   listScope?: Record<string, string>
   keyword: string
@@ -147,6 +200,7 @@ export function DemandDiscoveryList({
   pageSize?: number
   renderMode?: 'list' | 'timeline'
   onTotalChange?: (total: number) => void
+  cardVariant?: 'default' | 'internal'
 }) {
   void interactionMode
   void layoutVariant
@@ -326,6 +380,7 @@ export function DemandDiscoveryList({
           items.map((d) => (
             <ListItemCard
               key={d.id}
+              variant={cardVariant}
               onClick={() => {
                 const params = new URLSearchParams()
                 const kw = keyword.trim()
@@ -336,7 +391,7 @@ export function DemandDiscoveryList({
               }}
               className="p-4"
             >
-              <DemandCardInner d={d} />
+              <DemandCardInner d={d} visual={cardVariant} />
             </ListItemCard>
           ))
         )}

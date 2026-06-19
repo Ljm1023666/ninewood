@@ -32,6 +32,10 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
   ({ className, onLoadingStatusChange, onLoad, onError, ...props }, ref) => {
     const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
 
+    React.useEffect(() => {
+      setStatus('idle')
+    }, [props.src])
+
     const handleLoad = React.useCallback(
       (e: React.SyntheticEvent<HTMLImageElement>) => {
         setStatus('loaded')
@@ -57,10 +61,14 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
       }
     }, [status, onLoadingStatusChange])
 
+    if (status === 'error' || !props.src) {
+      return null
+    }
+
     return (
       <img
         ref={ref}
-        className={cn('aspect-square h-full w-full', className)}
+        className={cn('absolute inset-0 h-full w-full object-cover', className)}
         onLoad={handleLoad}
         onError={handleError}
         {...props}
@@ -79,7 +87,7 @@ const AvatarFallback = React.forwardRef<HTMLSpanElement, AvatarFallbackProps>(
     <span
       ref={ref}
       className={cn(
-        'flex h-full w-full items-center justify-center rounded-full bg-muted',
+        'absolute inset-0 flex h-full w-full items-center justify-center rounded-full bg-muted',
         className,
       )}
       {...props}

@@ -1049,27 +1049,11 @@ export type PageGridItem = {
 export type ComponentProps = {
   /** Main heading text. */
   heading?: string
+  /** Mono subtitle under heading (navigation matrix only). */
+  subtitle?: string
   /** When provided, renders page navigation items instead of brand logos. */
   pages?: PageGridItem[]
 }
-
-/** Outer position slots (5-col, 4-row grid minus 2x3 center block) */
-const OUTER_SLOTS: { row: number; col: number }[] = [
-  { row: 1, col: 1 },
-  { row: 1, col: 2 },
-  { row: 1, col: 3 },
-  { row: 1, col: 4 },
-  { row: 1, col: 5 },
-  { row: 2, col: 1 },
-  { row: 2, col: 5 },
-  { row: 3, col: 1 },
-  { row: 3, col: 5 },
-  { row: 4, col: 1 },
-  { row: 4, col: 2 },
-  { row: 4, col: 3 },
-  { row: 4, col: 4 },
-  { row: 4, col: 5 },
-]
 
 function PageGridCard({ item }: { item: PageGridItem }) {
   const { title, icon, pixelColors, onClick } = item
@@ -1077,17 +1061,13 @@ function PageGridCard({ item }: { item: PageGridItem }) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative grid w-full h-full place-items-center overflow-hidden bg-card cursor-pointer select-none isolate transition-shadow duration-300 hover:z-[2] hover:shadow-[0_8px_24px_-8px_color-mix(in_srgb,var(--accent-color)_25%,transparent),0_0_0_1px_color-mix(in_srgb,var(--accent-color)_40%,transparent)]"
+      className="nav-matrix__tile"
       style={{ ['--brand' as string]: pixelColors[0] }}
     >
       <PixelCanvas colors={pixelColors} gap={5} speed={30} />
-      <div className="relative z-[1] flex flex-col items-center gap-2 transition-all duration-300 group-hover:scale-[1.06]">
-        <span className="transition-opacity duration-300 [&>svg]:size-7 text-foreground/60 group-hover:text-[var(--brand)]">
-          {icon}
-        </span>
-        <span className="text-[13px] font-semibold text-foreground/35 group-hover:text-foreground/90 transition-colors duration-300">
-          {title}
-        </span>
+      <div className="nav-matrix__tile-body">
+        <span className="nav-matrix__tile-icon">{icon}</span>
+        <span className="nav-matrix__tile-label">{title}</span>
       </div>
     </button>
   )
@@ -1095,8 +1075,32 @@ function PageGridCard({ item }: { item: PageGridItem }) {
 
 export const Component = ({
   heading = 'Trusted by top brands across different sectors',
+  subtitle,
   pages,
 }: ComponentProps = {}) => {
+  if (pages) {
+    return (
+      <section className="nav-matrix">
+        <div className="nav-matrix__grid">
+          {/* Hero 必须 DOM 第一位：col-span-3 row-span-2 占据左上，与 Stitch 一致 */}
+          <div className="nav-matrix__hero">
+            <div className="nav-matrix__hero-glow" aria-hidden />
+            <div className="relative z-[1] text-center">
+              <h2 className="nav-matrix__hero-title">{heading}</h2>
+              {subtitle ? (
+                <p className="nav-matrix__hero-subtitle">{subtitle}</p>
+              ) : null}
+            </div>
+          </div>
+
+          {pages.map((item) => (
+            <PageGridCard key={item.id} item={item} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section
       className="mx-auto w-full max-w-[1160px]"
@@ -1105,35 +1109,18 @@ export const Component = ({
       }}
     >
       <div
-        className="grid grid-cols-5 max-w-[1160px] mx-auto gap-px bg-border border border-border"
-        style={{
-          gridTemplateRows: `repeat(${Math.max(4, Math.ceil((pages?.length ?? 14) / 5) + 1)}, 96px)`,
-        }}
+        className="mx-auto grid max-w-[1160px] grid-cols-5 gap-px border border-border bg-border"
+        style={{ gridTemplateRows: 'repeat(4, 96px)' }}
       >
-        {pages
-          ? pages.map((item, i) => {
-              const slot = OUTER_SLOTS[i]
-              return (
-                <div
-                  key={item.id}
-                  className="w-full h-full"
-                  style={
-                    slot
-                      ? { gridRow: slot.row, gridColumn: slot.col }
-                      : undefined
-                  }
-                >
-                  <PageGridCard item={item} />
-                </div>
-              )
-            })
-          : LOGOS.map((logo) => <LogoCard key={logo.name} logo={logo} />)}
+        {LOGOS.map((logo) => (
+          <LogoCard key={logo.name} logo={logo} />
+        ))}
 
         <div
-          className="flex flex-col items-center justify-center gap-5 bg-secondary/50 border-x border-border z-10"
+          className="z-10 flex flex-col items-center justify-center gap-5 border-x border-border bg-secondary/50"
           style={{ gridColumn: '2 / span 3', gridRow: '2 / span 2' }}
         >
-          <h2 className="text-2xl md:text-3xl font-semibold text-center text-foreground max-w-[516px] leading-tight tracking-tight px-4">
+          <h2 className="max-w-[516px] px-4 text-center text-2xl font-semibold leading-tight tracking-tight text-foreground md:text-3xl">
             {heading}
           </h2>
         </div>

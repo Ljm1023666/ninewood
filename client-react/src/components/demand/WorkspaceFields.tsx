@@ -1,4 +1,5 @@
 import { Monitor, MapPin, Lock, LockOpen } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { MaterialSwitch } from '@/components/ui/material-switch'
 
@@ -15,7 +16,7 @@ function LockToggle({ fieldKey }: { fieldKey: string }) {
       checkedIcon={<Lock className="size-2.5" />}
       uncheckedIcon={<LockOpen className="size-2.5" />}
       haptic="light"
-      className="-mt-4"
+      className="shrink-0"
     />
   )
 }
@@ -29,22 +30,18 @@ export function WorkspaceFields() {
   const updateField = useDemandWorkspaceStore((s) => s.updateField)
 
   return (
-    <div className="space-y-3">
-      <label className="text-sm font-medium text-text-muted uppercase tracking-wider">
-        结构化信息
-      </label>
+    <div>
+      <span className="ws-section-label">结构化信息</span>
 
-      {/* 服务类型 */}
-      <div className="flex items-center gap-2">
-        <div className="flex flex-1 gap-2">
+      <div className="ws-field-row" style={{ marginBottom: 12 }}>
+        <div className="ws-seg">
           <button
             type="button"
             onClick={() => updateField('serviceType', 'ONLINE')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
-              fields.serviceType === 'ONLINE'
-                ? 'border-blue-500/40 bg-blue-500/10 text-blue-300'
-                : 'border-border bg-bg-card text-text-muted hover:border-border'
-            }`}
+            className={cn(
+              'ws-seg-btn',
+              fields.serviceType === 'ONLINE' && 'ws-seg-btn--on ws-seg-btn--online',
+            )}
           >
             <Monitor className="size-4" />
             线上
@@ -52,11 +49,10 @@ export function WorkspaceFields() {
           <button
             type="button"
             onClick={() => updateField('serviceType', 'OFFLINE')}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
-              fields.serviceType === 'OFFLINE'
-                ? 'border-orange-500/40 bg-orange-500/10 text-orange-300'
-                : 'border-border bg-bg-card text-text-muted hover:border-border'
-            }`}
+            className={cn(
+              'ws-seg-btn',
+              fields.serviceType === 'OFFLINE' && 'ws-seg-btn--on ws-seg-btn--offline',
+            )}
           >
             <MapPin className="size-4" />
             线下
@@ -65,11 +61,10 @@ export function WorkspaceFields() {
         <LockToggleSlot fieldKey="serviceType" />
       </div>
 
-      {/* 预算 + 时间 */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="ws-grid-2 ws-field">
         <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-sm text-text-muted">预算</label>
+          <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
+            <label className="ws-field-label" style={{ margin: 0 }}>预算</label>
             <LockToggleSlot fieldKey="budget" />
           </div>
           <input
@@ -77,12 +72,12 @@ export function WorkspaceFields() {
             value={fields.budget}
             onChange={(e) => updateField('budget', e.target.value)}
             placeholder="如 30-50元/局"
-            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
+            className="ws-input"
           />
         </div>
         <div>
-          <div className="flex items-center gap-1 mb-1">
-            <label className="block text-sm text-text-muted">时间</label>
+          <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
+            <label className="ws-field-label" style={{ margin: 0 }}>时间</label>
             <LockToggleSlot fieldKey="schedule" />
           </div>
           <input
@@ -90,15 +85,14 @@ export function WorkspaceFields() {
             value={fields.schedule}
             onChange={(e) => updateField('schedule', e.target.value)}
             placeholder="如 今晚"
-            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
+            className="ws-input"
           />
         </div>
       </div>
 
-      {/* 分类路径 */}
-      <div>
-        <div className="flex items-center gap-1 mb-1">
-          <label className="block text-sm text-text-muted">分类</label>
+      <div className="ws-field">
+        <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
+          <label className="ws-field-label" style={{ margin: 0 }}>分类</label>
           <LockToggleSlot fieldKey="category" />
         </div>
         <input
@@ -106,15 +100,12 @@ export function WorkspaceFields() {
           value={fields.category}
           onChange={(e) => updateField('category', e.target.value)}
           placeholder="如 游戏/陪玩/代打"
-          className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
+          className="ws-input"
         />
         {fields.scopeLabels.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
             {fields.scopeLabels.map((label) => (
-              <span
-                key={label}
-                className="rounded-md bg-bg-secondary px-2 py-0.5 text-sm text-text-muted/80"
-              >
+              <span key={label} className="ws-tag">
                 {label}
               </span>
             ))}
@@ -122,13 +113,11 @@ export function WorkspaceFields() {
         )}
       </div>
 
-      {/* 关键词标签 */}
       {fields.suggestedKeywords.length > 0 && <KeywordTags />}
 
-      {/* AI 2.5: 预期效果 */}
-      <div>
-        <div className="flex items-center gap-1 mb-1">
-          <label className="block text-sm text-text-muted">预期效果</label>
+      <div className="ws-field">
+        <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
+          <label className="ws-field-label" style={{ margin: 0 }}>预期效果</label>
           <LockToggleSlot fieldKey="expectedOutcome" />
         </div>
         <input
@@ -136,16 +125,13 @@ export function WorkspaceFields() {
           value={fields.expectedOutcome}
           onChange={(e) => updateField('expectedOutcome', e.target.value)}
           placeholder="如：星耀二上王者"
-          className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
+          className="ws-input"
         />
       </div>
 
-      {/* AI 2.5: 窗口 + 上限 */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="ws-grid-2">
         <div>
-          <label className="block text-sm text-text-muted mb-1">
-            公开窗口 (分钟)
-          </label>
+          <label className="ws-field-label">公开窗口 (分钟)</label>
           <input
             type="number"
             value={fields.visibilityWindow}
@@ -157,11 +143,11 @@ export function WorkspaceFields() {
             }
             min={1}
             max={1440}
-            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-border focus:outline-none"
+            className="ws-input"
           />
         </div>
         <div>
-          <label className="block text-sm text-text-muted mb-1">接单上限</label>
+          <label className="ws-field-label">接单上限</label>
           <input
             type="number"
             value={fields.maxApplicants}
@@ -173,7 +159,7 @@ export function WorkspaceFields() {
             }
             min={1}
             max={100}
-            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-border focus:outline-none"
+            className="ws-input"
           />
         </div>
       </div>
@@ -186,11 +172,9 @@ function KeywordTags() {
   const lockedKeywords = useDemandWorkspaceStore((s) => s.lockedKeywords)
   const toggleKeywordLock = useDemandWorkspaceStore((s) => s.toggleKeywordLock)
   return (
-    <div>
-      <label className="block text-sm text-text-muted mb-1">
-        关键词（点击锁定）
-      </label>
-      <div className="flex flex-wrap gap-1">
+    <div className="ws-field">
+      <label className="ws-field-label">关键词（点击锁定）</label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {keywords.map((kw) => {
           const locked = lockedKeywords.has(kw)
           return (
@@ -198,11 +182,8 @@ function KeywordTags() {
               key={kw}
               type="button"
               onClick={() => toggleKeywordLock(kw)}
-              className={`rounded-full border px-2.5 py-0.5 text-sm transition-all ${
-                locked
-                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
-                  : 'border-border bg-bg-card text-text-muted hover:border-border hover:text-text-secondary'
-              }`}
+              className={cn('ws-tag', locked && 'ws-tag--locked')}
+              style={{ cursor: 'pointer', border: 'none' }}
             >
               {kw}
             </button>
