@@ -20,6 +20,7 @@ export interface AgentMessage {
     name: string
     arguments: Record<string, unknown>
     result?: unknown
+    data?: Record<string, unknown>
   }>
   tokenCount?: number
   createdAt: string
@@ -50,10 +51,55 @@ export interface AgentProvider {
   fastModel: string
 }
 
+/** 语义导航 — 调用本地 8001 分类器识别页面意图 */
+export async function semanticNavigate(text: string) {
+  const res = await api.post<{
+    match: {
+      name: string
+      path: string
+      title: string
+      similarity: number
+    } | null
+    candidates: {
+      name: string
+      path: string
+      title: string
+      similarity: number
+    }[]
+  }>('/agent/navigate', { text })
+  return res.data
+}
+
 /** 获取工具列表 */
 export async function getTools() {
   const res = await api.get<{ tools: AgentTool[] }>('/agent/tools')
   return res.data.tools
+}
+
+/** 获取配额余量 */
+export async function getQuota() {
+  const res = await api.get<{
+    remaining: { daily: number; hourly: number }
+    dailyLimit: number
+    hourlyLimit: number
+  }>('/agent/quota')
+  return res.data
+}
+
+/** 语义分类 — 调用 8001 本地模型 */
+export interface ClassifyResult {
+  category_id: string
+  name: string
+  path: string
+  similarity: number
+  depth: number
+}
+export async function classifyText(text: string): Promise<ClassifyResult[]> {
+  const res = await api.post<{ source: string; results: ClassifyResult[] }>(
+    '/agent/classify',
+    { text },
+  )
+  return res.data.results || []
 }
 
 /** 获取技能列表 */
@@ -105,6 +151,7 @@ export function streamMessage(
   thinkMode = false,
   context?: Record<string, unknown>,
   webSearch = false,
+  model?: string,
 ): {
   abort: () => void
   onEvent: (event: string, handler: (data: unknown) => void) => void
@@ -144,7 +191,13 @@ export function streamMessage(
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ message, thinkMode, context, webSearch }),
+          body: JSON.stringify({
+            message,
+            thinkMode,
+            context,
+            webSearch,
+            model,
+          }),
           signal: controller.signal,
         },
       )

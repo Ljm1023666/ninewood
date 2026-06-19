@@ -71,7 +71,7 @@ export async function addMessage(params: {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
   thinking?: string;
-  toolCalls?: { name: string; arguments: Record<string, unknown>; result?: unknown }[];
+  toolCalls?: { name: string; arguments: Record<string, unknown>; result?: unknown; data?: unknown }[];
   tokenCount?: number;
 }) {
   // 添加消息
