@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+﻿import { prisma } from '../lib/prisma.js';
 import { OrderStatus } from '@prisma/client';
 
 export const orderService = {
@@ -63,7 +63,7 @@ export const orderService = {
       include: {
         provider: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } },
         requester: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } },
-        demand: { select: { id: true, title: true, description: true, minPrice: true, category: true } },
+        demand: { select: { id: true, title: true, description: true, minPrice: true, category: true, timeLimit: true } },
       },
     });
     if (!order) throw { status: 404, message: '订单不存在' };

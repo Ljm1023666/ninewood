@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+﻿import { Router, Request, Response } from 'express';
 import { snatchLimiter } from '../middleware/rate-limit.js';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
@@ -18,7 +18,7 @@ const qstr = (v: unknown): string | undefined => {
   return undefined;
 };
 
-const createSchema = z.object({
+export const createSchema = z.object({
   title: z.string().min(2).max(100),
   description: z.string().min(2).max(2000),
   minPrice: z.coerce.number().min(1),
@@ -37,6 +37,8 @@ const createSchema = z.object({
   // AI 2.5 新字段
   expectedOutcome: z.string().min(1).max(500),
   visibilityWindow: z.coerce.number().min(1).max(1440).optional(),
+  // Stage 1.3: 可选服务时限(分钟);>=15 且 <=10080(7 天)
+  timeLimitMinutes: z.coerce.number().int().min(15).max(10080).optional(),
   maxApplicants: z.coerce.number().min(1).max(100).optional(),
   tags: z.union([z.string(), z.array(z.string())]).transform(v => typeof v === 'string' ? v.split(',').filter(Boolean) : v).optional(),
   aiTags: z.union([z.string(), z.array(z.string())]).transform(v => typeof v === 'string' ? v.split(',').filter(Boolean) : v).optional(),

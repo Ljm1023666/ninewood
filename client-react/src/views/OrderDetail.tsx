@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { orderApi } from '@/api/order'
 import { useUserStore } from '@/stores/user'
@@ -123,6 +123,29 @@ export default function OrderDetail() {
               <span className="text-[13px] text-text-muted">完成时间</span>
               <span className="font-semibold">
                 {new Date(order.completedAt).toLocaleString()}
+              </span>
+            </div>
+          )}
+          {order.demand?.timeLimit && (
+            <div className="flex justify-between items-center">
+              <span className="text-[13px] text-text-muted">服务时限</span>
+              <span
+                className="font-semibold"
+                style={{
+                  color:
+                    s === 'IN_PROGRESS' &&
+                    new Date(order.demand.timeLimit).getTime() < Date.now()
+                      ? 'rgb(248 113 113)'
+                      : undefined,
+                }}
+              >
+                {new Date(order.demand.timeLimit).toLocaleString()}
+                {s === 'IN_PROGRESS' &&
+                  new Date(order.demand.timeLimit).getTime() < Date.now() && (
+                    <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.85 }}>
+                      （已超时，等待确认）
+                    </span>
+                  )}
               </span>
             </div>
           )}

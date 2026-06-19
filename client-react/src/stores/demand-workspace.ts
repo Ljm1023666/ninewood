@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
 
 export interface DemandFields {
   title: string
@@ -20,6 +20,8 @@ export interface DemandFields {
   expectedOutcome: string
   visibilityWindow: number
   maxApplicants: number
+  // Stage 1.3: 可选服务时限(分钟),后端换算为 timeLimit
+  timeLimitMinutes?: number
   tags: string[]
   aiTags: string[]
   tagsConfirmed: boolean
@@ -102,6 +104,8 @@ const INITIAL_FIELDS: DemandFields = {
   expectedOutcome: '',
   visibilityWindow: 15,
   maxApplicants: 10,
+  // Stage 1.3: 未填写则后端保持 timeLimit=null(行为与今日一致)
+  timeLimitMinutes: undefined,
   tags: [],
   aiTags: [],
   tagsConfirmed: false,

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+﻿import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -903,6 +903,10 @@ export default function DemandCreate() {
           fd.append('visibilityWindow', String(f.visibilityWindow))
         if (f.maxApplicants !== 10)
           fd.append('maxApplicants', String(f.maxApplicants))
+        // Stage 1.3: 可选服务时限(分钟),未填则不发字段(后端保持 timeLimit=null)
+        if (f.timeLimitMinutes != null) {
+          fd.append('timeLimitMinutes', String(f.timeLimitMinutes))
+        }
         if (f.tags.length > 0) fd.append('tags', f.tags.join(','))
         if (f.tagsConfirmed) fd.append('tagsConfirmed', 'true')
         await demandApi.create(fd)
