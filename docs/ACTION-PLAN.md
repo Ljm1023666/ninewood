@@ -1,6 +1,6 @@
 # 九木平台 · Codex 执行规格与后续开发计划
 
-> 版本: v1.3 · 创建: 2026-06-19 · 最近同步: 2026-06-19 (Stage 1.1 落地)
+> 版本: v1.4 · 创建: 2026-06-19 · 最近同步: 2026-06-19 (Stage 1.3 落地)
 > 定位: 承接 `DEVELOPMENT-GUIDE.md` 的现状分析，给出**可执行的推进路线**与**验收标准**。
 > 关系: `DEVELOPMENT-GUIDE.md` 回答"需求是什么 / 实现到哪了"；本文档回答"接下来按什么顺序做、做完怎么算数"。
 > 使用对象: 本文档写给 Codex 等代码执行员。执行员负责按本文档落地代码与测试，不重新解释产品方向，不扩大范围。
@@ -77,7 +77,7 @@
 | 1.1 #3 认证者主动接受 | 决策调整：复用 `UserTag.autoReceive`（不新增 `PushPreference.autoAccept`）。`push-engine.ts` 增条件参数 `autoReceiveOnly` + `triggerAutoReceivePush`；`user-tag.ts` 加 `PATCH /:tagName/auto-receive`；`demand.service.create` 接入自动触发 | 1 service + 1 路由 + 1 service 钩子 + 12 个测试 | ✅ Stage 1.1 已完成：12 个用例 (auto-receive.test.ts A–L) 全绿；实现 100% 对齐 `docs/specs/STAGE-1.1-auto-receive.md`；未动 schema / `DemandPush` / socket 底层。V1–V10 验收全通过。
 |  · **未来项（不在本期范围）**：认证撤销防漏推、重复推送防重、计数/进度接口 |
 | 1.2 #11 公益收尾 | 资金池→政府拨付出账记录；补"选奖"奖励类型 | schema + welfare service | 拨付出账可追溯 + 选奖路径可用 |
-| 1.3 #4 timeLimit 接线 | 发布表单可选字段 + 超时验收提醒 | schema 已留字段 + UI + cron | 填写后到期触发提醒 |
+| 1.3 #4 timeLimit 接线 | 发布表单可选字段 + 超时验收提醒 | schema 已留字段 + UI + cron | 填写后到期触发提醒 | ✅ Stage 1.3 已完成：发布表单可选 timeLimitMinutes (15–10080) 换算为绝对 timeLimit；OrderDetail 展示剩余/超时；processTimeLimitReminders cron (60s) 按 Order 锚点扫描 IN_PROGRESS + timeLimit<=now，同 orderId 幂等发送 [TIME_LIMIT] SYSTEM 消息（**仅提醒、不改订单状态**）。7 个单测 (A–G) 全绿。 |
 
 ### 阶段 2 — 公开圈全套（明确后置 · 决策 D4）
 
@@ -209,3 +209,4 @@ rg "depositService|deposit\\.service" server/src server/prisma
 | 2026-06-19 | v1.1 | 升级为 Codex 执行规格：明确当前只执行阶段 0、沿用 Vitest + Prisma mock 测试风格、禁止 socket/autoAccept/公益/公开圈扩范围、0.4 只删无引用 service 不删表，并补充阶段 0 逐项测试步骤与验证命令 |
 | 2026-06-19 | v1.2 | Stage 0 全部完成：新增 3 个测试文件（comm-close.test.ts 7 个用例 + demand-window.test.ts 5 个用例 + location-privacy.test.ts 3 个用例，合计 15 个用例）；删除旧 deposit.service.ts；Deposit/DepositDemand 表保留（决策 D1）。pnpm --filter server test 18 文件 / 72 用例 全绿，pnpm typecheck clean。未越界进入阶段 1/2：未动 socket/autoAccept/公益抽成/公开圈全套/删 Prisma model/恢复旧 deposit API。DEVELOPMENT-GUIDE.md §2 状态矩阵同步到 2026-06-19。 |
 | 2026-06-19 | v1.3 | Stage 1.1 落地：#3 主动接受采用"复用 `UserTag.autoReceive`"决策（不新增 `PushPreference.autoAccept`）。新增 `push-engine.ts` 条件参数 `autoReceiveOnly` + `triggerAutoReceivePush`、`user-tag.ts` PATCH 路由、`demand.service.create` 钩起自动推送、`auto-receive.test.ts` 12 个用例（A–L）。未动 schema / `DemandPush` / socket 底层；手动推送路径不变（条件参数防回归）。`pnpm --filter server test` 19 文件 / 84 用例 全绿，`tsc --noEmit` clean。§1.1 行 ✅。DEVELOPMENT-GUIDE.md v1.7 同步§3 #3 与§2 状态矩阵。未来项：认证撤销、重复推送防重、计数/进度接口。 |
+| 2026-06-19 | v1.4 | Stage 1.3 落地：#4 timeLimit 接线（`docs/specs/STAGE-1.3-time-limit.md` v1.0 为准）。`POST /api/demands` 接受可选 `timeLimitMinutes`（>=15 且 <=10080）；`order.service.getById` 在 demand select 中返回 `timeLimit`；新增 `server/src/cron/time-limit-reminder.ts` 以 Order 为锚点（60s）扫描 IN_PROGRESS + timeLimit<=now，同 orderId 幂等发送两条 [TIME_LIMIT] SYSTEM 消息。表单（WorkspaceFields）、发布（DemandCreate）、订单详情（OrderDetail）均最小改动。7 个新单测（time-limit.test.ts A–G）全绿。`pnpm --filter server test -- time-limit` 7/7 passed；server + client tsc 均 clean。DEVELOPMENT-GUIDE.md v1.8 同步§3 #4 + §2 状态矩阵 + 版本记录。未动 schema / Stage 1.2/2 / socket 底层。 |
