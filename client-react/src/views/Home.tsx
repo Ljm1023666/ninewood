@@ -6,7 +6,7 @@ export default function Home() {
   const navigate = useNavigate()
 
   const goDiscover = useCallback(() => {
-    navigate('/discover')
+    navigate('/')
   }, [navigate])
 
   useEffect(() => {
@@ -38,21 +38,20 @@ export default function Home() {
             style={{
               textShadow:
                 '0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.2), 0 2px 8px rgba(99,102,241,0.08)',
-              filter: 'drop-shadow(0 0 16px rgba(99,102,241,0.1))',
             }}
           >
             Ninewood
           </h1>
         </div>
 
-        <div className="relative z-0 mt-10 w-full max-w-2xl h-40">
+        {/* 粒子特效 */}
+        <div className="relative w-full max-w-2xl h-40 z-0">
           <div className="absolute inset-x-0 top-0 flex flex-col items-center">
             <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
             <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm mt-px" />
             <div className="h-px w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent mt-1" />
             <div className="h-[3px] w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent blur-sm mt-px" />
           </div>
-
           <SparklesCore
             background="transparent"
             minSize={0.4}
@@ -62,7 +61,6 @@ export default function Home() {
             particleColor="#FFFFFF"
             speed={0.6}
           />
-
           <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]" />
         </div>
       </div>

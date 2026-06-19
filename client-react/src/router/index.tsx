@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Layout from '@/components/layout/Layout'
-import Home from '@/views/Home'
 import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
@@ -23,6 +22,7 @@ const DemandCreate = lazy(() => import('@/views/DemandCreate'))
 const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 const Discover = lazy(() => import('@/views/Discover'))
+const Providers = lazy(() => import('@/views/Providers'))
 const CertifiedSearch = lazy(() => import('@/views/CertifiedSearch'))
 const MyBids = lazy(() => import('@/views/MyBids'))
 const Help = lazy(() => import('@/views/Help'))
@@ -75,7 +75,11 @@ export const router = createBrowserRouter([
       {
         element: <Layout />,
         children: [
-          { index: true, element: <Home /> },
+          { index: true, element: (
+              <LazyLoad>
+                <Discover />
+              </LazyLoad>
+            )},
           {
             path: 'dashboard',
             element: (
@@ -120,9 +124,13 @@ export const router = createBrowserRouter([
           { path: 'settings', element: <Settings /> },
           {
             path: 'discover',
+            element: <Navigate to="/" replace />,
+          },
+          {
+            path: 'providers',
             element: (
               <LazyLoad>
-                <Discover />
+                <Providers />
               </LazyLoad>
             ),
           },
