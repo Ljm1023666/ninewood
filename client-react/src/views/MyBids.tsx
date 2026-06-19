@@ -93,6 +93,7 @@ export default function MyBids() {
           <PageHeader
             title="我的应标"
             subtitle="你向需求发出的应标记录"
+            onBack="back"
           />
         </div>
 

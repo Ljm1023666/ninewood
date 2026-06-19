@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { BackButton } from '@/components/ui/back-button'
 import { useNavigate } from 'react-router-dom'
 import {
   getConversations,
@@ -251,6 +252,7 @@ export default function AgentChat() {
 
   return (
     <div className="flex h-screen bg-zinc-950 text-zinc-100">
+      <BackButton />
       {/* 侧边栏 */}
       <div
         className={`${

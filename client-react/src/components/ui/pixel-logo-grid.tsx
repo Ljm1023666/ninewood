@@ -1105,17 +1105,16 @@ export const Component = ({
     >
       <div
         className="grid grid-cols-5 max-w-[1160px] mx-auto gap-px bg-border border border-border"
-        style={{ gridTemplateRows: 'repeat(4, 96px)' }}
+        style={{ gridTemplateRows: `repeat(${Math.max(4, Math.ceil((pages?.length ?? 14) / 5) + 1)}, 96px)` }}
       >
         {pages
           ? pages.map((item, i) => {
               const slot = OUTER_SLOTS[i]
-              if (!slot) return null
               return (
                 <div
                   key={item.id}
                   className="w-full h-full"
-                  style={{ gridRow: slot.row, gridColumn: slot.col }}
+                  style={slot ? { gridRow: slot.row, gridColumn: slot.col } : undefined}
                 >
                   <PageGridCard item={item} />
                 </div>

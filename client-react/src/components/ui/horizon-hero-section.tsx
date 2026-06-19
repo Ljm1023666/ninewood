@@ -30,8 +30,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   const scrollProgressRef = useRef<HTMLDivElement>(null)
   const searchBarRef = useRef<HTMLDivElement>(null)
   const heroContentRef = useRef<HTMLDivElement>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
-
   const smoothCameraPos = useRef({ x: 0, y: 30, z: 100 })
   const locationsRef = useRef<number[]>([])
 
@@ -550,7 +548,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   useEffect(() => {
     if (!isReady) return
     gsap.set(
-      [menuRef.current, titleRef.current, subtitleRef.current, scrollProgressRef.current],
+      [titleRef.current, subtitleRef.current, scrollProgressRef.current],
       { visibility: 'visible' },
     )
 
@@ -559,15 +557,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     // 先让 hero content 整体出现，消除闪现
     if (heroContentRef.current) {
       tl.to(heroContentRef.current, { opacity: 1, duration: 0.3 })
-    }
-
-    if (menuRef.current) {
-      tl.from(menuRef.current, {
-        x: -100,
-        opacity: 0,
-        duration: 1,
-        ease: 'power3.out',
-      })
     }
 
     if (titleRef.current) {
@@ -721,37 +710,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           z-index: 0;
           pointer-events: none;
         }
-        .side-menu {
-          position: fixed;
-          left: 24px;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 10;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-        }
-        .menu-icon {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          cursor: pointer;
-        }
-        .menu-icon span {
-          display: block;
-          width: 20px;
-          height: 2px;
-          background: rgba(255,255,255,0.6);
-          transition: all 0.3s;
-        }
-        .vertical-text {
-          writing-mode: vertical-rl;
-          font-size: 10px;
-          letter-spacing: 4px;
-          color: rgba(255,255,255,0.4);
-          text-transform: uppercase;
-        }
         .hero-content {
           position: relative;
           z-index: 2;
@@ -843,16 +801,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       `}</style>
 
       <canvas ref={canvasRef} className="hero-canvas" />
-
-      {/* Side menu */}
-      <div ref={menuRef} className="side-menu" style={{ visibility: 'hidden' as const }}>
-        <div className="menu-icon">
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="vertical-text">SPACE</div>
-      </div>
 
       {/* Hero content */}
       <div ref={heroContentRef} className="hero-content cosmos-content">

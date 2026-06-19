@@ -21,6 +21,7 @@ import {
   type DemandRow,
 } from '@/components/demand/DemandDiscoveryList'
 import { toast } from '@/components/ui/confirm-dialog'
+import { BackButton } from '@/components/ui/back-button'
 
 const roleLabel: Record<string, string> = {
   OWNER: '圈主',
@@ -122,6 +123,7 @@ export default function CircleDetail() {
   if (loading) {
     return (
       <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
+        <BackButton />
         <div className="relative z-10 box-border flex min-h-full w-full max-w-3xl shrink-0 self-center flex-col gap-4 px-4 pb-12 pt-16 sm:px-6 sm:pt-20">
           <Skeleton className="h-52 w-full rounded-3xl sm:h-60" />
           <div className="-mt-10 relative z-10 rounded-2xl border border-border bg-card p-6 shadow-lg">
@@ -145,6 +147,7 @@ export default function CircleDetail() {
   if (error) {
     return (
       <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
+        <BackButton />
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-20">
           <p className="text-center text-sm text-muted-foreground">{error}</p>
           <Button
@@ -168,6 +171,7 @@ export default function CircleDetail() {
 
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
+      <BackButton />
       {circle.coverUrl ? (
         <img
           src={circle.coverUrl}

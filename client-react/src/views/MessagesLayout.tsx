@@ -5,6 +5,7 @@ import { useChatStore } from '@/stores/chat'
 import { Home, type TemplateContact } from '@/components/ui/chat-template'
 import { ResizablePanel } from '@/components/ui/resizable'
 import { SidebarProvider } from '@/components/blocks/sidebar'
+import { BackButton } from '@/components/ui/back-button'
 
 export default function MessagesLayout() {
   const navigate = useNavigate()
@@ -87,6 +88,9 @@ export default function MessagesLayout() {
   return (
     <SidebarProvider>
       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-background">
+        <div className="shrink-0 px-4 pt-3">
+          <BackButton />
+        </div>
         {/**
          * showNavigateRail={false}：模板内 shadcn Sidebar 为 fixed;left:0，会盖住会话列表并与 Ninewood 全局侧栏重叠。
          * 独立全屏预览请用 ChatTemplateDemoPage（带 SidebarProvider + showNavigateRail 默认 true）。

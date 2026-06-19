@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Users, UserCheck, Loader2 } from 'lucide-react'
+import { BackButton } from '@/components/ui/back-button'
 import { userApi } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -82,19 +83,7 @@ export default function Follows() {
       <div className="mx-auto w-full max-w-[36rem] px-4 py-6">
         {/* 顶部：返回 + Tab 切换 */}
         <div className="mb-5 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label="返回"
-            className={cn(
-              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors',
-              isDark
-                ? 'hover:bg-white/10 text-text-secondary'
-                : 'hover:bg-bg-secondary/50 text-text-secondary',
-            )}
-          >
-            <ChevronLeft size={20} />
-          </button>
+          <BackButton />
           <div className="flex rounded-xl border border-border bg-bg-secondary p-1">
             <button
               type="button"

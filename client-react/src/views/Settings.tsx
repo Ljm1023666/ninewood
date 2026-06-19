@@ -9,6 +9,7 @@ import { Chip } from '@/components/ui/chip'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/confirm-dialog'
+import { BackButton } from '@/components/ui/back-button'
 import { userApi } from '@/api/user'
 import {
   Palette,
@@ -23,16 +24,7 @@ import {
 } from 'lucide-react'
 
 const themeNames: Record<string, string> = {
-  'ocean-blue': '海蓝',
-  'amber-stream': '琥珀川',
   'morning-mist': '薄雾晨光',
-  'moon-through-pines': '松间照',
-  'green-vines': '青萝拂衣',
-  'twilight-violet': '暮山紫',
-  'snow-on-pines': '雪落松枝',
-  'sunset-molten-gold': '夕照熔金',
-  'emerald-mist': '空翠湿人衣',
-  'autumn-river': '秋水长天',
 }
 
 /** 暗色预设列表（排除 light） */
@@ -107,8 +99,12 @@ export default function Settings() {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto thin-scroll">
-      <div className="mx-auto w-full max-w-2xl shrink-0 px-4 pb-28 pt-14 md:px-6 md:pt-16">
+    <div className="relative flex h-full min-h-0 w-full flex-col items-center overflow-y-auto thin-scroll">
+      <div className="absolute top-4 left-4 z-10">
+        <BackButton />
+      </div>
+      <div className="h-16 shrink-0" />
+      <div className="mx-auto my-auto w-full max-w-2xl shrink-0 px-4 py-8 md:px-6">
         {/* ── Header ── */}
         <header className="mb-8 text-center">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-text-muted">

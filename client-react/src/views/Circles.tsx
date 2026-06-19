@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
 
 const roleLabel: Record<string, string> = {
@@ -199,9 +200,7 @@ export default function Circles() {
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
         <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0 max-w-2xl space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              社区
-            </p>
+            <BackButton />
             <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               发现有趣的<span className="text-accent">圈子</span>
             </h1>

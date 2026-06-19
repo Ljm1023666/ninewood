@@ -17,7 +17,7 @@ import { ListItemCard } from '@/components/ui/list-item-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ErrorState } from '@/components/ui/error-state'
 import { LoadingState } from '@/components/ui/loading-state'
-import { PageHeader } from '@/components/layout/PageHeader'
+import { BackButton } from '@/components/ui/back-button'
 import { cn } from '@/lib/utils'
 
 const sMap: Record<
@@ -217,32 +217,19 @@ export default function MyDemands() {
   ]
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background">
-      <div className="relative z-10 mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 py-6">
-        <PageHeader
-          title="我的需求"
-          subtitle="管理您发布和申请的需求"
-          divider={false}
-          className="mb-6"
-          actions={
-            <Button
-              type="button"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => navigate('/demands/create')}
-            >
-              发布需求
-            </Button>
-          }
-        />
-
+    <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
+      <div className="absolute top-4 left-4 z-10">
+        <BackButton />
+      </div>
+      <div className="h-16 shrink-0" />
+      <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
         <div className="relative mb-6 flex gap-1 rounded-xl bg-bg-secondary/80 p-1">
           {tabs.map((t) => (
             <button
               key={t.k}
               onClick={() => setTab(t.k)}
               className={cn(
-                'relative flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
+                'relative flex-1 h-12 rounded-lg text-lg font-medium transition-all duration-200',
                 tab === t.k
                   ? 'text-text-primary'
                   : 'text-text-muted hover:text-text-secondary',
@@ -259,10 +246,10 @@ export default function MyDemands() {
                 {t.l}
                 <span
                   className={cn(
-                    'text-sm px-1.5 py-0.5 rounded-full transition-colors',
+                    'text-sm transition-colors',
                     tab === t.k
-                      ? 'bg-[var(--primary-start)]/20 text-[var(--primary-start)]'
-                      : 'bg-bg-tertiary text-text-muted',
+                      ? 'text-[var(--primary-start)]'
+                      : 'text-text-muted',
                   )}
                 >
                   {t.count}

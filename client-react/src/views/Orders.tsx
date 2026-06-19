@@ -5,6 +5,7 @@ import { ListItemCard } from '@/components/ui/list-item-card'
 import { LoadingState } from '@/components/ui/loading-state'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/ui/empty-state'
+import { BackButton } from '@/components/ui/back-button'
 
 const statusLabel: Record<string, string> = {
   PENDING: '待确认',
@@ -50,7 +51,11 @@ export default function Orders() {
   }, [fetchOrders])
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+    <div className="relative flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary ">
+      <div className="absolute top-4 left-4 z-10">
+        <BackButton />
+      </div>
+      <div className="h-16 shrink-0" />
       <div className="relative z-10 box-border flex w-full max-w-3xl shrink-0 flex-col self-center p-5">
         <div className="mb-4 flex gap-2">
           {[
@@ -63,7 +68,7 @@ export default function Orders() {
               onClick={() => setRole(t.value)}
               className={`flex-1 rounded-xl py-3 text-sm font-semibold transition-all duration-300 ${
                 role === t.value
-                  ? 'bg-[var(--primary-gradient)] text-white shadow-lg'
+                  ? 'bg-[var(--primary-start)] text-white shadow-lg'
                   : 'glass-input text-text-secondary hover:text-text-primary'
               }`}
             >

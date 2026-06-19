@@ -37,6 +37,7 @@ const CardPoolResourceExplorer = lazy(
 )
 const DeadPool = lazy(() => import('@/views/DeadPool'))
 const MyTags = lazy(() => import('@/views/MyTags'))
+const FiltersPreview = lazy(() => import('@/views/FiltersPreview'))
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 const Dashboard = lazy(() => import('@/views/Dashboard'))
@@ -154,6 +155,14 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <MyDemands />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'filters-preview',
+            element: (
+              <LazyLoad>
+                <FiltersPreview />
               </LazyLoad>
             ),
           },

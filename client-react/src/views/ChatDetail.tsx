@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
 import { TemplateChatRightShell } from '@/components/ui/chat-template'
+import { BackButton } from '@/components/ui/back-button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 /**/
@@ -219,7 +220,9 @@ export default function ChatDetail() {
   ]
 
   return (
-    <TemplateChatRightShell
+    <>
+      <BackButton />
+      <TemplateChatRightShell
       embedInLayout
       currentChat={{
         id: isMergeChat ? `merge:${currentMergeId}` : peerId,
@@ -374,5 +377,6 @@ export default function ChatDetail() {
         </>
       }
     />
+    </>
   )
 }

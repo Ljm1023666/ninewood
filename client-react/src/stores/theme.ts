@@ -16,137 +16,11 @@ export interface ThemeConfig {
 }
 
 export const presets: Record<string, ThemeConfig> = {
-  'ocean-blue': {
-    name: 'ocean-blue',
-    dark: true,
-    primaryStart: '#3388FF',
-    primaryEnd: '#5599FF',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'amber-stream': {
-    name: 'amber-stream',
-    dark: true,
-    primaryStart: '#FF8F00',
-    primaryEnd: '#FFA726',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
   'morning-mist': {
     name: 'morning-mist',
     dark: true,
     primaryStart: '#78909C',
     primaryEnd: '#90A4AE',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'moon-through-pines': {
-    name: 'moon-through-pines',
-    dark: true,
-    primaryStart: '#66BB6A',
-    primaryEnd: '#81C784',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'green-vines': {
-    name: 'green-vines',
-    dark: true,
-    primaryStart: '#26A69A',
-    primaryEnd: '#4DB6AC',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'twilight-violet': {
-    name: 'twilight-violet',
-    dark: true,
-    primaryStart: '#7E57C2',
-    primaryEnd: '#9575CD',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'snow-on-pines': {
-    name: 'snow-on-pines',
-    dark: true,
-    primaryStart: '#90CAF9',
-    primaryEnd: '#B3D4FC',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'sunset-molten-gold': {
-    name: 'sunset-molten-gold',
-    dark: true,
-    primaryStart: '#FF7043',
-    primaryEnd: '#FF8A65',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'emerald-mist': {
-    name: 'emerald-mist',
-    dark: true,
-    primaryStart: '#26C6DA',
-    primaryEnd: '#4DD0E1',
-    bgPrimary: '#000000',
-    bgSecondary: '#0A0A0A',
-    bgTertiary: '#1A1A1A',
-    bgCard: '#0F0F0F',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#9A9A9A',
-    textMuted: '#5A5A5A',
-    borderColor: '#2A2A2A',
-  },
-  'autumn-river': {
-    name: 'autumn-river',
-    dark: true,
-    primaryStart: '#42A5F5',
-    primaryEnd: '#64B5F6',
     bgPrimary: '#000000',
     bgSecondary: '#0A0A0A',
     bgTertiary: '#1A1A1A',
@@ -238,7 +112,7 @@ function getInitial() {
   if (saved && presets[saved]) {
     const preset = presets[saved]
     if (saved === 'light') {
-      const dp = presets[savedDark || 'ocean-blue'] || presets['ocean-blue']
+      const dp = presets[savedDark || 'morning-mist'] || presets['morning-mist']
       return {
         config: {
           ...presets.light,
@@ -246,7 +120,7 @@ function getInitial() {
           primaryEnd: dp.primaryEnd,
           name: 'light',
         },
-        darkPreset: savedDark || 'ocean-blue',
+        darkPreset: savedDark || 'morning-mist',
         darkMode: true,
       }
     }
@@ -265,8 +139,8 @@ function getInitial() {
     return { config: preset, darkPreset: saved, darkMode: false }
   }
   return {
-    config: presets['ocean-blue'],
-    darkPreset: 'ocean-blue',
+    config: presets['morning-mist'],
+    darkPreset: 'morning-mist',
     darkMode: false,
   }
 }
@@ -288,7 +162,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     if (!config) return
 
     if (name === 'light') {
-      const dp = presets[get().lastDarkPreset] || presets['ocean-blue']
+      const dp = presets[get().lastDarkPreset] || presets['morning-mist']
       const lightConfig: ThemeConfig = {
         ...presets.light,
         primaryStart: dp.primaryStart,
@@ -323,7 +197,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   toggleDarkMode: () => {
     const { current, darkMode, lastDarkPreset } = get()
     if (darkMode) {
-      const dp = presets[lastDarkPreset] || presets['ocean-blue']
+      const dp = presets[lastDarkPreset] || presets['morning-mist']
       applyTheme(dp)
       localStorage.setItem('ninewood-theme', lastDarkPreset)
       localStorage.removeItem('ninewood-light-mode')
