@@ -51,7 +51,8 @@ export function ListItemCard({
       className={cn(
         'relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm',
         'transition-all duration-300',
-        clickable && 'cursor-pointer hover:bg-bg-tertiary hover:border-accent/50',
+        clickable &&
+          'cursor-pointer hover:bg-bg-tertiary hover:border-accent/50',
         clickable && 'active:scale-[0.98]',
         accentBar && 'hover:shadow-[4px_0_0_var(--primary-start)]',
         className,

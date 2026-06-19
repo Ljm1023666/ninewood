@@ -11,17 +11,18 @@ interface ContainerScrollProps {
   children: React.ReactNode
 }
 
-export const ContainerScroll = React.forwardRef<HTMLDivElement, ContainerScrollProps>(
-  ({ className, children }, ref) => (
-    <div
-      ref={ref}
-      className={cn('relative w-full', className)}
-      style={{ perspective: '1000px' }}
-    >
-      {children}
-    </div>
-  ),
-)
+export const ContainerScroll = React.forwardRef<
+  HTMLDivElement,
+  ContainerScrollProps
+>(({ className, children }, ref) => (
+  <div
+    ref={ref}
+    className={cn('relative w-full', className)}
+    style={{ perspective: '1000px' }}
+  >
+    {children}
+  </div>
+))
 ContainerScroll.displayName = 'ContainerScroll'
 
 // ============ CardSticky ============
@@ -43,10 +44,7 @@ export const CardSticky = React.forwardRef<HTMLDivElement, CardStickyProps>(
       <motion.div
         ref={ref}
         layout="position"
-        className={cn(
-          'sticky w-full',
-          className,
-        )}
+        className={cn('sticky w-full', className)}
         style={{
           top: `${top}px`,
           zIndex,

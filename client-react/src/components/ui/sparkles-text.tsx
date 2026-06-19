@@ -1,7 +1,8 @@
-import { CSSProperties, ReactElement, useEffect, useState } from "react"
-import { motion } from "motion/react"
+import { useEffect, useState } from 'react'
+import type { CSSProperties, ReactElement } from 'react'
+import { motion } from 'motion/react'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 interface Sparkle {
   id: string
@@ -23,7 +24,7 @@ interface SparklesTextProps {
 
 const SparklesText: React.FC<SparklesTextProps> = ({
   text,
-  colors = { first: "#9E7AFF", second: "#FE8BBB" },
+  colors = { first: '#9E7AFF', second: '#FE8BBB' },
   className,
   sparklesCount = 10,
   ...props
@@ -62,12 +63,14 @@ const SparklesText: React.FC<SparklesTextProps> = ({
 
   return (
     <div
-      className={cn("text-6xl font-bold", className)}
+      className={cn('text-6xl font-bold', className)}
       {...props}
-      style={{
-        "--sparkles-first-color": colors.first,
-        "--sparkles-second-color": colors.second,
-      } as CSSProperties}
+      style={
+        {
+          '--sparkles-first-color': colors.first,
+          '--sparkles-second-color': colors.second,
+        } as CSSProperties
+      }
     >
       <span className="relative inline-block">
         {sparkles.map((sparkle) => (

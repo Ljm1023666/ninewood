@@ -46,7 +46,10 @@ export function AnimatedGlowingSearchBar({
 
   return (
     <div className={cn('relative flex w-full justify-center', className)}>
-      <div className="group relative box-border w-full max-w-[301px] shrink-0" style={glowVars}>
+      <div
+        className="group relative box-border w-full max-w-[301px] shrink-0"
+        style={glowVars}
+      >
         {/* 光晕层：与案例同尺寸基准 */}
         <div
           className="absolute z-[-1] h-full w-full max-h-[70px] max-w-[314px] overflow-hidden rounded-xl blur-[3px]
@@ -61,7 +64,7 @@ export function AnimatedGlowingSearchBar({
         <div
           className={cn(
             'absolute z-[-1] h-full w-full max-h-[63px] max-w-[307px] overflow-hidden rounded-lg blur-[2px]',
-            'before:absolute before:top-1/2 before:left-1/2 before:z-[-2] before:h-[600px] before:w-[600px] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-[83deg] before:bg-[var(--glow-3)] before:bg-no-repeat before:transition-all before:duration-[2000ms] before:content-[\'\']',
+            "before:absolute before:top-1/2 before:left-1/2 before:z-[-2] before:h-[600px] before:w-[600px] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-[83deg] before:bg-[var(--glow-3)] before:bg-no-repeat before:transition-all before:duration-[2000ms] before:content-['']",
             isDark ? 'before:brightness-[1.4]' : 'before:brightness-[0.8]',
             'group-hover:before:rotate-[-97deg] group-focus-within:before:rotate-[443deg] group-focus-within:before:duration-[4000ms]',
           )}
@@ -69,7 +72,7 @@ export function AnimatedGlowingSearchBar({
         <div
           className={cn(
             'absolute z-[-1] h-full w-full max-h-[59px] max-w-[303px] overflow-hidden rounded-xl blur-[0.5px]',
-            'before:absolute before:top-1/2 before:left-1/2 before:z-[-2] before:h-[600px] before:w-[600px] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-[70deg] before:bg-[var(--glow-4)] before:bg-no-repeat before:transition-all before:duration-[2000ms] before:content-[\'\']',
+            "before:absolute before:top-1/2 before:left-1/2 before:z-[-2] before:h-[600px] before:w-[600px] before:-translate-x-1/2 before:-translate-y-1/2 before:rotate-[70deg] before:bg-[var(--glow-4)] before:bg-no-repeat before:transition-all before:duration-[2000ms] before:content-['']",
             isDark ? 'before:brightness-[1.3]' : 'before:brightness-[0.85]',
             'group-hover:before:rotate-[-110deg] group-focus-within:before:rotate-[430deg] group-focus-within:before:duration-[4000ms]',
           )}

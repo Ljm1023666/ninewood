@@ -16,19 +16,24 @@ export function UserCoverAmbientBg({
   const imageClass = useMemo(
     () =>
       isDark
-        ? 'absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.58] blur-xl saturate-[1.12] max-md:blur-lg'
-        : 'absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.5] blur-lg saturate-[1.05] max-md:blur-md',
+        ? 'absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.58] blur-xl saturate-[1.12]'
+        : 'absolute inset-0 h-full w-full scale-110 object-cover opacity-[0.5] blur-lg saturate-[1.05]',
     [isDark],
   )
   return (
-    <div className="pointer-events-none absolute inset-0 z-0 min-h-[100%] overflow-hidden" aria-hidden>
+    <div
+      className="pointer-events-none absolute inset-0 z-0 min-h-[100%] overflow-hidden"
+      aria-hidden
+    >
       {/* 亮暗模式分支：浅色避免被 bg-primary 叠层“洗白” */}
-      <img
-        src={url}
-        alt=""
-        className={imageClass}
+      <img src={url} alt="" className={imageClass} />
+      <div
+        className={
+          isDark
+            ? 'absolute inset-0 bg-bg-primary/38'
+            : 'absolute inset-0 bg-black/26'
+        }
       />
-      <div className={isDark ? 'absolute inset-0 bg-bg-primary/38' : 'absolute inset-0 bg-black/26'} />
       <div
         className={
           isDark

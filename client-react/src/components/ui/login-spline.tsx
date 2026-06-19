@@ -74,40 +74,80 @@ export function LoginForm() {
         </div>
 
         <div className="flex mb-8 bg-white/[0.03] rounded-xl p-1">
-          <button onClick={() => { setIsLogin(true); setError('') }}
-            className={cn('flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
-              isLogin ? 'bg-white/[0.06] text-white ring-1 ring-white/8' : 'text-neutral-500 hover:text-neutral-400')}>
+          <button
+            onClick={() => {
+              setIsLogin(true)
+              setError('')
+            }}
+            className={cn(
+              'flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
+              isLogin
+                ? 'bg-white/[0.06] text-white ring-1 ring-white/8'
+                : 'text-neutral-500 hover:text-neutral-400',
+            )}
+          >
             登录
           </button>
-          <button onClick={() => { setIsLogin(false); setError('') }}
-            className={cn('flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
-              !isLogin ? 'bg-white/[0.06] text-white ring-1 ring-white/8' : 'text-neutral-500 hover:text-neutral-400')}>
+          <button
+            onClick={() => {
+              setIsLogin(false)
+              setError('')
+            }}
+            className={cn(
+              'flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
+              !isLogin
+                ? 'bg-white/[0.06] text-white ring-1 ring-white/8'
+                : 'text-neutral-500 hover:text-neutral-400',
+            )}
+          >
             注册
           </button>
         </div>
 
         <div className="space-y-5">
-          <AnimatedInput type="tel" aria-label="手机号" value={phone}
-            onChange={(e) => setPhone(e.target.value)} maxLength={11} />
+          <AnimatedInput
+            type="tel"
+            aria-label="手机号"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            maxLength={11}
+          />
 
           {!isLogin && (
             <div className="flex gap-3">
               <div className="flex-1">
-                <AnimatedInput type="text" aria-label="验证码" value={code}
-                  onChange={(e) => setCode(e.target.value)} maxLength={6} />
+                <AnimatedInput
+                  type="text"
+                  aria-label="验证码"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  maxLength={6}
+                />
               </div>
-              <button onClick={sendCode} disabled={countdown > 0}
-                className={cn('px-5 h-[52px] rounded-xl text-sm font-medium transition-all duration-300 flex-shrink-0',
-                  countdown > 0 ? 'bg-white/[0.03] text-neutral-500 cursor-not-allowed border border-white/5'
-                    : 'bg-white/[0.05] text-neutral-300 hover:bg-white/[0.10] border border-white/8')}>
+              <button
+                onClick={sendCode}
+                disabled={countdown > 0}
+                className={cn(
+                  'px-5 h-[52px] rounded-xl text-sm font-medium transition-all duration-300 flex-shrink-0',
+                  countdown > 0
+                    ? 'bg-white/[0.03] text-neutral-500 cursor-not-allowed border border-white/5'
+                    : 'bg-white/[0.05] text-neutral-300 hover:bg-white/[0.10] border border-white/8',
+                )}
+              >
                 {countdown > 0 ? `${countdown}s` : '获取验证码'}
               </button>
             </div>
           )}
 
-          <AnimatedInput type="password" aria-label="密码" value={password}
+          <AnimatedInput
+            type="password"
+            aria-label="密码"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
-            showToggle showPassword={showPassword} onToggle={() => setShowPassword(!showPassword)} />
+            showToggle
+            showPassword={showPassword}
+            onToggle={() => setShowPassword(!showPassword)}
+          />
         </div>
 
         {/* 错误提示 */}
@@ -120,23 +160,32 @@ export function LoginForm() {
           本地种子用户：13800000001～13800000020，密码均为 1
         </p>
 
-        <button onClick={handleSubmit} disabled={!canSubmit}
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit}
           className={cn(
             'w-full h-[52px] rounded-xl font-medium text-sm transition-all duration-300 mt-8 relative overflow-hidden group',
             'bg-gradient-to-b from-neutral-700 via-neutral-800 to-neutral-900 text-neutral-200 border border-white/[0.06]',
             'hover:from-neutral-600 hover:via-neutral-700 hover:to-neutral-800 hover:text-white hover:shadow-[0_0_40px_rgba(255,255,255,0.04)]',
             'active:scale-[0.98]',
             (!canSubmit || loading) && 'opacity-50 cursor-not-allowed',
-          )}>
+          )}
+        >
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-          <span className="relative z-10 tracking-[0.2em]">{loading ? '处理中...' : isLogin ? '登 录' : '注 册'}</span>
+          <span className="relative z-10 tracking-[0.2em]">
+            {loading ? '处理中...' : isLogin ? '登 录' : '注 册'}
+          </span>
         </button>
 
         <p className="mt-6 text-center text-xs text-neutral-600">
           登录即表示同意{' '}
-          <a href="#" className="hover:text-neutral-400 transition-colors">服务条款</a>
-          {' '}和{' '}
-          <a href="#" className="hover:text-neutral-400 transition-colors">隐私政策</a>
+          <a href="#" className="hover:text-neutral-400 transition-colors">
+            服务条款
+          </a>{' '}
+          和{' '}
+          <a href="#" className="hover:text-neutral-400 transition-colors">
+            隐私政策
+          </a>
         </p>
       </div>
     </div>
