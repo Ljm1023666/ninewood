@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { userApi } from '@/api/user'
-import { certLabel, certColor } from '@/constants/cert'
-
+import { certLabel } from '@/constants/cert'
 import { PageHeader } from '@/components/layout/PageHeader'
+import {
+  InternalPageShell,
+  InternalContentBlock,
+  SettingsPanel,
+  SettingsRow,
+  SettingsActionButton,
+  StatusChip,
+} from '@/components/layout/internal-ui'
 
 const steps = [
   { level: 'NONE', label: '未认证', desc: '初始状态' },
@@ -23,6 +31,7 @@ export default function CertCenter() {
       /* noop */
     }
   }
+
   async function upgrade() {
     setUpgrading(true)
     try {
@@ -43,173 +52,115 @@ export default function CertCenter() {
     (s) => s.level === certStatus?.certificationLevel,
   )
   const hasPromotion = certStatus?.promotion
-  const currentColor =
-    (certColor as any)[certStatus?.certificationLevel] || '#6b7280'
+  const progressPct = hasPromotion
+    ? Math.round(certStatus.promotion.progress * 100)
+    : 0
 
   return (
-    <div className="relative flex h-full min-h-0 w-full min-w-0 flex-col items-center overflow-y-auto thin-scroll bg-bg-primary">
-      <div className="w-full max-w-4xl px-5 md:px-10 pt-8 pb-12">
-        <PageHeader
-          title="认证中心"
-          onBack="back"
-          divider={false}
-          className="mb-6"
-        />
+    <InternalPageShell width="wide" contentClassName="pb-12 pt-2">
+      <PageHeader title="认证中心" onBack="back" divider={false} className="mb-6" />
 
-        {certStatus && (
-          <section className="relative mb-8 overflow-hidden rounded-[20px] border border-border bg-card p-7">
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `radial-gradient(ellipse at 30% 20%, ${currentColor}18 0%, transparent 60%)`,
-              }}
-            />
-            <div className="relative z-[1]">
-              <div
-                className="inline-block px-6 py-3 rounded-full text-[15px] font-extrabold text-white tracking-[3px] mb-6"
-                style={{ background: currentColor }}
-              >
-                {(certLabel as any)[certStatus.certificationLevel]}
-              </div>
-              <div className="flex">
-                {[
-                  { n: certStatus.completedOrders, l: '已完成' },
-                  { n: certStatus.snatchCredits, l: '本月抢单' },
-                  { n: certStatus.creditScore, l: '信誉分' },
-                ].map((s, i) => (
-                  <div key={s.l} className="flex-1 text-center flex">
-                    {i > 0 && <div className="w-px self-stretch bg-border" />}
-                    <div className="flex-1">
-                      <span className="block text-[28px] font-bold leading-none tabular-nums">
-                        {s.n}
-                      </span>
-                      <span className="block mt-2 text-sm text-text-muted tracking-[1px]">
-                        {s.l}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+      {certStatus && (
+        <InternalContentBlock>
+          <SettingsPanel className="flex items-center gap-6 p-6">
+            <div className="flex size-20 shrink-0 items-center justify-center border-2 border-[var(--internal-accent)]/40">
+              <MsIcon name="verified_user" size={40} className="text-[var(--internal-accent)]" />
             </div>
+            <div>
+              <p className="font-mono text-xs uppercase tracking-wider text-text-muted">
+                当前等级
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-text-primary">
+                {certLabel[certStatus.certificationLevel] ||
+                  certStatus.certificationLevel}
+              </h2>
+              <p className="mt-2 text-sm text-text-secondary">
+                信誉积分 {certStatus.creditScore} · 完成订单{' '}
+                {certStatus.completedOrders}
+              </p>
+            </div>
+          </SettingsPanel>
 
+          <SettingsPanel>
             {hasPromotion ? (
-              <div className="relative z-[1] mt-6 pt-6 border-t border-border">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-[13px] text-text-secondary">
-                    升级进度
-                  </span>
-                  <span
-                    className="text-sm font-bold tracking-[1px]"
-                    style={{
-                      color: (certColor as any)[certStatus.promotion.next],
-                    }}
-                  >
-                    {(certLabel as any)[certStatus.promotion.next]}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 rounded-[3px] bg-bg-secondary overflow-hidden">
-                    <div
-                      className="h-full rounded-[3px] transition-[width_0.6s]"
-                      style={{
-                        width: `${Math.round(certStatus.promotion.progress * 100)}%`,
-                        background: (certColor as any)[
-                          certStatus.promotion.next
-                        ],
-                      }}
-                    />
-                  </div>
-                  <span className="text-[13px] font-bold min-w-[36px] text-right">
-                    {Math.round(certStatus.promotion.progress * 100)}%
-                  </span>
-                </div>
-                <p className="my-3 text-[13px] text-text-muted">
-                  还需完成{' '}
-                  <strong className="text-text-primary">
-                    {certStatus.promotion.needed - certStatus.completedOrders}
-                  </strong>{' '}
-                  次服务即可升级
-                </p>
-                <button
-                  type="button"
-                  onClick={upgrade}
-                  disabled={certStatus.promotion.progress < 1 || upgrading}
-                  className="w-full rounded-xl bg-black/40 backdrop-blur-sm py-4 text-center text-base font-bold text-white tracking-wider transition-all duration-200 hover:bg-black/50 disabled:cursor-not-allowed disabled:opacity-35"
+              <>
+                <SettingsRow
+                  label="升级进度"
+                  description={`距离${
+                    certLabel[certStatus.promotion.next] || certStatus.promotion.next
+                  }还需 ${
+                    certStatus.promotion.needed - certStatus.completedOrders
+                  } 单`}
                 >
-                  {upgrading ? '升级中...' : '申请升级'}
-                </button>
-              </div>
+                  <span className="font-mono text-[var(--internal-accent)]">
+                    {progressPct}%
+                  </span>
+                </SettingsRow>
+                <SettingsRow
+                  label="本月抢单额度"
+                  description={`已用 ${certStatus.snatchCredits ?? 0} 次`}
+                >
+                  <MsIcon name="chevron_right" size={16} className="text-text-muted" />
+                </SettingsRow>
+                <SettingsRow label="认证材料" description="查看已提交材料" last>
+                  <MsIcon name="chevron_right" size={16} className="text-text-muted" />
+                </SettingsRow>
+              </>
             ) : (
-              <div className="relative z-[1] mt-6 pt-5 border-t border-border text-center">
-                <span className="text-sm text-text-muted font-semibold tracking-[2px]">
-                  已达成最高等级
-                </span>
-              </div>
+              <SettingsRow
+                label="认证等级"
+                description="已达成最高等级"
+                last
+              >
+                <StatusChip
+                  label="已满级"
+                  className="border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted"
+                />
+              </SettingsRow>
             )}
-          </section>
-        )}
+          </SettingsPanel>
 
-        <section className="pb-8">
-          <h2 className="text-lg font-extrabold tracking-[2px] mb-5">
-            认证路径
-          </h2>
-          <div className="flex flex-col">
-            {steps.map((step, idx) => {
-              const done = idx <= currentIdx
-              const current = idx === currentIdx
-              const color = (certColor as any)[step.level]
-              return (
-                <div key={step.level} className="flex gap-4 items-start py-4">
-                  <div className="relative w-5 flex-shrink-0 flex flex-col items-center">
-                    <div
-                      className="rounded-full border-2 transition-[width,height,border-color] duration-300 flex-shrink-0"
-                      style={{
-                        width: current ? 18 : 14,
-                        height: current ? 18 : 14,
-                        marginTop: current ? 0 : 2,
-                        borderColor: done ? color : 'var(--border-color)',
-                        background:
-                          done && !current
-                            ? color
-                            : current
-                              ? 'transparent'
-                              : 'var(--bg-primary)',
-                        boxShadow: current
-                          ? `0 0 16px ${color}`
-                          : done
-                            ? `0 0 8px ${color}`
-                            : '',
-                      }}
+          {hasPromotion && (
+            <SettingsActionButton
+              onClick={upgrade}
+              disabled={certStatus.promotion.progress < 1 || upgrading}
+              variant="primary"
+              className="w-full"
+            >
+              {upgrading ? '升级中…' : '申请升级'}
+            </SettingsActionButton>
+          )}
+
+          <section>
+            <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.12em] text-text-muted">
+              认证路径
+            </h2>
+            <SettingsPanel>
+              {steps.map((step, idx) => {
+                const done = idx <= currentIdx
+                const current = idx === currentIdx
+                return (
+                  <SettingsRow
+                    key={step.level}
+                    label={step.label}
+                    description={step.desc}
+                    last={idx === steps.length - 1}
+                  >
+                    <StatusChip
+                      label={current ? '当前' : done ? '已达成' : '未达成'}
+                      className={
+                        current
+                          ? 'border-[var(--internal-accent)]/30 bg-[var(--internal-accent)]/10 text-[var(--internal-accent)]'
+                          : 'border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted'
+                      }
                     />
-                    {idx < steps.length - 1 && (
-                      <div
-                        className="flex-1 w-0.5 min-h-5 mt-1"
-                        style={{
-                          background:
-                            idx < currentIdx ? color : 'var(--border-color)',
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span
-                      className="text-[15px] font-bold"
-                      style={{
-                        color: done || current ? color : 'var(--text-muted)',
-                      }}
-                    >
-                      {step.label}
-                    </span>
-                    <span className="text-[13px] text-text-muted">
-                      {step.desc}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      </div>
-    </div>
+                  </SettingsRow>
+                )
+              })}
+            </SettingsPanel>
+          </section>
+        </InternalContentBlock>
+      )}
+    </InternalPageShell>
   )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Send, Smile } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { useUserStore } from '@/stores/user'
 import { useChatStore, type ChatMessage } from '@/stores/chat'
 import { messageApi } from '@/api/message'
@@ -217,9 +217,9 @@ export default function ChatDetail() {
 
   return (
     <>
-      <BackButton />
       <TemplateChatRightShell
         embedInLayout
+        variant="internal"
         currentChat={{
           id: isMergeChat ? `merge:${currentMergeId}` : peerId,
           name: peerNickname,
@@ -233,16 +233,11 @@ export default function ChatDetail() {
             : undefined
         }
         headerLeading={
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            className="shrink-0"
-            aria-label="返回会话列表"
-            onClick={() => navigate('/messages')}
-          >
-            <ChevronLeft className="size-5" />
-          </Button>
+          <BackButton
+            compact
+            label="返回会话列表"
+            onBack={() => navigate('/messages')}
+          />
         }
         middle={
           <div
@@ -353,7 +348,7 @@ export default function ChatDetail() {
                 }}
                 title="表情"
               >
-                <Smile className="size-5" />
+                <MsIcon name="mood" size={20} />
               </Button>
 
               <Input
@@ -374,7 +369,7 @@ export default function ChatDetail() {
                 onClick={() => void send()}
                 disabled={!input.trim()}
               >
-                <Send className="size-5" />
+                <MsIcon name="send" size={20} />
               </Button>
             </div>
 

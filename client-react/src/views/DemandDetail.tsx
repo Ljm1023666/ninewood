@@ -18,10 +18,10 @@ import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { useUserStore } from '@/stores/user'
-import { Heart } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
 import { toast } from '@/components/ui/confirm-dialog'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
 
 function stripDebugFromTitle(title: string): string {
   return title
@@ -96,10 +96,12 @@ function scheduleIdle(cb: () => void, timeoutMs: number) {
   return () => clearTimeout(t)
 }
 
-function pageShell(inner: ReactNode) {
+function pageShell(inner: ReactNode, title = '需求详情') {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
-      <BackButton />
+      <div className="relative z-20 shrink-0 px-4 pt-3">
+        <PageHeader title={title} onBack="back" divider={false} className="mb-0" />
+      </div>
       <div className="relative z-10 mx-auto flex w-full max-w-2xl shrink-0 flex-col items-center self-center px-6 py-12">
         {inner}
       </div>
@@ -381,7 +383,14 @@ export default function DemandDetail() {
 
   return (
     <div className="relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
-      <BackButton />
+      <div className="relative z-20 shrink-0 px-4 pt-3">
+        <PageHeader
+          title={stripDebugFromTitle(demand.title)}
+          onBack="back"
+          divider={false}
+          className="mb-0"
+        />
+      </div>
       <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherCoverUrl} />
 
       {/* 不用 overflow-y-auto 包住卡片：会与 x 轴合成 auto，横向裁掉 3D 翻面/倾斜溢出；整页滚动交给外层 layout */}
@@ -403,12 +412,11 @@ export default function DemandDetail() {
                 className="absolute -right-2 -top-2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-bg-secondary/80 backdrop-blur-sm text-white shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
                 aria-label={favorited ? '取消收藏' : '收藏'}
               >
-                <Heart
-                  className={
-                    favorited
-                      ? 'fill-red-500 text-red-500 size-5'
-                      : 'fill-none size-5'
-                  }
+                <MsIcon
+                  name="favorite"
+                  size={20}
+                  filled={favorited}
+                  className={favorited ? 'text-red-500' : undefined}
                 />
               </button>
               <CometCard

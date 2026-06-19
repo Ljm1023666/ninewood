@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, Search, Check } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
 import { messageApi } from '@/api/message'
 import { toast } from '@/components/ui/confirm-dialog'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
 interface Contact {
   id: string
   nickname: string
@@ -83,33 +83,30 @@ export default function NewGroupChat() {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-bg-primary text-text-primary">
-      <BackButton />
-      {/* 顶栏 */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1 text-sm text-text-secondary"
-        >
-          <X className="size-5" />
-          取消
-        </button>
-        <span className="text-base font-bold">发起群聊</span>
-        <button
-          type="button"
-          disabled={selected.length === 0}
-          onClick={handleDone}
-          className="text-sm font-semibold text-[var(--primary-start)] disabled:opacity-30"
-        >
-          {selected.length <= 1 ? '完成' : `下一步(${selected.length})`}
-        </button>
+    <div className="internal-shell flex h-full min-h-0 w-full min-w-0 flex-col bg-bg-primary text-text-primary">
+      <div className="shrink-0 px-4 pt-3">
+        <PageHeader
+          title="发起群聊"
+          onBack="back"
+          divider
+          className="mb-0 border-b border-border pb-3"
+          actions={
+            <button
+              type="button"
+              disabled={selected.length === 0}
+              onClick={handleDone}
+              className="text-sm font-semibold text-[var(--primary-start)] disabled:opacity-30"
+            >
+              {selected.length <= 1 ? '完成' : `下一步(${selected.length})`}
+            </button>
+          }
+        />
       </div>
 
       {/* 搜索 + 已选 */}
       <div className="shrink-0 border-b border-border bg-bg-secondary px-4 pb-3 pt-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted" />
+          <MsIcon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -126,7 +123,7 @@ export default function NewGroupChat() {
                 onClick={() => toggle(c)}
               >
                 {c.nickname}
-                <X className="h-3.5 w-3.5" />
+                <MsIcon name="close" size={14} />
               </span>
             ))}
           </div>
@@ -167,7 +164,7 @@ export default function NewGroupChat() {
                 )}
               >
                 {isSel && (
-                  <Check className="size-3 text-white" strokeWidth={3} />
+                  <MsIcon name="check" size={12} className="text-white" />
                 )}
               </div>
             </button>

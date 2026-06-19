@@ -1,20 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  Wrench,
-  Check,
-  ChevronRight,
-  ChevronDown,
-  Bot,
-  Sparkles,
-  Brain,
-  Search,
-  FileText,
-  ShoppingBag,
-  Edit3,
-  Globe,
-} from 'lucide-react'
-import { BackButton } from '@/components/ui/back-button'
-import { BoltChatInput } from '@/components/ui/bolt-style-chat'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { CodexComposer } from '@/components/ui/codex-composer'
 import { useNavigate } from 'react-router-dom'
 import {
   getConversations,
@@ -23,10 +9,26 @@ import {
   deleteConversation,
   streamMessage,
   getQuota,
+  getProvider,
+  semanticNavigate,
+  approveAgentTool,
   type AgentConversation,
   type AgentMessage,
+  type AgentProvider,
 } from '@/api/agent'
+import {
+  buildComposerModels,
+  formatActiveLlmLabel,
+} from '@/constants/llm-providers'
+import {
+  readStoredAccessMode,
+  AGENT_ACCESS_STORAGE_KEY,
+  AGENT_TOOL_LABELS,
+  type AgentAccessMode,
+} from '@/types/agent-access'
 import { classifyIntent } from '@/services/intent-classifier'
+import { useThemeStore } from '@/stores/theme'
+import { cn } from '@/lib/utils'
 
 /** 预加载目标路由的页面组件，1 秒等待期间提前拉取 JS chunk */
 function preloadRoute(path: string) {
@@ -37,6 +39,7 @@ function preloadRoute(path: string) {
     '/orders': () => import('@/views/Orders'),
     '/settings': () => import('@/views/Settings'),
     '/help': () => import('@/views/Help'),
+    '/help/docs': () => import('@/views/HelpDocs'),
     '/messages': () => import('@/views/MessagesLayout'),
     '/card-pool': () => import('@/views/CardPoolResourceExplorer'),
     '/card-pool/dead': () => import('@/views/CardPoolResourceExplorer'),
@@ -59,22 +62,26 @@ interface ToolCallDisplay {
   result?: string
   data?: Record<string, unknown>
   success?: boolean
+  pending?: boolean
 }
 
 export default function AgentChat() {
   const navigate = useNavigate()
+  const isLightMode = useThemeStore((s) => s.darkMode)
   const [conversations, setConversations] = useState<AgentConversation[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [messages, setMessages] = useState<AgentMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [thinking, setThinking] = useState(false)
   const [thinkMode, setThinkMode] = useState(true)
-  const [webSearch, setWebSearch] = useState(false)
+  const [accessMode, setAccessMode] =
+    useState<AgentAccessMode>(readStoredAccessMode)
   const [streamText, setStreamText] = useState('')
   const [thinkingLines, setThinkingLines] = useState<string[]>([])
   const [thinkingCollapsed, setThinkingCollapsed] = useState(false)
   const [toolCalls, setToolCalls] = useState<ToolCallDisplay[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [threadSearch, setThreadSearch] = useState('')
   const [historyExpanded, setHistoryExpanded] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
@@ -83,6 +90,11 @@ export default function AgentChat() {
     dailyLimit: number
     hourlyLimit: number
   } | null>(null)
+  const [llmConfig, setLlmConfig] = useState<AgentProvider | null>(null)
+  const composerModels = useMemo(
+    () => (llmConfig ? buildComposerModels(llmConfig) : undefined),
+    [llmConfig],
+  )
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<(() => void) | null>(null)
 
@@ -115,6 +127,22 @@ export default function AgentChat() {
   useEffect(() => {
     loadQuota()
   }, [loadQuota])
+
+  useEffect(() => {
+    getProvider()
+      .then(setLlmConfig)
+      .catch(() => {
+        /* ignore */
+      })
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AGENT_ACCESS_STORAGE_KEY, accessMode)
+    } catch {
+      /* ignore */
+    }
+  }, [accessMode])
 
   useEffect(() => {
     loadConversations().then(() => {
@@ -270,7 +298,7 @@ export default function AgentChat() {
         trimmed,
         thinkMode,
         undefined,
-        webSearch,
+        accessMode,
         model,
       )
       abortRef.current = stream.abort
@@ -296,17 +324,30 @@ export default function AgentChat() {
         setToolCalls([...tc])
       })
       stream.onEvent('tool_result', (d: unknown) => {
-        const x = d as any
-        tc = tc.map((t) =>
-          t.name === x.name
-            ? { ...t, result: x.message, data: x.data, success: x.success }
-            : t,
-        )
-        setToolCalls([...tc])
-        // navigate_to 工具：自动跳转
+        const x = d as {
+          name: string
+          message?: string
+          data?: Record<string, unknown>
+          success?: boolean
+        }
+        const idx = tc.findIndex((t) => t.name === x.name && !t.result)
+        if (idx >= 0) {
+          tc = tc.map((t, i) =>
+            i === idx
+              ? {
+                  ...t,
+                  result: x.message,
+                  data: x.data,
+                  success: x.success,
+                  pending: x.data?.pending === true,
+                }
+              : t,
+          )
+          setToolCalls([...tc])
+        }
         if (x.name === 'navigate_to' && x.success && x.data?.path) {
-          preloadRoute(x.data.path)
-          setTimeout(() => navigate(x.data.path), 1000)
+          preloadRoute(x.data.path as string)
+          setTimeout(() => navigate(x.data.path as string), 1000)
         }
       })
       stream.onEvent('think-end', () => setThinking(false))
@@ -358,7 +399,7 @@ export default function AgentChat() {
       loading,
       activeId,
       thinkMode,
-      webSearch,
+      accessMode,
       loadConversations,
       loadQuota,
       navigateWithDelay,
@@ -376,31 +417,151 @@ export default function AgentChat() {
     setThinking(false)
   }
 
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好'
+  const handleToolApproval = useCallback(
+    async (convId: string, tool: ToolCallDisplay, approved: boolean) => {
+      try {
+        const res = await approveAgentTool(convId, {
+          toolName: tool.name,
+          arguments: tool.arguments,
+          approved,
+        })
+        setToolCalls((prev) =>
+          prev.map((t) =>
+            t.name === tool.name && t.pending
+              ? {
+                  ...t,
+                  pending: false,
+                  result: res.message,
+                  success: res.success,
+                  data:
+                    res.data && typeof res.data === 'object'
+                      ? (res.data as Record<string, unknown>)
+                      : t.data,
+                }
+              : t,
+          ),
+        )
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `a-${Date.now().toString(36)}`,
+            role: 'assistant',
+            content: res.message,
+            createdAt: new Date().toISOString(),
+          },
+        ])
+        if (
+          approved &&
+          tool.name === 'navigate_to' &&
+          res.data &&
+          typeof res.data === 'object' &&
+          'path' in res.data &&
+          typeof (res.data as { path?: string }).path === 'string'
+        ) {
+          const path = (res.data as { path: string }).path
+          preloadRoute(path)
+          setTimeout(() => navigate(path), 1000)
+        }
+      } catch (e) {
+        console.error('[Agent] 批准工具失败:', e)
+      }
+    },
+    [navigate],
+  )
+
+
+  const activeTitle = activeId
+    ? conversations.find((c) => c.id === activeId)?.title || '对话'
+    : '新对话'
+
+  const filteredConversations = threadSearch.trim()
+    ? conversations.filter((c) =>
+        c.title.toLowerCase().includes(threadSearch.trim().toLowerCase()),
+      )
+    : conversations
+
+  const isSessionStart = messages.length === 0 && !streamText
+
+  const composer = (
+    <CodexComposer
+      appearance={isLightMode ? 'light' : 'dark'}
+      layout={isSessionStart ? 'start' : 'docked'}
+      placeholder={loading ? '要求后续变更' : '随心输入'}
+      models={composerModels}
+      defaultModelId={llmConfig?.model}
+      onSend={(msg, files, model) => {
+        handleSend(msg, files, model)
+      }}
+      onStop={handleStop}
+      loading={loading}
+      thinkMode={thinkMode}
+      onThinkModeChange={setThinkMode}
+      accessMode={accessMode}
+      onAccessModeChange={setAccessMode}
+    />
+  )
 
   return (
-    <div className="flex h-full min-h-0 bg-white dark:bg-[#212121] text-text-100 dark:text-[#ECECEC]">
-      <div
-        className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-200 overflow-hidden border-r border-bg-300 dark:border-[#30302E] flex flex-col shrink-0 bg-bg-secondary/30 dark:bg-[#1a1a1a]/50`}
+    <div
+      className={cn(
+        'agent-codex internal-shell',
+        isLightMode ? 'agent-codex--light' : 'agent-codex--dark',
+      )}
+    >
+      <aside
+        className={`agent-codex-sidebar ${sidebarOpen ? '' : 'agent-codex-sidebar--collapsed'}`}
+        aria-label="Codex 导航"
+        aria-hidden={!sidebarOpen}
       >
-        <div className="p-3 border-b border-bg-300 dark:border-[#30302E]">
+        <div className="agent-codex-sidebar__inner">
+        <div className="agent-codex-sidebar__nav">
           <button
+            type="button"
             onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="agent-codex-sidebar__nav-item"
           >
-            <span className="text-base leading-none">+</span> 新建对话
+            <MsIcon name="add" size={16} className="shrink-0 opacity-70" aria-hidden />
+            新对话
+          </button>
+          <button type="button" className="agent-codex-sidebar__nav-item">
+            <MsIcon name="search" size={16} className="shrink-0 opacity-70" aria-hidden />
+            搜索
+          </button>
+          <button type="button" className="agent-codex-sidebar__nav-item">
+            <MsIcon name="account_tree" size={16} className="shrink-0 opacity-70" aria-hidden />
+            自动化
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto thin-scroll">
-          {conversations.map((conv) => (
+
+        <div className="agent-codex-sidebar__block">
+          <p className="agent-codex-sidebar__section">项目</p>
+          <button type="button" className="agent-codex-sidebar__nav-item agent-codex-sidebar__nav-item--active">
+            <span className="agent-codex-sidebar__dot" aria-hidden />
+            九木
+          </button>
+        </div>
+
+        <div className="agent-codex-sidebar__block agent-codex-sidebar__block--grow">
+          <label className="agent-codex-sidebar__search">
+            <MsIcon name="search" size={14} className="shrink-0 opacity-40" aria-hidden />
+            <input
+              type="search"
+              value={threadSearch}
+              onChange={(e) => setThreadSearch(e.target.value)}
+              placeholder="搜索对话"
+              aria-label="搜索对话"
+            />
+          </label>
+          <p className="agent-codex-sidebar__section">对话</p>
+          <div className="agent-codex-sidebar__threads thin-scroll">
+            {filteredConversations.map((conv) => (
             <div
               key={conv.id}
-              className={`group relative ${activeId === conv.id ? 'bg-accent/5 dark:bg-accent/10' : ''}`}
+              className={`agent-codex-thread-item group ${activeId === conv.id ? 'agent-codex-thread-item--active' : ''}`}
             >
               <div
                 onClick={() => selectConversation(conv.id)}
-                className={`flex flex-col px-3 py-2.5 cursor-pointer transition-colors hover:bg-bg-200 dark:hover:bg-[#252525] ${activeId === conv.id ? 'border-l-2 border-accent' : 'border-l-2 border-transparent'}`}
+                className="agent-codex-thread-item__body"
               >
                 {editingId === conv.id ? (
                   <input
@@ -410,125 +571,130 @@ export default function AgentChat() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') setEditingId(null)
                     }}
-                    className="text-sm font-medium bg-bg-200 dark:bg-[#30302E] px-2 py-0.5 rounded outline-none text-text-100 w-full"
+                    className="w-full border border-[var(--internal-hairline)] bg-[var(--internal-bg)] px-2 py-0.5 text-sm font-medium text-text-primary outline-none"
                     autoFocus
                     onClick={(e) => e.stopPropagation()}
                   />
                 ) : (
-                  <div className="text-sm font-medium truncate text-text-100 dark:text-[#ECECEC]">
+                  <div className="agent-codex-thread-item__title pr-8">
                     {conv.title}
                   </div>
                 )}
-                <div className="flex items-center gap-2 mt-0.5 text-xs text-text-300">
-                  <span>{conv._count.messages} 条消息</span>
-                </div>
               </div>
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="agent-codex-thread-item__actions">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setEditingId(conv.id)
                     setEditTitle(conv.title)
                   }}
-                  className="p-1 text-text-300 hover:text-text-100 transition-colors cursor-pointer"
+                  className="cursor-pointer p-1 text-text-muted transition-colors hover:text-text-primary"
                 >
-                  <Edit3 className="size-3" />
+                  <MsIcon name="edit" size={12} />
                 </button>
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleDelete(conv.id)
                   }}
-                  className="p-1 text-text-300 hover:text-red-400 transition-colors cursor-pointer"
+                  className="cursor-pointer p-1 text-text-muted transition-colors hover:text-red-500"
                 >
                   <span className="text-xs">✕</span>
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-bg-300 dark:border-[#30302E] bg-bg-secondary/30 dark:bg-[#1a1a1a]/30">
-          <BackButton />
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-text-300 hover:text-text-100 text-base cursor-pointer transition-colors"
-          >
-            {sidebarOpen ? '◁' : '▷'}
-          </button>
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="size-7 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
-              <Bot className="size-4 text-accent" />
-            </div>
-            <span className="text-sm font-medium text-text-200 dark:text-[#E1E1E0] truncate">
-              {activeId
-                ? conversations.find((c) => c.id === activeId)?.title || '对话'
-                : 'AI 助手'}
-            </span>
+            ))}
           </div>
-          <div className="flex-1" />
-          {quota && (
-            <span
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                quota.remaining.daily <= 25
-                  ? 'bg-red-500/10 text-red-400'
-                  : quota.remaining.daily <= 50
-                    ? 'bg-orange-500/10 text-orange-400'
-                    : 'bg-accent/10 text-accent'
-              }`}
-            >
-              🤖 {quota.remaining.daily}/{quota.dailyLimit}
-            </span>
-          )}
-          {activeId && (
-            <span className="text-xs text-text-300">
-              {conversations.find((c) => c.id === activeId)?._count.messages ||
-                0}{' '}
-              条消息
-            </span>
-          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {messages.length === 0 && !loading ? (
-            <div className="flex flex-col items-center justify-center h-full px-4">
-              <div className="w-full max-w-3xl mb-10 text-center">
-                <div className="w-16 h-16 mx-auto mb-5 flex items-center justify-center rounded-2xl bg-accent/10">
-                  <Sparkles className="size-7 text-accent" />
-                </div>
-                <h1 className="text-2xl font-semibold text-text-200 dark:text-[#E1E1E0] mb-2 tracking-tight">
-                  {greeting}，有什么可以帮你？
-                </h1>
-                <p className="text-sm text-text-300 mb-8">
-                  搜索需求、发布订单、管理交易 — 我都能帮你
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
-                {[
-                  { icon: Search, label: '搜索需求', prompt: '帮我搜索需求' },
-                  { icon: FileText, label: '发布需求', prompt: '我要发布需求' },
-                  {
-                    icon: ShoppingBag,
-                    label: '查看订单',
-                    prompt: '查看我的订单',
-                  },
-                  { icon: Globe, label: '浏览卡池', prompt: '打开卡池' },
-                ].map((b) => (
-                  <button
-                    key={b.label}
-                    onClick={() => handleSend(b.prompt)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-bg-200 dark:bg-[#252525] hover:bg-bg-300 dark:hover:bg-[#30302E] text-text-200 dark:text-[#E1E1E0] text-sm transition-colors cursor-pointer"
-                  >
-                    <b.icon className="size-4 text-accent shrink-0" />
-                    <span>{b.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="px-4 py-6">
+        <button
+          type="button"
+          className="agent-codex-sidebar__settings"
+          onClick={() => navigate('/settings')}
+        >
+          <MsIcon name="settings" size={16} className="shrink-0 opacity-70" aria-hidden />
+          设置
+        </button>
+        </div>
+      </aside>
+
+      <div className="agent-codex-canvas">
+        <div className="agent-codex-workspace">
+        <header
+          className={cn(
+            'agent-codex-main__bar',
+            isSessionStart && 'agent-codex-main__bar--start',
+          )}
+        >
+          <button
+            type="button"
+            className="agent-codex-icon-btn"
+            onClick={() => navigate(-1)}
+            aria-label="返回"
+          >
+            <MsIcon name="chevron_left" size={16} aria-hidden />
+          </button>
+          {!isSessionStart ? (
+            <>
+              {!sidebarOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(true)}
+                  className="agent-codex-icon-btn"
+                  aria-label="展开侧栏"
+                >
+                  <MsIcon name="dock_to_left" size={16} aria-hidden />
+                </button>
+              ) : null}
+              <h1 className="agent-codex-main__title">{activeTitle}</h1>
+              {llmConfig ? (
+                <span className="agent-codex-main__provider" title="当前默认模型">
+                  {formatActiveLlmLabel(llmConfig)}
+                </span>
+              ) : null}
+              {quota ? (
+                <span
+                  className={cn(
+                    'agent-codex-main__quota',
+                    quota.remaining.daily <= 25 && 'agent-codex-main__quota--low',
+                    quota.remaining.daily <= 50 &&
+                      quota.remaining.daily > 25 &&
+                      'agent-codex-main__quota--warn',
+                  )}
+                >
+                  {quota.remaining.daily}/{quota.dailyLimit}
+                </span>
+              ) : null}
+            </>
+          ) : null}
+          <div className="agent-codex-main__bar-spacer" />
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="agent-codex-icon-btn"
+            aria-label={sidebarOpen ? '收起侧栏' : '展开侧栏'}
+          >
+            <MsIcon name="dock_to_right" size={16} aria-hidden />
+          </button>
+        </header>
+
+        {isSessionStart ? (
+          <div className="agent-codex-start">
+            <h1 className="agent-codex-start__prompt">
+              我们应该在九木中构建什么？
+            </h1>
+            {llmConfig ? (
+              <p className="agent-codex-start__provider">
+                {formatActiveLlmLabel(llmConfig)}
+              </p>
+            ) : null}
+            <div className="agent-codex-start__composer">{composer}</div>
+          </div>
+        ) : (
+          <>
+            <div className="agent-codex-thread thin-scroll">
+              <div className="agent-codex-thread__inner flex flex-col gap-4">
               {(() => {
                 const hiddenCount = messages.length - VISIBLE_RECENT
                 const shouldFold = hiddenCount > 1 && !historyExpanded
@@ -540,8 +706,9 @@ export default function AgentChat() {
                   <>
                     {shouldFold && (
                       <button
+                        type="button"
                         onClick={() => setHistoryExpanded(true)}
-                        className="w-full text-center text-xs text-text-300 hover:text-accent py-2 mb-4 transition-colors cursor-pointer"
+                        className="mb-4 w-full cursor-pointer py-2 text-center font-mono text-xs text-text-muted transition-colors hover:text-[var(--internal-accent)]"
                       >
                         —— 展开历史消息（{hiddenCount} 条）——
                       </button>
@@ -549,40 +716,42 @@ export default function AgentChat() {
                     {visible.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`mb-6 ${msg.role === 'user' ? 'flex justify-end' : ''}`}
+                        className={
+                          msg.role === 'user'
+                            ? 'flex justify-end'
+                            : 'flex justify-start'
+                        }
                       >
                         <div
-                          className={`max-w-[75%] ${msg.role === 'user' ? 'bg-bg-200 dark:bg-[#30302E] rounded-2xl rounded-br-md px-4 py-3' : ''}`}
+                          className={
+                            msg.role === 'user'
+                              ? 'agent-codex-msg agent-codex-msg--user'
+                              : 'agent-codex-msg agent-codex-msg--ai'
+                          }
                         >
-                          {msg.thinking && (
-                            <details className="mb-3 rounded-lg border border-purple-500/20 bg-purple-500/[0.03] overflow-hidden group">
-                              <summary className="flex items-center gap-2 px-3 py-1.5 text-xs text-purple-600/60 dark:text-purple-400/50 cursor-pointer hover:text-purple-600 dark:hover:text-purple-300 transition-colors marker:content-none">
-                                <Brain className="size-3" />
-                                <span>思考过程</span>
-                                <span className="ml-auto text-purple-400/40">
-                                  {msg.thinking.split('\n').length} 行
-                                </span>
-                              </summary>
-                              <div className="px-3 pb-2 text-xs text-purple-600/40 dark:text-purple-300/40 leading-relaxed font-mono max-h-36 overflow-y-auto thin-scroll whitespace-pre-wrap">
+                          {msg.thinking ? (
+                            <details className="agent-codex-think-details mb-3">
+                              <summary>思考过程</summary>
+                              <div className="agent-codex-think-details__body">
                                 {msg.thinking}
                               </div>
                             </details>
-                          )}
-                          <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                          ) : null}
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
                             {msg.content}
                           </div>
                           {msg.toolCalls?.map((tc, i) => (
                             <div
                               key={i}
-                              className="mt-3 bg-bg-200 dark:bg-[#30302E] border border-bg-300 dark:border-[#454540] rounded-lg px-3 py-2"
+                              className="agent-codex-tool-card mt-3"
                             >
-                              <div className="text-xs font-medium text-text-200">
-                                <Wrench className="size-3 inline mr-1" />
+                              <div className="text-xs font-medium text-text-primary">
+                                <MsIcon name="build" size={12} className="mr-1 inline" />
                                 {tc.name}
                               </div>
                               {tc.result && (
-                                <div className="text-xs text-green-500/70 mt-1">
-                                  <Check className="size-3 inline mr-1" />
+                                <div className="mt-1 text-xs text-emerald-400/80">
+                                  <MsIcon name="check" size={12} className="mr-1 inline" />
                                   {String(tc.result)}
                                 </div>
                               )}
@@ -590,13 +759,14 @@ export default function AgentChat() {
                                 tc.name === 'get_demand_detail') &&
                                 tc.data?.id && (
                                   <button
+                                    type="button"
                                     onClick={() =>
                                       navigate(`/demands/${tc.data!.id}`)
                                     }
-                                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer"
+                                    className="mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[var(--internal-accent)] transition-colors hover:opacity-80"
                                   >
                                     查看需求卡片{' '}
-                                    <ChevronRight className="size-3" />
+                                    <MsIcon name="chevron_right" size={12} />
                                   </button>
                                 )}
                             </div>
@@ -607,110 +777,109 @@ export default function AgentChat() {
                   </>
                 )
               })()}
-              {thinking && thinkingLines.length > 0 && (
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400/60">
-                    <button
-                      type="button"
-                      onClick={() => setThinkingCollapsed(!thinkingCollapsed)}
-                      className="flex items-center gap-1.5 hover:text-purple-600 dark:hover:text-purple-300 transition-colors cursor-pointer"
-                    >
-                      <Brain className="size-3.5" />
-                      <span>思考过程</span>
-                      <span
-                        className={`inline-block transition-transform duration-200 ${thinkingCollapsed ? '' : 'rotate-180'}`}
-                      >
-                        <ChevronDown className="size-3.5" />
-                      </span>
-                    </button>
-                    <span className="text-purple-600 dark:text-purple-300 text-xs font-medium animate-pulse">
-                      正在思考…
-                    </span>
-                  </div>
-                  {!thinkingCollapsed && (
-                    <div className="px-4 pb-3 text-sm text-purple-600/60 dark:text-purple-300/50 leading-relaxed whitespace-pre-wrap font-mono max-h-48 overflow-y-auto thin-scroll">
+              {thinking && thinkingLines.length > 0 ? (
+                <div className="agent-codex-thinking">
+                  <button
+                    type="button"
+                    onClick={() => setThinkingCollapsed(!thinkingCollapsed)}
+                    className="agent-codex-thinking__label"
+                  >
+                    正在思考
+                    <MsIcon
+                      name="expand_more"
+                      size={14}
+                      className={`transition-transform ${thinkingCollapsed ? '' : 'rotate-180'}`}
+                      aria-hidden
+                    />
+                  </button>
+                  {!thinkingCollapsed ? (
+                    <div className="agent-codex-thinking__body thin-scroll">
                       {thinkingLines.join('')}
                     </div>
-                  )}
+                  ) : null}
                 </div>
-              )}
+              ) : null}
               {toolCalls.map((tc, i) => (
-                <div
-                  key={i}
-                  className="mb-3 rounded-xl border border-accent/20 bg-accent/[0.03] overflow-hidden max-w-[75%]"
-                >
+                <div key={i} className="agent-codex-tool-card mb-3 max-w-[85%]">
                   <div className="flex items-center gap-2 px-3 py-2">
-                    <div className="size-5 rounded-md bg-accent/10 flex items-center justify-center shrink-0">
-                      <Wrench className="size-3 text-accent" />
-                    </div>
-                    <span className="text-xs font-medium text-text-200">
-                      {tc.name}
+                    <MsIcon name="build" size={14} className="shrink-0 text-[var(--internal-text-muted)]" />
+                    <span className="text-xs font-medium text-text-primary">
+                      {AGENT_TOOL_LABELS[tc.name] ?? tc.name}
                     </span>
                     <span className="flex-1" />
-                    {tc.result ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-500">
-                        <Check className="size-3" />
+                    {tc.pending ? (
+                      <span className="text-xs text-amber-500">待批准</span>
+                    ) : tc.result ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                        <MsIcon name="check" size={12} />
                         完成
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-xs text-text-300">
-                        <span className="size-1.5 rounded-full bg-accent animate-pulse" />
+                      <span className="inline-flex items-center gap-1 text-xs text-text-muted">
+                        <span className="size-1.5 animate-pulse rounded-full bg-[var(--internal-accent)]" />
                         执行中
                       </span>
                     )}
                   </div>
-                  {tc.result && (
-                    <div className="px-3 pb-2.5 pt-0 border-t border-accent/10">
-                      <div className="text-xs text-text-300/80 leading-relaxed mt-1.5">
+                  {tc.result ? (
+                    <div className="border-t border-[var(--internal-hairline)] px-3 pb-2.5 pt-0">
+                      <div className="mt-1.5 text-xs leading-relaxed text-text-muted">
                         {tc.result}
                       </div>
                     </div>
-                  )}
+                  ) : null}
+                  {tc.pending && activeId ? (
+                    <div className="agent-codex-tool-approval">
+                      <button
+                        type="button"
+                        className="agent-codex-tool-approval__btn agent-codex-tool-approval__btn--approve"
+                        onClick={() => handleToolApproval(activeId, tc, true)}
+                      >
+                        批准
+                      </button>
+                      <button
+                        type="button"
+                        className="agent-codex-tool-approval__btn agent-codex-tool-approval__btn--reject"
+                        onClick={() => handleToolApproval(activeId, tc, false)}
+                      >
+                        拒绝
+                      </button>
+                    </div>
+                  ) : null}
                   {(tc.name === 'create_demand' ||
                     tc.name === 'get_demand_detail') &&
                     tc.data?.id && (
                       <div className="px-3 pb-2.5">
                         <button
+                          type="button"
                           onClick={() => navigate(`/demands/${tc.data!.id}`)}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:opacity-80 transition-opacity cursor-pointer"
+                          className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[var(--internal-accent)] transition-opacity hover:opacity-80"
                         >
-                          查看详情 <ChevronRight className="size-3" />
+                          查看详情 <MsIcon name="chevron_right" size={12} />
                         </button>
                       </div>
                     )}
                 </div>
               ))}
-              {loading && !streamText && toolCalls.length === 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1.5 text-purple-600 dark:text-purple-300 text-sm font-medium animate-pulse">
-                    正在思考…
-                  </span>
-                </div>
-              )}
-              {streamText && (
-                <div className="mb-6">
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+              {loading && !streamText && toolCalls.length === 0 && !thinking ? (
+                <p className="agent-codex-thinking__label">正在思考</p>
+              ) : null}
+              {streamText ? (
+                <div className="flex justify-start">
+                  <div className="agent-codex-msg agent-codex-msg--ai whitespace-pre-wrap">
                     {streamText}
                   </div>
                 </div>
-              )}
+              ) : null}
               <div ref={messagesEndRef} />
+              </div>
             </div>
-          )}
-        </div>
 
-        <div className="border-t border-bg-300 dark:border-[#30302E] p-4">
-          <BoltChatInput
-            onSend={(msg, files, model) => {
-              handleSend(msg, files, model)
-            }}
-            onStop={handleStop}
-            loading={loading}
-            thinkMode={thinkMode}
-            onThinkModeChange={setThinkMode}
-            webSearch={webSearch}
-            onWebSearchChange={setWebSearch}
-          />
+            <div className="agent-codex-composer agent-codex-composer--docked">
+              <div className="agent-codex-composer__inner">{composer}</div>
+            </div>
+          </>
+        )}
         </div>
       </div>
     </div>

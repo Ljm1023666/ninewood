@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import { HelpCircle } from 'lucide-react'
+import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { JumpCard } from '../views/Help'
 
 // Mock navigate
@@ -15,7 +15,7 @@ const baseMatch = {
   page: {
     id: 'test',
     path: '/test',
-    icon: HelpCircle,
+    icon: STITCH_PAGE_ICONS['help-docs'],
     title: '测试页面',
     desc: '这是一个测试页面',
     accepts: [],

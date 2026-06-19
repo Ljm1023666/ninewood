@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Layers } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
@@ -416,17 +417,19 @@ export default function CardPool() {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground">
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
-        <BackButton />
+        <BackButton compact />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <Layers className="size-5 shrink-0 text-foreground" />
+            <MsIcon name={STITCH_PAGE_ICONS['card-pool']} size={20} className="shrink-0 text-foreground" />
             <h1 className="text-lg font-bold text-text-primary">卡池</h1>
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-text-muted">
-            <span>监控：{rangeLabel}</span>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted">
+              监控 · {rangeLabel}
+            </p>
             <button
               type="button"
-              className="text-sm text-text-muted transition-colors hover:text-text-primary"
+              className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted transition-colors hover:text-text-primary"
               onClick={() => navigate('/card-pool/explorer')}
             >
               资源管理器

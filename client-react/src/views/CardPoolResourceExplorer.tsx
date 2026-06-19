@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Folder, FileType2 } from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
@@ -74,10 +74,12 @@ function ExplorerDetailsScopeRow({
         <td className="px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-2">
             {hasKids ? (
-              <Folder className="size-4 shrink-0 text-foreground" aria-hidden />
+              <MsIcon name="folder" size={16} className="shrink-0 text-foreground" aria-hidden />
             ) : (
-              <FileType2
-                className="size-4 shrink-0 text-text-muted"
+              <MsIcon
+                name="description"
+                size={16}
+                className="shrink-0 text-text-muted"
                 aria-hidden
               />
             )}
@@ -332,11 +334,11 @@ export default function CardPoolResourceExplorer() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-background text-foreground">
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
-        <BackButton />
+        <BackButton compact />
         <div>
           <h1 className="text-lg font-bold text-text-primary">资源管理器</h1>
-          <p className="text-sm text-text-muted">
-            分类浏览独立；手牌与弃牌与主卡池共用持久化
+          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted">
+            分类浏览独立 · 手牌与弃牌与主卡池共用持久化
           </p>
         </div>
       </header>

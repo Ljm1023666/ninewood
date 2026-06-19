@@ -1,22 +1,35 @@
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
   Tooltip,
   ResponsiveContainer,
   XAxis,
-  CartesianGrid,
   YAxis,
+  CartesianGrid,
+  Legend,
 } from 'recharts'
-import { TrendingUp, Users, FileText, ShoppingCart } from 'lucide-react'
-import { STATUS_LABELS } from './use-admin-data'
 import type { DashboardData } from './use-admin-data'
+import { STATUS_LABELS } from './use-admin-data'
 import {
-  AdminMetricCard,
+  AdminMetricGrid,
+  AdminMetricTile,
   AdminPanel,
+  AdminChartGrid,
+  AdminChartCell,
   AdminEmpty,
   AdminMetricSkeleton,
   AdminPanelSkeleton,
   formatMonthLabel,
+  formatCurrency,
+  ADMIN_CHART_COLORS,
+  adminChartGrid,
+  adminChartAxis,
+  adminChartTooltipStyle,
 } from './admin-ui'
 
 interface Props {
@@ -31,7 +44,7 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
       <div className="space-y-6">
         <AdminMetricSkeleton count={4} />
         <AdminPanelSkeleton height="min-h-[340px]" />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]">
           <AdminPanelSkeleton />
           <AdminPanelSkeleton />
         </div>
@@ -41,11 +54,12 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
 
   if (!data) return null
 
-  const { overview } = data
+  const { overview, revenueTrend, circlesByType } = data
   const demandEntries = Object.entries(data.demandDistribution || {}).map(
     ([k, v]) => ({
       name: STATUS_LABELS[k] || k,
       value: v,
+      key: k,
     }),
   )
   const totalDemands = demandEntries.reduce((s, e) => s + e.value, 0)
@@ -53,143 +67,196 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
     ...r,
     label: formatMonthLabel(r.name),
   }))
-  const tags = data.topTags || []
+  const revenueData = (revenueTrend || []).map((r) => ({
+    ...r,
+    label: formatMonthLabel(r.name),
+  }))
+  const tags = (data.topTags || []).slice(0, 8).map((t) => ({
+    name: t.tagName,
+    count: t.count,
+  }))
+  const circleData = (circlesByType || []).map((c) => ({
+    name: c.type || '未分类',
+    value: c._count.id,
+  }))
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-4">
-        <AdminMetricCard
-          icon={ShoppingCart}
-          label="订单总数"
-          value={overview.orderCount}
-          accent="orange"
-        />
-        <AdminMetricCard
-          icon={Users}
-          label="注册用户"
-          value={overview.userCount}
-          accent="blue"
-        />
-        <AdminMetricCard
-          icon={FileText}
-          label="需求总数"
-          value={totalDemands}
-          accent="teal"
-        />
-        <AdminMetricCard
-          icon={TrendingUp}
-          label="活跃圈子"
-          value={overview.circleCount}
-          accent="green"
-        />
-      </div>
+      <p className="font-[family-name:var(--admin-mono)] text-[10px] uppercase tracking-[0.12em] text-[var(--admin-text-muted)]">
+        分析维度
+      </p>
 
-      <AdminPanel
-        id="admin-section-users"
-        title="用户增长趋势"
-        description="总用户与新增用户对比"
-      >
-        <div className="h-[320px]">
-          {growthData.length > 0 ? (
+      <AdminMetricGrid cols={4}>
+        <AdminMetricTile label="订单总数" value={overview.orderCount} />
+        <AdminMetricTile label="注册用户" value={overview.userCount} />
+        <AdminMetricTile label="需求总数" value={totalDemands} />
+        <AdminMetricTile label="活跃圈子" value={overview.circleCount} />
+      </AdminMetricGrid>
+
+      <AdminChartGrid>
+        <AdminChartCell span={2} id="admin-section-users">
+          <h3 className="mb-1 text-[13px] font-semibold text-[var(--admin-text)]">
+            用户增长趋势
+          </h3>
+          <p className="mb-4 text-xs text-[var(--admin-text-muted)]">
+            总用户与新增用户对比
+          </p>
+          <div className="h-[260px]">
+            {growthData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={growthData}
+                  margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid {...adminChartGrid} vertical={false} />
+                  <XAxis dataKey="label" {...adminChartAxis} />
+                  <YAxis {...adminChartAxis} />
+                  <Tooltip contentStyle={adminChartTooltipStyle} />
+                  <Legend
+                    wrapperStyle={{ fontSize: 11, fontFamily: 'var(--admin-mono)' }}
+                  />
+                  <Bar
+                    dataKey="users"
+                    fill="#111111"
+                    radius={[2, 2, 0, 0]}
+                    name="总用户"
+                    barSize={20}
+                  />
+                  <Bar
+                    dataKey="newUsers"
+                    fill="#3388FF"
+                    radius={[2, 2, 0, 0]}
+                    name="新增"
+                    barSize={20}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <AdminEmpty title="暂无增长数据" />
+            )}
+          </div>
+        </AdminChartCell>
+
+        <AdminChartCell id="admin-section-revenue">
+          <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
+            营收走势
+          </h3>
+          <div className="h-[260px]">
+            {revenueData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={revenueData}
+                  margin={{ top: 4, right: 4, left: -16, bottom: 0 }}
+                >
+                  <CartesianGrid {...adminChartGrid} vertical={false} />
+                  <XAxis dataKey="label" {...adminChartAxis} />
+                  <YAxis
+                    {...adminChartAxis}
+                    tickFormatter={(v) => (v >= 10000 ? `${v / 10000}万` : String(v))}
+                  />
+                  <Tooltip
+                    contentStyle={adminChartTooltipStyle}
+                    formatter={(val: number) => [formatCurrency(val), '营收']}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#3388FF"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: '#3388FF' }}
+                    activeDot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <AdminEmpty title="暂无营收数据" />
+            )}
+          </div>
+        </AdminChartCell>
+      </AdminChartGrid>
+
+      <AdminChartGrid>
+        <AdminChartCell id="admin-section-demands">
+          <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
+            需求状态分布
+          </h3>
+          <div className="h-[220px]">
+            {demandEntries.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={demandEntries}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={44}
+                    outerRadius={72}
+                    dataKey="value"
+                    nameKey="name"
+                    paddingAngle={2}
+                    stroke="none"
+                  >
+                    {demandEntries.map((entry, i) => (
+                      <Cell
+                        key={entry.key}
+                        fill={ADMIN_CHART_COLORS[i % ADMIN_CHART_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={adminChartTooltipStyle} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <AdminEmpty title="暂无需求数据" />
+            )}
+          </div>
+        </AdminChartCell>
+
+        <AdminChartCell span={2} id="admin-section-tags">
+          <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
+            标签热度 Top 8
+          </h3>
+          <div className="h-[220px]">
+            {tags.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={tags}
+                  layout="vertical"
+                  margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid {...adminChartGrid} horizontal={false} />
+                  <XAxis type="number" {...adminChartAxis} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={80}
+                    {...adminChartAxis}
+                  />
+                  <Tooltip contentStyle={adminChartTooltipStyle} />
+                  <Bar dataKey="count" fill="#111111" radius={[0, 2, 2, 0]} barSize={14} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <AdminEmpty title="暂无标签数据" />
+            )}
+          </div>
+        </AdminChartCell>
+      </AdminChartGrid>
+
+      {circleData.length > 0 && (
+        <AdminPanel title="圈子类型分布" description="按圈子类型统计">
+          <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={growthData}
-                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="#E5E7EB"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fill: '#6B7280', fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: '#6B7280', fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: '#fff',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: 10,
-                    fontSize: 13,
-                  }}
-                />
-                <Bar
-                  dataKey="users"
-                  fill="var(--admin-accent-blue)"
-                  radius={[4, 4, 0, 0]}
-                  name="总用户"
-                />
-                <Bar
-                  dataKey="newUsers"
-                  fill="var(--admin-accent-orange)"
-                  radius={[4, 4, 0, 0]}
-                  name="新增"
-                />
+              <BarChart data={circleData} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                <CartesianGrid {...adminChartGrid} vertical={false} />
+                <XAxis dataKey="name" {...adminChartAxis} />
+                <YAxis {...adminChartAxis} />
+                <Tooltip contentStyle={adminChartTooltipStyle} />
+                <Bar dataKey="value" fill="#3388FF" radius={[2, 2, 0, 0]} barSize={24} />
               </BarChart>
             </ResponsiveContainer>
-          ) : (
-            <AdminEmpty title="暂无增长数据" />
-          )}
-        </div>
-      </AdminPanel>
-
-      <div className="grid grid-cols-2 gap-4">
-        <AdminPanel id="admin-section-demands" title="需求状态分布">
-          {demandEntries.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {demandEntries.map((entry) => (
-                <div
-                  key={entry.name}
-                  className="flex items-center justify-between rounded-lg border border-[var(--admin-border)] bg-zinc-50/80 px-4 py-3"
-                >
-                  <span className="text-sm text-[var(--admin-text-secondary)]">
-                    {entry.name}
-                  </span>
-                  <span className="text-sm font-mono font-semibold tabular-nums text-[var(--admin-text)]">
-                    {entry.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <AdminEmpty title="暂无需求数据" />
-          )}
+          </div>
         </AdminPanel>
-
-        <AdminPanel id="admin-section-tags" title="标签热度 Top 8">
-          {tags.length > 0 ? (
-            <div className="space-y-2">
-              {tags.slice(0, 8).map((tag, i) => (
-                <div
-                  key={tag.tagName}
-                  className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-zinc-50"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-medium tabular-nums text-[var(--admin-text-muted)] w-4">
-                      {i + 1}
-                    </span>
-                    <span className="truncate text-sm text-[var(--admin-text)]">
-                      {tag.tagName}
-                    </span>
-                  </div>
-                  <span className="text-sm font-mono tabular-nums text-[var(--admin-text-secondary)]">
-                    {tag.count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <AdminEmpty title="暂无标签数据" />
-          )}
-        </AdminPanel>
-      </div>
+      )}
     </div>
   )
 }

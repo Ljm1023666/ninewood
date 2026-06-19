@@ -2,14 +2,22 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { circleApi } from '@/api/circle'
 import { cn } from '@/lib/utils'
-import { Compass, Loader2, Lock, Plus, RefreshCw, Users } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
+import {
+  InternalPageShell,
+  InternalContentBlock,
+  SegmentedFilter,
+  SettingsInput,
+  SettingsActionButton,
+  StatusChip,
+} from '@/components/layout/internal-ui'
+import { ListItemCard } from '@/components/ui/list-item-card'
+import { EmptyState } from '@/components/ui/empty-state'
+import { LoadingState } from '@/components/ui/loading-state'
 import { toast } from '@/components/ui/confirm-dialog'
 
 const roleLabel: Record<string, string> = {
@@ -35,102 +43,48 @@ type MyCircleRow = {
   circle?: CircleBrief
 }
 
-function CircleTile({
+function CircleListItem({
   name,
   description,
-  coverUrl,
   memberCount,
   badge,
-  badgeVariant,
+  badgeTone = 'blue',
   onNavigate,
 }: {
   name: string
   description?: string | null
-  coverUrl?: string | null
   memberCount: number
   badge: string
-  badgeVariant: 'role' | 'public'
+  badgeTone?: 'blue' | 'green' | 'amber'
   onNavigate: () => void
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onNavigate}
-      className={cn(
-        'group relative flex w-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card text-left shadow-sm',
-        'transition-all duration-300 hover:border-accent/35 hover:shadow-lg hover:-translate-y-0.5',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-      )}
-    >
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-        {coverUrl ? (
-          <>
-            <img
-              src={coverUrl}
-              alt=""
-              className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-[1.03]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/25 to-transparent" />
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent/12 via-muted to-muted">
-            <span className="text-4xl font-black tracking-tighter text-foreground/10">
-              {name?.charAt(0) || '?'}
-            </span>
-          </div>
-        )}
-        <Badge
-          variant="secondary"
-          className={cn(
-            'absolute right-2.5 top-2.5 border backdrop-blur-md',
-            badgeVariant === 'public' &&
-              'border-emerald-500/25 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-            badgeVariant === 'role' &&
-              'border-primary/25 bg-primary/15 text-primary dark:text-primary-foreground/90',
-          )}
-        >
-          {badge}
-        </Badge>
-        <div className="absolute inset-x-0 bottom-0 p-3.5 pt-10">
-          <p className="line-clamp-1 text-base font-bold tracking-tight text-foreground drop-shadow-sm">
-            {name}
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col gap-1.5 border-t border-border/60 bg-card/90 px-3.5 py-3 backdrop-blur-sm">
-        {description ? (
-          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-            {description}
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground/80">暂无简介</p>
-        )}
-        <div className="mt-auto flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          <Users className="size-3.5 opacity-80" aria-hidden />
-          <span>{memberCount} 位成员</span>
-        </div>
-      </div>
-    </button>
-  )
-}
+  const chipClass =
+    badgeTone === 'green'
+      ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300'
+      : badgeTone === 'amber'
+        ? 'border-amber-500/35 bg-amber-500/10 text-amber-300'
+        : 'border-[var(--internal-accent)]/35 bg-[var(--internal-accent)]/10 text-blue-300'
 
-function CirclesSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="overflow-hidden rounded-2xl border border-border/60 bg-card/50"
-        >
-          <Skeleton className="aspect-[16/10] w-full rounded-none" />
-          <div className="space-y-2 p-3.5">
-            <Skeleton className="h-3 w-[85%]" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-1/3" />
-          </div>
+    <ListItemCard variant="internal" onClick={onNavigate} className="p-4">
+      <div className="relative z-[1] flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="min-w-0 flex-1 text-lg font-semibold tracking-wide text-text-primary">
+            {name}
+          </h2>
+          <StatusChip label={badge} className={chipClass} />
         </div>
-      ))}
-    </div>
+        <div className="flex items-end justify-between gap-4">
+          <span className="line-clamp-1 text-sm text-text-secondary">
+            {description?.trim() || '暂无简介'}
+          </span>
+          <span className="flex shrink-0 items-center gap-1 font-mono text-xs uppercase tracking-wider text-text-muted">
+            <MsIcon name={STITCH_PAGE_ICONS.circles} size={14} aria-hidden />
+            {memberCount}人
+          </span>
+        </div>
+      </div>
+    </ListItemCard>
   )
 }
 
@@ -187,223 +141,124 @@ export default function Circles() {
     void fetchCircles()
   }, [])
 
-  return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto thin-scroll bg-background">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 hidden"
-        aria-hidden
-      >
-        <div className="absolute -left-24 top-0 size-[380px] rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute right-0 top-24 size-[320px] rounded-full bg-accent/12 blur-3xl" />
-      </div>
+  const activeList =
+    tab === 'mine'
+      ? myCircles.map((m) => {
+          const c = m.circle
+          const id = c?.id ?? m.circleId
+          return {
+            key: m.circleId,
+            id,
+            name: c?.name?.trim() || '未命名圈子',
+            description: c?.description,
+            memberCount: c?._count?.members ?? 1,
+            badge: roleLabel[m.role] ?? m.role,
+            badgeTone: 'blue' as const,
+          }
+        })
+      : circles.map((c) => ({
+          key: c.id,
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          memberCount: c._count?.members ?? 0,
+          badge: '公开',
+          badgeTone: 'green' as const,
+        }))
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
-        <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0 max-w-2xl space-y-3">
-            <BackButton />
-            <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              发现有趣的<span className="text-accent">圈子</span>
-            </h1>
-            <p className="max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
-              加入志同道合的圈子，交流经验、分享资源、找到合作机会。圈子是九木社区的核心。
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
+  return (
+    <InternalPageShell width="medium">
+      <PageHeader
+        title="圈子"
+        subtitle="加入志同道合的圈子，交流经验、分享资源、找到合作机会"
+        onBack="back"
+        actions={
+          <>
+            <SettingsActionButton
               disabled={loading}
               onClick={() => void fetchCircles()}
             >
-              <RefreshCw
-                className={cn('size-3.5', loading && 'animate-spin')}
+              <MsIcon
+                name="refresh"
+                size={14}
+                className={cn('mr-1.5', loading && 'animate-spin')}
                 aria-hidden
               />
               刷新
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              className="gap-2 rounded-xl shadow-md"
+            </SettingsActionButton>
+            <SettingsActionButton
+              variant="primary"
               onClick={() => setShowCreate(true)}
             >
-              <Plus className="size-4" aria-hidden />
+              <MsIcon name="add" size={14} className="mr-1.5" aria-hidden />
               创建圈子
-            </Button>
-          </div>
-        </div>
+            </SettingsActionButton>
+          </>
+        }
+      />
 
-        {/* Tab Bar */}
-        <div className="mb-8 flex items-center gap-1 rounded-2xl border border-border bg-card/50 p-1.5 backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setTab('mine')}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-200',
-              tab === 'mine'
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Users className="size-4" />
-            我的圈子
-            <span
-              className={cn(
-                'ml-1 text-sm',
-                tab === 'mine'
-                  ? 'text-primary font-semibold'
-                  : 'text-muted-foreground',
-              )}
-            >
-              {myCircles.length}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('discover')}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors duration-200',
-              tab === 'discover'
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Compass className="size-4" />
-            发现圈子
-            <span
-              className={cn(
-                'ml-1 text-sm',
-                tab === 'discover'
-                  ? 'text-primary font-semibold'
-                  : 'text-muted-foreground',
-              )}
-            >
-              {circles.length}
-            </span>
-          </button>
-        </div>
+      <InternalContentBlock>
+        <SegmentedFilter
+          options={[
+            { value: 'mine', label: `我的圈子 (${myCircles.length})` },
+            { value: 'discover', label: `发现圈子 (${circles.length})` },
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
 
         {error ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 py-20">
-            <p className="text-sm text-muted-foreground">{error}</p>
-            <Button
-              type="button"
-              variant="secondary"
-              className="mt-4"
-              onClick={() => void fetchCircles()}
-            >
-              ??
-            </Button>
+          <EmptyState
+            variant="internal"
+            type="circle"
+            message={error}
+            actionLabel="重试"
+            onAction={() => void fetchCircles()}
+          />
+        ) : null}
+
+        {loading && !error ? <LoadingState variant="internal" lines={4} /> : null}
+
+        {!loading && !error && activeList.length > 0 ? (
+          <div className="flex w-full flex-col gap-3">
+            {activeList.map((item) => (
+              <CircleListItem
+                key={item.key}
+                name={item.name}
+                description={item.description}
+                memberCount={item.memberCount}
+                badge={item.badge}
+                badgeTone={item.badgeTone}
+                onNavigate={() => navigate(`/circles/${item.id}`)}
+              />
+            ))}
           </div>
         ) : null}
 
-        {loading && !error ? <CirclesSkeleton /> : null}
-
-        {!loading && !error ? (
-          <>
-            {/* ???? */}
-            {tab === 'mine' && (
-              <section className="space-y-4">
-                {myCircles.length > 0 ? (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {myCircles.map((m) => {
-                      const c = m.circle
-                      const id = c?.id ?? m.circleId
-                      const name = c?.name?.trim() || '未命名圈子'
-                      return (
-                        <CircleTile
-                          key={m.circleId}
-                          name={name}
-                          description={c?.description}
-                          coverUrl={c?.coverUrl}
-                          memberCount={c?._count?.members ?? 1}
-                          badge={roleLabel[m.role] ?? m.role}
-                          badgeVariant="role"
-                          onNavigate={() => navigate(`/circles/${id}`)}
-                        />
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 py-12 text-center">
-                    <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-muted">
-                      <Users
-                        className="size-5 text-muted-foreground"
-                        aria-hidden
-                      />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">
-                      还没有加入圈子
-                    </p>
-                    <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                      去发现页面浏览公开圈子，找到感兴趣的加入吧。
-                    </p>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="mt-5"
-                      onClick={() => setTab('discover')}
-                    >
-                      发现圈子
-                    </Button>
-                  </div>
-                )}
-              </section>
-            )}
-
-            {/* ???? */}
-            {tab === 'discover' && (
-              <section className="space-y-4">
-                {circles.length > 0 ? (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {circles.map((c) => (
-                      <CircleTile
-                        key={c.id}
-                        name={c.name}
-                        description={c.description}
-                        coverUrl={c.coverUrl}
-                        memberCount={c._count?.members ?? 0}
-                        badge="公开"
-                        badgeVariant="public"
-                        onNavigate={() => navigate(`/circles/${c.id}`)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-border/80 bg-card/40 px-6 py-14 text-center backdrop-blur-sm">
-                    <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl border border-border bg-background">
-                      <Lock
-                        className="size-5 text-muted-foreground"
-                        aria-hidden
-                      />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">
-                      暂无公开圈子
-                    </p>
-                    <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                      还没有人创建圈子，成为第一个吧。
-                    </p>
-                    <Button
-                      type="button"
-                      className="mt-5"
-                      onClick={() => setShowCreate(true)}
-                    >
-                      <Plus className="size-4" aria-hidden />
-                      创建圈子
-                    </Button>
-                  </div>
-                )}
-              </section>
-            )}
-          </>
+        {!loading && !error && activeList.length === 0 ? (
+          tab === 'mine' ? (
+            <EmptyState
+              variant="internal"
+              type="circle"
+              message="还没有加入圈子。去发现页面浏览公开圈子吧。"
+              actionLabel="发现圈子"
+              onAction={() => setTab('discover')}
+            />
+          ) : (
+            <EmptyState
+              variant="internal"
+              type="circle"
+              message="还没有人创建圈子，成为第一个吧。"
+              actionLabel="创建圈子"
+              onAction={() => setShowCreate(true)}
+            />
+          )
         ) : null}
-      </div>
+      </InternalContentBlock>
 
       {showCreate ? (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
           role="presentation"
           onClick={() => !createBusy && setShowCreate(false)}
         >
@@ -411,32 +266,28 @@ export default function Circles() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="circles-create-title"
-            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-card shadow-2xl sm:rounded-2xl"
+            className="settings-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[var(--internal-radius)] sm:rounded-[var(--internal-radius)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="border-b border-border/80 px-5 py-4 sm:px-6">
+            <div className="border-b border-[var(--internal-hairline)] px-6 py-5">
               <h2
                 id="circles-create-title"
-                className="text-lg font-bold tracking-tight text-foreground"
+                className="text-lg font-semibold tracking-wide text-text-primary"
               >
                 创建圈子
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-text-muted">
                 创建一个圈子，邀请志同道合的朋友加入
               </p>
             </div>
-            <div className="space-y-4 px-5 py-5 sm:px-6">
+            <div className="space-y-4 px-6 py-5">
               <div className="space-y-2">
                 <Label htmlFor="circle-name">圈子名称</Label>
-                <Input
-                  id="circle-name"
+                <SettingsInput
                   value={createForm.name}
-                  onChange={(e) =>
-                    setCreateForm((p) => ({ ...p, name: e.target.value }))
-                  }
+                  onChange={(v) => setCreateForm((p) => ({ ...p, name: v }))}
                   placeholder="给圈子取个名字"
-                  maxLength={48}
-                  autoComplete="off"
+                  className="w-full"
                 />
               </div>
               <div className="space-y-2">
@@ -452,38 +303,36 @@ export default function Circles() {
                   }
                   placeholder="介绍一下这个圈子"
                   rows={4}
-                  className="resize-none"
+                  className="resize-none border-[var(--internal-hairline)] bg-transparent text-text-primary"
                   maxLength={500}
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-border/80 px-5 py-4 sm:px-6">
-              <Button
-                type="button"
-                variant="ghost"
+            <div className="flex justify-end gap-2 border-t border-[var(--internal-hairline)] px-6 py-4">
+              <SettingsActionButton
                 disabled={createBusy}
                 onClick={() => setShowCreate(false)}
               >
                 取消
-              </Button>
-              <Button
-                type="button"
+              </SettingsActionButton>
+              <SettingsActionButton
+                variant="primary"
                 disabled={createBusy}
                 onClick={() => void createCircle()}
               >
                 {createBusy ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                    <MsIcon name="progress_activity" size={14} className="mr-1.5 animate-spin" aria-hidden />
                     创建中...
                   </>
                 ) : (
                   '创建'
                 )}
-              </Button>
+              </SettingsActionButton>
             </div>
           </div>
         </div>
       ) : null}
-    </div>
+    </InternalPageShell>
   )
 }

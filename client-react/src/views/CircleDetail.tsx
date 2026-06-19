@@ -3,14 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { circleApi } from '@/api/circle'
 import { useUserStore } from '@/stores/user'
 import { cn } from '@/lib/utils'
-import {
-  AlertTriangle,
-  Crown,
-  Loader2,
-  Lock,
-  UserPlus,
-  Users,
-} from 'lucide-react'
+import { MsIcon } from '@/components/ui/ms-icon'
+import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -21,7 +15,8 @@ import {
   type DemandRow,
 } from '@/components/demand/DemandDiscoveryList'
 import { toast } from '@/components/ui/confirm-dialog'
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { InternalPageShell } from '@/components/layout/internal-ui'
 
 const roleLabel: Record<string, string> = {
   OWNER: '圈主',
@@ -122,33 +117,31 @@ export default function CircleDetail() {
 
   if (loading) {
     return (
-      <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
-        <BackButton />
-        <div className="relative z-10 box-border flex min-h-full w-full max-w-3xl shrink-0 self-center flex-col gap-4 px-4 pb-12 pt-16 sm:px-6 sm:pt-20">
-          <Skeleton className="h-52 w-full rounded-3xl sm:h-60" />
-          <div className="-mt-10 relative z-10 rounded-2xl border border-border bg-card p-6 shadow-lg">
-            <Skeleton className="mx-auto h-8 w-2/3 max-w-md" />
-            <div className="mt-4 flex justify-center gap-2">
-              <Skeleton className="h-7 w-20 rounded-full" />
-              <Skeleton className="h-7 w-20 rounded-full" />
-            </div>
-            <Skeleton className="mt-6 h-16 w-full rounded-xl" />
+      <InternalPageShell width="medium">
+        <PageHeader title="圈子详情" onBack="back" />
+        <Skeleton className="h-52 w-full rounded-3xl sm:h-60" />
+        <div className="relative z-10 rounded-2xl border border-border bg-card p-6 shadow-lg">
+          <Skeleton className="mx-auto h-8 w-2/3 max-w-md" />
+          <div className="mt-4 flex justify-center gap-2">
+            <Skeleton className="h-7 w-20 rounded-full" />
+            <Skeleton className="h-7 w-20 rounded-full" />
           </div>
-          <div className="mt-8 space-y-3">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-            <Skeleton className="h-28 w-full rounded-xl" />
-          </div>
+          <Skeleton className="mt-6 h-16 w-full rounded-xl" />
         </div>
-      </div>
+        <div className="mt-8 space-y-3">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-28 w-full rounded-xl" />
+        </div>
+      </InternalPageShell>
     )
   }
 
   if (error) {
     return (
-      <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
-        <BackButton />
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-20">
+      <InternalPageShell width="medium">
+        <PageHeader title="圈子详情" onBack="back" />
+        <div className="flex flex-1 flex-col items-center justify-center py-20">
           <p className="text-center text-sm text-muted-foreground">{error}</p>
           <Button
             type="button"
@@ -159,7 +152,7 @@ export default function CircleDetail() {
             重试
           </Button>
         </div>
-      </div>
+      </InternalPageShell>
     )
   }
 
@@ -170,8 +163,7 @@ export default function CircleDetail() {
   const previewMembers = (circle.members || []).slice(0, 8)
 
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
-      <BackButton />
+    <div className="internal-shell relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
       {circle.coverUrl ? (
         <img
           src={circle.coverUrl}
@@ -180,12 +172,17 @@ export default function CircleDetail() {
           aria-hidden
         />
       ) : (
-        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-primary/15 via-muted to-muted" />
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-primary/10 via-muted to-muted" />
       )}
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/30 via-background/72 to-background" />
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/15 via-background/50 to-background" />
       <div className="relative z-10 box-border flex min-h-full w-full max-w-3xl shrink-0 self-center flex-col px-4 pb-16 sm:px-6">
-        <div className="h-24 shrink-0 sm:h-28" aria-hidden />
-        <div className="relative z-[2] mx-0 rounded-2xl border border-border bg-card/95 px-5 pb-5 pt-7 shadow-lg backdrop-blur-md sm:px-6 sm:pb-6 sm:pt-8">
+        <PageHeader
+          title={circle.name}
+          onBack="back"
+          divider={false}
+          className="pt-2"
+        />
+        <div className="relative z-[2] mx-0 rounded-2xl border border-border bg-card/95 px-5 pb-5 pt-5 shadow-lg backdrop-blur-md sm:px-6 sm:pb-6 sm:pt-6">
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className={cn('font-semibold', st.cls)}>
@@ -195,18 +192,17 @@ export default function CircleDetail() {
                 {circle.type === 'PUBLIC' ? '公开圈' : '私密圈'}
               </Badge>
             </div>
-            <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              {circle.name}
-            </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground sm:text-sm">
               <span className="inline-flex items-center gap-1.5">
-                <Users className="size-3.5 shrink-0 opacity-80" aria-hidden />
+                <MsIcon name={STITCH_PAGE_ICONS.circles} size={14} className="shrink-0 opacity-80" aria-hidden />
                 {memberCount} 位成员
               </span>
               {circle.owner?.nickname ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Crown
-                    className="size-3.5 shrink-0 text-amber-600/90 dark:text-amber-400/90"
+                  <MsIcon
+                    name="workspace_premium"
+                    size={14}
+                    className="shrink-0 text-amber-600/90 dark:text-amber-400/90"
                     aria-hidden
                   />
                   圈主 {circle.owner.nickname}
@@ -223,7 +219,7 @@ export default function CircleDetail() {
                   : 'border-amber-500/25 bg-amber-500/8 text-amber-900 dark:text-amber-200',
               )}
             >
-              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+              <MsIcon name="warning" size={16} className="mt-0.5 shrink-0" aria-hidden />
               <span>
                 {circle.status === 'DEFUNCT'
                   ? '该圈子已失效，仅可浏览历史信息。'
@@ -251,16 +247,16 @@ export default function CircleDetail() {
                 onClick={() => void handleJoin()}
               >
                 {joinBusy ? (
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  <MsIcon name="progress_activity" size={16} className="animate-spin" aria-hidden />
                 ) : (
-                  <UserPlus className="size-4" aria-hidden />
+                  <MsIcon name="person_add" size={16} aria-hidden />
                 )}
                 加入圈子
               </Button>
             ) : null}
             {!isMember && !isPublic ? (
               <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/25 px-4 py-3 text-sm text-muted-foreground sm:w-auto sm:justify-start sm:px-5">
-                <Lock className="size-4 shrink-0" aria-hidden />
+                <MsIcon name="lock" size={16} className="shrink-0" aria-hidden />
                 私密圈，仅限邀请加入
               </div>
             ) : null}

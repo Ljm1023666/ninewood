@@ -1,23 +1,37 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Tag, Plus, X, ToggleLeft, ToggleRight, Clock } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { BackButton } from '@/components/ui/back-button'
+import {
+  InternalContentBlock,
+  InternalSection,
+  SettingsActionButton,
+  SettingsInput,
+  SettingsPanel,
+  SettingsProShell,
+  SettingsRow,
+} from '@/components/layout/internal-ui'
+import { EmptyState } from '@/components/ui/empty-state'
+import { LoadingState } from '@/components/ui/loading-state'
 import { userTagApi } from '@/api/user-tag'
+import { MsIcon } from '@/components/ui/ms-icon'
+
+const STATUS_LABEL: Record<string, string> = {
+  IDLE: '空闲',
+  BUSY: '忙碌',
+  HIDDEN: '隐藏',
+}
 
 export default function UserTagsManage() {
   const [tags, setTags] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [newTag, setNewTag] = useState('')
+  const [busy, setBusy] = useState<Record<string, boolean>>({})
 
   const load = useCallback(async () => {
+    setLoading(true)
     try {
       const r = await userTagApi.list()
-      setTags(r.data?.data?.tags || [])
+      setTags(r.data?.data?.tags || r.data?.data || [])
     } catch {
-      /* noop */
+      setTags([])
     } finally {
       setLoading(false)
     }
@@ -28,8 +42,13 @@ export default function UserTagsManage() {
   }, [load])
 
   async function toggle(tagName: string) {
-    await userTagApi.toggle(tagName)
-    load()
+    setBusy((prev) => ({ ...prev, [tagName]: true }))
+    try {
+      await userTagApi.toggle(tagName)
+      await load()
+    } finally {
+      setBusy((prev) => ({ ...prev, [tagName]: false }))
+    }
   }
 
   async function addTag() {
@@ -40,124 +59,91 @@ export default function UserTagsManage() {
   }
 
   async function removeTag(tagName: string) {
-    await userTagApi.close(tagName)
-    load()
+    setBusy((prev) => ({ ...prev, [tagName]: true }))
+    try {
+      await userTagApi.close(tagName)
+      await load()
+    } finally {
+      setBusy((prev) => ({ ...prev, [tagName]: false }))
+    }
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center overflow-y-auto thin-scroll">
-      <div className="absolute top-4 left-4 z-10">
-        <BackButton />
-      </div>
-      <div className="h-16 shrink-0" />
-      <div className="mx-auto w-full max-w-2xl px-4 py-8 md:px-6">
-        <h1 className="text-xl font-bold text-text-primary mb-1">我的标签</h1>
-        <p className="text-sm text-text-primary/40 mb-6">
-          管理服务标签，控制检索可见性
-        </p>
+    <SettingsProShell active="tags" title="我的标签">
+      <InternalContentBlock>
+        <InternalSection label="添加">
+          <SettingsPanel>
+            <SettingsRow
+              label="新标签"
+              description="开通后可在检索中被发现"
+              last
+            >
+              <div className="flex w-full min-w-[200px] max-w-sm gap-2">
+                <SettingsInput
+                  value={newTag}
+                  onChange={setNewTag}
+                  onKeyDown={(e) => e.key === 'Enter' && addTag()}
+                  placeholder="输入标签名"
+                />
+                <SettingsActionButton
+                  variant="primary"
+                  onClick={addTag}
+                  disabled={!newTag.trim()}
+                >
+                  添加
+                </SettingsActionButton>
+              </div>
+            </SettingsRow>
+          </SettingsPanel>
+        </InternalSection>
 
-        <Card className="border-border bg-bg-secondary backdrop-blur-md mb-4">
-          <CardHeader>
-            <CardTitle className="text-text-primary text-base flex items-center gap-2">
-              <Plus className="size-4" />
-              添加标签
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex gap-2">
-            <Input
-              className="border-border bg-bg-secondary text-text-primary placeholder:text-text-primary/30"
-              placeholder="输入标签名..."
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') addTag()
-              }}
+        <InternalSection label="标签列表">
+          {loading ? <LoadingState variant="internal" lines={3} /> : null}
+
+          {!loading && tags.length === 0 ? (
+            <EmptyState
+              type="search"
+              variant="internal"
+              message="暂无标签，从上方添加"
             />
-            <Button
-              onClick={addTag}
-              className="bg-[#7C3AED] hover:bg-[#6D28D9]"
-            >
-              添加
-            </Button>
-          </CardContent>
-        </Card>
+          ) : null}
 
-        {loading && (
-          <p className="text-text-primary/40 text-sm text-center py-8">
-            <Clock className="size-4 inline animate-spin mr-1" />
-            加载中...
-          </p>
-        )}
-
-        <div className="flex flex-col gap-2">
-          {tags.map((t: any) => (
-            <Card
-              key={t.tagName}
-              className="border-border bg-bg-secondary backdrop-blur-md cursor-pointer hover:bg-bg-tertiary transition-colors"
-            >
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Tag className="size-5 text-muted-foreground" />
-                  <div>
-                    <span className="font-medium text-text-primary">
-                      {t.tagName}
-                    </span>
-                    <div className="flex gap-2 mt-0.5">
-                      <Badge
-                        className={
-                          t.status === 'IDLE'
-                            ? 'bg-emerald-500/15 text-emerald-400'
-                            : t.status === 'BUSY'
-                              ? 'bg-amber-500/15 text-amber-400'
-                              : 'bg-gray-500/15 text-gray-400'
-                        }
-                      >
-                        {t.status === 'IDLE'
-                          ? '空闲'
-                          : t.status === 'BUSY'
-                            ? '忙碌'
-                            : '隐藏'}
-                      </Badge>
-                      {t.certified && (
-                        <Badge className="bg-blue-500/15 text-blue-400">
-                          已认证
-                        </Badge>
-                      )}
-                    </div>
+          {!loading && tags.length > 0 ? (
+            <SettingsPanel>
+              {tags.map((t: any, i: number) => (
+                <SettingsRow
+                  key={t.tagName}
+                  label={t.tagName}
+                  description={[
+                    STATUS_LABEL[t.status] || t.status,
+                    t.certified ? '已认证' : null,
+                    t.orderCount != null ? `${t.orderCount} 单` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  last={i === tags.length - 1}
+                >
+                  <div className="flex shrink-0 gap-2">
+                    <SettingsActionButton
+                      onClick={() => toggle(t.tagName)}
+                      disabled={busy[t.tagName] || t.status === 'BUSY'}
+                    >
+                      {t.status === 'IDLE' ? '隐藏' : '显示'}
+                    </SettingsActionButton>
+                    <SettingsActionButton
+                      variant="danger"
+                      onClick={() => removeTag(t.tagName)}
+                      disabled={busy[t.tagName]}
+                    >
+                      <MsIcon name="close" size={14} aria-hidden />
+                    </SettingsActionButton>
                   </div>
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => toggle(t.tagName)}
-                    className="text-text-primary/60 hover:text-text-primary"
-                  >
-                    {t.status === 'IDLE' ? (
-                      <ToggleRight className="size-5 text-emerald-400" />
-                    ) : (
-                      <ToggleLeft className="size-5" />
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeTag(t.tagName)}
-                    className="text-text-primary/40 hover:text-red-400"
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {!loading && tags.length === 0 && (
-            <p className="text-text-primary/30 text-center py-8">
-              暂无标签，从上方添加
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
+                </SettingsRow>
+              ))}
+            </SettingsPanel>
+          ) : null}
+        </InternalSection>
+      </InternalContentBlock>
+    </SettingsProShell>
   )
 }
