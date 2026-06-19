@@ -13,6 +13,7 @@ import {
   FolderCode,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 
 // Utility function for className merging
 const cn = (...classes: (string | undefined | null | false)[]) =>
@@ -469,6 +470,8 @@ interface PromptInputBoxProps {
   value?: string
   /** 外部值变更回调 */
   onInputChange?: (value: string) => void
+  /** 中断 AI 请求 */
+  onAbort?: () => void
 }
 export const PromptInputBox = React.forwardRef(
   (props: PromptInputBoxProps, ref: React.Ref<HTMLDivElement>) => {
@@ -481,13 +484,18 @@ export const PromptInputBox = React.forwardRef(
       enableSpeed,
       speedMode: externalSpeedMode,
       onSpeedChange,
+      onCanvasChange,
+      onPublish,
       value: externalValue,
       onInputChange,
+      onAbort,
     } = props as PromptInputBoxProps & {
       onThinkChange?: (think: boolean) => void
       enableSpeed?: boolean
       speedMode?: boolean
       onSpeedChange?: (on: boolean) => void
+      onCanvasChange?: (on: boolean) => void
+      onPublish?: () => Promise<void>
     }
     const speedMode = externalSpeedMode ?? true
     const [input, setInput] = React.useState(externalValue ?? '')
@@ -518,7 +526,6 @@ export const PromptInputBox = React.forwardRef(
       if (value === 'aggressive') {
         onSpeedChange?.(!speedMode)
         setShowThink(false)
-        setShowCanvas(false)
       } else if (value === 'think') {
         setShowThink((prev) => {
           const next = !prev
@@ -528,13 +535,24 @@ export const PromptInputBox = React.forwardRef(
         onSpeedChange?.(false)
         setShowCanvas(false)
       } else if (value === 'canvas') {
-        setShowCanvas((prev) => !prev)
-        onSpeedChange?.(false)
+        setShowCanvas((prev) => {
+          const next = !prev
+          onCanvasChange?.(next)
+          return next
+        })
         setShowThink(false)
       }
     }
 
-    const handleCanvasToggle = () => setShowCanvas((prev) => !prev)
+    const handleCanvasToggle = () => {
+      setShowThink(false)
+      onThinkChange?.(false)
+      setShowCanvas((prev) => {
+        const next = !prev
+        onCanvasChange?.(next)
+        return next
+      })
+    }
 
     const isImageFile = (file: File) => file.type.startsWith('image/')
 
@@ -683,21 +701,53 @@ export const PromptInputBox = React.forwardRef(
             className={cn(
               'transition-all duration-300',
               isRecording ? 'h-0 overflow-hidden opacity-0' : 'opacity-100',
+              'rounded-2xl',
             )}
+            style={{
+              background: 'rgba(0,0,0,0.06)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              padding: 16,
+            }}
           >
-            <PromptInputTextarea
-              placeholder={
-                speedMode
-                  ? '一句话快速生成，不追问...'
-                  : showThink
-                    ? '深度思考...'
-                    : showCanvas
-                      ? '画布创作...'
-                      : placeholder
-              }
-              className="text-base"
-            />
-          </div>
+            <AnimatePresence mode="sync">
+              {showCanvas && speedMode ? (
+                <motion.div
+                  key="canvas-speed"
+                  variants={{
+                    enter: { opacity: 1, height: 'auto', scale: 1, transition: { type: 'spring', stiffness: 380, damping: 28, mass: 0.35 } },
+                    exit: { opacity: 0, height: 0, scale: 0.96, transition: { type: 'spring', stiffness: 120, damping: 22, mass: 1.5 } },
+                  }}
+                  initial="exit"
+                  animate="enter"
+                  exit="exit"
+                >
+                  <CanvasSpeedFields onPublish={onPublish} />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="textarea"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 'auto', transition: { opacity: { duration: 0.15 }, height: { duration: 0 } } }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 28, mass: 0.35 }}
+                >
+                  <PromptInputTextarea
+                    placeholder={
+                      speedMode
+                        ? '一句话快速生成，不追问...'
+                        : showThink
+                          ? '深度思考...'
+                          : showCanvas
+                            ? '画布创作...'
+                            : placeholder
+                    }
+                    className="text-base"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
           {isRecording && (
             <VoiceRecorder
@@ -707,7 +757,9 @@ export const PromptInputBox = React.forwardRef(
             />
           )}
 
-          <PromptInputActions className="flex items-center justify-between gap-2 p-0 pt-2">
+          <PromptInputActions
+            className="flex items-center justify-between gap-2 p-0 pt-2"
+          >
             <div
               className={cn(
                 'flex items-center gap-1 transition-opacity duration-300',
@@ -929,24 +981,26 @@ export const PromptInputBox = React.forwardRef(
                       : 'bg-transparent hover:bg-gray-600/30 text-text-muted hover:text-text-secondary',
                 )}
                 onClick={() => {
-                  if (isRecording) setIsRecording(false)
+                  if (isLoading) onAbort?.()
+                  else if (isRecording) setIsRecording(false)
                   else if (hasContent) handleSubmit()
                   else setIsRecording(true)
                 }}
-                disabled={isLoading && !hasContent}
+                disabled={false}
               >
                 {isLoading ? (
-                  <Square className="h-4 w-4 fill-bg-primary animate-pulse" />
+                  <Square className="h-4 w-4 fill-text-secondary animate-pulse" />
                 ) : isRecording ? (
                   <StopCircle className="h-5 w-5 text-red-500" />
                 ) : hasContent ? (
-                  <ArrowUp className="h-4 w-4 text-bg-primary" />
+                  <ArrowUp className="h-4 w-4 text-text-secondary" />
                 ) : (
-                  <Mic className="h-5 w-5 text-bg-primary transition-colors" />
+                  <Mic className="h-5 w-5 text-text-secondary transition-colors" />
                 )}
               </Button>
             </PromptInputAction>
           </PromptInputActions>
+          </div>
         </PromptInput>
 
         <ImageViewDialog
@@ -958,3 +1012,187 @@ export const PromptInputBox = React.forwardRef(
   },
 )
 PromptInputBox.displayName = 'PromptInputBox'
+
+/** Canvas + Speed：三行表单，信用卡式 label + 校验提示 + 自动格式化 */
+function CanvasSpeedFields({
+  onPublish,
+}: {
+  onPublish?: () => Promise<void>
+}) {
+  const fields = useDemandWorkspaceStore((s) => s.fields)
+  const updateField = useDemandWorkspaceStore((s) => s.updateField)
+  const [publishing, setPublishing] = React.useState(false)
+
+  const title = fields.title
+  const description = fields.description
+  const budget = fields.budget
+
+  const budgetNum = budget ? Number(budget.replace(/[^\d.]/g, '')) : 0
+  const allValid = title.trim().length >= 2 && description.trim().length >= 2 && budgetNum > 0
+
+  const doPublish = async () => {
+    if (!allValid) return
+    if (onPublish) {
+      setPublishing(true)
+      try {
+        await onPublish()
+      } finally {
+        setPublishing(false)
+      }
+    }
+  }
+
+  return (
+    <div className="ccp-form grid gap-3">
+      <style>{canvasFieldStyles}</style>
+
+      {/* 标题 */}
+      <div>
+        <label htmlFor="cvs-title">需求标题</label>
+        <input
+          id="cvs-title"
+          type="text"
+          placeholder="简短概括你的需求"
+          value={title}
+          onChange={(e) => updateField('title', e.target.value)}
+          aria-invalid={title.length > 0 && title.trim().length < 2}
+        />
+        {title.length > 0 && title.trim().length < 2 && (
+          <small className="err">标题至少 2 个字符</small>
+        )}
+      </div>
+
+      {/* 描述 */}
+      <div>
+        <label htmlFor="cvs-desc">需求内容</label>
+        <textarea
+          id="cvs-desc"
+          placeholder="详细描述你的需求"
+          rows={2}
+          value={description}
+          onChange={(e) => updateField('description', e.target.value)}
+          aria-invalid={description.length > 0 && description.trim().length < 2}
+        />
+        {description.length > 0 && description.trim().length < 2 && (
+          <small className="err">描述至少 2 个字符</small>
+        )}
+      </div>
+
+      {/* 金额 */}
+      <div>
+        <label htmlFor="cvs-price">金额</label>
+        <input
+          id="cvs-price"
+          type="text"
+          inputMode="numeric"
+          placeholder="例如 3000"
+          value={budget}
+          onChange={(e) => {
+            // 只允许数字和小数点
+            const cleaned = e.target.value.replace(/[^\d.]/g, '')
+            updateField('budget', cleaned)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && allValid) {
+              e.preventDefault()
+              doPublish()
+            }
+          }}
+          aria-invalid={budget.length > 0 && budgetNum <= 0}
+        />
+        {budget.length > 0 && budgetNum <= 0 && (
+          <small className="err">请输入有效金额</small>
+        )}
+      </div>
+
+      {/* 发布按钮 */}
+      <button
+        type="button"
+        onClick={doPublish}
+        disabled={!allValid || publishing}
+        className="publish-btn"
+        aria-disabled={!allValid || publishing}
+      >
+        {publishing ? '发布中…' : allValid ? '发布需求' : '请完善所有字段'}
+      </button>
+    </div>
+  )
+}
+
+const canvasFieldStyles = `
+  .ccp-form {
+    /* glass 效果由外层 wrapper 和下方 PromptActions 统一提供 */
+  }
+  .ccp-form label {
+    display: block;
+    margin: 6px 0 4px;
+    color: var(--text-secondary, #666);
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .ccp-form input,
+  .ccp-form textarea {
+    height: 46px;
+    display: block;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 10px 14px;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+    border-radius: 10px;
+    outline: none;
+    background: rgba(255,255,255,0.50);
+    color: var(--text-primary, #0d0c22);
+    font-size: 14px;
+  }
+  .ccp-form textarea {
+    height: auto;
+    resize: vertical;
+  }
+  .ccp-form input::placeholder,
+  .ccp-form textarea::placeholder {
+    color: var(--text-muted, #999);
+  }
+  .ccp-form input:focus,
+  .ccp-form textarea:focus {
+    border: 1px solid #3388FF;
+    box-shadow: 0 0 0 3px rgba(51,136,255,0.1);
+  }
+  .ccp-form input[aria-invalid="true"],
+  .ccp-form textarea[aria-invalid="true"] {
+    border-color: #b42318;
+    box-shadow: 0 0 0 3px rgba(180,35,24,0.08);
+  }
+  .ccp-form .err {
+    color: #b42318;
+    font-size: 11px;
+    position: absolute;
+    bottom: -16px;
+    left: 0;
+    white-space: nowrap;
+  }
+  .ccp-form > div {
+    position: relative;
+  }
+  .ccp-form .publish-btn {
+    margin-top: 4px;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(51,136,255,0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(51,136,255,0.25);
+    color: #3388FF;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ccp-form .publish-btn:not(:disabled):hover {
+    background: rgba(51,136,255,0.30);
+  }
+  .ccp-form .publish-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+`

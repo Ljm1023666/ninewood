@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useReducer, useMemo, useRef, useEffect } from 'react'
+import React, { useReducer, useMemo, useRef, useEffect, useCallback } from 'react'
 import { cx } from 'class-variance-authority'
 import { AnimatePresence, motion } from 'motion/react'
 
 import { cn } from '@/lib/utils'
-import { BrainCog } from 'lucide-react'
+import { BrainCog, Zap } from 'lucide-react'
 
 interface OrbProps {
   dimension?: string
@@ -203,6 +203,8 @@ export interface MorphPanelProps {
   placeholder?: string
   thinkMode?: boolean
   onThinkToggle?: () => void
+  speedMode?: boolean
+  onSpeedToggle?: () => void
 }
 
 export function MorphPanel({
@@ -211,6 +213,8 @@ export function MorphPanel({
   placeholder = 'Ask me anything...',
   thinkMode,
   onThinkToggle,
+  speedMode,
+  onSpeedToggle,
 }: MorphPanelProps = {}) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -235,11 +239,12 @@ export function MorphPanel({
 
   const isOpen = panel === 'open'
 
-  // 展开后自动聚焦
+  // 展开后聚焦 textarea
   useEffect(() => {
     if (isOpen) {
-      // 等 spring 动画完成后再聚焦
-      const id = setTimeout(() => textareaRef.current?.focus(), 300)
+      const id = setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 350)
       return () => clearTimeout(id)
     }
   }, [isOpen])
@@ -296,7 +301,8 @@ export function MorphPanel({
         ref={wrapperRef}
         data-panel
         className={cx(
-          'bg-background flex flex-col items-center overflow-hidden absolute bottom-0 right-0',
+          'bg-background flex flex-col items-center absolute bottom-0 right-0',
+          !isOpen && 'overflow-hidden',
         )}
         style={{ border: '0.5px solid var(--border-color)' }}
         initial={false}
@@ -393,6 +399,50 @@ export function MorphPanel({
                         <span className="relative z-10">Think</span>
                       </motion.button>
                     )}
+                    {onSpeedToggle && (
+                      <motion.button
+                        type="button"
+                        onClick={onSpeedToggle}
+                        className={cx(
+                          'relative flex cursor-pointer items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium overflow-hidden',
+                        )}
+                        animate={{
+                          backgroundColor: speedMode
+                            ? 'rgba(245,158,11,0.12)'
+                            : 'transparent',
+                          borderColor: speedMode
+                            ? 'rgba(245,158,11,0.25)'
+                            : 'transparent',
+                          color: speedMode ? '#F59E0B' : undefined,
+                        }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {speedMode && (
+                          <motion.div
+                            className="absolute inset-0 rounded-md"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: [0, 0.12, 0] }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: 'easeInOut',
+                            }}
+                            style={{
+                              background:
+                                'radial-gradient(circle at center, #F59E0B, transparent 70%)',
+                            }}
+                          />
+                        )}
+                        <Zap className="size-3 shrink-0" />
+                        <span className="relative z-10">Speed</span>
+                      </motion.button>
+                    )}
                   </div>
                 </div>
                 <textarea
@@ -400,7 +450,8 @@ export function MorphPanel({
                   placeholder={placeholder}
                   name="message"
                   disabled={isLoading}
-                  className="h-full w-full resize-none scroll-py-2 rounded-md px-4 pb-4 outline-0 text-foreground placeholder:text-foreground/25"
+                  className="h-full w-full resize-none scroll-py-2 rounded-md pl-[38px] pr-4 pb-4 text-white placeholder:text-white/25"
+                  style={{ caretColor: '#ffffff' }}
                   required
                   onKeyDown={handleKeys}
                   spellCheck={false}
@@ -454,7 +505,8 @@ function DockBar() {
 
         <button
           type="button"
-          className="flex h-fit flex-1 justify-end rounded-full px-2 py-0.5 text-sm text-foreground/60 hover:text-foreground transition-colors"
+          tabIndex={-1}
+          className="flex h-fit flex-1 justify-end rounded-full px-2 py-0.5 text-sm text-foreground/60 hover:text-foreground transition-colors cursor-text"
           onClick={triggerOpen}
         >
           <span className="truncate">Ask AI</span>

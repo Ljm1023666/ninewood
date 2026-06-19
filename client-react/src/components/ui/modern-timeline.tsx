@@ -14,6 +14,7 @@ export interface TimelineItem {
   image?: string
   status?: 'completed' | 'current' | 'upcoming'
   category?: string
+  tagName?: string | null
   onClick?: () => void
   onAvatarClick?: () => void
 }
@@ -71,7 +72,7 @@ export function Timeline({ items, className }: TimelineProps) {
       <div
         className={cn('w-full max-w-4xl mx-auto px-4 sm:px-6 py-8', className)}
       >
-        <p className="text-center text-foreground/50">暂无内容</p>
+        <p className="text-center text-white/50">暂无内容</p>
       </div>
     )
   }
@@ -147,9 +148,9 @@ export function Timeline({ items, className }: TimelineProps) {
                             loading="lazy"
                           />
                         ) : (
-                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <div className="w-full h-full bg-white/10 flex items-center justify-center">
                             <IconComponent
-                              className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/40"
+                              className="w-5 h-5 sm:w-6 sm:h-6 text-white/40"
                               aria-hidden="true"
                             />
                           </div>
@@ -166,7 +167,8 @@ export function Timeline({ items, className }: TimelineProps) {
                     <Card
                       className={cn(
                         'border transition-all duration-300 hover:shadow-md relative',
-                        'bg-card/50 backdrop-blur-sm',
+                        'bg-white/5 border-white/10 shadow-lg shadow-black/20',
+                        'hover:bg-white/10 hover:border-white/20',
                         config.borderColor,
                         'group-hover:border-primary/30',
                         item.onClick && 'cursor-pointer',
@@ -176,24 +178,31 @@ export function Timeline({ items, className }: TimelineProps) {
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3">
                           <div className="flex-1 min-w-0">
-                            <motion.h3 className="text-lg sm:text-xl font-semibold text-foreground mb-1 group-hover:text-accent transition-colors duration-300">
+                            <motion.h3 className="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-accent transition-colors duration-300">
                               {item.title}
                             </motion.h3>
 
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-foreground/50">
-                              {item.category && (
-                                <span className="font-medium">
-                                  {item.category}
+                            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-white/50">
+                              <div className="flex items-center gap-2">
+                                {item.category && (
+                                  <span className="font-medium">
+                                    {item.category}
+                                  </span>
+                                )}
+                                {item.category && item.date && (
+                                  <span
+                                    className="w-1 h-1 bg-white/30 rounded-full"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                                {item.date && (
+                                  <time dateTime={item.date}>{item.date}</time>
+                                )}
+                              </div>
+                              {item.tagName && (
+                                <span className="px-2 py-0.5 rounded-lg text-xs bg-white/10 text-white/60 border border-white/10">
+                                  {item.tagName}
                                 </span>
-                              )}
-                              {item.category && item.date && (
-                                <span
-                                  className="w-1 h-1 bg-foreground/30 rounded-full"
-                                  aria-hidden="true"
-                                />
-                              )}
-                              {item.date && (
-                                <time dateTime={item.date}>{item.date}</time>
                               )}
                             </div>
                           </div>
@@ -212,7 +221,7 @@ export function Timeline({ items, className }: TimelineProps) {
                         </div>
 
                         <motion.p
-                          className="text-sm sm:text-base text-foreground/65 leading-relaxed mb-4"
+                          className="text-sm sm:text-base text-white/65 leading-relaxed mb-4"
                           initial={{ opacity: 0.8 }}
                           whileHover={{ opacity: 1 }}
                         >
@@ -220,7 +229,7 @@ export function Timeline({ items, className }: TimelineProps) {
                         </motion.p>
 
                         <div
-                          className="h-1 bg-muted rounded-full overflow-hidden"
+                          className="h-1 bg-white/10 rounded-full overflow-hidden"
                           role="progressbar"
                           aria-valuenow={
                             item.status === 'completed'
