@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* ── 设计 Token（迁移自 Vue global.css）── */
+:root {
+  --sidebar-w: 72px;
+  /* 与 Sidebar 底栏高度一致，主内容区 mobile padding-bottom 复用 */
+  --mobile-tabbar-h: 64px;
+  --content-max-w: 720px;
+  --primary-start: #667eea;
+  --primary-end: #764ba2;
+  --accent-color: #667eea;
+  --primary-gradient: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #12122a;
+  --bg-tertiary: #1a1a3a;
+  --bg-card: rgba(102, 126, 234, 0.08);
+  --text-primary: #e0e0f0;
+  --text-secondary: #b0b0d0;
+  --text-muted: #8080a8;
+  --border-color: rgba(102, 126, 234, 0.2);
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --error-color: #ff4757;
+  --brand-red: #FE2C55;
+  --brand-red-light: #ff6b81;
+  --glass-blur: 20px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --glow-primary: 0 0 30px rgba(102, 126, 234, 0.25);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* ── Tailwind 主题扩展 ── */
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-card: var(--bg-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border-color);
+  --color-accent: var(--accent-color);
+  --color-success: var(--success-color);
+  --color-warning: var(--warning-color);
+  --color-error: var(--error-color);
+  --color-brand-red: var(--brand-red);
+  --color-brand-red-light: var(--brand-red-light);
+  /* 与 JSX 中 bg-card / text-card-foreground / text-muted-foreground 对齐（shadcn 命名） */
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+  --color-muted-foreground: var(--text-muted);
+  /* shadcn 风格登录等组件用 */
+  --color-primary: var(--primary-start);
+  --color-primary-foreground: #fafafa;
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-input: var(--border-color);
+  --color-ring: var(--accent-color);
+  --color-muted: var(--bg-secondary);
+  --radius-default: var(--radius);
+  --radius-sm: var(--radius-sm);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-family);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* flex 链：保证路由与 Layout 在视口内横向铺满、纵向可传递 min-h-0 */
+#root {
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* 细滚动条 */
+.thin-scroll::-webkit-scrollbar { width: 4px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+
+/* 玻璃态 */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 渐变文字 */
+.cyber-glow {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 页面光晕 */
+.page-glow {
+  position: fixed; top: 0; left: 0; right: 0; height: 100vh;
+  pointer-events: none; z-index: 0; overflow: hidden;
+}
+.page-glow::before {
+  content: '';
+  position: absolute; top: -20%; left: -10%;
+  width: 60%; height: 60%;
+  background: radial-gradient(ellipse,
+    rgb(102 126 234 / 0.06) 0%,
+    transparent 70%);
+  animation: glow-drift 20s ease-in-out infinite alternate;
+}
+.page-glow::after {
+  content: '';
+  position: absolute; bottom: -10%; right: -10%;
+  width: 50%; height: 50%;
+  background: radial-gradient(ellipse,
+    rgb(118 75 162 / 0.05) 0%,
+    transparent 70%);
+  animation: glow-drift 25s ease-in-out infinite alternate-reverse;
+}
+@keyframes glow-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(5%, 5%) scale(1.1); }
+}
+
+/* ── 动画 ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+@keyframes spotlight {
+  0% { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
+  100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
+}
+.animate-spotlight { animation: spotlight 2s ease 0.75s 1 forwards; }
+@keyframes slideLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.animate-fadeUp { animation: fadeUp 0.4s ease-out both; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out both; }
+.animate-slideLeft { animation: slideLeft 0.35s ease-out both; }
+.animate-slideRight { animation: slideRight 0.35s ease-out both; }
+
+/* Spline 加载器 */
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-color);
+  border-bottom-color: var(--accent-color);
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 发光搜索框右侧 conic 慢旋（伪元素需带 translate 保持居中） */
+@keyframes glowing-search-conic-spin {
+  from { transform: translate(-50%, -50%) rotate(90deg); }
+  to { transform: translate(-50%, -50%) rotate(450deg); }
+}
+.glowing-search-conic-spin::before {
+  animation: glowing-search-conic-spin 12s linear infinite;
+}
