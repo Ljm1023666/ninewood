@@ -18,6 +18,11 @@ export function usePagination<T>(
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
+  const [snapshot, setSnapshot] = useState({
+    page: 1,
+    totalPages: 1,
+    totalCount: 0,
+  })
   const totalRef = useRef(0)
   const pageRef = useRef(1)
   const totalPagesRef = useRef(0)
@@ -35,6 +40,7 @@ export function usePagination<T>(
         setItems([])
         totalPagesRef.current = 0
         setHasMore(true)
+        setSnapshot({ page: 1, totalPages: 1, totalCount: 0 })
       }
 
       const gen = fetchGeneration.current
@@ -49,6 +55,11 @@ export function usePagination<T>(
         setItems((prev) => [...prev, ...data])
         totalRef.current = res.total
         totalPagesRef.current = res.totalPages
+        setSnapshot({
+          page: pageRef.current,
+          totalPages: res.totalPages,
+          totalCount: res.total,
+        })
         pageRef.current++
         setHasMore(pageRef.current <= res.totalPages)
       } catch (e: any) {
@@ -65,5 +76,55 @@ export function usePagination<T>(
     [fetchFn],
   )
 
-  return { items, loading, error, hasMore, loadMore, total: totalRef }
+  const goToPage = useCallback(
+    async (target: number) => {
+      if (target < 1 || loadingRef.current) return
+      fetchGeneration.current += 1
+      const gen = fetchGeneration.current
+      pageRef.current = target
+      loadingRef.current = true
+      setLoading(true)
+      setError(null)
+      setHasMore(true)
+      try {
+        const res = await fetchFn(target)
+        if (gen !== fetchGeneration.current) return
+        const data =
+          res.items || res.demands || res.orders || res.complaints || []
+        setItems(data)
+        totalRef.current = res.total
+        totalPagesRef.current = res.totalPages
+        setSnapshot({
+          page: target,
+          totalPages: res.totalPages,
+          totalCount: res.total,
+        })
+        pageRef.current = target + 1
+        setHasMore(target < res.totalPages)
+      } catch (e: any) {
+        if (gen === fetchGeneration.current) {
+          setError(e.response?.data?.message || e.message || '加载失败')
+        }
+      } finally {
+        if (gen === fetchGeneration.current) {
+          loadingRef.current = false
+          setLoading(false)
+        }
+      }
+    },
+    [fetchFn],
+  )
+
+  return {
+    items,
+    loading,
+    error,
+    hasMore,
+    loadMore,
+    goToPage,
+    total: totalRef,
+    page: snapshot.page,
+    totalPages: snapshot.totalPages,
+    totalCount: snapshot.totalCount,
+  }
 }

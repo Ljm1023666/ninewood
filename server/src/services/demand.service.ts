@@ -33,6 +33,7 @@ export const demandService = {
     description: string;
     minPrice: number;
     category: string;
+    taxonomyLeafId?: string;
     serviceType: ServiceType;
     locationLat?: number;
     locationLng?: number;
@@ -46,12 +47,6 @@ export const demandService = {
       where: { userId: params.userId, status: 'FROZEN' },
     });
     if (frozenCount > 0) throw { status: 400, message: '你有冻结中的需求，请先删除后再发布新需求' };
-
-    // Check active demand count (max 3)
-    const activeCount = await prisma.demand.count({
-      where: { userId: params.userId, status: 'PENDING' },
-    });
-    if (activeCount >= 3) throw { status: 400, message: '同时进行中的需求不能超过3个' };
 
     // Circle membership check
     if (params.circleId) {
@@ -68,6 +63,7 @@ export const demandService = {
         description: params.description,
         minPrice: params.minPrice,
         category: params.category,
+        taxonomyLeafId: params.taxonomyLeafId || null,
         serviceType: params.serviceType,
         locationLat: params.locationLat || null,
         locationLng: params.locationLng || null,
@@ -89,6 +85,10 @@ export const demandService = {
   async search(params: {
     keyword?: string;
     category?: string;
+    /** 逗号分隔；与 category 二选一，多类目 IN */
+    categories?: string;
+    taxonomyLeafId?: string;
+    taxonomyLeafIds?: string;
     serviceType?: string;
     minPrice?: number;
     maxPrice?: number;
@@ -116,10 +116,29 @@ export const demandService = {
     const serviceTypeOk =
       params.serviceType === 'ONLINE' || params.serviceType === 'OFFLINE' ? params.serviceType : undefined;
 
+    const categoriesList =
+      params.categories
+        ?.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean) ?? [];
+    const taxonomyLeafIdsList =
+      params.taxonomyLeafIds
+        ?.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean) ?? [];
+
     const and: any[] = [{ status: 'PENDING' as const }];
     if (publisherFilter) and.push({ userId: publisherFilter });
     if (serviceTypeOk) and.push({ serviceType: serviceTypeOk as ServiceType });
-    if (params.category) and.push({ category: params.category });
+    if (taxonomyLeafIdsList.length > 0) {
+      and.push({ taxonomyLeafId: { in: taxonomyLeafIdsList } });
+    } else if (params.taxonomyLeafId) {
+      and.push({ taxonomyLeafId: params.taxonomyLeafId });
+    } else if (categoriesList.length > 0) {
+      and.push({ category: { in: categoriesList } });
+    } else if (params.category) {
+      and.push({ category: params.category });
+    }
 
     const minPriceRange: { gte?: number; lte?: number } = {};
     if (params.minPrice != null && !Number.isNaN(params.minPrice)) minPriceRange.gte = params.minPrice;
@@ -150,10 +169,24 @@ export const demandService = {
 
     const where: any = { AND: and };
 
-    const orderBy: any = { createdAt: 'desc' };
+    // 使用稳定排序避免同 createdAt 记录在翻页时重复/丢失
+    const orderBy: any = [{ createdAt: 'desc' }, { id: 'desc' }];
 
     const hasGeo = !!(params.lat && params.lng && params.distance);
     const publisherSql = publisherFilter ? `AND d."userId" = '${publisherFilter}'` : '';
+    const sqlEsc = (s: string) => s.replace(/'/g, "''");
+    const categorySql =
+      categoriesList.length > 0
+        ? `AND d."category" IN (${categoriesList.map((c) => `'${sqlEsc(c)}'`).join(',')})`
+        : params.category
+          ? `AND d."category" = '${sqlEsc(params.category)}'`
+          : '';
+    const taxonomySql =
+      taxonomyLeafIdsList.length > 0
+        ? `AND d."taxonomyLeafId" IN (${taxonomyLeafIdsList.map((id) => `'${sqlEsc(id)}'`).join(',')})`
+        : params.taxonomyLeafId
+          ? `AND d."taxonomyLeafId" = '${sqlEsc(params.taxonomyLeafId)}'`
+          : '';
 
     if (hasGeo) {
       // PostgreSQL-level haversine: push distance calc + filter to DB
@@ -171,7 +204,9 @@ export const demandService = {
         WHERE d.status = 'PENDING'
           ${publisherSql}
           ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
-          ${params.category ? `AND d."category" = '${params.category}'` : ''}
+          ${serviceTypeOk ? `AND d."serviceType" = '${serviceTypeOk}'` : ''}
+          ${taxonomySql}
+          ${categorySql}
           ${params.keyword ? `AND (d."title" ILIKE '%${params.keyword}%' OR d."description" ILIKE '%${params.keyword}%')` : ''}
           AND (
             d."serviceType" = 'ONLINE'
@@ -186,7 +221,7 @@ export const demandService = {
               )) <= ${params.distance}
             )
           )
-        ORDER BY d."createdAt" DESC
+        ORDER BY d."createdAt" DESC, d."id" DESC
         LIMIT ${limit} OFFSET ${(page - 1) * limit}
       `);
 
@@ -196,7 +231,9 @@ export const demandService = {
         WHERE d.status = 'PENDING'
           ${publisherSql}
           ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
-          ${params.category ? `AND d."category" = '${params.category}'` : ''}
+          ${serviceTypeOk ? `AND d."serviceType" = '${serviceTypeOk}'` : ''}
+          ${taxonomySql}
+          ${categorySql}
           ${params.keyword ? `AND (d."title" ILIKE '%${params.keyword}%' OR d."description" ILIKE '%${params.keyword}%')` : ''}
           AND (
             d."serviceType" = 'ONLINE'
@@ -218,6 +255,7 @@ export const demandService = {
         title: d.title,
         minPrice: Number(d.minPrice),
         category: d.category,
+        taxonomyLeafId: d.taxonomyLeafId,
         serviceType: d.serviceType,
         cityCode: d.cityCode,
         applicantCount: d.applicantCount,
@@ -234,6 +272,12 @@ export const demandService = {
         mediaUrls: d.mediaUrls,
         isSnatched: false,
         createdAt: d.createdAt,
+        descriptionPreview:
+          d.description && String(d.description).length > 0
+            ? String(d.description).length > 160
+              ? `${String(d.description).slice(0, 160)}…`
+              : String(d.description)
+            : undefined,
       }));
 
       return {
@@ -271,6 +315,7 @@ export const demandService = {
       title: d.title,
       minPrice: Number(d.minPrice),
       category: d.category,
+      taxonomyLeafId: d.taxonomyLeafId,
       serviceType: d.serviceType,
       cityCode: d.cityCode,
       applicantCount: d._count.applications,
@@ -281,6 +326,12 @@ export const demandService = {
       mediaUrls: d.mediaUrls,
       isSnatched: false,
       createdAt: d.createdAt,
+      descriptionPreview:
+        d.description && d.description.length > 0
+          ? d.description.length > 160
+            ? `${d.description.slice(0, 160)}…`
+            : d.description
+          : undefined,
     }));
 
     return {
@@ -498,10 +549,6 @@ export const demandService = {
       prisma.demandApplication.count({ where: { userId } }),
     ]);
     return { applications, total, page, totalPages: Math.ceil(total / limit) };
-  },
-
-  async getActiveCount(userId: string) {
-    return prisma.demand.count({ where: { userId, status: 'PENDING' } });
   },
 
   async getFrozenCount(userId: string) {

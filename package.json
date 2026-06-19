@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:electron": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"bash scripts/electron-dev.sh\"",
+    "dev:electron": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"node scripts/electron-dev.mjs\"",
     "dev:server": "npm run dev -w server",
     "dev:client": "npm run dev -w client-react",
     "build": "npm run build -w server && npm run build -w client-react",

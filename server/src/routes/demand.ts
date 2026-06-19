@@ -13,6 +13,7 @@ const createSchema = z.object({
   description: z.string().min(2).max(2000),
   minPrice: z.coerce.number().min(1),
   category: z.string().min(1).max(50),
+  taxonomyLeafId: z.string().min(1).max(64).optional(),
   serviceType: z.enum(['ONLINE', 'OFFLINE']),
   locationLat: z.coerce.number().min(-90).max(90).optional(),
   locationLng: z.coerce.number().min(-180).max(180).optional(),
@@ -63,6 +64,9 @@ demandRouter.get('/search', async (req: Request, res: Response) => {
     const params = {
       keyword: qstr(req.query.keyword),
       category: qstr(req.query.category),
+      categories: qstr(req.query.categories),
+      taxonomyLeafId: qstr(req.query.taxonomyLeafId),
+      taxonomyLeafIds: qstr(req.query.taxonomyLeafIds),
       serviceType: qstr(req.query.serviceType),
       minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
@@ -108,11 +112,8 @@ demandRouter.get('/my-applications', authMiddleware, async (req: Request, res: R
 // GET /api/demands/my-status
 demandRouter.get('/my-status', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const [activeCount, frozenCount] = await Promise.all([
-      demandService.getActiveCount(req.user!.userId),
-      demandService.getFrozenCount(req.user!.userId),
-    ]);
-    success(res, { activeCount, hasFrozen: frozenCount > 0, maxActive: 3 });
+    const frozenCount = await demandService.getFrozenCount(req.user!.userId);
+    success(res, { hasFrozen: frozenCount > 0 });
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);
   }

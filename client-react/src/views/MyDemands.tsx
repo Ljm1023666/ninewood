@@ -69,7 +69,7 @@ export default function MyDemands() {
             <button
               key={t.k}
               onClick={() => setTab(t.k)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${tab === t.k ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}
+              className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-[color,background-color,border-color] ${tab === t.k ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}
             >
               {t.l}
             </button>
@@ -98,7 +98,7 @@ export default function MyDemands() {
                 <div
                   key={d.id}
                   onClick={() => navigate(`/demands/${d.id}`)}
-                  className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-all duration-300 p-4"
+                  className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-[transform,border-color,background-color,box-shadow] duration-300 p-4"
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">{d.title}</span>
@@ -127,7 +127,7 @@ export default function MyDemands() {
                 <div
                   key={a.id}
                   onClick={() => navigate(`/demands/${a.demand?.id}`)}
-                  className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-all duration-300 p-4"
+                  className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-[transform,border-color,background-color,box-shadow] duration-300 p-4"
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">{a.demand?.title}</span>

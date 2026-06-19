@@ -208,7 +208,7 @@ export default function CertIntro() {
                         transition={{ delay: j * 0.1 }}
                         viewport={{ once: true }}
                         className={cn(
-                          'flex items-center gap-2.5 rounded-xl p-2.5',
+                          'flex items-center gap-3 rounded-xl p-3',
                           isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]',
                         )}
                       >

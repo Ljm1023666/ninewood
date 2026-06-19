@@ -80,7 +80,7 @@ export function LoginForm() {
               setError('')
             }}
             className={cn(
-              'flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
+              'flex-1 py-3 rounded-lg text-sm font-medium transition-[color,background-color,box-shadow] duration-300',
               isLogin
                 ? 'bg-white/[0.06] text-white ring-1 ring-white/8'
                 : 'text-neutral-500 hover:text-neutral-400',
@@ -94,7 +94,7 @@ export function LoginForm() {
               setError('')
             }}
             className={cn(
-              'flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-300',
+              'flex-1 py-3 rounded-lg text-sm font-medium transition-[color,background-color,box-shadow] duration-300',
               !isLogin
                 ? 'bg-white/[0.06] text-white ring-1 ring-white/8'
                 : 'text-neutral-500 hover:text-neutral-400',
@@ -128,7 +128,7 @@ export function LoginForm() {
                 onClick={sendCode}
                 disabled={countdown > 0}
                 className={cn(
-                  'px-5 h-[52px] rounded-xl text-sm font-medium transition-all duration-300 flex-shrink-0',
+                  'px-5 h-[52px] rounded-xl text-sm font-medium transition-[color,background-color,border-color] duration-300 flex-shrink-0',
                   countdown > 0
                     ? 'bg-white/[0.03] text-neutral-500 cursor-not-allowed border border-white/5'
                     : 'bg-white/[0.05] text-neutral-300 hover:bg-white/[0.10] border border-white/8',
@@ -164,7 +164,7 @@ export function LoginForm() {
           onClick={handleSubmit}
           disabled={!canSubmit}
           className={cn(
-            'w-full h-[52px] rounded-xl font-medium text-sm transition-all duration-300 mt-8 relative overflow-hidden group',
+            'w-full h-[52px] rounded-xl font-medium text-sm transition-[color,background-color,border-color,box-shadow] duration-300 mt-8 relative overflow-hidden group',
             'bg-gradient-to-b from-neutral-700 via-neutral-800 to-neutral-900 text-neutral-200 border border-white/[0.06]',
             'hover:from-neutral-600 hover:via-neutral-700 hover:to-neutral-800 hover:text-white hover:shadow-[0_0_40px_rgba(255,255,255,0.04)]',
             'active:scale-[0.98]',

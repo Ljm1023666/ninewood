@@ -39,6 +39,7 @@ interface ChatState {
   messages: ChatMessage[]
   unreadCount: number
   connected: boolean
+  conversationVersion: number
 
   connect: (token: string) => ReturnType<typeof connectSocket>
   disconnect: () => void
@@ -46,6 +47,7 @@ interface ChatState {
   fetchMessages: (userId: string, page?: number) => Promise<void>
   sendMessage: (toUserId: string, content: string) => Promise<void>
   fetchUnreadCount: () => Promise<void>
+  bumpConversation: () => void
 }
 
 export const useChatStore = create<ChatState>((set, get) => {
@@ -90,6 +92,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     messages: [],
     unreadCount: 0,
     connected: false,
+    conversationVersion: 0,
 
     connect(token) {
       const s = connectSocket(token)
@@ -139,6 +142,10 @@ export const useChatStore = create<ChatState>((set, get) => {
       } catch {
         /* ignore */
       }
+    },
+
+    bumpConversation() {
+      set((s) => ({ conversationVersion: s.conversationVersion + 1 }))
     },
   }
 })

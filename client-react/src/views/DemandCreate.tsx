@@ -1,230 +1,350 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { demandApi } from '@/api/demand'
 import { cn } from '@/lib/utils'
-import { AcetNextBlueButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { toast } from '@/components/ui/confirm-dialog'
+import {
+  NODE_SEARCH_CATEGORY,
+  TAXONOMY,
+  subtreeLeafIds,
+} from '@/components/card-pool/taxonomy'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Loader2,
+  MapPin,
+  Send,
+  Users,
+  Wifi,
+} from 'lucide-react'
+
+const schema = z.object({
+  title: z.string().min(2, '标题至少 2 字').max(100, '标题最多 100 字'),
+  description: z.string().min(2, '描述至少 2 字').max(2000, '描述最多 2000 字'),
+  minPrice: z.coerce
+    .number()
+    .min(1, '价格须大于 0')
+    .max(999999, '价格超出范围'),
+  category: z.string().min(1, '请选择分类'),
+  taxonomyLeafId: z.string().min(1, '请选择细分类'),
+  serviceType: z.enum(['ONLINE', 'OFFLINE']),
+  expireDays: z.coerce.number().min(1).max(30),
+})
+
+type FormValues = z.infer<typeof schema>
+
+const EXPIRE_OPTIONS = [
+  { d: 3, label: '3 天' },
+  { d: 7, label: '7 天' },
+  { d: 30, label: '30 天' },
+]
 
 export default function DemandCreate() {
   const navigate = useNavigate()
-  const [title, setTitle] = useState('')
-  const [desc, setDesc] = useState('')
-  const [price, setPrice] = useState('')
-  const [serviceType, setServiceType] = useState('ONLINE')
-  const [category, setCategory] = useState('')
-  const [expireDays, setExpireDays] = useState(3)
+  const [searchParams] = useSearchParams()
+  const circleId = searchParams.get('circleId')?.trim() || ''
+
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [activeCount, setActiveCount] = useState(0)
   const [hasFrozen, setHasFrozen] = useState(false)
-  const categories = [
-    '技术开发',
-    '设计',
-    '维修服务',
-    '家政服务',
-    '教育培训',
-    '咨询服务',
-    '其他',
-  ]
-  const MAX = 3
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      title: '',
+      description: '',
+      minPrice: 0,
+      category: '',
+      taxonomyLeafId: '',
+      serviceType: 'ONLINE',
+      expireDays: 7,
+    },
+  })
+
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors },
+  } = form
+  const serviceType = watch('serviceType')
+  const expireDays = watch('expireDays')
+  const description = watch('description')
+  const titleVal = watch('title')
+  const category = watch('category')
+  const taxonomyLeafId = watch('taxonomyLeafId')
+
+  const leafOptions = useMemo(() => {
+    const branchRoot = serviceType === 'ONLINE' ? 'online' : 'offline'
+    return subtreeLeafIds(branchRoot).map((leafId) => ({
+      id: leafId,
+      label: TAXONOMY[leafId]?.label ?? leafId,
+      category: NODE_SEARCH_CATEGORY[leafId] ?? '',
+    }))
+  }, [serviceType])
 
   useEffect(() => {
-    demandApi
+    const first = leafOptions[0]
+    if (!first) return
+    const stillValid = leafOptions.some((opt) => opt.id === taxonomyLeafId)
+    if (stillValid) {
+      const matched = leafOptions.find((opt) => opt.id === taxonomyLeafId)
+      if (matched && matched.category !== category) {
+        setValue('category', matched.category, { shouldValidate: true })
+      }
+      return
+    }
+    setValue('taxonomyLeafId', first.id, { shouldValidate: true })
+    setValue('category', first.category, { shouldValidate: true })
+  }, [leafOptions, taxonomyLeafId, category, setValue])
+
+  useEffect(() => {
+    void demandApi
       .getMyStatus()
-      .then((r) => {
-        const d = r.data.data
-        setActiveCount(d?.activeCount || 0)
-        setHasFrozen(d?.hasFrozen)
-      })
+      .then((r) => setHasFrozen(Boolean(r.data.data?.hasFrozen)))
       .catch(() => {})
   }, [])
 
-  async function handleCreate(e?: React.FormEvent) {
-    e?.preventDefault()
-    if (!title.trim() || !desc.trim() || !price || !category) return
-    setError('')
+  async function onSubmit(data: FormValues) {
     setSubmitting(true)
     try {
       const expireAt = new Date(
-        Date.now() + expireDays * 86400000,
+        Date.now() + data.expireDays * 86400000,
       ).toISOString()
       const fd = new FormData()
-      fd.append('title', title.trim())
-      fd.append('description', desc.trim())
-      fd.append('minPrice', price)
-      fd.append('category', category)
-      fd.append('serviceType', serviceType)
+      fd.append('title', data.title.trim())
+      fd.append('description', data.description.trim())
+      fd.append('minPrice', String(data.minPrice))
+      fd.append('category', data.category)
+      fd.append('taxonomyLeafId', data.taxonomyLeafId)
+      fd.append('serviceType', data.serviceType)
       fd.append('expireAt', expireAt)
+      if (circleId) fd.append('circleId', circleId)
       await demandApi.create(fd)
-      navigate('/my-demands')
-    } catch {
-      setError('发布失败，请稍后重试')
+      toast('发布成功', 'success')
+      navigate(circleId ? `/circles/${circleId}` : '/my-demands')
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } }
+      toast(err.response?.data?.message || '发布失败，请稍后重试', 'error')
+    } finally {
       setSubmitting(false)
     }
   }
 
-  const atLimit = activeCount >= MAX
-  const canSubmit =
-    !submitting && !atLimit && title.trim() && desc.trim() && price && category
-
   return (
     <form
-      className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary"
-      onSubmit={handleCreate}
+      className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-background"
+      onSubmit={form.handleSubmit(onSubmit)}
     >
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto thin-scroll bg-bg-primary">
-        <div className="relative z-10 mx-auto box-border flex w-[min(100%,48rem)] max-w-full shrink-0 flex-col px-4 pb-32 pt-6 sm:px-6">
-          {atLimit && (
-            <div
-              className="px-4 py-2 rounded-xl mb-3 text-[13px] text-center font-semibold"
-              style={{
-                color: 'var(--error-color)',
-                background:
-                  'color-mix(in srgb, var(--error-color) 8%, transparent)',
-                border:
-                  '1px solid color-mix(in srgb, var(--error-color) 20%, transparent)',
-              }}
+      <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto thin-scroll">
+        <div className="mx-auto w-full max-w-3xl flex-col px-6 pb-28 pt-8">
+          <div className="mb-6 flex items-center gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-11 shrink-0 text-muted-foreground"
+              aria-label="返回"
+              onClick={() => navigate(-1)}
             >
-              已发布 {activeCount}/{MAX}，已达上限
-            </div>
-          )}
-          {hasFrozen && (
-            <div
-              className="px-4 py-3 mb-3 rounded-xl text-[13px] leading-relaxed text-center"
-              style={{
-                color: 'var(--error-color)',
-                background:
-                  'color-mix(in srgb, var(--error-color) 6%, transparent)',
-                border:
-                  '1px solid color-mix(in srgb, var(--error-color) 15%, transparent)',
-              }}
-            >
-              ⚠️ 有冻结中的需求，请先在「我的需求」中处理后再发布
-            </div>
-          )}
-          {error && (
-            <div
-              className="px-4 py-2 rounded-xl mb-3 text-[13px] text-center font-semibold"
-              style={{
-                color: 'var(--error-color)',
-                background:
-                  'color-mix(in srgb, var(--error-color) 8%, transparent)',
-                border:
-                  '1px solid color-mix(in srgb, var(--error-color) 20%, transparent)',
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          <div className="bg-card border border-border rounded-2xl p-5 mb-3">
-            <label className="block">
-              <span className="sr-only">需求标题</span>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="需求标题（必填）"
-                maxLength={100}
-                className="w-full bg-transparent border-none outline-none text-text-primary text-base font-semibold placeholder:text-text-muted mb-3"
-              />
-            </label>
-            <div className="h-px bg-border mb-3" />
-            <label className="block">
-              <span className="sr-only">需求描述</span>
-              <textarea
-                value={desc}
-                onChange={(e) => setDesc(e.target.value)}
-                placeholder="描述你的需求（必填）"
-                maxLength={500}
-                rows={4}
-                className="w-full bg-transparent border-none outline-none text-text-primary text-sm placeholder:text-text-muted resize-none"
-              />
-            </label>
-            <div className="text-right text-xs text-text-muted">
-              {desc.length}/500
+              <ArrowLeft className="size-6" />
+            </Button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-black tracking-tight text-foreground">
+                发布需求
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                列表卡片主要展示：标题、两行简介、分类、线上/线下、预算。
+              </p>
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-5 mb-3 flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span
-                className="text-text-secondary text-sm w-14"
-                id="price-label"
-              >
-                价格
-              </span>
-              <div className="flex items-center gap-1 flex-1">
-                <span className="text-text-muted">¥</span>
-                <input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0"
-                  aria-labelledby="price-label"
-                  className="flex-1 bg-transparent border-none outline-none text-text-primary text-2xl font-extrabold"
-                />
+          {circleId ? (
+            <Badge
+              variant="secondary"
+              className="mb-4 gap-1 border-primary/20 bg-primary/10 text-xs font-medium text-primary"
+            >
+              <Users className="size-3" aria-hidden />
+              发布到圈内
+            </Badge>
+          ) : null}
+
+          {hasFrozen ? (
+            <div
+              role="alert"
+              className="mb-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/8 px-3 py-2.5 text-xs text-destructive"
+            >
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+              有冻结中的需求，请先在「我的需求」中处理后再发布。
+            </div>
+          ) : null}
+
+          <div className="space-y-5 px-0 py-0">
+            <div className="space-y-1.5">
+              <Label htmlFor="title" className="text-sm text-muted-foreground">
+                标题
+              </Label>
+              <Input
+                id="title"
+                placeholder="一句话说明要做什么"
+                maxLength={100}
+                {...register('title')}
+                className={cn(
+                  'h-12 text-base',
+                  errors.title && 'border-destructive',
+                )}
+              />
+              <div className="flex justify-between text-[11px] text-muted-foreground">
+                <span className="text-destructive">
+                  {errors.title?.message || '\u00a0'}
+                </span>
+                <span className="tabular-nums">{titleVal.length}/100</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span
-                className="text-text-secondary text-sm w-14"
-                id="category-label"
+
+            <div className="space-y-1.5">
+              <Label htmlFor="desc" className="text-sm text-muted-foreground">
+                简介（列表里约显示两行）
+              </Label>
+              <Textarea
+                id="desc"
+                placeholder="补充关键信息即可"
+                maxLength={2000}
+                rows={4}
+                {...register('description')}
+                className={cn(
+                  'min-h-32 resize-y text-base',
+                  errors.description && 'border-destructive',
+                )}
+              />
+              <div className="flex justify-between text-[11px] text-muted-foreground">
+                <span className="text-destructive">
+                  {errors.description?.message || '\u00a0'}
+                </span>
+                <span className="tabular-nums">{description.length}/2000</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="price"
+                  className="text-sm text-muted-foreground"
+                >
+                  预算（元）
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  inputMode="decimal"
+                  placeholder="0"
+                  {...register('minPrice')}
+                  className={cn(
+                    'h-12 text-base [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                    errors.minPrice && 'border-destructive',
+                  )}
+                />
+                {errors.minPrice ? (
+                  <p className="text-[11px] text-destructive">
+                    {errors.minPrice.message}
+                  </p>
+                ) : null}
+              </div>
+              <div className="space-y-1.5">
+                <span className="text-sm text-muted-foreground">方式</span>
+                <div className="flex rounded-lg border border-border p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setValue('serviceType', 'ONLINE')}
+                    className={cn(
+                      'flex h-12 flex-1 items-center justify-center gap-2 rounded-md py-3 text-base font-semibold transition-colors',
+                      serviceType === 'ONLINE'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <Wifi className="size-3.5" aria-hidden />
+                    线上
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setValue('serviceType', 'OFFLINE')}
+                    className={cn(
+                      'flex h-12 flex-1 items-center justify-center gap-2 rounded-md py-3 text-base font-semibold transition-colors',
+                      serviceType === 'OFFLINE'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <MapPin className="size-3.5" aria-hidden />
+                    线下
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="taxonomyLeafId"
+                className="text-sm text-muted-foreground"
               >
-                分类
-              </span>
+                细分类
+              </Label>
               <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                aria-labelledby="category-label"
-                className="flex-1 bg-bg-secondary border border-border rounded-lg px-3 py-2 text-text-primary text-sm outline-none"
+                id="taxonomyLeafId"
+                value={taxonomyLeafId}
+                onChange={(e) => {
+                  const v = e.target.value
+                  const matched = leafOptions.find((opt) => opt.id === v)
+                  setValue('taxonomyLeafId', v, { shouldValidate: true })
+                  setValue('category', matched?.category ?? '', {
+                    shouldValidate: true,
+                  })
+                }}
+                className={cn(
+                  'h-12 w-full rounded-lg border border-border bg-background px-3 text-base text-text-primary',
+                  errors.taxonomyLeafId && 'border-destructive',
+                )}
               >
-                <option value="">选择分类</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {leafOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
-
-          <div className="bg-card border border-border rounded-2xl p-5 mb-3 flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-text-secondary text-sm w-14">类型</span>
-              <div className="flex gap-2">
-                {[
-                  { k: 'ONLINE', l: '线上' },
-                  { k: 'OFFLINE', l: '线下' },
-                ].map((t) => (
-                  <button
-                    key={t.k}
-                    type="button"
-                    onClick={() => setServiceType(t.k)}
-                    className={cn(
-                      'px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
-                      serviceType === t.k
-                        ? 'text-red-500'
-                        : 'text-text-primary',
-                    )}
-                  >
-                    {t.l}
-                  </button>
-                ))}
+              <div className="text-[11px] text-muted-foreground">
+                大类：{category || '未匹配'}
               </div>
+              {errors.taxonomyLeafId || errors.category ? (
+                <p className="text-[11px] text-destructive">
+                  {errors.taxonomyLeafId?.message || errors.category?.message}
+                </p>
+              ) : null}
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-text-secondary text-sm w-14">有效期</span>
-              <div className="flex gap-2">
-                {[1, 3, 7].map((d) => (
+
+            <div className="space-y-1.5">
+              <span className="text-sm text-muted-foreground">有效期</span>
+              <div className="flex gap-1.5">
+                {EXPIRE_OPTIONS.map(({ d, label }) => (
                   <button
                     key={d}
                     type="button"
-                    onClick={() => setExpireDays(d)}
+                    onClick={() => setValue('expireDays', d)}
                     className={cn(
-                      'px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
-                      expireDays === d ? 'text-red-500' : 'text-text-primary',
+                      'flex h-12 flex-1 items-center justify-center rounded-lg border py-3 text-center text-base font-semibold transition-colors',
+                      expireDays === d
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-muted-foreground hover:border-primary/40',
                     )}
                   >
-                    {d}天
+                    {label}
                   </button>
                 ))}
               </div>
@@ -233,20 +353,29 @@ export default function DemandCreate() {
         </div>
       </div>
 
-      <div
-        className="sticky bottom-0 left-0 right-0 z-[2] w-full min-w-0 shrink-0 border-t border-border bg-bg-primary/90 px-4 pt-4 backdrop-blur-md sm:px-6"
-        style={{
-          paddingBottom: '16px',
-        }}
-      >
-        <div className="relative z-10 mx-auto w-[min(100%,48rem)] max-w-full shrink-0 pb-2">
-          <AcetNextBlueButton
-            type="submit"
-            disabled={!canSubmit}
-            className="w-full !rounded-xl !py-3 !text-[15px] font-bold disabled:cursor-not-allowed disabled:!opacity-30"
+      <div className="sticky bottom-0 z-[2] shrink-0 border-t border-border bg-background/90 px-4 py-3 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-3xl gap-4">
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-14 flex-1 text-lg font-semibold"
+            disabled={submitting}
+            onClick={() => navigate(-1)}
           >
-            {submitting ? '发布中...' : atLimit ? '已达上限' : '发布需求'}
-          </AcetNextBlueButton>
+            取消
+          </Button>
+          <Button
+            type="submit"
+            className="h-14 flex-[2] gap-2 text-lg font-semibold"
+            disabled={submitting || hasFrozen}
+          >
+            {submitting ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <Send className="size-4" aria-hidden />
+            )}
+            发布
+          </Button>
         </div>
       </div>
     </form>

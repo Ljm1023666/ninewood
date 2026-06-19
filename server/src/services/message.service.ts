@@ -76,6 +76,66 @@ export const messageService = {
     });
   },
 
+  // ── 群聊（ConversationMerge）──
+
+  async createMerge(userId: string, title: string, memberIds: string[]) {
+    if (!title.trim()) throw { status: 400, message: '群聊名称不能为空' };
+    if (memberIds.length < 1) throw { status: 400, message: '至少选择一位联系人' };
+    const ids = [...new Set([userId, ...memberIds])];
+    return prisma.conversationMerge.create({
+      data: { userId, title: title.trim(), memberIds: ids },
+    });
+  },
+
+  async getMerges(userId: string) {
+    return prisma.conversationMerge.findMany({
+      where: { memberIds: { hasSome: [userId] } },
+      orderBy: { createdAt: 'desc' },
+    });
+  },
+
+  async getMergeMessages(mergeId: string, userId: string, page = 1) {
+    const merge = await prisma.conversationMerge.findUnique({ where: { id: mergeId } });
+    if (!merge) throw { status: 404, message: '群聊不存在' };
+    if (!merge.memberIds.includes(userId)) throw { status: 403, message: '不是群成员' };
+    // Send messages to all members: store as multi-target
+    const limit = 50;
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: merge.memberIds.flatMap((mid) => [
+          { fromUserId: mid, toUserId: { in: merge.memberIds } },
+        ]),
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        fromUser: { select: { id: true, nickname: true, avatarUrl: true } },
+      },
+    });
+    return messages.reverse();
+  },
+
+  async sendMergeMessage(fromUserId: string, mergeId: string, content: string) {
+    const merge = await prisma.conversationMerge.findUnique({ where: { id: mergeId } });
+    if (!merge) throw { status: 404, message: '群聊不存在' };
+    if (!merge.memberIds.includes(fromUserId))
+      throw { status: 403, message: '不是群成员' };
+
+    const recipients = merge.memberIds.filter((id) => id !== fromUserId);
+    const msgs = await Promise.all(
+      recipients.map((toId) =>
+        prisma.message.create({
+          data: { fromUserId, toUserId: toId, content, type: 'TEXT' },
+          include: {
+            fromUser: { select: { id: true, nickname: true, avatarUrl: true } },
+          },
+        }),
+      ),
+    );
+    return { messages: msgs, mergeId };
+  },
+
   async getNotifications(userId: string, page = 1) {
     const limit = 20;
     const [items, total] = await Promise.all([

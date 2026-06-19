@@ -6,6 +6,8 @@ interface ListItemCardProps {
   children: ReactNode
   clickable?: boolean
   onClick?: () => void
+  onDoubleClick?: (e: React.MouseEvent) => void
+  onContextMenu?: (e: React.MouseEvent) => void
   className?: string
   accentBar?: boolean
 }
@@ -14,6 +16,8 @@ export function ListItemCard({
   children,
   clickable = true,
   onClick,
+  onDoubleClick,
+  onContextMenu,
   className,
   accentBar = true,
 }: ListItemCardProps) {
@@ -48,13 +52,18 @@ export function ListItemCard({
     <motion.div
       ref={rippleRef}
       onClick={clickable ? handleClick : undefined}
+      onDoubleClick={onDoubleClick}
+      onContextMenu={onContextMenu}
       className={cn(
-        'relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm',
-        'transition-all duration-300',
+        'relative overflow-hidden rounded-xl border border-border/90 bg-card/95 shadow-elevation-1 backdrop-blur-sm',
+        'transition-[transform,border-color,background-color,box-shadow] duration-200',
         clickable &&
-          'cursor-pointer hover:bg-bg-tertiary hover:border-accent/50',
+          'cursor-pointer hover:bg-bg-tertiary hover:border-accent/45',
+        clickable &&
+          accentBar &&
+          'hover:shadow-[4px_0_0_var(--primary-start),var(--elevation-2)]',
+        clickable && !accentBar && 'hover:shadow-elevation-2',
         clickable && 'active:scale-[0.98]',
-        accentBar && 'hover:shadow-[4px_0_0_var(--primary-start)]',
         className,
       )}
       whileHover={clickable ? { x: 4 } : undefined}

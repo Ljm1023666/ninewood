@@ -45,19 +45,3 @@ export function disconnectSocket() {
   socket?.disconnect()
   socket = null
 }
-
-export function joinCircleRoom(circleId: string) {
-  socket?.emit('circle:join', circleId)
-}
-
-export function leaveCircleRoom(circleId: string) {
-  socket?.emit('circle:leave', circleId)
-}
-
-export function joinDemandRoom(demandId: string) {
-  socket?.emit('demand:join', demandId)
-}
-
-export function sendPrivateMessage(receiverId: string, content: string) {
-  socket?.emit('private:message', { receiverId, content })
-}
