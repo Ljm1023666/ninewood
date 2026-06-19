@@ -37,25 +37,25 @@ e:/Ninewood
 
 ## 3. Monorepo 与常用命令
 
-根 `package.json` 使用 npm workspaces 管理 `server` 与 `client-react`。
+根 `package.json` 使用 **pnpm workspace** 管理 `server` 与 `client-react`（亦可用 `pnpm --filter <pkg>` 调用子包脚本）。
 
 ### 3.1 开发命令
 
-- 全栈开发：`npm run dev`
-- Electron 开发：`npm run dev:electron`
-- 仅后端：`npm run dev:server`
-- 仅前端：`npm run dev:client`
+- 全栈开发：`pnpm run dev`
+- Electron 开发：`pnpm run dev:electron`
+- 仅后端：`pnpm run dev:server`
+- 仅前端：`pnpm run dev:client`
 
 ### 3.2 构建命令
 
-- 全量构建：`npm run build`
-- Electron 安装包构建：`npm run build:electron`
+- 全量构建：`pnpm run build`
+- Electron 安装包构建：`pnpm run build:electron`
 
 ### 3.3 质量命令
 
-- 前端 lint：`npm run lint -w client-react`
-- 前端测试：`npm run test -w client-react`
-- 类型检查（全仓）：`npm run typecheck`
+- 前端 lint：`pnpm run lint -w client-react`
+- 前端测试：`pnpm run test -w client-react`
+- 类型检查（全仓）：`pnpm run typecheck`
 
 ---
 

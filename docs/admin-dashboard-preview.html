@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280" />
+  <title>九木监控 · Control Center 预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --sidebar: #0a0a0a;
+      --sidebar-border: rgba(255,255,255,.06);
+      --sidebar-text: #a1a1a1;
+      --sidebar-active: rgba(255,255,255,.1);
+      --workspace: #fafafa;
+      --panel: #ffffff;
+      --text: #111111;
+      --text-secondary: #5a5a5a;
+      --text-muted: #9a9a9a;
+      --border: rgba(0,0,0,.08);
+      --hairline: rgba(0,0,0,.06);
+      --accent: #3388ff;
+      --mono: "JetBrains Mono", "Cascadia Code", monospace;
+      --sans: Montserrat, "Segoe UI", system-ui, sans-serif;
+      --rhythm: 48px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans);
+      background: var(--workspace);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+    button { font: inherit; cursor: pointer; border: none; background: none; }
+    .app { display: flex; height: 100vh; }
+
+    /* ── 侧栏 ── */
+    .sidebar {
+      width: 248px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      color: #e5e5e5;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--sidebar-border);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 56px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+    .brand-icon {
+      width: 28px; height: 28px;
+      border: 1px solid rgba(255,255,255,.12);
+      display: grid; place-items: center;
+      font-size: 10px; color: #fb923c;
+    }
+    .brand-title { font-size: 13px; font-weight: 500; letter-spacing: -.01em; }
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .08em;
+      color: #71717a;
+      text-transform: uppercase;
+    }
+    .nav-main { flex: 1; padding: 12px 10px; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 2px;
+      color: var(--sidebar-text);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: left;
+      transition: background .15s, color .15s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.04); color: #e4e4e7; }
+    .nav-btn.active { background: var(--sidebar-active); color: #fff; }
+    .nav-btn svg { width: 16px; height: 16px; opacity: .75; flex-shrink: 0; }
+    .sidebar-foot {
+      padding: 12px;
+      border-top: 1px solid var(--sidebar-border);
+    }
+    .back-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; margin-bottom: 8px;
+      font-size: 13px; color: #71717a;
+    }
+    .back-link:hover { color: #d4d4d8; }
+    .user-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px; background: rgba(255,255,255,.04);
+      border: 1px solid var(--sidebar-border);
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #3f3f46;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 600;
+    }
+
+    /* ── 主区 ── */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar h1 { font-size: 17px; font-weight: 600; letter-spacing: -.02em; }
+    .tab-badge {
+      margin-left: 8px;
+      padding: 2px 8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .04em;
+      border: 1px solid var(--hairline);
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+    .topbar-sub { margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .sync {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+    }
+    .sync-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34,197,94,.2);
+    }
+    .btn-refresh {
+      padding: 8px 14px;
+      font-size: 13px; font-weight: 500;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-secondary);
+      transition: border-color .15s, color .15s;
+    }
+    .btn-refresh:hover { border-color: rgba(0,0,0,.18); color: var(--text); }
+
+    /* ── 子导航 ── */
+    .subnav {
+      flex-shrink: 0;
+      display: flex; gap: 0;
+      padding: 0 24px;
+      background: var(--workspace);
+      border-bottom: 1px solid var(--hairline);
+      overflow-x: auto;
+    }
+    .sub-btn {
+      padding: 12px 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color .15s, border-color .15s;
+    }
+    .sub-btn:hover { color: var(--text-secondary); }
+    .sub-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+    /* ── 内容 ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .panel { display: none; animation: fade .2s ease; }
+    .panel.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .panel-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .panel-head h2 { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+    .panel-head .meta { font-size: 12px; color: var(--text-muted); }
+
+    /* 指标网格 */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      background: var(--hairline);
+      border: 1px solid var(--hairline);
+      margin-bottom: 24px;
+    }
+    .metric {
+      background: var(--panel);
+      padding: 20px 18px;
+      min-height: 96px;
+    }
+    .metric .label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .metric .value {
+      margin-top: 8px;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
+    .chart-box {
+      background: var(--panel);
+      padding: 20px;
+      min-height: 280px;
+    }
+    .chart-box h3 { font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+    .chart-placeholder {
+      height: 200px;
+      border: 1px dashed var(--hairline);
+      display: grid; place-items: center;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+    .chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding-top: 20px; }
+    .bar {
+      flex: 1;
+      background: rgba(51,136,255,.15);
+      border-top: 2px solid var(--accent);
+      min-height: 20px;
+    }
+
+    /* 列表行 */
+    .list { border: 1px solid var(--hairline); background: var(--panel); }
+    .row {
+      display: grid;
+      grid-template-columns: 40px 1fr auto auto;
+      align-items: center;
+      gap: 16px;
+      min-height: var(--rhythm);
+      padding: 0 16px;
+      border-bottom: 1px solid var(--hairline);
+      transition: background .12s;
+    }
+    .row:last-child { border-bottom: none; }
+    .row:hover { background: rgba(0,0,0,.02); }
+    .row-icon {
+      width: 32px; height: 32px;
+      border: 1px solid var(--hairline);
+      display: grid; place-items: center;
+      color: var(--text-muted);
+    }
+    .row-title { font-weight: 500; font-size: 14px; }
+    .row-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .row-price {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .04em;
+      padding: 3px 8px;
+      border: 1px solid var(--hairline);
+      color: var(--text-secondary);
+    }
+
+    /* 搜索框 */
+    .search {
+      width: 100%; max-width: 360px;
+      padding: 10px 14px 10px 36px;
+      margin-bottom: 20px;
+      border: 1px solid var(--hairline);
+      background: var(--panel);
+      font-size: 13px;
+      outline: none;
+    }
+    .search:focus { border-color: var(--accent); }
+    .search-wrap { position: relative; margin-bottom: 20px; }
+    .search-wrap svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 14px; color: var(--text-muted);
+    }
+
+    /* 系统监控 */
+    .progress-list { display: flex; flex-direction: column; gap: 16px; }
+    .progress-item label {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;
+    }
+    .progress-item label span { font-family: var(--mono); }
+    .progress-track {
+      height: 4px; background: var(--hairline);
+    }
+    .progress-fill { height: 100%; background: var(--text); }
+    .log {
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+    .log div { padding: 4px 0; border-bottom: 1px solid var(--hairline); }
+
+    .stitch-ref {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--hairline);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .stitch-ref a { color: var(--accent); text-decoration: none; }
+    .stitch-ref a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">◎</div>
+        <div>
+          <div class="brand-title">九木监控</div>
+          <div class="brand-sub">Control Center</div>
+        </div>
+      </div>
+      <nav class="nav-main" id="mainNav">
+        <button class="nav-btn active" data-tab="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          总览
+        </button>
+        <button class="nav-btn" data-tab="analytics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>
+          分析
+        </button>
+        <button class="nav-btn" data-tab="users">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="7" r="3"/><path d="M2 21v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1"/><circle cx="17" cy="8" r="2"/><path d="M22 21v-1a4 4 0 0 0-3-3.87"/></svg>
+          用户
+        </button>
+        <button class="nav-btn" data-tab="orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M2 2h2l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 6H6"/></svg>
+          订单
+        </button>
+        <button class="nav-btn" data-tab="monitoring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          监控
+        </button>
+      </nav>
+      <div class="sidebar-foot">
+        <button class="back-link" type="button">← 返回应用</button>
+        <div class="user-card">
+          <div class="avatar">管</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">管理员</div>
+            <div style="font-family:var(--mono);font-size:10px;color:#71717a">13901001001</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <h1>监控中心 <span class="tab-badge" id="tabBadge">总览</span></h1>
+          <p class="topbar-sub">平台运营数据与系统状态一览</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="sync"><span class="sync-dot"></span> 已同步 <span id="syncTime">--:--:--</span></div>
+          <button class="btn-refresh" type="button" id="btnRefresh">刷新数据</button>
+        </div>
+      </header>
+
+      <nav class="subnav" id="subNav"></nav>
+
+      <div class="content" id="content">
+        <!-- 总览 -->
+        <section class="panel active" data-panel="overview">
+          <div class="section-label">数据看板</div>
+          <div class="metrics">
+            <div class="metric"><div class="label">用户数</div><div class="value">128</div></div>
+            <div class="metric"><div class="label">需求数</div><div class="value">86</div></div>
+            <div class="metric"><div class="label">订单数</div><div class="value">42</div></div>
+            <div class="metric"><div class="label">争议数</div><div class="value">3</div></div>
+            <div class="metric"><div class="label">圈子数</div><div class="value">17</div></div>
+            <div class="metric"><div class="label">服务者</div><div class="value">54</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="chart-box">
+              <h3>营收趋势</h3>
+              <div class="chart-bars">
+                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:62%"></div>
+                <div class="bar" style="height:38%"></div>
+                <div class="bar" style="height:78%"></div>
+                <div class="bar" style="height:55%"></div>
+                <div class="bar" style="height:90%"></div>
+              </div>
+            </div>
+            <div class="chart-box">
+              <h3>需求分布</h3>
+              <div class="chart-placeholder">OPEN 32 · IN_PROGRESS 18 · COMPLETED 24</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 分析 -->
+        <section class="panel" data-panel="analytics">
+          <div class="section-label">分析维度</div>
+          <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric"><div class="label">总营收</div><div class="value">¥48.2k</div></div>
+            <div class="metric"><div class="label">月新增用户</div><div class="value">+24</div></div>
+            <div class="metric"><div class="label">完成率</div><div class="value">78%</div></div>
+            <div class="metric"><div class="label">活跃标签</div><div class="value">12</div></div>
+          </div>
+          <div class="chart-box" style="margin-top:1px;border:1px solid var(--hairline)">
+            <h3>用户增长趋势</h3>
+            <div class="chart-placeholder">MONO CHART · 用户增长 / 新增用户</div>
+          </div>
+        </section>
+
+        <!-- 用户 -->
+        <section class="panel" data-panel="users">
+          <div class="section-label">用户管理</div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
+            <input class="search" type="search" placeholder="搜索用户…" />
+          </div>
+          <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+            <div class="metric"><div class="label">总用户数</div><div class="value">128</div></div>
+            <div class="metric"><div class="label">活跃服务者</div><div class="value">54</div></div>
+            <div class="metric"><div class="label">需求总数</div><div class="value">86</div></div>
+          </div>
+          <div class="list" id="userList"></div>
+        </section>
+
+        <!-- 订单 -->
+        <section class="panel" data-panel="orders">
+          <div class="panel-head">
+            <h2>全部订单</h2>
+            <span class="meta">共 10 条最近记录 · 按创建时间倒序</span>
+          </div>
+          <div class="list" id="orderList"></div>
+        </section>
+
+        <!-- 监控 -->
+        <section class="panel" data-panel="monitoring">
+          <div class="section-label">系统状态</div>
+          <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+            <div class="metric"><div class="label">API 服务</div><div class="value" style="font-size:18px">运行中</div></div>
+            <div class="metric"><div class="label">数据库</div><div class="value" style="font-size:18px">运行中</div></div>
+            <div class="metric"><div class="label">缓存服务</div><div class="value" style="font-size:18px">运行中</div></div>
+          </div>
+          <div class="grid-2">
+            <div class="chart-box">
+              <h3>性能指标</h3>
+              <div class="progress-list">
+                <div class="progress-item"><label>CPU 使用率 <span>23%</span></label><div class="progress-track"><div class="progress-fill" style="width:23%"></div></div></div>
+                <div class="progress-item"><label>内存使用率 <span>45%</span></label><div class="progress-track"><div class="progress-fill" style="width:45%"></div></div></div>
+                <div class="progress-item"><label>磁盘使用率 <span>62%</span></label><div class="progress-track"><div class="progress-fill" style="width:62%"></div></div></div>
+              </div>
+            </div>
+            <div class="chart-box">
+              <h3>操作日志</h3>
+              <div class="log">
+                <div>[2026-06-15 10:23:15] INFO Admin dashboard loaded</div>
+                <div>[2026-06-15 10:20:02] INFO System health check: OK</div>
+                <div>[2026-06-15 09:45:30] INFO Scheduled cleanup completed</div>
+                <div>[2026-06-15 08:00:00] INFO Daily backup started</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <p class="stitch-ref">
+          Stitch 方向稿参考：
+          <a href="https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ5Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpYCiVodG1sX2ZmZGQ2MTcwZDI5ZjQ3MTZiZDc4ZjBiZjY1MzFmNmE3EgoSBhCJ1a-ILRgBkgEiCgpwcm9qZWN0X2lkEhRCEjU1NDEwMjM2Njg3OTEzMTc3MA&filename=&opi=96797242" target="_blank" rel="noopener">总览</a> ·
+          <a href="https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ5Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpYCiVodG1sX2U1YmJmMmI4NDFhMTQ2MWRhYmM2MTYxNTA1ZjJhMTc2EgoSBhCJ1a-ILRgBkgEiCgpwcm9qZWN0X2lkEhRCEjU1NDEwMjM2Njg3OTEzMTc3MA&filename=&opi=96797242" target="_blank" rel="noopener">订单</a> ·
+          项目 <em>Ninewood UI/UX Audit</em>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TAB_LABELS = { overview: '总览', analytics: '分析', users: '用户', orders: '订单', monitoring: '监控' };
+
+    const SUB_NAV = {
+      overview: ['核心指标', '营收趋势', '需求分布', '最新订单'],
+      analytics: ['营收分析', '需求分析', '用户增长', '标签热度'],
+      users: ['全部用户', '服务者', '需求者', '管理员'],
+      orders: ['全部订单', '待处理', '进行中', '已完成', '争议中'],
+      monitoring: ['服务状态', '性能指标', '操作日志'],
+    };
+
+    const ORDERS = [
+      { title: '心理咨询在线', meta: '郑监理验房 · 杨花艺园艺 · 2026/6/15', price: '¥2,751.00', status: 'IN_PROGRESS' },
+      { title: '装修监理服务', meta: '李设计 · 王业主 · 2026/6/14', price: '¥8,200.00', status: 'PENDING' },
+      { title: '品牌 VI 设计', meta: '陈视觉 · 赵创业 · 2026/6/13', price: '¥12,500.00', status: 'COMPLETED' },
+      { title: '小程序开发', meta: '周全栈 · 孙产品 · 2026/6/12', price: '¥35,000.00', status: 'IN_PROGRESS' },
+      { title: '摄影后期修图', meta: '吴摄影 · 林模特 · 2026/6/11', price: '¥1,280.00', status: 'COMPLETED' },
+      { title: '法律咨询合同审阅', meta: '何律师 · 钱企业 · 2026/6/10', price: '¥3,600.00', status: 'WAITING' },
+      { title: 'UI 组件库搭建', meta: '冯前端 · 韩设计 · 2026/6/9', price: '¥18,800.00', status: 'DISPUTED' },
+      { title: '短视频剪辑', meta: '蒋剪辑 · 沈自媒体 · 2026/6/8', price: '¥980.00', status: 'COMPLETED' },
+      { title: '英文翻译本地化', meta: '许翻译 · 刘出海 · 2026/6/7', price: '¥4,200.00', status: 'PENDING' },
+      { title: '工业级电源方案', meta: '丁硬件 · 郭制造 · 2026/6/6', price: '¥52,000.00', status: 'IN_PROGRESS' },
+    ];
+
+    const USERS = [
+      { name: '郑监理', role: '服务者', phone: '139****1001' },
+      { name: '杨花艺', role: '服务者', phone: '138****2002' },
+      { name: '王业主', role: '需求者', phone: '137****3003' },
+      { name: '陈视觉', role: '服务者', phone: '136****4004' },
+      { name: '管理员', role: '管理员', phone: '13901001001' },
+    ];
+
+    let currentTab = 'overview';
+    let currentSub = 0;
+
+    function renderOrders() {
+      document.getElementById('orderList').innerHTML = ORDERS.map(o => `
+        <div class="row">
+          <div class="row-icon">🛒</div>
+          <div>
+            <div class="row-title">${o.title}</div>
+            <div class="row-meta">${o.meta}</div>
+          </div>
+          <span class="tag">${o.status}</span>
+          <span class="row-price">${o.price}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderUsers() {
+      document.getElementById('userList').innerHTML = USERS.map(u => `
+        <div class="row" style="grid-template-columns:1fr auto auto">
+          <div>
+            <div class="row-title">${u.name}</div>
+            <div class="row-meta">${u.phone}</div>
+          </div>
+          <span class="tag">${u.role}</span>
+          <span style="color:var(--text-muted)">→</span>
+        </div>
+      `).join('');
+    }
+
+    function renderSubNav() {
+      const items = SUB_NAV[currentTab] || [];
+      document.getElementById('subNav').innerHTML = items.map((label, i) =>
+        `<button class="sub-btn${i === currentSub ? ' active' : ''}" data-sub="${i}" type="button">${label}</button>`
+      ).join('');
+      document.getElementById('subNav').querySelectorAll('.sub-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentSub = Number(btn.dataset.sub);
+          renderSubNav();
+        });
+      });
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      currentSub = 0;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+      document.getElementById('tabBadge').textContent = TAB_LABELS[tab];
+      renderSubNav();
+      history.replaceState(null, '', `#${tab}`);
+    }
+
+    document.getElementById('mainNav').addEventListener('click', e => {
+      const btn = e.target.closest('.nav-btn');
+      if (btn) switchTab(btn.dataset.tab);
+    });
+
+    document.getElementById('btnRefresh').addEventListener('click', () => {
+      const now = new Date();
+      document.getElementById('syncTime').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    });
+
+    function init() {
+      renderOrders();
+      renderUsers();
+      const hash = location.hash.replace('#', '');
+      if (TAB_LABELS[hash]) switchTab(hash);
+      else renderSubNav();
+      document.getElementById('btnRefresh').click();
+    }
+    init();
+  </script>
+</body>
+</html>
