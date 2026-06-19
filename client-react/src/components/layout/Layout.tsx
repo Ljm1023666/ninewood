@@ -6,10 +6,8 @@ import { useKeyboard } from '@/hooks/useKeyboard'
 import { ToastContainer } from '@/components/ui/confirm-dialog'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { useUserStore } from '@/stores/user'
-import {
-  isDemandDetailRoute,
-  suppressLayoutAmbient,
-} from '@/utils/user-cover-presets'
+import { isDemandDetailRoute } from '@/utils/user-cover-presets'
+import { suppressLayoutAmbient } from '@/utils/internal-routes'
 import { userApi } from '@/api/user'
 
 export default function Layout() {
@@ -90,8 +88,8 @@ export default function Layout() {
       <main
         className={
           demandDetail3dOverflow
-            ? 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-visible bg-background'
-            : 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background'
+            ? 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-visible bg-bg-primary'
+            : 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-bg-primary'
         }
       >
         {layoutAmbientUserId !== null && (

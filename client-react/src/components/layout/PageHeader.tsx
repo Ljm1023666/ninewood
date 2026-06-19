@@ -6,17 +6,14 @@ import { BackButton } from '@/components/ui/back-button'
 interface PageHeaderProps {
   title: string
   subtitle?: ReactNode
-  /** 返回行为：未传 = 不显示返回；传 'back' = navigate(-1)；传函数 = 自定义 */
   onBack?: 'back' | (() => void)
-  /** 右侧操作槽（按钮等） */
   actions?: ReactNode
-  /** 底部分隔线：默认显示 */
   divider?: boolean
   className?: string
+  variant?: 'display' | 'centered'
 }
 
-/** 全站统一的页面顶部：返回左固定 + 标题居中 + 右操作槽
- *  避免按钮与文字重叠，标题不因两侧内容挤压而截断 */
+/** 内部页顶栏：Stitch h-48 + hairline-bottom + mb-16 */
 export function PageHeader({
   title,
   subtitle,
@@ -24,6 +21,7 @@ export function PageHeader({
   actions,
   divider = true,
   className,
+  variant = 'display',
 }: PageHeaderProps) {
   const navigate = useNavigate()
   const handleBack =
@@ -33,49 +31,71 @@ export function PageHeader({
         ? onBack
         : undefined
 
-  const showLeft = !!handleBack
-  const showRight = !!actions
+  if (variant === 'centered') {
+    const showLeft = !!handleBack
+    const showRight = !!actions
+    return (
+      <header
+        className={cn(
+          'relative flex min-h-[44px] items-center justify-center',
+          divider && 'mb-4 border-b border-border pb-3',
+          !divider && 'mb-4',
+          className,
+        )}
+      >
+        {handleBack && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+            <BackButton onBack={handleBack} compact />
+          </div>
+        )}
+        <div
+          className={cn(
+            'flex min-w-0 flex-col items-center justify-center text-center',
+            showLeft && 'ml-11',
+            showRight && 'mr-11',
+          )}
+        >
+          <h1 className="max-w-[60vw] truncate text-xl font-bold tracking-tight text-text-primary">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-0.5 max-w-[60vw] truncate text-sm text-text-muted">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {actions && (
+          <div className="absolute right-0 top-1/2 flex shrink-0 -translate-y-1/2 items-center gap-2">
+            {actions}
+          </div>
+        )}
+      </header>
+    )
+  }
+
+  const hasSubtitle = !!subtitle
 
   return (
     <header
       className={cn(
-        'relative flex items-center justify-center',
-        divider && 'border-b border-border pb-3',
-        'mb-4 min-h-[44px]',
+        'internal-page-header relative z-10',
+        !divider && 'mb-4 border-b-0',
+        hasSubtitle && 'h-auto min-h-12 py-2',
         className,
       )}
     >
-      {/* 左侧：返回按钮 */}
-      {handleBack && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2">
-          <BackButton onBack={handleBack} />
-        </div>
-      )}
-
-      {/* 标题区：居中，左右由按钮/操作槽宽度撑开间距 */}
-      <div
-        className={cn(
-          'flex flex-col items-center justify-center text-center min-w-0',
-          showLeft && 'ml-11',
-          showRight && 'mr-11',
-        )}
-      >
-        <h1 className="max-w-[60vw] truncate text-lg font-bold tracking-tight text-text-primary">
-          {title}
-        </h1>
-        {subtitle && (
-          <p className="mt-0.5 max-w-[60vw] truncate text-sm text-text-muted">
+      {handleBack ? <BackButton onBack={handleBack} compact /> : null}
+      <div className="ml-4 min-w-0 flex-1">
+        <h1 className="internal-display-title">{title}</h1>
+        {subtitle ? (
+          <p className="mt-0.5 truncate font-mono text-xs text-text-muted">
             {subtitle}
           </p>
-        )}
+        ) : null}
       </div>
-
-      {/* 右侧：操作槽（绝对定位） */}
-      {actions && (
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex shrink-0 items-center gap-2">
-          {actions}
-        </div>
-      )}
+      {actions ? (
+        <div className="ml-4 flex shrink-0 items-center gap-2">{actions}</div>
+      ) : null}
     </header>
   )
 }

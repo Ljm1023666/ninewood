@@ -1,0 +1,173 @@
+/* 帮助中心 Navigation Matrix — 跟随 internal-shell 深/浅色主题 */
+
+.nav-matrix-page.internal-shell {
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.nav-matrix-page .internal-shell__column {
+  flex: 1 0 auto;
+  min-height: min-content;
+}
+
+.nav-matrix-page {
+  --nav-matrix-accent: var(--internal-accent);
+  --nav-matrix-text: var(--internal-text);
+  --nav-matrix-muted: var(--internal-text-secondary);
+  --nav-matrix-dim: var(--internal-text-muted);
+  --nav-matrix-hairline: var(--internal-hairline);
+  --nav-matrix-surface: var(--internal-bg);
+  --nav-matrix-hover: var(--internal-hover-md);
+}
+
+.nav-matrix-page__header {
+  height: 64px;
+  padding-left: 48px;
+  padding-right: 48px;
+  border-bottom: 1px solid var(--nav-matrix-hairline);
+  background: color-mix(in srgb, var(--nav-matrix-surface) 80%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.nav-matrix-page__header h1,
+.nav-matrix-page__header .internal-display-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--nav-matrix-text);
+}
+
+.nav-matrix-page__main {
+  width: 100%;
+  flex: 1;
+  padding: 32px 48px 96px;
+}
+
+.nav-matrix {
+  width: 100%;
+}
+
+.nav-matrix__grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  grid-auto-rows: 120px;
+}
+
+.nav-matrix__hero {
+  grid-column: span 3;
+  grid-row: span 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--nav-matrix-hairline);
+  border-radius: 4px;
+  background: var(--nav-matrix-surface);
+  padding: 32px;
+  text-align: center;
+}
+
+.nav-matrix__hero-glow {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 128px;
+  width: 75%;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at top,
+    color-mix(in srgb, var(--nav-matrix-accent) 15%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+.nav-matrix__hero-title {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 8px;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--nav-matrix-text);
+}
+
+.nav-matrix__hero-subtitle {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--nav-matrix-dim);
+}
+
+.nav-matrix__tile {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--nav-matrix-hairline);
+  border-radius: 4px;
+  background: transparent;
+  padding: 0;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+
+.nav-matrix__tile:hover {
+  z-index: 2;
+  background: var(--nav-matrix-hover);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--nav-matrix-accent) 30%, transparent),
+    0 0 15px color-mix(in srgb, var(--nav-matrix-accent) 10%, transparent);
+}
+
+.nav-matrix__tile-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav-matrix__tile-icon {
+  margin-bottom: 12px;
+  color: var(--nav-matrix-dim);
+  transition: color 0.2s;
+}
+
+.nav-matrix__tile-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.nav-matrix__tile:hover .nav-matrix__tile-icon {
+  color: var(--nav-matrix-accent);
+}
+
+.nav-matrix__tile-label {
+  font-size: 18px;
+  line-height: 20px;
+  color: var(--nav-matrix-muted);
+  transition: color 0.2s;
+}
+
+.nav-matrix__tile:hover .nav-matrix__tile-label {
+  color: var(--nav-matrix-text);
+}
