@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+cd client-react || exit 1
+npm exec lint-staged
