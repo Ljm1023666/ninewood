@@ -63,6 +63,7 @@ demandRouter.get('/search', async (req: Request, res: Response) => {
     };
     const params = {
       keyword: qstr(req.query.keyword),
+      tags: qstr(req.query.tags),
       category: qstr(req.query.category),
       categories: qstr(req.query.categories),
       taxonomyLeafId: qstr(req.query.taxonomyLeafId),
@@ -79,6 +80,7 @@ demandRouter.get('/search', async (req: Request, res: Response) => {
       excludeExample: req.query.excludeExample === 'true',
       userId: (req as any).user?.userId,
       publisherId: (req.query.publisher as string) || (req.query.publisherId as string) || undefined,
+      ids: req.query.ids ? (req.query.ids as string).split(',').filter(Boolean) : undefined,
     };
     const result = await demandService.search(params);
     success(res, result);

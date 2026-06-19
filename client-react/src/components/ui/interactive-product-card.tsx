@@ -13,7 +13,7 @@ import {
   useTransform,
   useMotionTemplate,
 } from 'motion/react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
 import { InfoCard } from '@/components/ui/info-card'
@@ -35,6 +35,8 @@ export interface InteractiveProductCardProps extends HTMLAttributes<HTMLDivEleme
   onSwipePrev?: () => void
   /** 为 true 时由外层垂直拖动手势切页，关闭内部滑切/滚轮切页 */
   externalVerticalDrag?: boolean
+  /** 点击背面价格区域回调（加入手牌） */
+  onAddToHand?: () => void
   /** 为 true 时关闭本卡片自带的鼠标 3D 倾斜（供外层如 CometCard 统一做 3D） */
   disableSurfaceTilt?: boolean
   /** 全卡跟手高光（与 CometCard 联用时开启） */
@@ -71,8 +73,10 @@ export function InteractiveProductCard({
   flipDescription = false,
   profileCoverUrl,
   publisherUserId,
+  onAddToHand,
   ...props
 }: InteractiveProductCardProps) {
+  const navigate = useNavigate()
   const cardRef = useRef<HTMLDivElement>(null)
   const isDark = useThemeStore((s) => s.current.dark)
   const [flipped, setFlipped] = useState(false)
@@ -217,21 +221,23 @@ export function InteractiveProductCard({
     profileCoverUrl?.trim() ||
     publisherUserCoverPreset(publisherUserId ?? undefined)
   const numericPrice = parsePriceNumber(price)
-  /** 翻面标题色条：静态渐变色，按价格档次区分 */
-  const titleBarGradient =
+  /** 翻面标题色条：按价格档次选用 CSS shimmer 类（绿/蓝/紫/橙/红/金/虹彩） */
+  const titleBarShimmerVariant = cn(
+    'flip-card-title-bar-shimmer',
     numericPrice > 10000
-      ? 'linear-gradient(135deg, oklch(65% 0.15 45), oklch(50% 0.16 35))'
+      ? 'flip-card-title-bar-shimmer--rainbow'
       : numericPrice > 3000
-        ? 'linear-gradient(135deg, oklch(60% 0.14 55), oklch(52% 0.15 40))'
+        ? 'flip-card-title-bar-shimmer--gold'
         : numericPrice > 1000
-          ? 'linear-gradient(135deg, oklch(58% 0.16 30), oklch(50% 0.18 20))'
+          ? 'flip-card-title-bar-shimmer--red'
           : numericPrice > 500
-            ? 'linear-gradient(135deg, oklch(62% 0.14 50), oklch(54% 0.15 35))'
+            ? 'flip-card-title-bar-shimmer--orange'
             : numericPrice > 100
-              ? 'linear-gradient(135deg, oklch(58% 0.16 55), oklch(50% 0.16 40))'
+              ? 'flip-card-title-bar-shimmer--violet'
               : numericPrice > 10
-                ? 'linear-gradient(135deg, oklch(55% 0.12 60), oklch(48% 0.12 45))'
-                : 'linear-gradient(135deg, oklch(50% 0.10 60), oklch(43% 0.10 50))'
+                ? 'flip-card-title-bar-shimmer--blue'
+                : 'flip-card-title-bar-shimmer--green',
+  )
   /** 翻面布局时根节点不要叠 perspective，否则与 CometCard / 内层 perspective 叠加，背面会像斜薄片、出现诡异侧棱 */
   const rootTransformStyle: CSSProperties = isFlipLayout
     ? {}
@@ -257,7 +263,6 @@ export function InteractiveProductCard({
         isFlipLayout ? 'shadow-none' : 'shadow-lg',
         isFlipLayout ? 'overflow-visible' : 'overflow-hidden',
         'bg-transparent',
-        '[transform-style:preserve-3d]',
         className,
         isFlipLayout && '!ring-0 !ring-offset-0',
       )}
@@ -322,15 +327,11 @@ export function InteractiveProductCard({
                 style={{ transform: 'translateZ(40px)' }}
               >
                 <div
-                  className="relative shrink-0 flex w-full justify-center overflow-hidden px-4 py-3 [text-rendering:optimizeLegibility]"
-                  style={{ background: titleBarGradient }}
+                  className={cn(
+                    'relative shrink-0 flex w-full justify-center overflow-hidden px-4 py-3 [text-rendering:optimizeLegibility]',
+                    titleBarShimmerVariant,
+                  )}
                 >
-                  {numericPrice > 10000 ? (
-                  <div
-                    className="absolute inset-0 z-0 min-h-[44px] w-full"
-                    style={{ background: titleBarGradient }}
-                  />
-                ) : null}
                   <h3
                     className={cn(
                       'relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight',
@@ -374,7 +375,6 @@ export function InteractiveProductCard({
                   shellBorderRadius="1.5rem"
                   image={profileBackImageUrl}
                   imageAlt={avatarLabel || title}
-                  heroImageTo={avatarTo}
                   heroImageAriaLabel={avatarLabel}
                   title={title}
                   description={description}
@@ -390,10 +390,28 @@ export function InteractiveProductCard({
                   patternColor2="var(--ic-pattern-2)"
                   contentPadding="14.3px 16px"
                 />
-                <div className="pointer-events-none absolute bottom-5 left-4 z-20 max-w-[calc(100%-2rem)] text-left">
-                  <span className="flip-card-back-price text-3xl font-extrabold leading-none [text-shadow:none]">
+
+                {/* 封面图点击跳转（用 navigate 避免 3D 容器内 Link 闪烁） */}
+                {avatarTo && profileBackImageUrl && (
+                  <div
+                    className="absolute left-0 right-0 top-0 z-30 cursor-pointer"
+                    style={{ height: '48%' }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      navigate(avatarTo)
+                    }}
+                  />
+                )}
+
+                <div className="absolute bottom-5 left-4 z-20 max-w-[calc(100%-2rem)] text-left">
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onAddToHand?.() }}
+                    className="flip-card-back-price text-3xl font-extrabold leading-none [text-shadow:none] cursor-pointer hover:scale-105 transition-transform"
+                  >
                     {price}
-                  </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -452,23 +470,26 @@ export function InteractiveProductCard({
                   ) : null}
                 </div>
                 {avatarTo ? (
-                  <Link
-                    to={avatarTo}
+                  <button
+                    type="button"
                     className={cn(
-                      'shrink-0 rounded-full outline-none ring-2 transition',
+                      'shrink-0 cursor-pointer rounded-full outline-none ring-2 transition',
                       isDark
                         ? 'ring-white/25 hover:ring-white/55 focus-visible:ring-white'
                         : 'ring-black/[0.1] hover:ring-black/[0.2] focus-visible:ring-black/[0.3]',
                     )}
                     aria-label={avatarLabel || '查看用户主页'}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(avatarTo)
+                    }}
                   >
                     <img
                       src={logoUrl}
                       alt=""
                       className="h-12 w-12 rounded-full object-cover"
                     />
-                  </Link>
+                  </button>
                 ) : (
                   <img
                     src={logoUrl}

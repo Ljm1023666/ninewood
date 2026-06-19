@@ -1,4 +1,4 @@
-import React, { useId } from 'react'
+import React, { useId, useMemo } from 'react'
 import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 
@@ -63,6 +63,18 @@ const STATIC_PATH_D = PATHS.join('') + PATH_TAIL
 export const BackgroundBeams = React.memo(
   ({ className }: { className?: string }) => {
     const uid = useId().replace(/:/g, '')
+
+    // 稳定随机值，避免每次渲染重新生成导致动画重置闪烁
+    const pathConfigs = useMemo(
+      () =>
+        PATHS.map(() => ({
+          y2End: `${93 + Math.random() * 8}%`,
+          duration: Math.random() * 10 + 10,
+          delay: Math.random() * 10,
+        })),
+      [],
+    )
+
     const radialId = `paint0_radial_${uid}`
 
     return (
@@ -83,8 +95,8 @@ export const BackgroundBeams = React.memo(
           <path
             d={STATIC_PATH_D}
             stroke={`url(#${radialId})`}
-            strokeOpacity="0.05"
-            strokeWidth="0.5"
+            strokeOpacity="0.12"
+            strokeWidth="0.75"
           />
 
           {PATHS.map((path, index) => (
@@ -92,35 +104,38 @@ export const BackgroundBeams = React.memo(
               key={`path-${uid}-${index}`}
               d={path}
               stroke={`url(#linearGradient-${uid}-${index})`}
-              strokeOpacity="0.4"
-              strokeWidth="0.5"
+              strokeOpacity="0.55"
+              strokeWidth="0.75"
             />
           ))}
           <defs>
-            {PATHS.map((_path, index) => (
-              <motion.linearGradient
-                id={`linearGradient-${uid}-${index}`}
-                key={`gradient-${uid}-${index}`}
-                initial={{ x1: '0%', x2: '0%', y1: '0%', y2: '0%' }}
-                animate={{
-                  x1: ['0%', '100%'],
-                  x2: ['0%', '95%'],
-                  y1: ['0%', '100%'],
-                  y2: ['0%', `${93 + Math.random() * 8}%`],
-                }}
-                transition={{
-                  duration: Math.random() * 10 + 10,
-                  ease: 'easeInOut',
-                  repeat: Infinity,
-                  delay: Math.random() * 10,
-                }}
-              >
-                <stop stopColor="#18CCFC" stopOpacity="0" />
-                <stop stopColor="#18CCFC" />
-                <stop offset="32.5%" stopColor="#6344F5" />
-                <stop offset="100%" stopColor="#AE48FF" stopOpacity="0" />
-              </motion.linearGradient>
-            ))}
+            {PATHS.map((_path, index) => {
+              const cfg = pathConfigs[index]
+              return (
+                <motion.linearGradient
+                  id={`linearGradient-${uid}-${index}`}
+                  key={`gradient-${uid}-${index}`}
+                  initial={{ x1: '0%', x2: '5%', y1: '0%', y2: `${cfg.y2End}` }}
+                  animate={{
+                    x1: ['0%', '100%'],
+                    x2: ['5%', '95%'],
+                    y1: ['0%', '100%'],
+                    y2: ['0%', cfg.y2End],
+                  }}
+                  transition={{
+                    duration: cfg.duration,
+                    ease: 'easeInOut',
+                    repeat: Infinity,
+                    delay: cfg.delay,
+                  }}
+                >
+                  <stop stopColor="#18CCFC" stopOpacity="0" />
+                  <stop stopColor="#18CCFC" />
+                  <stop offset="32.5%" stopColor="#6344F5" />
+                  <stop offset="100%" stopColor="#AE48FF" stopOpacity="0" />
+                </motion.linearGradient>
+              )
+            })}
 
             <radialGradient
               id={radialId}

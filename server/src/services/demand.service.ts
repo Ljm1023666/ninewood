@@ -84,6 +84,7 @@ export const demandService = {
 
   async search(params: {
     keyword?: string;
+    tags?: string;
     category?: string;
     /** 逗号分隔；与 category 二选一，多类目 IN */
     categories?: string;
@@ -102,6 +103,8 @@ export const demandService = {
     userId?: string;
     /** 只看待发布者的需求（发现页 ?publisher=uuid） */
     publisherId?: string;
+    /** 按 ID 列表精确筛选（?, 卡包） */
+    ids?: string[];
   }) {
     const page = params.page || 1;
     const limit = params.limit || 20;
@@ -113,6 +116,10 @@ export const demandService = {
         : undefined;
 
     const keywordTrimmed = params.keyword?.trim();
+    const tagsList = params.tags
+      ?.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean) ?? [];
     const serviceTypeOk =
       params.serviceType === 'ONLINE' || params.serviceType === 'OFFLINE' ? params.serviceType : undefined;
 
@@ -129,6 +136,9 @@ export const demandService = {
 
     const and: any[] = [{ status: 'PENDING' as const }];
     if (publisherFilter) and.push({ userId: publisherFilter });
+    if (params.ids && Array.isArray(params.ids) && params.ids.length > 0) {
+      and.push({ id: { in: params.ids } });
+    }
     if (serviceTypeOk) and.push({ serviceType: serviceTypeOk as ServiceType });
     if (taxonomyLeafIdsList.length > 0) {
       and.push({ taxonomyLeafId: { in: taxonomyLeafIdsList } });
@@ -155,6 +165,17 @@ export const demandService = {
       });
     }
 
+    if (tagsList.length > 0) {
+      for (const tag of tagsList) {
+        and.push({
+          OR: [
+            { title: { contains: tag, mode: 'insensitive' } },
+            { description: { contains: tag, mode: 'insensitive' } },
+          ],
+        });
+      }
+    }
+
     if (params.userId) {
       and.push({
         OR: [
@@ -175,6 +196,9 @@ export const demandService = {
     const hasGeo = !!(params.lat && params.lng && params.distance);
     const publisherSql = publisherFilter ? `AND d."userId" = '${publisherFilter}'` : '';
     const sqlEsc = (s: string) => s.replace(/'/g, "''");
+    const tagsSql = tagsList.length > 0
+      ? tagsList.map((t) => `AND (d."title" ILIKE '%${sqlEsc(t)}%' OR d."description" ILIKE '%${sqlEsc(t)}%')`).join(' ')
+      : '';
     const categorySql =
       categoriesList.length > 0
         ? `AND d."category" IN (${categoriesList.map((c) => `'${sqlEsc(c)}'`).join(',')})`
@@ -207,7 +231,8 @@ export const demandService = {
           ${serviceTypeOk ? `AND d."serviceType" = '${serviceTypeOk}'` : ''}
           ${taxonomySql}
           ${categorySql}
-          ${params.keyword ? `AND (d."title" ILIKE '%${params.keyword}%' OR d."description" ILIKE '%${params.keyword}%')` : ''}
+          ${params.keyword ? `AND (d."title" ILIKE '%${sqlEsc(params.keyword)}%' OR d."description" ILIKE '%${sqlEsc(params.keyword)}%')` : ''}
+          ${tagsSql}
           AND (
             d."serviceType" = 'ONLINE'
             OR (
@@ -234,7 +259,8 @@ export const demandService = {
           ${serviceTypeOk ? `AND d."serviceType" = '${serviceTypeOk}'` : ''}
           ${taxonomySql}
           ${categorySql}
-          ${params.keyword ? `AND (d."title" ILIKE '%${params.keyword}%' OR d."description" ILIKE '%${params.keyword}%')` : ''}
+          ${params.keyword ? `AND (d."title" ILIKE '%${sqlEsc(params.keyword)}%' OR d."description" ILIKE '%${sqlEsc(params.keyword)}%')` : ''}
+          ${tagsSql}
           AND (
             d."serviceType" = 'ONLINE'
             OR (

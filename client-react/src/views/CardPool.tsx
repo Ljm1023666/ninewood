@@ -54,6 +54,7 @@ export default function CardPool() {
   const sharedInitialFocus = useMemo(() => loadSharedCardPoolFocus(), [])
 
   const table = useTableState(sharedInitialFocus)
+  const { clearHand, addDemandToSingles } = table
   const {
     focus,
     hand,
@@ -439,6 +440,8 @@ export default function CardPool() {
             layoutVariant="grid"
             desktopGridRowCount={desktopGridRows}
             onDesktopGridRowCountChange={setDesktopGridRows}
+            pageSize={desktopOpen.blackScope.path.some(s => s === '__singles__') ? 200 : 6}
+            paginationMode={desktopOpen.blackScope.path.some(s => s === '__singles__') ? 'infinite' : 'paged'}
             onDemandRowRecurse={(d) => {
               const r = addDemandToHand(
                 d.category,
@@ -448,6 +451,8 @@ export default function CardPool() {
               if (r === 'invalid') toast('无法映射该需求的分类到黑卡', 'error')
               else if (r === 'duplicate') toast('该分类已在手牌中', 'info')
             }}
+            onLongPressDropDemandInHand={(demandId) => { addDemandToSingles(demandId); toast('已加入 ? 卡包', 'success') }}
+            handDropZoneRef={handDropZoneRef}
             className={fullHeight ? 'min-h-0 flex-1' : undefined}
           />
         </div>
@@ -578,6 +583,15 @@ export default function CardPool() {
             if (!added) toast('该范围已在手牌中', 'info')
           }}
         />
+        {hand.length > 0 && (
+          <button
+            type="button"
+            onClick={clearHand}
+            className="-mt-1 flex w-full items-center justify-center gap-1 border-t border-border/30 px-3 py-1.5 text-[11px] text-text-muted/50 hover:text-destructive/60 transition-colors"
+          >
+            清空手牌
+          </button>
+        )}
 
         <TableDiscard
           discard={discard}

@@ -12,12 +12,14 @@ export default function App() {
     init().then(() => setReady(true))
   }, [init])
 
-  if (!ready) return null
-
   return (
     <div className="flex flex-1 flex-col min-h-0 min-w-0 w-full">
       <Toaster position="top-center" richColors />
-      <RouterProvider router={router} />
+      {ready ? (
+        <RouterProvider router={router} />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-[var(--bg-primary)]" />
+      )}
     </div>
   )
 }

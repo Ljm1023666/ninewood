@@ -83,6 +83,7 @@ export default function Layout() {
   // Tab 根路由不显示全局返回（避免挡标题）；聊天会话 /messages/:id 也不显示（顶栏已有返回）
   const hideGlobalBack =
     p === '/' ||
+    p.startsWith('/discover') ||
     p === '/card-pool' ||
     p.startsWith('/card-pool/') ||
     p === '/demands/create' ||

@@ -4,6 +4,7 @@ import { useThemeStore } from '@/stores/theme'
 import { useUserStore } from '@/stores/user'
 import { cn } from '@/lib/utils'
 import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
+import { LiquidButton } from '@/components/ui/liquid-glass-button'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import {
   Moon,
@@ -57,15 +58,15 @@ export default function Settings() {
   )
 
   const presets = [
-    { name: 'amber-stream', gradient: 'from-[#c4873b] to-[#b5772e]' },
-    { name: 'morning-mist', gradient: 'from-[#d4a574] to-[#c49568]' },
-    { name: 'moon-through-pines', gradient: 'from-[#4a9e6b] to-[#3a8a5a]' },
-    { name: 'green-vines', gradient: 'from-[#5cb87a] to-[#4ca86a]' },
-    { name: 'twilight-violet', gradient: 'from-[#8b6bc4] to-[#7a5ab3]' },
-    { name: 'snow-on-pines', gradient: 'from-[#c8d4c0] to-[#b8c4b0]' },
-    { name: 'sunset-molten-gold', gradient: 'from-[#d4873b] to-[#c4772e]' },
-    { name: 'emerald-mist', gradient: 'from-[#4ab874] to-[#3aa864]' },
-    { name: 'autumn-river', gradient: 'from-[#5a8cc4] to-[#4a7cb3]' },
+    { name: 'amber-stream', gradient: 'from-[#d4944a] to-[#b5772e]' },
+    { name: 'morning-mist', gradient: 'from-[#d4a55c] to-[#b8893e]' },
+    { name: 'moon-through-pines', gradient: 'from-[#5cb87a] to-[#3a8a5a]' },
+    { name: 'green-vines', gradient: 'from-[#6cc48a] to-[#4aa868]' },
+    { name: 'twilight-violet', gradient: 'from-[#9b7bd4] to-[#7a5ab3]' },
+    { name: 'snow-on-pines', gradient: 'from-[#d8e4d0] to-[#b8c8b0]' },
+    { name: 'sunset-molten-gold', gradient: 'from-[#e4984a] to-[#c4772e]' },
+    { name: 'emerald-mist', gradient: 'from-[#5cc880] to-[#3aa864]' },
+    { name: 'autumn-river', gradient: 'from-[#6a9cd4] to-[#4a7cb3]' },
   ]
 
   function goDark() {
@@ -152,40 +153,26 @@ export default function Settings() {
 
           <p className={cn('mb-2 text-[11px]', labelMuted)}>显示模式</p>
           <div className="mb-6 flex gap-2">
-            <button
-              type="button"
+            <LiquidButton
+              variant={!darkMode ? 'default' : 'ghost'}
+              size="xl"
+              className="flex-1"
+              glassSurface={isUiLight ? 'light' : 'dark'}
               onClick={goDark}
-              className={cn(
-                'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-[color,background-color,border-color,box-shadow]',
-                !darkMode
-                  ? isUiLight
-                    ? 'border-black/15 bg-black/[0.06] text-text-primary shadow-sm shadow-black/10'
-                    : 'border-white/35 bg-white/20 text-white shadow-md shadow-black/20'
-                  : isUiLight
-                    ? 'border-black/10 bg-black/[0.03] text-text-secondary hover:bg-black/[0.06]'
-                    : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
-              )}
             >
               <Moon className="h-4 w-4" aria-hidden />
               深色
-            </button>
-            <button
-              type="button"
+            </LiquidButton>
+            <LiquidButton
+              variant={darkMode ? 'default' : 'ghost'}
+              size="xl"
+              className="flex-1"
+              glassSurface={isUiLight ? 'light' : 'dark'}
               onClick={goLight}
-              className={cn(
-                'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-[color,background-color,border-color,box-shadow]',
-                darkMode
-                  ? isUiLight
-                    ? 'border-black/20 bg-white text-text-primary shadow-sm shadow-black/10'
-                    : 'border-white/35 bg-white/20 text-white shadow-md shadow-black/20'
-                  : isUiLight
-                    ? 'border-black/10 bg-black/[0.03] text-text-secondary hover:bg-black/[0.06]'
-                    : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
-              )}
             >
               <Sun className="h-4 w-4" aria-hidden />
               浅色
-            </button>
+            </LiquidButton>
           </div>
 
           <p className={cn('mb-2 text-[11px]', labelMuted)}>主题色</p>
@@ -198,7 +185,7 @@ export default function Settings() {
                   type="button"
                   onClick={() => handleSetTheme(preset.name)}
                   className={cn(
-                    'relative rounded-xl border p-3 text-left transition-[background-color,border-color,box-shadow]',
+                    'relative rounded-xl border p-3 text-center transition-[background-color,border-color,box-shadow]',
                     isUiLight
                       ? 'border-black/[0.08] bg-black/[0.03] hover:border-black/15 hover:bg-black/[0.06]'
                       : 'border-white/12 bg-white/5 hover:border-white/25 hover:bg-white/10',
@@ -345,19 +332,15 @@ export default function Settings() {
               : 'text-white bg-white/[0.06]',
           )}
         >
-          <button
-            type="button"
+          <LiquidButton
+            variant="destructive"
+            size="xl"
+            className="w-full"
             onClick={handleLogout}
-            className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-[color,background-color,border-color]',
-              isUiLight
-                ? 'border-red-300 bg-red-500/10 text-red-700 hover:bg-red-500/15'
-                : 'border-red-400/35 bg-red-500/15 text-red-200 hover:bg-red-500/25',
-            )}
           >
             <LogOut className="h-4 w-4" aria-hidden />
             退出登录
-          </button>
+          </LiquidButton>
         </LiquidGlassCard>
 
         <p

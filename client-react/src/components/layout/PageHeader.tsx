@@ -15,8 +15,8 @@ interface PageHeaderProps {
   className?: string
 }
 
-/** 全站统一的页面顶部：返回 + 标题 + 副标题 + 右侧操作槽
- *  避免 Discover / Settings / MyDemands / Orders 等页面各自重复粘贴样式 */
+/** 全站统一的页面顶部：返回左固定 + 标题居中 + 右操作槽
+ *  避免按钮与文字重叠，标题不因两侧内容挤压而截断 */
 export function PageHeader({
   title,
   subtitle,
@@ -27,36 +27,60 @@ export function PageHeader({
 }: PageHeaderProps) {
   const navigate = useNavigate()
   const handleBack =
-    onBack === 'back' ? () => navigate(-1) : typeof onBack === 'function' ? onBack : undefined
+    onBack === 'back'
+      ? () => navigate(-1)
+      : typeof onBack === 'function'
+        ? onBack
+        : undefined
+
+  const showLeft = !!handleBack
+  const showRight = !!actions
 
   return (
     <header
       className={cn(
-        'flex items-center gap-3',
+        'relative flex items-center justify-center',
         divider && 'border-b border-border pb-3',
-        'mb-4',
+        'mb-4 min-h-[44px]',
         className,
       )}
     >
+      {/* 左侧：返回按钮（绝对定位） */}
       {handleBack && (
         <button
           type="button"
           onClick={handleBack}
           aria-label="返回"
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card/60 text-text-secondary transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
+          className="absolute left-0 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-lg border border-border bg-card/60 text-text-secondary transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
         >
           <ChevronLeft className="size-5" />
         </button>
       )}
-      <div className="min-w-0 flex-1">
-        <h1 className="truncate text-lg font-bold tracking-tight text-text-primary">
+
+      {/* 标题区：居中，左右由按钮/操作槽宽度撑开间距 */}
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center text-center min-w-0',
+          showLeft && 'ml-11',
+          showRight && 'mr-11',
+        )}
+      >
+        <h1 className="max-w-[60vw] truncate text-lg font-bold tracking-tight text-text-primary">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-0.5 truncate text-xs text-text-muted">{subtitle}</p>
+          <p className="mt-0.5 max-w-[60vw] truncate text-xs text-text-muted">
+            {subtitle}
+          </p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+
+      {/* 右侧：操作槽（绝对定位） */}
+      {actions && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex shrink-0 items-center gap-2">
+          {actions}
+        </div>
+      )}
     </header>
   )
 }
