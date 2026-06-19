@@ -52,20 +52,36 @@ export function findNodeByLabels(labels: string[]): string | null {
   if (labels.length === 0) return null
   // 跳过 "全部" 开始
   const start = labels[0] === '全部' ? 1 : 0
-  if (start >= labels.length) return 'root'
+  const sliced = labels.slice(start)
+  if (sliced.length === 0) return 'root'
 
-  let currentId = 'root'
-  for (let i = start; i < labels.length; i++) {
-    const targetLabel = labels[i]
-    const node: TaxonomyNode | undefined = TAXONOMY[currentId]
-    if (!node) return null
-    const child = node.childIds.find(
-      (cid) => TAXONOMY[cid]?.label === targetLabel,
-    )
-    if (!child) return null
-    currentId = child
+  // 尝试不同前缀路径，适配 AI 可能省略"线上服务"/"线下到场"的情况
+  const candidates: string[][] = [sliced]
+  if (sliced[0] !== '线上服务' && sliced[0] !== '线下到场') {
+    candidates.push(['线上服务', ...sliced])
+    candidates.push(['线下到场', ...sliced])
   }
-  return currentId
+
+  for (const path of candidates) {
+    let currentId = 'root'
+    let ok = true
+    for (let i = 0; i < path.length; i++) {
+      const targetLabel = path[i]
+      const node = TAXONOMY[currentId]
+      if (!node) { ok = false; break }
+      // 精确匹配
+      let child = node.childIds.find((cid) => TAXONOMY[cid]?.label === targetLabel)
+      // 前缀匹配（AI 可能输出"陪玩"但树中是"陪玩教学"）
+      if (!child) {
+        child = node.childIds.find((cid) => TAXONOMY[cid]?.label.startsWith(targetLabel))
+      }
+      if (!child) { ok = false; break }
+      currentId = child
+    }
+    if (ok) return currentId
+  }
+
+  return null
 }
 
 /**
