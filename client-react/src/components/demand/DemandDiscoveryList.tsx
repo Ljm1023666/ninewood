@@ -1,0 +1,255 @@
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { MapPin } from 'lucide-react'
+import { demandApi } from '@/api/demand'
+import { usePagination } from '@/hooks/usePagination'
+import { ListItemCard } from '@/components/ui/list-item-card'
+import { Button } from '@/components/ui/button'
+import { AcetInvertButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { EmptyState } from '@/components/ui/empty-state'
+import { certColor } from '@/constants/cert'
+import { cn } from '@/lib/utils'
+import { useThemeStore } from '@/stores/theme'
+
+export type DemandRow = {
+  id: string
+  title: string
+  minPrice: number
+  category: string
+  serviceType: string
+  applicantCount: number
+  createdAgo?: string
+  isExample?: boolean
+  user?: {
+    id: string
+    nickname: string
+    avatarUrl: string | null
+    certificationLevel?: string
+  }
+}
+
+const PAGE_SIZE = 20
+
+function DemandCardInner({ d }: { d: DemandRow }) {
+  const isDark = useThemeStore((s) => s.current.dark)
+  return (
+    <div className="flex gap-3">
+      <div
+        className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white"
+        style={{
+          background:
+            certColor[d.user?.certificationLevel ?? 'NONE'] || certColor.NONE,
+        }}
+      >
+        {d.user?.avatarUrl ? (
+          <img
+            src={d.user.avatarUrl}
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          (d.user?.nickname || '?').charAt(0)
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <span className="font-semibold text-text-primary">{d.title}</span>
+          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+            {d.isExample ? (
+              <span
+                className={cn(
+                  'rounded px-2 py-0.5 text-[10px] font-medium',
+                  isDark ? 'bg-bg-secondary text-text-muted' : 'text-gray-400',
+                )}
+              >
+                示例
+              </span>
+            ) : null}
+            <span
+              className={cn(
+                'rounded px-2 py-0.5 text-[10px] font-semibold',
+                isDark ? 'bg-bg-secondary text-text-muted' : 'text-gray-500',
+              )}
+            >
+              {d.serviceType === 'ONLINE' ? '线上' : '线下'}
+            </span>
+          </div>
+        </div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+          <span>{d.category}</span>
+          <span>{d.applicantCount ?? 0} 人申请</span>
+          {d.createdAgo ? <span>{d.createdAgo}</span> : null}
+        </div>
+        <div className="mt-2 flex items-center justify-between text-sm">
+          <span className="flex items-center gap-1 text-text-muted">
+            <MapPin className="size-3.5 opacity-70" />
+            <span className="truncate">{d.user?.nickname || '用户'}</span>
+          </span>
+          <span className="font-semibold text-[var(--primary-start)]">
+            ¥{d.minPrice}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type ServiceFilter = 'ALL' | 'ONLINE' | 'OFFLINE'
+
+/** 与 URL / 首屏解析一致的 keyword + serviceType，驱动需求列表与分页 */
+export function DemandDiscoveryList({
+  keyword,
+  serviceType,
+  scrollRootRef,
+  className,
+}: {
+  keyword: string
+  serviceType: ServiceFilter
+  scrollRootRef: React.RefObject<HTMLElement | null>
+  className?: string
+}) {
+  const navigate = useNavigate()
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  const fetchPage = useCallback(
+    async (page: number) => {
+      const kw = keyword.trim()
+      const r = await demandApi.list({
+        page,
+        limit: PAGE_SIZE,
+        ...(kw ? { keyword: kw } : {}),
+        ...(serviceType !== 'ALL' ? { serviceType } : {}),
+      })
+      return r.data.data as {
+        demands: DemandRow[]
+        total: number
+        page: number
+        totalPages: number
+      }
+    },
+    [keyword, serviceType],
+  )
+
+  const { items, loading, error, hasMore, loadMore } =
+    usePagination<DemandRow>(fetchPage)
+
+  const loadMoreRef = useRef(loadMore)
+  const hasMoreRef = useRef(hasMore)
+  const loadingUiRef = useRef(loading)
+  loadMoreRef.current = loadMore
+  hasMoreRef.current = hasMore
+  loadingUiRef.current = loading
+
+  useEffect(() => {
+    void loadMore(true)
+  }, [keyword, serviceType, loadMore])
+
+  /** 勿把 loading/hasMore 放进依赖：否则会反复 disconnect 观察器，在 rootMargin 下 sentinel 常相交，导致连续 loadMore 拉完全部分页 */
+  useLayoutEffect(() => {
+    const root = scrollRootRef.current
+    const target = sentinelRef.current
+    if (!root || !target) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.some((e) => e.isIntersecting)
+        if (hit && hasMoreRef.current && !loadingUiRef.current)
+          void loadMoreRef.current()
+      },
+      { root, rootMargin: '48px', threshold: 0 },
+    )
+    io.observe(target)
+    return () => io.disconnect()
+  }, [scrollRootRef])
+
+  /** loading 结束时 IntersectionObserver 可能因比例未变不发事件，补一次几何检测以继续翻页（仍受 usePagination 内 loadingRef 去重） */
+  useEffect(() => {
+    if (loading || !hasMore) return
+    let cancelled = false
+    const id = requestAnimationFrame(() => {
+      if (cancelled) return
+      const root = scrollRootRef.current
+      const target = sentinelRef.current
+      if (!root || !target) return
+      const rr = root.getBoundingClientRect()
+      const tr = target.getBoundingClientRect()
+      const margin = 48
+      const near =
+        tr.top <= rr.bottom + margin && tr.bottom >= rr.top - margin
+      if (near && hasMoreRef.current && !loadingUiRef.current)
+        void loadMoreRef.current()
+    })
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(id)
+    }
+  }, [loading, hasMore, scrollRootRef])
+
+  return (
+    <div className={cn('flex w-full flex-col', className)}>
+      {error ? (
+        <div className="w-full rounded-xl border border-border bg-card p-6 text-center">
+          <p className="text-sm text-text-muted">{error}</p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-4 border-border"
+            onClick={() => loadMore(true)}
+          >
+            重试
+          </Button>
+        </div>
+      ) : null}
+
+      {!error && !loading && items.length === 0 ? (
+        <div className="w-full">
+          <EmptyState
+            type="demand"
+            message="暂时还没有匹配的需求，先发一条占个坑吧。"
+            actionLabel="发布需求"
+            onAction={() => navigate('/demands/create')}
+            actionSlot={
+              <AcetInvertButton
+                type="button"
+                className="w-full max-w-xs"
+                onClick={() => navigate('/demands/create')}
+              >
+                发布需求
+              </AcetInvertButton>
+            }
+          />
+        </div>
+      ) : null}
+
+      <div className="flex w-full flex-col gap-3">
+        {items.map((d) => (
+          <ListItemCard
+            key={d.id}
+            onClick={() => {
+              const params = new URLSearchParams()
+              const kw = keyword.trim()
+              if (kw) params.set('q', kw)
+              if (serviceType !== 'ALL') params.set('type', serviceType)
+              const qs = params.toString()
+              navigate(`/demands/${d.id}${qs ? '?' + qs : ''}`)
+            }}
+            className="p-4"
+          >
+            <DemandCardInner d={d} />
+          </ListItemCard>
+        ))}
+      </div>
+
+      {loading && items.length === 0 ? (
+        <p className="py-12 text-center text-sm text-text-muted">加载中…</p>
+      ) : null}
+      {loading && items.length > 0 ? (
+        <p className="py-6 text-center text-xs text-text-muted">加载更多…</p>
+      ) : null}
+      {!hasMore && items.length > 0 ? (
+        <p className="py-6 text-center text-xs text-text-muted">没有更多了</p>
+      ) : null}
+
+      <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
+    </div>
+  )
+}

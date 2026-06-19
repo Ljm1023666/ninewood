@@ -1,7 +1,16 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
 import { useChatStore } from '@/stores/chat'
-import { Home, FileText, Compass, Users, Search, MessageCircle, User, LogOut } from 'lucide-react'
+import {
+  Home,
+  FileText,
+  Compass,
+  Users,
+  Search,
+  MessageCircle,
+  User,
+  LogOut,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ThemeToggleButton } from '@/components/ui/theme-toggle'
 
@@ -26,33 +35,38 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="sidebar flex flex-col items-center py-4 border-r border-border bg-card/50 w-[var(--sidebar-w)] flex-shrink-0 z-10
-      max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:w-full max-md:h-[calc(var(--mobile-tabbar-h)+env(safe-area-inset-bottom,0px))]
-      max-md:flex-row max-md:justify-around max-md:border-r-0 max-md:border-t max-md:py-0 max-md:px-2 max-md:pb-[env(safe-area-inset-bottom,0px)]">
-
-      <div className="sidebar-logo w-11 h-11 flex items-center justify-center cursor-pointer mb-3 max-md:hidden">
+    <aside
+      className="sidebar z-10 flex w-[var(--sidebar-w)] flex-shrink-0 flex-col items-center border-r border-border bg-card/50 py-4"
+    >
+      <div className="sidebar-logo mb-3 flex h-11 w-11 cursor-pointer items-center justify-center">
         <span className="text-[28px] font-black cyber-glow">N</span>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-0.5 max-md:flex-row max-md:flex-1 max-md:justify-around max-md:gap-0">
+      <nav className="flex flex-1 flex-col gap-0.5">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
-            className={({ isActive }) => cn(
-              'nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg',
-              'transition-all duration-300 text-text-secondary relative',
-              'hover:bg-accent/10 hover:text-text-primary',
-              'max-md:w-auto max-md:h-full max-md:flex-1 max-md:px-3',
-              isActive && 'active bg-accent/15 text-[var(--primary-start)] shadow-[inset_3px_0_0_var(--primary-start)]',
-              isActive && 'max-md:shadow-none max-md:border-t-2 max-md:border-[var(--primary-start)]',
-            )}
+            className={({ isActive }) =>
+              cn(
+                'nav-item relative flex h-12 w-12 cursor-pointer flex-col items-center justify-center rounded-lg',
+                'text-text-secondary transition-all duration-300',
+                'hover:bg-accent/10 hover:text-text-primary',
+                isActive &&
+                  'active bg-accent/15 text-[var(--primary-start)] shadow-[inset_3px_0_0_var(--primary-start)]',
+              )
+            }
           >
             <div className="relative">
-              <item.icon size={20} className="nav-icon relative z-[1] opacity-50 transition-all duration-300" />
+              <item.icon
+                size={20}
+                className="nav-icon relative z-[1] opacity-50 transition-all duration-300"
+              />
               {item.path === '/messages' && unreadCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center
-                  rounded-full bg-red-500 text-[10px] font-bold text-white leading-none z-10">
+                <span
+                  className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center
+                  rounded-full bg-red-500 text-[10px] font-bold text-white leading-none z-10"
+                >
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -62,7 +76,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-0.5 max-md:hidden">
+      <div className="mt-auto flex flex-col gap-0.5">
         <ThemeToggleButton />
         <button
           onClick={handleLogout}
