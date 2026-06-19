@@ -152,10 +152,10 @@
   - 公益认领同样走该状态机（已并入两段式，对齐 D3）。
   - **完成/接单切断**：`closeAllCommForDemand()`（comm.service.ts:104）用 `updateMany` 把该 demand 下所有 `PENDING/COMMUNICATING` 置终态；已接入 4 处——正式接单（demand.service.ts:791）、确认验收（acceptance.service.ts:36/127）、卡池完成（pool.service.ts:241）。
   - 测试：`server/src/__tests__/comm-integration.test.ts` 覆盖"双方首消息起算 / 单方不起算 / 延长"三条路径。
-- **剩余差距**（2026-06-19 复核：切断"逻辑"已实现，以下为剩余项）
+- **剩余差距**（2026-06-19 复核：切断逻辑 + Stage 0 单测已覆盖）
   - [ ] 切断仅做 DB 状态置终态，**未通过 socket 向其他申请人广播实时关闭通知**（前端需轮询/刷新才感知）。
-  - [ ] 冻结需求时**不**清掉已存在的有效沟通窗口——cron 仅按 `commDeadline` 超时，未单独保证冻结后窗口存续语义。
-  - [ ] 补"完成切断"与"冻结后窗口存续"两条单测（见 `ACTION-PLAN.md` §3）。
+  - ✅ 冻结后沟通窗口存续：`demand-window.test.ts` 5 用例（Stage 0.2）。
+  - ✅ 完成/接单切断：`comm-close.test.ts` 7 用例（Stage 0.1）。
 
 ### 3. AI 标签 + 推送认证者 ✅（2026-06-19 Stage 1.1 落地）
 
@@ -292,17 +292,16 @@
 | M2 | #5/#7/#8/#9 点数钱包 + 结算 + 明细 | ✅ |
 | M3 | #4 效果导向验收闭环 | ✅ |
 
-### 下一批（维护与后期）
+### 下一批（2026-06-19 更新）
 
-1. **测试补全**：#2c 完成切断、冻结后沟通窗口存续的集成单测。
-2. **债务清理**：旧 `Deposit/DepositDemand` 表、`deposit.service.ts` 归档删除。
-3. **后期范围**：#3 认证者主动接受、#11 政府拨付/选奖、#12 公开圈全套。
+1. ✅ **Stage 0 测试补全** + **deposit.service.ts 删除** — 已完成。
+2. ✅ **Stage 1.1** autoReceive · **Stage 1.3** timeLimit — 已完成。
+3. **进行中**：**Stage 1.2** 公益政府拨付出账 + 选奖（`docs/specs/STAGE-1.2-welfare.md`）。
+4. **后期**：Stage 1.1 未来项（认证撤销防漏推、重复推送防重）；Stage 2 公开圈全套。
 
 ### 暂缓（后期，非初期范围）
-- #3 推送认证者「主动接受」。
-- #11 公益的政府对接/选奖（公益接单本身并入 #6 两段式）。
 - #12 公开圈全部能力（申请审核、公众待办区、圈升级）——**初期只做私人圈**。
-- 这些留到 M1–M3 稳定后再排里程碑。
+- 公益 `claim` 与普通两段式完全对齐（见 STAGE-1.2 spec §8 backlog）。
 
 ---
 
@@ -374,3 +373,4 @@
 |  · ACTION-PLAN.md v1.3 同步：§2 阶段 1 表 1.1 行 ✅。
 |  · 未来项（不在本期范围）：认证撤销防漏推、重复推送防重、计数/进度接口。 |
 | 2026-06-19 | v1.8 | Stage 1.3 落地后回写：#4 中 timeLimit 从"后期"升为 Stage 1.3 已落地；发布表单可选「服务时限（分钟）」（15–10080），服务端换算为绝对截止时间落库；processTimeLimitReminders cron（60s）仅提醒不改订单状态，同 orderId 幂等去重。7 个新单测（A–G）全绿；`pnpm --filter server test` 45/45 passed；server + client tsc 均 clean。ACTION-PLAN.md v1.4 同步。未动 schema / Stage 1.2/2 / socket 底层。 |
+| 2026-06-19 | v1.9 | Brain↔Codex 通道：`docs/CODEX-HANDOFF.md`；§3 #2 Stage 0 单测标记 ✅；§4 下一批更新（1.1/1.3 ✅，1.2 进行中）。 |
