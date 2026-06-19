@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import { toast } from '@/components/ui/confirm-dialog'
 import { HorizonHeroSection } from '@/components/ui/horizon-hero-section'
+import { ScrollNavbar } from '@/components/ui/scroll-navigation-menu'
 
 import { SearchBar } from '@/components/ui/search-bar'
 import { InputWithTags } from '@/components/ui/input-with-tags'
@@ -154,6 +155,7 @@ export default function Discover() {
 
   return (
     <>
+      <ScrollNavbar />
       <HorizonHeroSection sections={heroSections}>
         {showResults && (
           <div ref={resultsRef} className="w-full">
