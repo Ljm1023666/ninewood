@@ -1,8 +1,15 @@
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useThemeStore, presets as themePresets } from '@/stores/theme'
 import { useUserStore } from '@/stores/user'
 import { cn } from '@/lib/utils'
 import { ThemeToggleButton } from '@/components/ui/theme-toggle'
+import { TagSelector, useTagLoader } from '@/components/ui/tag-selector'
+import { Chip } from '@/components/ui/chip'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { toast } from '@/components/ui/confirm-dialog'
+import { userApi } from '@/api/user'
 import {
   Palette,
   Check,
@@ -10,6 +17,9 @@ import {
   LogOut,
   Award,
   UserRound,
+  BellOff,
+  Plus,
+  X,
 } from 'lucide-react'
 
 const themeNames: Record<string, string> = {
@@ -33,6 +43,59 @@ export default function Settings() {
   const logout = useUserStore((s) => s.logout)
   const themeStore = useThemeStore()
   const current = themeStore.current
+
+  // ── 推送屏蔽 ──
+  const { tags: allTags, loading: tagLoading, error: tagError } = useTagLoader()
+  const [keywords, setKeywords] = useState<string[]>([])
+  const [newKeyword, setNewKeyword] = useState('')
+  const [blockedTags, setBlockedTags] = useState<string[]>([])
+  const [loadingBlocklist, setLoadingBlocklist] = useState(false)
+  const [savingBlocklist, setSavingBlocklist] = useState(false)
+
+  const loadBlocklist = useCallback(async () => {
+    setLoadingBlocklist(true)
+    try {
+      const res = await userApi.getBlocklist()
+      const data = res.data.data || { tags: [], keywords: [], ageRanges: [] }
+      setBlockedTags(data.tags || [])
+      setKeywords(data.keywords || [])
+    } catch {
+      toast('加载屏蔽列表失败', 'error')
+    } finally {
+      setLoadingBlocklist(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadBlocklist()
+  }, [loadBlocklist])
+
+  function addKeyword() {
+    const kw = newKeyword.trim()
+    if (!kw) return
+    if (keywords.includes(kw)) {
+      toast('该关键词已存在', 'info')
+      return
+    }
+    setKeywords((prev) => [...prev, kw])
+    setNewKeyword('')
+  }
+
+  function removeKeyword(kw: string) {
+    setKeywords((prev) => prev.filter((k) => k !== kw))
+  }
+
+  async function saveBlocklist() {
+    setSavingBlocklist(true)
+    try {
+      await userApi.updateBlocklist({ tags: blockedTags, keywords, ageRanges: [] })
+      toast('屏蔽设置已保存', 'success')
+    } catch {
+      toast('保存失败，请重试', 'error')
+    } finally {
+      setSavingBlocklist(false)
+    }
+  }
 
   function handleSetTheme(name: string) {
     themeStore.setTheme(name)
@@ -177,6 +240,89 @@ export default function Settings() {
             </span>
             <ChevronRight className="h-4 w-4 text-text-muted" aria-hidden />
           </button>
+        </section>
+
+        {/* ── 推送屏蔽 ── */}
+        <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
+          <div className="mb-4 flex items-center gap-2 text-text-secondary">
+            <BellOff className="h-4 w-4 shrink-0" aria-hidden />
+            <h2 className="text-sm font-bold uppercase tracking-wider">推送屏蔽</h2>
+          </div>
+          <p className="mb-4 text-sm text-text-muted">
+            设置屏蔽条件后，匹配的推送将不会通知你
+          </p>
+
+          {/* 关键词屏蔽 */}
+          <div className="mb-5">
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              屏蔽关键词
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={newKeyword}
+                onChange={(e) => setNewKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addKeyword()}
+                placeholder="输入关键词"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addKeyword}
+                disabled={!newKeyword.trim()}
+                className="gap-1"
+              >
+                <Plus className="size-3.5" />
+                添加
+              </Button>
+            </div>
+            {keywords.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {keywords.map((kw) => (
+                  <Chip key={kw} variant="outlined" className="gap-1" tabIndex={-1}>
+                    {kw}
+                    <button
+                      type="button"
+                      onClick={() => removeKeyword(kw)}
+                      className="ml-0.5 flex size-3.5 items-center justify-center rounded-full text-text-muted hover:text-text-primary transition-colors"
+                      aria-label={`删除关键词 ${kw}`}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 标签屏蔽 */}
+          <div className="mb-5">
+            <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+              屏蔽标签
+            </label>
+            <TagSelector
+              tags={allTags}
+              selected={blockedTags}
+              onChange={setBlockedTags}
+              loading={tagLoading}
+              error={tagError}
+              max={20}
+            />
+          </div>
+
+          {/* 保存按钮 */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              loading={savingBlocklist}
+              disabled={loadingBlocklist}
+              onClick={saveBlocklist}
+            >
+              保存屏蔽设置
+            </Button>
+          </div>
         </section>
 
         {/* ── 法律信息 ── */}

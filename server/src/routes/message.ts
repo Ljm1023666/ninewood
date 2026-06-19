@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { upload } from '../middleware/upload.js';
+import { upload, verifyUpload } from '../middleware/upload.js';
 import { messageService } from '../services/message.service.js';
 import { success, fail } from '../utils/response.js';
 import { q } from '../utils/query.js';
@@ -86,7 +86,7 @@ messageRouter.get('/:userId', authMiddleware, async (req: Request, res: Response
 });
 
 // POST /api/messages/send
-messageRouter.post('/send', authMiddleware, upload.single('file'), async (req: Request, res: Response) => {
+messageRouter.post('/send', authMiddleware, upload.single('file'), verifyUpload, async (req: Request, res: Response) => {
   try {
     const { toUserId, content, orderId, duration } = req.body;
     const file = req.file;

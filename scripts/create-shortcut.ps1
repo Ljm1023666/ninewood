@@ -1,9 +1,12 @@
-# DeepSeek TUI 桌面快捷方式脚本
-$WshShell = New-Object -ComObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\DeepSeek-TUI.lnk")
-$Shortcut.TargetPath = "$env:USERPROFILE\Desktop\DeepSeek-TUI.bat"
-$Shortcut.IconLocation = "shell32.dll,14"
+$WScriptShell = New-Object -ComObject WScript.Shell
+$DesktopPath = [Environment]::GetFolderPath("Desktop")
+$ShortcutPath = Join-Path $DesktopPath "Ninewood.lnk"
+
+$Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
+$Shortcut.TargetPath = "C:\Windows\System32\cmd.exe"
+$Shortcut.Arguments = "/c E:\Ninewood\scripts\start-ninewood.bat"
 $Shortcut.WorkingDirectory = "E:\Ninewood"
-$Shortcut.Description = "DeepSeek TUI - Ninewood"
+$Shortcut.IconLocation = "E:\Ninewood\node_modules\.pnpm\electron@42.2.0\node_modules\electron\dist\electron.exe,0"
 $Shortcut.Save()
-Write-Host "Done: DeepSeek-TUI.lnk created on Desktop"
+
+Write-Host "Shortcut created on Desktop"

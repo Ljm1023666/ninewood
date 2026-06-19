@@ -74,7 +74,7 @@ function modernUserResponse(user: LegacyUser) {
 
 async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> {
   try {
-    const rows = await prisma.$queryRawUnsafe<any[]>(
+    const rows = await (prisma as any).$queryRawUnsafe(
       'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
       phone,
     );
@@ -86,7 +86,7 @@ async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> 
 
 async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
   try {
-    const rows = await prisma.$queryRawUnsafe<any[]>(
+    const rows = await (prisma as any).$queryRawUnsafe(
       'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
       userId,
     );
@@ -100,7 +100,7 @@ async function createLegacyUser(phone: string): Promise<LegacyUser | null> {
   const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
   const tail = phone.slice(-4);
   try {
-    const rows = await prisma.$queryRawUnsafe<any[]>(
+    const rows = await (prisma as any).$queryRawUnsafe(
       'INSERT INTO "User" ("phone","nickname","passwordHash","createdAt","updatedAt") VALUES ($1,$2,$3,NOW(),NOW()) RETURNING "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt"',
       phone,
       `用户_${tail}`,

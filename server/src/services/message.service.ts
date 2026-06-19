@@ -83,22 +83,34 @@ export const messageService = {
     if (memberIds.length < 1) throw { status: 400, message: '至少选择一位联系人' };
     const ids = [...new Set([userId, ...memberIds])];
     return prisma.conversationMerge.create({
-      data: { userId, title: title.trim(), memberIds: ids },
+      data: {
+        userId,
+        title: title.trim(),
+        members: {
+          create: ids.map((id) => ({ userId: id })),
+        },
+      },
+      include: { members: true },
     });
   },
 
   async getMerges(userId: string) {
     return prisma.conversationMerge.findMany({
-      where: { memberIds: { hasSome: [userId] } },
+      where: { members: { some: { userId } } },
       orderBy: { createdAt: 'desc' },
+      include: { members: true },
     });
   },
 
   async getMergeMessages(mergeId: string, userId: string, page = 1) {
-    const merge = await prisma.conversationMerge.findUnique({ where: { id: mergeId } });
+    const merge = await prisma.conversationMerge.findUnique({
+      where: { id: mergeId },
+      include: { members: true },
+    });
     if (!merge) throw { status: 404, message: '群聊不存在' };
-    if (!merge.memberIds.includes(userId)) throw { status: 403, message: '不是群成员' };
-    // Send messages to all members: store as multi-target
+    if (!merge.members.some((m: any) => m.userId === userId))
+      throw { status: 403, message: '不是群成员' };
+
     const limit = 50;
     const messages = await prisma.message.findMany({
       where: { mergeId },
@@ -113,14 +125,19 @@ export const messageService = {
   },
 
   async sendMergeMessage(fromUserId: string, mergeId: string, content: string) {
-    const merge = await prisma.conversationMerge.findUnique({ where: { id: mergeId } });
+    const merge = await prisma.conversationMerge.findUnique({
+      where: { id: mergeId },
+      include: { members: true },
+    });
     if (!merge) throw { status: 404, message: '群聊不存在' };
-    if (!merge.memberIds.includes(fromUserId))
+    if (!merge.members.some((m: any) => m.userId === fromUserId))
       throw { status: 403, message: '不是群成员' };
 
-    const recipients = merge.memberIds.filter((id) => id !== fromUserId);
+    const recipients = merge.members
+      .map((m: any) => m.userId)
+      .filter((id: string) => id !== fromUserId);
     const msgs = await Promise.all(
-      recipients.map((toId) =>
+      recipients.map((toId: string) =>
         prisma.message.create({
           data: { fromUserId, toUserId: toId, content, type: 'TEXT', mergeId },
           include: {

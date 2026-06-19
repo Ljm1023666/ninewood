@@ -23,6 +23,8 @@ const DemandCreate = lazy(() => import('@/views/DemandCreate'))
 const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 const Discover = lazy(() => import('@/views/Discover'))
+const CertifiedSearch = lazy(() => import('@/views/CertifiedSearch'))
+const MyBids = lazy(() => import('@/views/MyBids'))
 const Help = lazy(() => import('@/views/Help'))
 const AgentChat = lazy(() => import('@/views/AgentChat'))
 const Privacy = lazy(() => import('@/views/Privacy'))
@@ -32,6 +34,8 @@ const CardPool = lazy(() => import('@/views/CardPool'))
 const CardPoolResourceExplorer = lazy(
   () => import('@/views/CardPoolResourceExplorer'),
 )
+const DeadPool = lazy(() => import('@/views/DeadPool'))
+const MyTags = lazy(() => import('@/views/MyTags'))
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 
@@ -78,6 +82,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'card-pool/dead',
+            element: (
+              <LazyLoad>
+                <DeadPool />
+              </LazyLoad>
+            ),
+          },
+          {
             path: 'card-pool',
             element: (
               <LazyLoad>
@@ -104,6 +116,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'discover/certified',
+            element: (
+              <LazyLoad>
+                <CertifiedSearch />
+              </LazyLoad>
+            ),
+          },
+          {
             path: 'demands/create',
             element: (
               <LazyLoad>
@@ -124,6 +144,22 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <MyDemands />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'my-tags',
+            element: (
+              <LazyLoad>
+                <MyTags />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'my-bids',
+            element: (
+              <LazyLoad>
+                <MyBids />
               </LazyLoad>
             ),
           },

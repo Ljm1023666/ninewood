@@ -3,20 +3,20 @@
  * 需求详情页：按发布者 userId 稳定映射到其中一张，作全页背景与 3D 卡主图。
  */
 export const USER_COVER_PRESET_URLS = [
-  '/user-cover-presets/10001.jpg',
-  '/user-cover-presets/10002.jpg',
-  '/user-cover-presets/10003.jpg',
-  '/user-cover-presets/10004.jpg',
-  '/user-cover-presets/10005.jpg',
-  '/user-cover-presets/10006.jpg',
-  '/user-cover-presets/10007.jpg',
-  '/user-cover-presets/10008.jpg',
-  '/user-cover-presets/10009.jpg',
-  '/user-cover-presets/10010.jpg',
-  '/user-cover-presets/10011.jpeg',
-  '/user-cover-presets/10012.png',
-  '/user-cover-presets/10013.png',
-  '/user-cover-presets/10014.png',
+  '/uploads/card-covers/10001.jpg',
+  '/uploads/card-covers/10002.jpg',
+  '/uploads/card-covers/10003.jpg',
+  '/uploads/card-covers/10004.jpg',
+  '/uploads/card-covers/10005.jpg',
+  '/uploads/card-covers/10006.jpg',
+  '/uploads/card-covers/10007.jpg',
+  '/uploads/card-covers/10008.jpg',
+  '/uploads/card-covers/10009.jpg',
+  '/uploads/card-covers/10010.jpg',
+  '/uploads/card-covers/10011.jpeg',
+  '/uploads/card-covers/10012.png',
+  '/uploads/card-covers/10013.png',
+  '/uploads/card-covers/10014.png',
 ] as const
 
 function stableIndexFromUserId(userId: string, len: number): number {

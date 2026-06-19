@@ -30,7 +30,7 @@ adminRouter.get('/disputes', async (_req: Request, res: Response) => {
     },
     orderBy: { createdAt: 'desc' },
   });
-  success(res, disputes.map(o => ({ ...o, agreedPrice: Number(o.agreedPrice) })));
+  success(res, disputes.map((o: any) => ({ ...o, agreedPrice: Number(o.agreedPrice) })));
 });
 
 // POST /api/admin/disputes/:id/resolve

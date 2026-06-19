@@ -479,13 +479,17 @@ export const PromptInputBox = React.forwardRef(
       className,
       onThinkChange,
       enableSpeed,
+      speedMode: externalSpeedMode,
+      onSpeedChange,
       value: externalValue,
       onInputChange,
     } = props as PromptInputBoxProps & {
       onThinkChange?: (think: boolean) => void
       enableSpeed?: boolean
+      speedMode?: boolean
+      onSpeedChange?: (on: boolean) => void
     }
-    const [showAggressive, setShowAggressive] = React.useState(false)
+    const speedMode = externalSpeedMode ?? true
     const [input, setInput] = React.useState(externalValue ?? '')
 
     // 受控模式：外部值变化时同步
@@ -512,7 +516,7 @@ export const PromptInputBox = React.forwardRef(
 
     const handleToggleChange = (value: string) => {
       if (value === 'aggressive') {
-        setShowAggressive((prev) => !prev)
+        onSpeedChange?.(!speedMode)
         setShowThink(false)
         setShowCanvas(false)
       } else if (value === 'think') {
@@ -521,11 +525,11 @@ export const PromptInputBox = React.forwardRef(
           onThinkChange?.(next)
           return next
         })
-        setShowAggressive(false)
+        onSpeedChange?.(false)
         setShowCanvas(false)
       } else if (value === 'canvas') {
         setShowCanvas((prev) => !prev)
-        setShowAggressive(false)
+        onSpeedChange?.(false)
         setShowThink(false)
       }
     }
@@ -599,8 +603,7 @@ export const PromptInputBox = React.forwardRef(
     const handleSubmit = () => {
       if (input.trim() || files.length > 0) {
         let messagePrefix = ''
-        if (showAggressive) messagePrefix = '[Aggressive: '
-        else if (showThink) messagePrefix = '[Think: '
+        if (showThink) messagePrefix = '[Think: '
         else if (showCanvas) messagePrefix = '[Canvas: '
         const formattedInput = messagePrefix
           ? `${messagePrefix}${input}]`
@@ -684,7 +687,7 @@ export const PromptInputBox = React.forwardRef(
           >
             <PromptInputTextarea
               placeholder={
-                showAggressive
+                speedMode
                   ? '一句话快速生成，不追问...'
                   : showThink
                     ? '深度思考...'
@@ -739,8 +742,8 @@ export const PromptInputBox = React.forwardRef(
                     onClick={() => handleToggleChange('aggressive')}
                     className={cn(
                       'rounded-full transition-all flex items-center gap-1 border',
-                      showAggressive ? 'px-10 py-0 h-6' : 'px-2 py-1 h-8',
-                      showAggressive
+                      speedMode ? 'px-10 py-0 h-6' : 'px-2 py-1 h-8',
+                      speedMode
                         ? 'bg-[#F59E0B]/15 border-[#F59E0B] text-[#F59E0B]'
                         : 'bg-transparent border-transparent text-text-muted hover:text-text-secondary',
                     )}
@@ -748,11 +751,11 @@ export const PromptInputBox = React.forwardRef(
                     <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                       <motion.div
                         animate={{
-                          rotate: showAggressive ? 360 : 0,
-                          scale: showAggressive ? 1.1 : 1,
+                          rotate: speedMode ? 360 : 0,
+                          scale: speedMode ? 1.1 : 1,
                         }}
                         whileHover={{
-                          rotate: showAggressive ? 360 : 15,
+                          rotate: speedMode ? 360 : 15,
                           scale: 1.1,
                           transition: {
                             type: 'spring',
@@ -769,13 +772,13 @@ export const PromptInputBox = React.forwardRef(
                         <Zap
                           className={cn(
                             'w-4 h-4',
-                            showAggressive ? 'text-[#F59E0B]' : 'text-inherit',
+                            speedMode ? 'text-[#F59E0B]' : 'text-inherit',
                           )}
                         />
                       </motion.div>
                     </div>
                     <AnimatePresence>
-                      {showAggressive && (
+                      {speedMode && (
                         <motion.span
                           initial={{ width: 0, opacity: 0 }}
                           animate={{ width: 'auto', opacity: 1 }}

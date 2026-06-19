@@ -20,7 +20,7 @@ export const orderService = {
 
     const agreedPrice = application.offerPrice || demand.minPrice;
 
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx: any) => {
       const created = await tx.order.create({
         data: {
           demandId,
@@ -99,7 +99,7 @@ export const orderService = {
       prisma.order.count({ where }),
     ]);
     return {
-      orders: orders.map(o => ({ ...o, agreedPrice: Number(o.agreedPrice) })),
+      orders: orders.map((o: any) => ({ ...o, agreedPrice: Number(o.agreedPrice) })),
       total, page, totalPages: Math.ceil(total / limit),
     };
   },
@@ -274,8 +274,6 @@ export const orderService = {
         minPrice: Math.max(1, remainingPrice),
         category: order.demand.category,
         serviceType: order.demand.serviceType,
-        locationLat: order.demand.locationLat,
-        locationLng: order.demand.locationLng,
         cityCode: order.demand.cityCode,
         expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         mediaUrls: JSON.parse(JSON.stringify(order.demand.mediaUrls)),
