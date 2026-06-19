@@ -137,3 +137,49 @@ userTagRouter.post('/:tagName/order-finish', authMiddleware, async (req: Request
     fail(res, e.message || 'server error', 500)
   }
 })
+
+// Stage 1.1: 设置 autoReceive 的 PATCH 接口
+const autoReceiveSchema = z.object({
+  autoReceive: z.boolean(),
+})
+
+// PATCH /api/user-tags/:tagName/auto-receive
+// 开启/关闭某个标签的自动接收。身份校验全后端推导：
+//   1) UserTag.certified=true；或者
+//   2) 上述为 null/false 时退而次之检查 User.certificationLevel !== NONE
+userTagRouter.patch('/:tagName/auto-receive', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { autoReceive } = autoReceiveSchema.parse(req.body)
+    const userId = req.user!.userId
+    const tagName = req.params.tagName
+
+    const tag = await prisma.userTag.findUnique({
+      where: { userId_tagName: { userId, tagName } },
+    })
+    if (!tag) {
+      return fail(res, '该标签未开启，请先 POST /api/user-tags/:tagName', 404)
+    }
+
+    // 身份校验：优先 UserTag.certified，笺中 User.certificationLevel
+    let eligible = tag.certified
+    if (!eligible) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { certificationLevel: true },
+      })
+      eligible = user?.certificationLevel !== undefined && user.certificationLevel !== 'NONE'
+    }
+    if (!eligible) {
+      return fail(res, '该用户未认证，不可开启 autoReceive', 403, { code: 'NOT_CERTIFIED' })
+    }
+
+    const updated = await prisma.userTag.update({
+      where: { userId_tagName: { userId, tagName } },
+      data: { autoReceive },
+    })
+    success(res, updated, autoReceive ? '已开启自动接收' : '已关闭自动接收')
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '参数错误', 400, e.errors)
+    fail(res, e.message || 'server error', 500)
+  }
+})
