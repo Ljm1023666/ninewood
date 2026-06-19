@@ -17,6 +17,7 @@ import { messageRouter } from './routes/message.js';
 import { shortsRouter } from './routes/shorts.js';
 import { complaintRouter } from './routes/complaint.js';
 import { adminRouter } from './routes/admin.js';
+import { aiRouter } from './routes/ai.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -49,6 +50,7 @@ app.use('/api/messages', messageRouter);
 app.use('/api/shorts', shortsRouter);
 app.use('/api/complaints', complaintRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/ai', aiRouter);
 
 // Health
 app.get('/api/health', (_req, res) => {

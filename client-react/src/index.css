@@ -7,7 +7,7 @@
    反参考: 不用紫蓝渐变、不用纯黑、不用霓虹发光、不用玻璃态做默认材质
    OKLCH 色彩空间，感知均匀，WCAG 2.1 AA 对比度 */
 :root {
-  --sidebar-w: 80px;
+  --sidebar-w: 100px;
 
   /* ── 强调色：暖琥珀（Restrained: ≤10% 表面）── */
   --accent-color: oklch(58% 0.16 45);
@@ -171,7 +171,7 @@
 }
 
 html {
-  font-size: 106.25%;
+  font-size: 112.5%;
 }
 
 html, body {
@@ -389,6 +389,27 @@ html, body {
     #b45309 50%,
     #92400e 78%,
     #78350f 100%
+  );
+}
+.flip-card-title-bar-shimmer--rainbow {
+  background-image: linear-gradient(
+    90deg,
+    #ef4444 0%,
+    #f97316 6%,
+    #eab308 12%,
+    #84cc16 18%,
+    #22c55e 24%,
+    #10b981 30%,
+    #14b8a6 36%,
+    #06b6d4 42%,
+    #3b82f6 50%,
+    #6366f1 58%,
+    #8b5cf6 66%,
+    #a855f7 74%,
+    #d946ef 82%,
+    #ec4899 90%,
+    #f43f5e 96%,
+    #ef4444 100%
   );
 }
 /* 叠层仅用深靛辅色扫光，避免出现浅青/发白感 */

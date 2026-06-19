@@ -9,6 +9,8 @@ export function useThemeCurtain() {
   const [phase, setPhase] = useState<CurtainPhase>('idle')
   const curtainColorRef = useRef('')
   const callbackRef = useRef<(() => void) | null>(null)
+  const phaseRef = useRef(phase)
+  phaseRef.current = phase
 
   const triggerCurtain = useCallback(
     (destinationBg: string, onCovered: () => void) => {
@@ -16,31 +18,48 @@ export function useThemeCurtain() {
       curtainColorRef.current = destinationBg
       callbackRef.current = onCovered
       setPhase('falling')
-      setTimeout(() => {
-        callbackRef.current?.()
-        setPhase('rising')
-        setTimeout(() => {
-          setPhase('idle')
-          callbackRef.current = null
-        }, CURTAIN_DURATION + 40)
-      }, CURTAIN_DURATION)
     },
     [phase],
   )
+
+  // transitionend 精确同步动画完成时刻，避免 setTimeout 的不可靠时序
+  const handleTransitionEnd = useCallback((e: React.TransitionEvent) => {
+    if (e.propertyName !== 'transform') return
+
+    if (phaseRef.current === 'falling') {
+      callbackRef.current?.()
+      // 强制同步布局：applyTheme() 有 16 次 setProperty，
+      // 仅靠 rAF 无法保证样式重算在动画启动前完成
+      void document.documentElement.offsetHeight
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setPhase('rising')
+        })
+      })
+    } else if (phaseRef.current === 'rising') {
+      setPhase('idle')
+      callbackRef.current = null
+    }
+  }, [])
 
   const curtainElement = (
     <div
       aria-hidden="true"
       data-curtain
+      onTransitionEnd={handleTransitionEnd}
       style={{
         position: 'fixed',
         inset: 0,
         background: curtainColorRef.current,
         transformOrigin: 'top',
         transform: phase === 'falling' ? 'scaleY(1)' : 'scaleY(0)',
-        transition: `transform ${CURTAIN_DURATION}ms cubic-bezier(0.76,0,0.24,1)`,
+        transition:
+          phase !== 'idle'
+            ? `transform ${CURTAIN_DURATION}ms cubic-bezier(0.76,0,0.24,1)`
+            : 'none',
         zIndex: 'var(--z-max)',
         pointerEvents: 'none',
+        willChange: 'transform',
       }}
     />
   )
