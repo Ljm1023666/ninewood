@@ -6,8 +6,6 @@ import {
   Search,
   X,
   Brain,
-  ChevronRight,
-  Hand,
   Monitor,
   MapPin,
   Send,
@@ -17,7 +15,6 @@ import { motion, AnimatePresence } from 'motion/react'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PromptInputBox } from '@/components/ui/prompt-input-box'
-import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
 import { toast } from '@/components/ui/confirm-dialog'
 import { demandApi } from '@/api/demand'
 import {
@@ -161,7 +158,6 @@ export default function Discover() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { addToHand } = usePersistedGlobalHand()
 
   const [aiOpen, setAiOpen] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
@@ -525,7 +521,7 @@ export default function Discover() {
         role: m.role as 'user' | 'assistant',
         content:
           m.role === 'assistant' && m.result
-            ? `[分类结果] 路径: ${m.result.scopePath.join(' › ')} | 匹配: ${m.result.matchCount} 条 | ${m.result.refinePrompt}`
+            ? `[搜索结果] ${(m.result.keywords || []).join('·')} | 匹配 ${m.result.total || 0} 条`
             : m.content,
       }))
   }, [chatMessages])
@@ -605,7 +601,10 @@ export default function Discover() {
                   {
                     id: newMsgId(),
                     role: 'assistant' as const,
-                    content: result!.understood,
+                    content:
+                      result!.total > 0
+                        ? `找到 ${result!.total} 条匹配需求`
+                        : result!.keywords?.join('·') || '搜索完成',
                     result,
                   },
                 ])
@@ -673,27 +672,6 @@ export default function Discover() {
       }
     },
     [mode, sendClassifyRequest, sendPublishRequest],
-  )
-
-  const handleRefineClick = useCallback(
-    async (optionLabel: string) => {
-      await sendClassifyRequest(optionLabel, false)
-    },
-    [sendClassifyRequest],
-  )
-
-  const handleAddToHand = useCallback(
-    (result: ClassifyResult) => {
-      if (result.scopeNodeIds.length === 0) return
-      const scope = {
-        path: result.scopeNodeIds,
-        leafFilter: null as string[] | null,
-      }
-      const added = addToHand(scope)
-      if (added) toast('已加入手牌', 'success')
-      else toast('该范围已在手牌中', 'info')
-    },
-    [addToHand],
   )
 
   function handleClose() {
@@ -775,36 +753,9 @@ export default function Discover() {
                   <div className="flex size-8 items-center justify-center rounded-lg bg-accent/20 text-accent mr-1">
                     <Sparkles className="size-4" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMode('discover')
-                      setThinkText('')
-                      setThinkCollapsed(false)
-                      setIsThinkMode(false)
-                    }}
-                    className={`relative px-3 py-2.5 text-xs font-medium transition-colors ${mode === 'discover' ? 'text-white' : 'text-white/35 hover:text-white/60'}`}
-                  >
-                    找服务
-                    {mode === 'discover' && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-accent" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMode('publish')
-                      setThinkText('')
-                      setThinkCollapsed(false)
-                      setIsThinkMode(false)
-                    }}
-                    className={`relative px-3 py-2.5 text-xs font-medium transition-colors ${mode === 'publish' ? 'text-white' : 'text-white/35 hover:text-white/60'}`}
-                  >
-                    发需求
-                    {mode === 'publish' && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-accent" />
-                    )}
-                  </button>
+                  <span className="px-3 py-2.5 text-xs font-medium text-white">
+                    找需求
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -823,7 +774,7 @@ export default function Discover() {
                       <div className="flex flex-1 items-center justify-center py-12">
                         <div className="text-center text-white/25">
                           <Sparkles className="size-10 mx-auto mb-2 opacity-40" />
-                          <p className="text-sm">描述你能提供什么服务</p>
+                          <p className="text-sm">描述你想接什么需求</p>
                           <p className="text-xs mt-1">
                             AI 会自动分类并显示匹配需求数量
                           </p>
@@ -849,114 +800,69 @@ export default function Discover() {
                             </div>
                           ) : msg.result ? (
                             <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] mb-2">
-                              <div className="px-4 pt-3 pb-1">
-                                <span className="text-sm text-white/75">
-                                  {msg.result.understood}
-                                </span>
-                              </div>
-
-                              {msg.result.scopePath.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-0 px-4 py-1.5">
-                                  <Search className="size-3 text-accent/50 shrink-0 mr-1" />
-                                  {msg.result.scopePath.map((seg, j) => {
-                                    const isLeaf =
-                                      j === msg.result!.scopePath.length - 1
-                                    return (
-                                      <span
-                                        key={j}
-                                        className="flex items-center text-xs"
-                                      >
-                                        {j > 0 && (
-                                          <ChevronRight className="size-3 text-white/12" />
-                                        )}
-                                        <span
-                                          className={
-                                            isLeaf
-                                              ? 'text-white/85 font-medium'
-                                              : 'text-white/30'
-                                          }
-                                        >
-                                          {seg}
-                                        </span>
-                                      </span>
-                                    )
-                                  })}
+                              {/* 新格式：关键词 */}
+                              {msg.result.keywords?.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 pb-1">
+                                  <Search className="size-3 text-accent/50 shrink-0" />
+                                  {msg.result.keywords.map((kw, j) => (
+                                    <span
+                                      key={j}
+                                      className="rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent/80"
+                                    >
+                                      {kw}
+                                    </span>
+                                  ))}
                                 </div>
                               )}
-
+                              {/* 新格式：匹配数 */}
                               <div className="px-4 py-1">
                                 <span className="text-xs text-accent/65">
                                   匹配{' '}
                                   <span className="text-accent font-semibold">
-                                    {msg.result.matchCount}
+                                    {msg.result.total ??
+                                      msg.result.matchCount ??
+                                      0}
                                   </span>{' '}
                                   条需求
                                 </span>
                               </div>
-
-                              {msg.result.refineOptions.length > 0 && (
-                                <div className="flex flex-wrap gap-2 px-4 py-2">
-                                  {msg.result.refineOptions.map((opt, k) => (
-                                    <button
-                                      key={k}
-                                      type="button"
-                                      onClick={() =>
-                                        handleRefineClick(opt.label)
-                                      }
-                                      disabled={aiLoading}
-                                      className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/5 px-3 py-1.5 text-xs text-white/65 hover:border-accent/35 hover:bg-accent/8 hover:text-white transition-colors disabled:opacity-40"
+                              {/* 新格式：需求列表 */}
+                              {msg.result.demands?.length > 0 && (
+                                <div className="px-4 pb-2 space-y-1.5">
+                                  {msg.result.demands.slice(0, 5).map((d) => (
+                                    <div
+                                      key={d.id}
+                                      onClick={() => {
+                                        navigate(`/demands/${d.id}`)
+                                        setAiOpen(false)
+                                      }}
+                                      className="rounded-xl border border-white/[0.04] bg-white/[0.03] px-3 py-2 text-xs cursor-pointer hover:border-accent/30 hover:bg-accent/[0.04] transition-colors"
                                     >
-                                      <span>{opt.label}</span>
-                                      <span className="text-[10px] tabular-nums text-accent/55">
-                                        ({opt.count})
-                                      </span>
-                                      <ChevronRight className="size-3 text-white/20" />
-                                    </button>
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-white/85 font-medium truncate">
+                                          {d.title}
+                                        </span>
+                                        <span className="text-accent/70 shrink-0 ml-2">
+                                          ¥{d.minPrice}
+                                        </span>
+                                      </div>
+                                      {d.descriptionPreview && (
+                                        <p className="text-white/40 mt-0.5 line-clamp-1">
+                                          {d.descriptionPreview}
+                                        </p>
+                                      )}
+                                    </div>
                                   ))}
                                 </div>
                               )}
-
-                              {msg.result.refinePrompt && (
+                              {/* 新格式：hint */}
+                              {msg.result.hint && (
                                 <div className="px-4 pb-2">
                                   <span className="text-xs text-white/35 italic">
-                                    {msg.result.refinePrompt}
+                                    💡 {msg.result.hint}
                                   </span>
                                 </div>
                               )}
-
-                              <div className="flex items-center gap-2 px-4 pb-3 pt-1">
-                                {msg.result.preciseEnough && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAddToHand(msg.result!)}
-                                    className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-                                  >
-                                    <Hand className="size-3.5" />
-                                    加入手牌
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const leaf =
-                                      msg.result?.scopePath?.[
-                                        msg.result.scopePath.length - 1
-                                      ]
-                                    const type = msg.result?.serviceType
-                                    const q = leaf
-                                      ? `keyword=${encodeURIComponent(leaf)}${type ? `&type=${type}` : ''}`
-                                      : ''
-                                    if (q) {
-                                      navigate(`/discover?${q}`)
-                                      setAiOpen(false)
-                                    }
-                                  }}
-                                  className="flex items-center gap-1.5 rounded-xl bg-white/8 px-4 py-1.5 text-xs text-white/65 hover:bg-white/15 transition-colors"
-                                >
-                                  <Search className="size-3" />
-                                  搜索
-                                </button>
-                              </div>
                             </div>
                           ) : (
                             <div className="flex justify-start mb-2">
@@ -1140,11 +1046,7 @@ export default function Discover() {
                 <PromptInputBox
                   onSend={handleAISend}
                   isLoading={aiLoading}
-                  placeholder={
-                    mode === 'publish'
-                      ? '描述你的需求...'
-                      : '描述你想接什么单...'
-                  }
+                  placeholder="描述你想接什么需求..."
                 />
                 {isThinkMode && (
                   <ThinkingPanel

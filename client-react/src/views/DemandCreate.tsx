@@ -144,6 +144,7 @@ export default function DemandCreate() {
 
   const workspaceFields = useDemandWorkspaceStore((s) => s.fields)
   const workspaceReady = useDemandWorkspaceStore((s) => s.readyToPublish)
+  const confidence = useDemandWorkspaceStore((s) => s.confidence)
   const applyAgent = useDemandWorkspaceStore((s) => s.applyAgentResult)
   const applyAnalyze = useDemandWorkspaceStore((s) => s.applyAnalyzeResult)
   const resetWorkspace = useDemandWorkspaceStore((s) => s.reset)
@@ -232,7 +233,7 @@ export default function DemandCreate() {
   }, [messages, thinkText])
 
   // Refs for handlers declared after sendMessage (avoids useBeforeDefine)
-  const handleSearchModeRef = useRef<(text: string) => Promise<void>>(
+  const handleAggressiveModeRef = useRef<(text: string) => Promise<void>>(
     undefined as any,
   )
   const handleCanvasModeRef = useRef<(text: string) => Promise<void>>(
@@ -248,14 +249,16 @@ export default function DemandCreate() {
     undefined as any,
   )
 
+  let _analyzeSeq = 0
+
   const sendMessage = useCallback(
     async (rawMessage: string) => {
-      const isSearch = rawMessage.startsWith('[Search:')
+      const isAggressive = rawMessage.startsWith('[Aggressive:')
       const isThink = rawMessage.startsWith('[Think:')
       const isCanvas = rawMessage.startsWith('[Canvas:')
 
       const text = rawMessage
-        .replace(/^\[(Search|Think|Canvas):\s*/, '')
+        .replace(/^\[(Aggressive|Think|Canvas):\s*/, '')
         .replace(/\]$/, '')
         .trim()
       if (!text) return
@@ -266,6 +269,15 @@ export default function DemandCreate() {
       setThinkText('')
       setThinkCollapsed(false)
       thinkAccRef.current = ''
+
+      // Speed 模式：清空旧消息和工作区，每次从头开始
+      if (isAggressive) {
+        setMessages([])
+        resetWorkspace()
+        useDemandWorkspaceStore.getState().setSpeedMode(true)
+      } else {
+        useDemandWorkspaceStore.getState().setSpeedMode(false)
+      }
 
       const confirmedCtx = useDemandWorkspaceStore
         .getState()
@@ -288,6 +300,7 @@ export default function DemandCreate() {
       ]
 
       // 并行：非流式分析（所有模式下都更新工作区）
+      const seq = ++_analyzeSeq
       fetch('/api/ai/analyze-demand', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -299,7 +312,7 @@ export default function DemandCreate() {
       })
         .then((r) => r.json())
         .then((json) => {
-          if (json.data) {
+          if (json.data && seq === _analyzeSeq) {
             applyAnalyze({
               title: json.data.title,
               summary: json.data.summary,
@@ -311,6 +324,7 @@ export default function DemandCreate() {
               budget: json.data.budget,
               schedule: json.data.schedule,
               category: json.data.category,
+              taxonomyLeafId: json.data.taxonomyLeafId,
             })
           }
         })
@@ -343,12 +357,13 @@ export default function DemandCreate() {
       }
 
       try {
-        if (isSearch) {
-          await handleSearchModeRef.current(text)
-        } else if (isCanvas) {
+        if (isCanvas) {
           await handleCanvasModeRef.current(text)
+        } else if (isThink) {
+          await handleDefaultModeRef.current(history, true)
         } else {
-          await handleDefaultModeRef.current(history, isThink)
+          // 默认 = 激进：一句话生成草稿，不追问
+          await handleAggressiveModeRef.current(text)
         }
       } catch {
         setMessages((prev) => [
@@ -362,134 +377,71 @@ export default function DemandCreate() {
     [applyAgent, applyAnalyze],
   )
 
-  /** Search 模式：分类搜索 + 需求计数 */
-  const handleSearchMode = useCallback(
+  /** 激进模式：一句话直接生成草稿，不追问 */
+  const handleAggressiveMode = useCallback(
     async (text: string) => {
-      const res = await fetch('/api/ai/discover-classify-stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, thinkMode: false }),
-      })
-      if (!res.ok || !res.body) {
-        setMessages((prev) => [
-          ...prev,
-          { id: newMsgId(), role: 'assistant', content: '搜索异常，请重试' },
-        ])
-        return
-      }
-
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buf = ''
       const assistantId = newMsgId()
-      let hasMsg = false
-      let result: Record<string, unknown> | null = null
-      const ensure = (content: string) => {
-        if (!hasMsg) {
-          hasMsg = true
-          setMessages((prev) => [
-            ...prev,
-            { id: assistantId, role: 'assistant', content, isStreaming: true },
-          ])
-        } else {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: '⚡ 正在生成需求草稿…',
+          isStreaming: true,
+        },
+      ])
+
+      try {
+        const res = await fetch('/api/ai/analyze-demand', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        })
+        if (!res.ok) throw new Error('分析失败')
+        const json = await res.json()
+
+        if (json.data) {
+          applyAnalyze({
+            title: json.data.title,
+            summary: json.data.summary,
+            missingInfo: [], // 激进模式：不展示缺失信息
+            confidence: json.data.confidence,
+            suggestedKeywords: json.data.suggestedKeywords,
+            scopeLabels: json.data.scopePath,
+            serviceType: json.data.serviceType,
+            budget: json.data.budget,
+            schedule: json.data.schedule,
+            category: json.data.category,
+            taxonomyLeafId: json.data.taxonomyLeafId,
+          })
+          // 强制 readyToPublish
+          useDemandWorkspaceStore.setState({ readyToPublish: true })
+
           setMessages((prev) =>
-            prev.map((m) => (m.id === assistantId ? { ...m, content } : m)),
+            prev.map((m) =>
+              m.id === assistantId
+                ? {
+                    ...m,
+                    content: '⚡ 已生成需求草稿，确认无误后发布',
+                    isStreaming: false,
+                  }
+                : m,
+            ),
           )
         }
-      }
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buf += decoder.decode(value, { stream: true })
-        const events = buf.split('\n\n')
-        buf = events.pop() || ''
-        for (const event of events) {
-          const lines = event.split('\n')
-          const eventType = lines[0].replace('event: ', '')
-          const dataLine = lines.find((l) => l.startsWith('data: '))
-          if (!dataLine) continue
-          const data = dataLine.slice(6)
-
-          if (eventType === 'think') {
-            try {
-              const { line } = JSON.parse(data)
-              if (line) {
-                thinkAccRef.current += (thinkAccRef.current ? '\n' : '') + line
-                setThinkText(thinkAccRef.current)
-              }
-            } catch {
-              /* skip */
-            }
-          } else if (eventType === 'result') {
-            try {
-              result = JSON.parse(data)
-              const r = result as {
-                queryType?: string
-                answer?: string
-                understood?: string
-                scopePath?: string[]
-                matchCount?: number
-                refineOptions?: { label: string; count: number }[]
-                tags?: string[]
-                refinePrompt?: string
-                serviceType?: string
-              }
-
-              // 通用问答：直接显示答案
-              if (r.queryType === 'general') {
-                ensure(r.answer || '未能获取信息')
-              } else {
-                // 服务分类：结构化展示
-                if (r.scopePath) {
-                  applyAnalyze({
-                    scopeLabels: r.scopePath,
-                    serviceType: r.serviceType,
-                  })
-                }
-
-                let content = `🔍 ${r.understood || '已理解搜索意图'}\n\n`
-                if (r.scopePath && r.scopePath.length > 0) {
-                  content += `📂 分类：${r.scopePath.join(' → ')}\n`
-                }
-                content += `📊 匹配需求数：**${r.matchCount ?? 0}**\n`
-                if (r.tags && r.tags.length > 0) {
-                  content += `🏷️ 标签：${r.tags.join('、')}\n`
-                }
-                if (r.refineOptions && r.refineOptions.length > 0) {
-                  content += `\n📌 可选细分：\n${r.refineOptions
-                    .map((o) => `  • ${o.label} (${o.count}条)`)
-                    .join('\n')}\n`
-                }
-                if (r.refinePrompt) {
-                  content += `\n💡 ${r.refinePrompt}`
-                }
-                ensure(content)
-              }
-            } catch {
-              /* skip */
-            }
-          }
-        }
-      }
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId ? { ...m, isStreaming: false } : m,
-        ),
-      )
-
-      // 若没有结果，补一条默认消息
-      if (!result) {
-        setMessages((prev) => [
-          ...prev,
-          { id: assistantId, role: 'assistant', content: '未能解析搜索结果' },
-        ])
+      } catch {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: '⚡ 分析异常，请重试', isStreaming: false }
+              : m,
+          ),
+        )
       }
     },
     [applyAnalyze],
   )
-  handleSearchModeRef.current = handleSearchMode
+  handleAggressiveModeRef.current = handleAggressiveMode
 
   /** Canvas 模式：直接提取结构化字段，减少对话 */
   const handleCanvasMode = useCallback(
@@ -566,6 +518,7 @@ export default function DemandCreate() {
                 missingInfo: r.missingInfo,
                 suggestedKeywords: r.suggestedKeywords,
                 readyToPublish: r.readyToPublish,
+                taxonomyLeafId: r.taxonomyLeafId,
               })
               ensure(
                 `📝 ${r.summary || '已分析需求'}\n\n` +
@@ -915,6 +868,23 @@ export default function DemandCreate() {
           </button>
         </div>
         <div className="flex items-center gap-2">
+          {workspaceFields.title && (
+            <span
+              className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${
+                confidence === 'high'
+                  ? 'bg-emerald-500/10 text-emerald-400/70'
+                  : confidence === 'medium'
+                    ? 'bg-amber-500/10 text-amber-400/70'
+                    : 'bg-red-500/10 text-red-400/70'
+              }`}
+            >
+              {confidence === 'high'
+                ? '高置信度'
+                : confidence === 'medium'
+                  ? '中置信度'
+                  : '低置信度'}
+            </span>
+          )}
           <button
             type="button"
             onClick={() => doPublish(true)}
@@ -1116,6 +1086,7 @@ export default function DemandCreate() {
               <PromptInputBox
                 onSend={(message) => sendMessage(message)}
                 isLoading={loading}
+                enableSpeed
                 placeholder="说点什么？"
                 value={draftInput}
                 onInputChange={setDraftInput}

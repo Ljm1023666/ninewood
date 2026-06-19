@@ -8,7 +8,7 @@ import {
   X,
   StopCircle,
   Mic,
-  Globe,
+  Zap,
   BrainCog,
   FolderCode,
 } from 'lucide-react'
@@ -482,11 +482,14 @@ export const PromptInputBox = React.forwardRef(
       placeholder = '输入你的需求...',
       className,
       onThinkChange,
+      enableSpeed,
       value: externalValue,
       onInputChange,
     } = props as PromptInputBoxProps & {
       onThinkChange?: (think: boolean) => void
+      enableSpeed?: boolean
     }
+    const [showAggressive, setShowAggressive] = React.useState(false)
     const [input, setInput] = React.useState(externalValue ?? '')
 
     // 受控模式：外部值变化时同步
@@ -506,23 +509,28 @@ export const PromptInputBox = React.forwardRef(
       null,
     )
     const [isRecording, setIsRecording] = React.useState(false)
-    const [showSearch, setShowSearch] = React.useState(false)
     const [showThink, setShowThink] = React.useState(false)
     const [showCanvas, setShowCanvas] = React.useState(false)
     const uploadInputRef = React.useRef<HTMLInputElement>(null)
     const promptBoxRef = React.useRef<HTMLDivElement>(null)
 
     const handleToggleChange = (value: string) => {
-      if (value === 'search') {
-        setShowSearch((prev) => !prev)
+      if (value === 'aggressive') {
+        setShowAggressive((prev) => !prev)
         setShowThink(false)
+        setShowCanvas(false)
       } else if (value === 'think') {
         setShowThink((prev) => {
           const next = !prev
           onThinkChange?.(next)
           return next
         })
-        setShowSearch(false)
+        setShowAggressive(false)
+        setShowCanvas(false)
+      } else if (value === 'canvas') {
+        setShowCanvas((prev) => !prev)
+        setShowAggressive(false)
+        setShowThink(false)
       }
     }
 
@@ -595,7 +603,7 @@ export const PromptInputBox = React.forwardRef(
     const handleSubmit = () => {
       if (input.trim() || files.length > 0) {
         let messagePrefix = ''
-        if (showSearch) messagePrefix = '[Search: '
+        if (showAggressive) messagePrefix = '[Aggressive: '
         else if (showThink) messagePrefix = '[Think: '
         else if (showCanvas) messagePrefix = '[Canvas: '
         const formattedInput = messagePrefix
@@ -680,8 +688,8 @@ export const PromptInputBox = React.forwardRef(
           >
             <PromptInputTextarea
               placeholder={
-                showSearch
-                  ? '搜索需求...'
+                showAggressive
+                  ? '一句话快速生成，不追问...'
                   : showThink
                     ? '深度思考...'
                     : showCanvas
@@ -729,63 +737,62 @@ export const PromptInputBox = React.forwardRef(
               </PromptInputAction>
 
               <div className="flex items-center">
-                <button
-                  type="button"
-                  onClick={() => handleToggleChange('search')}
-                  className={cn(
-                    'rounded-full transition-all flex items-center gap-1 border',
-                    showSearch ? 'px-10 py-0 h-6' : 'px-2 py-1 h-8',
-                    showSearch
-                      ? 'bg-[#1EAEDB]/15 border-[#1EAEDB] text-[#1EAEDB]'
-                      : 'bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]',
-                  )}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                    <motion.div
-                      animate={{
-                        rotate: showSearch ? 360 : 0,
-                        scale: showSearch ? 1.1 : 1,
-                      }}
-                      whileHover={{
-                        rotate: showSearch ? 360 : 15,
-                        scale: 1.1,
-                        transition: {
-                          type: 'spring',
-                          stiffness: 300,
-                          damping: 10,
-                        },
-                      }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 260,
-                        damping: 25,
-                      }}
-                    >
-                      <Globe
-                        className={cn(
-                          'w-4 h-4',
-                          showSearch ? 'text-[#1EAEDB]' : 'text-inherit',
-                        )}
-                      />
-                    </motion.div>
-                  </div>
-                  <AnimatePresence>
-                    {showSearch && (
-                      <motion.span
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: 'auto', opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs overflow-hidden whitespace-nowrap text-[#1EAEDB] flex-shrink-0"
-                      >
-                        Search
-                      </motion.span>
+                {enableSpeed && (
+                  <button
+                    type="button"
+                    onClick={() => handleToggleChange('aggressive')}
+                    className={cn(
+                      'rounded-full transition-all flex items-center gap-1 border',
+                      showAggressive ? 'px-10 py-0 h-6' : 'px-2 py-1 h-8',
+                      showAggressive
+                        ? 'bg-[#F59E0B]/15 border-[#F59E0B] text-[#F59E0B]'
+                        : 'bg-transparent border-transparent text-[#9CA3AF] hover:text-[#D1D5DB]',
                     )}
-                  </AnimatePresence>
-                </button>
-
-                <CustomDivider />
-
+                  >
+                    <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                      <motion.div
+                        animate={{
+                          rotate: showAggressive ? 360 : 0,
+                          scale: showAggressive ? 1.1 : 1,
+                        }}
+                        whileHover={{
+                          rotate: showAggressive ? 360 : 15,
+                          scale: 1.1,
+                          transition: {
+                            type: 'spring',
+                            stiffness: 300,
+                            damping: 10,
+                          },
+                        }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 260,
+                          damping: 25,
+                        }}
+                      >
+                        <Zap
+                          className={cn(
+                            'w-4 h-4',
+                            showAggressive ? 'text-[#F59E0B]' : 'text-inherit',
+                          )}
+                        />
+                      </motion.div>
+                    </div>
+                    <AnimatePresence>
+                      {showAggressive && (
+                        <motion.span
+                          initial={{ width: 0, opacity: 0 }}
+                          animate={{ width: 'auto', opacity: 1 }}
+                          exit={{ width: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-xs overflow-hidden whitespace-nowrap text-[#F59E0B] flex-shrink-0"
+                        >
+                          Speed
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleToggleChange('think')}

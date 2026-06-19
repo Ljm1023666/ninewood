@@ -103,6 +103,18 @@ aiRouter.post('/analyze-demand', async (req: Request, res: Response) => {
     const clean = thinkMatch ? content.replace(/<think>[\s\S]*?<\/think>\s*/gi, '') : content;
     const data = parseJSON(clean);
 
+    // 将 scopePath 映射为 taxonomyLeafId
+    if (data && data.scopePath) {
+      let path: string[] = [];
+      if (Array.isArray(data.scopePath)) {
+        // 展平：AI 可能返回 ["游戏", "陪玩"] 或 ["游戏/陪玩/王者荣耀"]
+        path = data.scopePath.flatMap((s: string) => s.split('/'));
+      }
+      if (path.length > 0) {
+        data.taxonomyLeafId = findNodeByLabels(path);
+      }
+    }
+
     return res.json({ data, think });
   } catch (e: any) {
     console.error('[AI] analyze-demand error:', e.message);
@@ -328,7 +340,7 @@ aiRouter.post('/discover', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/ai/discover-classify-stream — 多轮对话分类 + 需求计数
+// POST /api/ai/discover-classify-stream — AI 理解 + 系统搜索
 aiRouter.post('/discover-classify-stream', async (req: Request, res: Response) => {
   try {
     const { message, history, thinkMode } = req.body as {
@@ -340,82 +352,38 @@ aiRouter.post('/discover-classify-stream', async (req: Request, res: Response) =
       return res.status(400).json({ error: '请输入描述' })
     }
 
-    const snapshot = taxonomySnapshot(3)
     const thinkModeEnabled = thinkMode === true
 
-    // Think 模式用推理模型，非 Think 用极速模型；未配置则回退到默认模型
     const model = thinkModeEnabled
       ? (config.aiThinkModel || config.aiModel)
       : (config.aiFastModel || config.aiModel)
 
-    const system = `你是九木平台的智能助手。首先判断用户输入类型，然后选择对应模式。
+    const system = `你只做一件事：判断用户输入类型，输出 JSON。
 
-【类型判断】
-- 天气、新闻、知识、教程、实时信息、百科问答 → 「通用问答」模式
-- 描述自己提供什么服务、想接什么单、找什么活 → 「服务分类」模式
-- 不确定时默认走「通用问答」模式
+用户是服务者（想接单赚钱），描述自己的服务能力。
 
-══════════════════════════════════
-【通用问答模式】
-══════════════════════════════════
-直接回答用户问题。输出 JSON：
+【两种输出格式——选其一，不要混用】
+
+类型 A — 通用问答：
 {
   "queryType": "general",
-  "answer": "完整回答内容（支持 markdown 格式，可包含标题、列表、加粗等）"
+  "answer": "完整回答"
 }
 
-══════════════════════════════════
-【服务分类模式】
-══════════════════════════════════
-分析用户输入，映射到平台分类树。
-
-【分类树结构（前 3 层）】
-${snapshot}
-
-输出 JSON：
+类型 B — 找需求：
 {
   "queryType": "service",
-  "understood": "一句自然语言 — 确认已理解的服务能力",
-  "scopeLabels": ["线上服务", "游戏", "陪玩教学", "王者陪玩"],
-  "childLabels": ["排位陪玩", "娱乐陪玩", "教学指导", "女陪玩"],
-  "tags": ["高段位", "排位", "打野", "语音"],
-  "refinePrompt": "一句自然追问 — 帮用户缩小范围",
-  "serviceType": "ONLINE",
-  "confidence": "high"
+  "keywords": ["王者荣耀", "陪玩"],
+  "hint": "试试加上段位（选填）"
 }
 
-【分类维度（按优先级）】
-1. 服务大类：线上/线下
-2. 行业领域：游戏、设计、开发、教育、家政、维修等
-3. 细分领域：具体游戏名、设计类型、开发语言等
-4. 规格/层级：段位、平台、时长等
-
-【scopeLabels 规则】
-- 从 "线上服务" 或 "线下到场" 开始（不要包含"全部"）
-- 每层标签必须存在于分类树中
-- 最终层级应为能确定的最细粒度节点
-
-【childLabels 规则】
-- 当前节点下的直接子节点，已到叶子则为空数组
-- 最多返回 6 个
-
-【tags 规则】
-- 扁平标签，提取关键属性词
-- 最多 8 个，不要重复
-
-【refinePrompt 规则】
-- confidence 中低时写追问，高且非叶子写细化提示，高且叶子写"范围已足够精准"
-
-【serviceType】"ONLINE" 线上 / "OFFLINE" 线下
-
-══════════════════════════════════
-【通用规则】
-══════════════════════════════════
-- 直接输出 JSON（纯 JSON，不要 markdown 包裹）
-${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中，然后输出 JSON' : '- 直接输出 JSON，不要使用 <think> 标签，不要进行冗长推理'}
-- 始终使用简体中文，禁止使用繁体字
-- 禁止写"用户表示…""用户没有说明…"等元描述
-- 服务分类模式下禁止编造分类树中不存在的标签`;
+【规则】
+- 如果用户问天气、知识、教程等 → 类型 A
+- 如果用户描述自己有什么技能、能接什么活 → 类型 B
+- 类型 B 时：keywords 只从用户输入提取 1-3 个词，不脑补
+- 类型 B 时：hint 选填，只在可能匹配很多时给建议
+- 输出纯 JSON，不要 markdown，不要多余文字
+${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中' : ''}`;
 
     const messages: { role: string; content: string }[] = [
       { role: 'system', content: system },
@@ -577,91 +545,41 @@ ${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中，然后
       return
     }
 
-    // 以下是服务分类模式
-    const scopeLabels: string[] = aiData.scopeLabels || []
-    const childLabels: string[] = aiData.childLabels || []
-    const currentNodeId = findNodeByLabels(scopeLabels)
+    // 三阶段分类搜索：规则 → GPU 语义 → 关键词降级
+    const keywords: string[] = aiData.keywords || []
+    const keyword = keywords[0] || message
 
-    let matchCount = 0
-    const refineOptions: {
-      label: string
-      taxonomyNodeId: string
-      scopePath: string[]
-      count: number
-    }[] = []
+    const { routeClassify } = await import('../services/semantic-classifier.js')
+    const { demandService } = await import('../services/demand.service.js')
+    const classified = await routeClassify(keywords)
 
-    if (currentNodeId) {
-      const leafIds = getDescendantLeafIds(currentNodeId)
-      if (leafIds.length > 0) {
-        matchCount = await prisma.demand.count({
-          where: {
-            status: 'PENDING',
-            taxonomyLeafId: { in: leafIds },
-            isPublic: true,
-          },
-        })
+    let searchResult
+    if (classified.method === 'fuzzy') {
+      // 降级：关键词模糊搜索
+      const tags = keywords.slice(1).join(',')
+      const params: Record<string, unknown> = {
+        keyword,
+        searchMode: 'fuzzy' as const,
+        limit: 10,
       }
-
-      for (const childLabel of childLabels) {
-        const childNodes = getChildNodes(currentNodeId)
-        const matched = childNodes.find((c) => c.label === childLabel)
-        if (matched) {
-          const childLeafIds = getDescendantLeafIds(matched.id)
-          const childCount =
-            childLeafIds.length > 0
-              ? await prisma.demand.count({
-                  where: {
-                    status: 'PENDING',
-                    taxonomyLeafId: { in: childLeafIds },
-                    isPublic: true,
-                  },
-                })
-              : 0
-          const childPath = getAncestorPath(matched.id)
-          refineOptions.push({
-            label: childLabel,
-            taxonomyNodeId: matched.id,
-            scopePath: childPath.map((n) => n.label),
-            count: childCount,
-          })
-        }
-      }
+      if (tags) params.tags = tags
+      searchResult = await demandService.search(params)
     } else {
-      const keyword = scopeLabels[scopeLabels.length - 1] || message
-      matchCount = await prisma.demand.count({
-        where: {
-          status: 'PENDING',
-          isPublic: true,
-          OR: [
-            { title: { contains: keyword, mode: 'insensitive' } },
-            { description: { contains: keyword, mode: 'insensitive' } },
-          ],
-        },
+      // 规则/语义分类 → 精确搜索
+      searchResult = await demandService.search({
+        taxonomyLeafIds: classified.nodeIds.join(','),
+        searchMode: 'fuzzy' as const,
+        limit: 10,
       })
     }
 
-    const ancestorPath = currentNodeId
-      ? getAncestorPath(currentNodeId)
-      : []
-
-    const currentPathLabels = ancestorPath.map((n) => n.label)
-    const scopeNodeIds = ancestorPath.map((n) => n.id)
-
-    const isLeaf = currentNodeId
-      ? getDescendantLeafIds(currentNodeId).length <= 1
-      : false
-
     const result = {
-      understood: aiData.understood || '已理解你的需求',
-      scopePath: ['全部', ...currentPathLabels],
-      scopeNodeIds: ['root', ...scopeNodeIds],
-      taxonomyNodeId: currentNodeId,
-      matchCount,
-      refineOptions,
-      tags: (aiData.tags as string[]) || [],
-      refinePrompt: aiData.refinePrompt || '',
-      preciseEnough: isLeaf || refineOptions.length === 0 || matchCount <= 6,
-      serviceType: aiData.serviceType || null,
+      keywords,
+      hint: aiData.hint || '',
+      demands: searchResult.demands || [],
+      total: searchResult.total || 0,
+      classifiedLabels: classified.labels,
+      classifyMethod: classified.method,
     }
 
     res.write(`event: result\ndata: ${JSON.stringify(result)}\n\n`)
@@ -889,6 +807,18 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
       res.write(`event: done\ndata: ok\n\n`)
       res.end()
       return
+    }
+
+    // 将 scopeLabels 映射为 taxonomyLeafId
+    if (aiData.scopeLabels) {
+      let path: string[] = [];
+      if (Array.isArray(aiData.scopeLabels)) {
+        path = aiData.scopeLabels.flatMap((s: string) => s.split('/'));
+      }
+      if (path.length > 0) {
+        const leafId = findNodeByLabels(path);
+        if (leafId) aiData.taxonomyLeafId = leafId;
+      }
     }
 
     res.write(`event: result\ndata: ${JSON.stringify(aiData)}\n\n`)

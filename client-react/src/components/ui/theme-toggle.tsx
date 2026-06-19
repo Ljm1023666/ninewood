@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { useThemeStore } from '@/stores/theme'
+import { MaterialSwitch } from '@/components/ui/material-switch'
 
 type CurtainPhase = 'idle' | 'falling' | 'rising'
 
@@ -114,31 +115,18 @@ export function ThemeToggleButton() {
   const isDark = themeStore.current.dark
   const toggle = useCallback(() => themeStore.toggleDarkMode(), [themeStore])
 
-  const [hovered, setHovered] = useState(false)
-  const [pressed, setPressed] = useState(false)
-
-  const btnScale = pressed ? 0.96 : hovered ? 1.1 : 1
-
   return (
-    <button
-      onClick={toggle}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => {
-        setHovered(false)
-        setPressed(false)
-      }}
-      onMouseDown={() => setPressed(true)}
-      onMouseUp={() => setPressed(false)}
-      className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-[color,background-color,transform] duration-300"
-      style={{
-        color: 'var(--text-secondary)',
-        background: 'transparent',
-        transform: `scale(${btnScale})`,
-      }}
-      aria-label={isDark ? '切换亮色模式' : '切换暗色模式'}
-    >
-      {isDark ? <SunIcon /> : <MoonIcon />}
-      <span className="text-[11px] mt-0.5">主题</span>
-    </button>
+    <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-colors">
+      <MaterialSwitch
+        checked={isDark}
+        onCheckedChange={toggle}
+        size="sm"
+        showIcons
+        checkedIcon={<MoonIcon />}
+        uncheckedIcon={<SunIcon />}
+        haptic="light"
+      />
+      <span className="text-xs text-white/60">深色模式</span>
+    </label>
   )
 }
