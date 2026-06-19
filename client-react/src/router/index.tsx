@@ -29,6 +29,7 @@ const CardPool = lazy(() => import('@/views/CardPool'))
 const CardPoolResourceExplorer = lazy(
   () => import('@/views/CardPoolResourceExplorer'),
 )
+const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
@@ -242,5 +243,12 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '/login', element: <GuestGuard /> },
-  { path: '*', element: <Navigate to="/" replace /> },
+  {
+    path: '*',
+    element: (
+      <LazyLoad>
+        <NotFound />
+      </LazyLoad>
+    ),
+  },
 ])

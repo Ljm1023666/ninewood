@@ -22,6 +22,80 @@ const createSchema = z.object({
   circleId: z.string().optional(),
 });
 
+/**
+ * @openapi
+ * /api/demands:
+ *   post:
+ *     tags: [Demands]
+ *     summary: 创建需求
+ *     description: 发布新需求，支持图片和视频上传
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [title, description, minPrice, category, serviceType, expireAt]
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "王者荣耀代打上分"
+ *               description:
+ *                 type: string
+ *                 example: "星耀二上王者，价格可议"
+ *               minPrice:
+ *                 type: number
+ *                 example: 50
+ *               category:
+ *                 type: string
+ *                 example: "游戏/王者荣耀/代打"
+ *               serviceType:
+ *                 type: string
+ *                 enum: [ONLINE, OFFLINE]
+ *                 example: ONLINE
+ *               expireAt:
+ *                 type: string
+ *                 example: "2025-12-31T23:59:59Z"
+ *               images:
+ *                 type: array
+ *                 items: { type: string, format: binary }
+ *               video:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: 发布成功
+ *       400:
+ *         description: 输入验证失败
+ *   get:
+ *     tags: [Demands]
+ *     summary: 获取需求列表
+ *     description: 分页查询需求，支持关键词/分类/服务类型筛选
+ *     parameters:
+ *       - in: query
+ *         name: keyword
+ *         schema: { type: string }
+ *         description: 搜索关键词
+ *       - in: query
+ *         name: category
+ *         schema: { type: string }
+ *         description: 分类筛选
+ *       - in: query
+ *         name: serviceType
+ *         schema: { type: string, enum: [ONLINE, OFFLINE] }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: pageSize
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: 需求列表（分页）
+ */
+
 const applySchema = z.object({
   offerPrice: z.coerce.number().min(0).optional(),
   message: z.string().max(500).optional(),

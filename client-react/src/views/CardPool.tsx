@@ -15,9 +15,11 @@ import {
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
 import {
   fetchFirstDemandId,
+  fetchPackContents,
   fetchTotalForScope,
   scopeToApiParams,
 } from '@/components/card-pool/search-params'
+import type { PackCardData } from '@/components/card-pool/search-params'
 import { cn } from '@/lib/utils'
 import {
   RootSummaryBlackCard,
@@ -25,6 +27,7 @@ import {
   AnimatedScopeCount,
 } from '@/components/card-pool/browse-black-cards'
 import { HandPile } from '@/components/card-pool/HandPile'
+import { PackOpeningAnimation } from '@/components/card-pool/PackOpeningAnimation'
 import {
   dragSurfaceSelectNoneClass,
   preventCopyOnDragSurface,
@@ -82,6 +85,9 @@ export default function CardPool() {
   const [scopeTotal, setScopeTotal] = useState<number | null>(null)
   const [childTotals, setChildTotals] = useState<Record<string, number>>({})
   const [openingCarousel, setOpeningCarousel] = useState(false)
+  const [packOpeningCards, setPackOpeningCards] = useState<
+    PackCardData[] | null
+  >(null)
   const [desktopOpen, setDesktopOpen] = useState<{
     apiParams: Record<string, string>
     blackScope: BlackScope
@@ -292,7 +298,24 @@ export default function CardPool() {
   }, [mode, childrenNotInHand.length, childPage])
 
   function openHandDesktop(entry: HandEntry) {
-    void enterDesktop(entry.scope)
+    setOpeningCarousel(true)
+    void fetchPackContents(entry.scope)
+      .then((cards) => {
+        setOpeningCarousel(false)
+        if (cards.length === 0) {
+          toast('当前范围内暂无需求', 'error')
+          return
+        }
+        setPackOpeningCards(cards)
+      })
+      .catch((e: unknown) => {
+        setOpeningCarousel(false)
+        const err = e as {
+          response?: { data?: { message?: string } }
+          message?: string
+        }
+        toast(err.response?.data?.message || err.message || '加载失败', 'error')
+      })
   }
 
   function previewHand(entry: HandEntry) {
@@ -614,6 +637,14 @@ export default function CardPool() {
           }}
         />
       </div>
+
+      {/* 卡包开启动画 */}
+      {packOpeningCards && (
+        <PackOpeningAnimation
+          cards={packOpeningCards}
+          onClose={() => setPackOpeningCards(null)}
+        />
+      )}
     </div>
   )
 }

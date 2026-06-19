@@ -164,9 +164,11 @@ None. This system uses a single accent. A second named color role would dilute t
 - **Red** (`oklch(55% 0.19 22)`): Errors, destructive actions, expired/frozen states.
 
 ### Named Rules
-**The One Voice Rule.** The warm amber accent is used on ≤10% of any given screen. Its rarity is the point. An interface that's 40% amber has no accent at all.
+**The One Voice Rule.** The warm amber accent is used on ≤10% of any given screen for action elements. Its rarity is the point — an interface that's 40% amber has no accent at all. Purple-blue gradients for AI surfaces do not count toward the amber budget; they occupy a separate visual layer for intelligence/creativity signaling.
 
 **The No-Black Rule.** Never use `#000` or `#fff`. Every neutral is tinted toward the accent hue (chroma 0.003–0.005). Pure black feels cold and digital; warm-tinted dark feels physical and trustworthy.
+
+**The Gradient Rule.** Gradients are permitted across the UI — on buttons, cards, AI-related surfaces, and decorative elements. The warm amber gradient (`oklch(58% 0.16 45) → oklch(52% 0.18 35)`) remains the primary brand gradient. Purple-blue gradients (`purple-500 → blue-500` range) are approved for AI/Think mode surfaces, thought process panels, and creative/experimental feature areas. This creates a clear visual language: **amber = action, purple-blue = intelligence**.
 
 ## 3. Typography
 
@@ -295,7 +297,7 @@ When an interactive element is hovered or focused, it lifts subtly with a small 
 - **Don't** use gradient text (`background-clip: text`). This is an absolute ban. Use solid amber color for emphasis.
 - **Don't** use side-stripe borders (`border-left` or `border-right` > 1px as accent). Full border + background shift communicates the same hierarchy without the visual hack.
 - **Don't** use glassmorphism as a default surface treatment. Translucent amber tints are acceptable; decorative blurs and frosted glass are not.
-- **Don't** use purple-blue gradients as brand colors. This is the #1 AI slop signal and contradicts the trust-first brand personality.
+- **Don't** use purple-blue gradients as default surface or navigation colors. Reserve them for AI/Think mode surfaces and creative feature areas to maintain semantic distinction from amber action elements.
 - **Don't** use emoji as icons. Always use lucide-react icons for consistent sizing, stroke width, and color inheritance.
 - **Don't** use `#000` or `#fff`. Every neutral must carry a hint of the accent hue.
 - **Don't** create identical card grids (icon + heading + text repeated). Vary card layout, density, and visual hierarchy across sections.

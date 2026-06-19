@@ -597,7 +597,7 @@ function FaqItem({
 }
 
 /** 跳转卡片 — 点击即导航，携带参数 */
-function JumpCard({
+export function JumpCard({
   match,
   onNavigate,
 }: {
