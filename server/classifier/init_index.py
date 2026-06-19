@@ -118,7 +118,7 @@ def build_faiss_index():
     from sentence_transformers import SentenceTransformer
 
     print("[Model] Loading bge-small-zh-v1.5...")
-    model = SentenceTransformer('BAAI/bge-small-zh-v1.5', device='cpu')
+    model = SentenceTransformer('BAAI/bge-small-zh-v1.5', device='cpu', local_files_only=True)
 
     conn = sqlite3.connect(str(DB_PATH))
     cursor = conn.cursor()
