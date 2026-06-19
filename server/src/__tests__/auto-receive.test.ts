@@ -151,6 +151,17 @@ describe("triggerAutoReceivePush 集中触发 (阶段 1.1)", () => {
   it("Test B: 非 certified -> 不推送，不走 socket emit", async () => {
     m.userTagFindMany.mockResolvedValue([]);
     const result = await triggerAutoReceivePush("d1", mockIo);
+    // TD-1: 即使 0 命中，where 形状仍须包含 autoReceive=true
+    expect(m.userTagFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'IDLE',
+          autoReceive: true,
+          tagName: { in: ['水电'] },
+          regionId: { in: [100] },
+        }),
+      }),
+    );
     expect(m.emit).not.toHaveBeenCalled();
     expect(result.totalSent).toBe(0);
   });
@@ -159,6 +170,17 @@ describe("triggerAutoReceivePush 集中触发 (阶段 1.1)", () => {
     m.userTagFindMany.mockResolvedValue([]);
     m.pushPreferenceFindUnique.mockResolvedValue(null);
     const result = await triggerAutoReceivePush("d1", mockIo);
+    // TD-1: trigger 层始终以 autoReceive=true 查询；0 命中由 UserTag.autoReceive=false 自然排除
+    expect(m.userTagFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'IDLE',
+          autoReceive: true,
+          tagName: { in: ['水电'] },
+          regionId: { in: [100] },
+        }),
+      }),
+    );
     expect(result.totalSent).toBe(0);
   });
 
@@ -166,6 +188,17 @@ describe("triggerAutoReceivePush 集中触发 (阶段 1.1)", () => {
     m.userTagFindMany.mockResolvedValue([]);
     m.pushPreferenceFindUnique.mockResolvedValue(null);
     const result = await triggerAutoReceivePush("d1", mockIo);
+    // TD-1: 0 命中由 where.tagName.in=['水电'] 与 UserTag.tagName 无交集产生
+    expect(m.userTagFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'IDLE',
+          autoReceive: true,
+          tagName: { in: ['水电'] },
+          regionId: { in: [100] },
+        }),
+      }),
+    );
     expect(result.totalSent).toBe(0);
   });
 
@@ -174,6 +207,17 @@ describe("triggerAutoReceivePush 集中触发 (阶段 1.1)", () => {
     m.userTagFindMany.mockResolvedValue([]);
     m.pushPreferenceFindUnique.mockResolvedValue(null);
     const result = await triggerAutoReceivePush("d1", mockIo);
+    // TD-1: regionId=999 时 where.regionId.in 必为 [999]
+    expect(m.userTagFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'IDLE',
+          autoReceive: true,
+          tagName: { in: ['水电'] },
+          regionId: { in: [999] },
+        }),
+      }),
+    );
     expect(result.totalSent).toBe(0);
   });
 
@@ -181,6 +225,17 @@ describe("triggerAutoReceivePush 集中触发 (阶段 1.1)", () => {
     m.userTagFindMany.mockResolvedValue([]);
     m.pushPreferenceFindUnique.mockResolvedValue(null);
     const result = await triggerAutoReceivePush("d1", mockIo);
+    // TD-1: BUSY 由 where.status: 'IDLE' 在查询层直接排除
+    expect(m.userTagFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: 'IDLE',
+          autoReceive: true,
+          tagName: { in: ['水电'] },
+          regionId: { in: [100] },
+        }),
+      }),
+    );
     expect(result.totalSent).toBe(0);
   });
 
