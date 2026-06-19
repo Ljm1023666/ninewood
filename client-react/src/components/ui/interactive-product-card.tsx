@@ -18,6 +18,10 @@ import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
 import { InfoCard } from '@/components/ui/info-card'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import {
+  getImageAvgLuminance,
+  LIGHT_IMAGE_LUMINANCE_THRESHOLD,
+} from '@/utils/image-analyzer'
 
 export interface InteractiveProductCardProps extends HTMLAttributes<HTMLDivElement> {
   imageUrl: string
@@ -88,9 +92,38 @@ export function InteractiveProductCard({
   const sheenY = useMotionValue(0)
   const sheenXSpring = useSpring(sheenX)
   const sheenYSpring = useSpring(sheenY)
+  /** 彩虹箔纸扫光位置 — 跟手移动 */
+  const foilPosX = useTransform(sheenXSpring, [-0.5, 0.5], [0, 100])
+  const foilPosY = useTransform(sheenYSpring, [-0.5, 0.5], [0, 100])
+  const foilPosition = useMotionTemplate`${foilPosX}% ${foilPosY}%`
+
+  /** 低调白光 — 浅色图片用 */
   const sheenGlareX = useTransform(sheenXSpring, [-0.5, 0.5], [0, 100])
   const sheenGlareY = useTransform(sheenYSpring, [-0.5, 0.5], [0, 100])
-  const sheenBackground = useMotionTemplate`radial-gradient(circle farthest-corner at ${sheenGlareX}% ${sheenGlareY}%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.42) 30%, rgba(255, 255, 255, 0.16) 64%, rgba(255, 255, 255, 0) 100%)`
+  const subtleSheen = useMotionTemplate`radial-gradient(circle farthest-corner at ${sheenGlareX}% ${sheenGlareY}%, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.42) 30%, rgba(255,255,255,0.16) 64%, rgba(255,255,255,0) 100%)`
+
+  /** sheen 模式：浅色图用低调白光，深色图用彩虹扫光 */
+  const [sheenMode, setSheenMode] = useState<'rainbow' | 'subtle'>('rainbow')
+
+  useEffect(() => {
+    let cancelled = false
+    getImageAvgLuminance(imageUrl)
+      .then((lum) => {
+        if (cancelled) return
+        setSheenMode(
+          lum > LIGHT_IMAGE_LUMINANCE_THRESHOLD ? 'subtle' : 'rainbow',
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setSheenMode('rainbow')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [imageUrl])
+  /** 微噪点纹理 — 模拟实体卡纸的颗粒触感 */
+  const noiseTextureUrl =
+    'url("data:image/svg+xml,%3Csvg%20viewBox=%220%200%20256%20256%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22n%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.85%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23n)%22/%3E%3C/svg%3E")'
 
   const [style, setStyle] = useState<CSSProperties>({})
   const onSwipeNextRef = useRef(onSwipeNext)
@@ -312,14 +345,58 @@ export function InteractiveProductCard({
               />
 
               {innerSheen ? (
-                <motion.div
-                  className="pointer-events-none absolute inset-0 z-[5] h-full w-full rounded-3xl mix-blend-soft-light [backface-visibility:hidden]"
-                  style={{
-                    transform: 'translateZ(0)',
-                    background: sheenBackground,
-                    opacity: 0.62,
-                  }}
-                />
+                <>
+                  {sheenMode === 'rainbow' ? (
+                    <>
+                      {/* 彩虹箔纸扫光 */}
+                      <motion.div
+                        className="pointer-events-none absolute inset-0 z-[5] h-full w-full rounded-3xl [backface-visibility:hidden]"
+                        style={{
+                          transform: 'translateZ(0)',
+                          mixBlendMode: 'overlay' as const,
+                          opacity: 0.65,
+                          background: `
+                            linear-gradient(
+                              125deg,
+                              rgba(255,60,60,0.7) 0%,
+                              rgba(255,160,20,0.65) 12%,
+                              rgba(240,240,40,0.6) 24%,
+                              rgba(50,220,100,0.55) 36%,
+                              rgba(30,180,240,0.55) 48%,
+                              rgba(80,60,240,0.6) 60%,
+                              rgba(200,40,220,0.6) 72%,
+                              rgba(255,60,130,0.65) 84%,
+                              rgba(255,60,60,0.7) 100%
+                            )
+                          `
+                            .replace(/\s+/g, ' ')
+                            .trim(),
+                          backgroundSize: '280% 280%',
+                          backgroundPosition: foilPosition,
+                        }}
+                      />
+                      {/* 噪点纹理 */}
+                      <div
+                        className="pointer-events-none absolute inset-0 z-[7] h-full w-full rounded-3xl [backface-visibility:hidden]"
+                        style={{
+                          transform: 'translateZ(2px)',
+                          mixBlendMode: 'overlay',
+                          opacity: 0.08,
+                          backgroundImage: noiseTextureUrl,
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <motion.div
+                      className="pointer-events-none absolute inset-0 z-[5] h-full w-full rounded-3xl mix-blend-soft-light [backface-visibility:hidden]"
+                      style={{
+                        transform: 'translateZ(0)',
+                        background: subtleSheen,
+                        opacity: 0.62,
+                      }}
+                    />
+                  )}
+                </>
               ) : null}
 
               <div
@@ -335,7 +412,9 @@ export function InteractiveProductCard({
                   <h3
                     className={cn(
                       'relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight',
-                      isDark ? 'text-white [text-shadow:none]' : 'text-black [text-shadow:none]',
+                      isDark
+                        ? 'text-white [text-shadow:none]'
+                        : 'text-black [text-shadow:none]',
                     )}
                   >
                     {title}
@@ -407,7 +486,10 @@ export function InteractiveProductCard({
                 <div className="absolute bottom-5 left-4 z-20 max-w-[calc(100%-2rem)] text-left">
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); onAddToHand?.() }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onAddToHand?.()
+                    }}
                     className="flip-card-back-price text-3xl font-extrabold leading-none [text-shadow:none] cursor-pointer hover:scale-105 transition-transform"
                   >
                     {price}
@@ -429,14 +511,58 @@ export function InteractiveProductCard({
           />
 
           {innerSheen ? (
-            <motion.div
-              className="pointer-events-none absolute inset-0 z-[5] h-full w-full mix-blend-soft-light [backface-visibility:hidden]"
-              style={{
-                transform: 'translateZ(22px)',
-                background: sheenBackground,
-                opacity: 0.62,
-              }}
-            />
+            <>
+              {sheenMode === 'rainbow' ? (
+                <>
+                  {/* 彩虹箔纸扫光 */}
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 z-[5] h-full w-full rounded-3xl [backface-visibility:hidden]"
+                    style={{
+                      transform: 'translateZ(22px)',
+                      mixBlendMode: 'overlay' as const,
+                      opacity: 0.65,
+                      background: `
+                        linear-gradient(
+                          125deg,
+                          rgba(255,60,60,0.7) 0%,
+                          rgba(255,160,20,0.65) 12%,
+                          rgba(240,240,40,0.6) 24%,
+                          rgba(50,220,100,0.55) 36%,
+                          rgba(30,180,240,0.55) 48%,
+                          rgba(80,60,240,0.6) 60%,
+                          rgba(200,40,220,0.6) 72%,
+                          rgba(255,60,130,0.65) 84%,
+                          rgba(255,60,60,0.7) 100%
+                        )
+                      `
+                        .replace(/\s+/g, ' ')
+                        .trim(),
+                      backgroundSize: '280% 280%',
+                      backgroundPosition: foilPosition,
+                    }}
+                  />
+                  {/* 噪点纹理 */}
+                  <div
+                    className="pointer-events-none absolute inset-0 z-[7] h-full w-full rounded-3xl [backface-visibility:hidden]"
+                    style={{
+                      transform: 'translateZ(24px)',
+                      mixBlendMode: 'overlay',
+                      opacity: 0.08,
+                      backgroundImage: noiseTextureUrl,
+                    }}
+                  />
+                </>
+              ) : (
+                <motion.div
+                  className="pointer-events-none absolute inset-0 z-[5] h-full w-full rounded-3xl mix-blend-soft-light [backface-visibility:hidden]"
+                  style={{
+                    transform: 'translateZ(22px)',
+                    background: subtleSheen,
+                    opacity: 0.62,
+                  }}
+                />
+              )}
+            </>
           ) : null}
 
           <div

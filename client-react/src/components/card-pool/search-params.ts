@@ -2,6 +2,14 @@ import { demandApi } from '@/api/demand'
 import type { BlackScope } from '@/components/card-pool/types'
 import { subtreeLeafIds } from '@/components/card-pool/taxonomy'
 
+/** 卡包开启动画用的卡片数据 */
+export interface PackCardData {
+  id: string
+  imageUrl: string
+  title: string
+  price: string
+}
+
 /** GET /demands/search 的扁平参数（不含 page/limit） */
 export function scopeToApiParams(scope: BlackScope): Record<string, string> {
   const out: Record<string, string> = {}
@@ -68,4 +76,34 @@ export async function fetchFirstDemandId(
   const r = await demandApi.list({ ...params, page: 1, limit: 1 })
   const d = r.data.data as { demands?: { id: string }[] }
   return d.demands?.[0]?.id ?? null
+}
+
+/** 获取卡包开启动画所需的卡片数据（最多 20 张） */
+export async function fetchPackContents(
+  scope: BlackScope,
+): Promise<PackCardData[]> {
+  const params = scopeToApiParams(scope)
+  const r = await demandApi.list({ ...params, page: 1, limit: 20 })
+  const d = r.data.data as {
+    demands?: {
+      id: string
+      title: string
+      minPrice: number
+      mediaUrls?: string[] | null
+      user?: {
+        coverUrl?: string | null
+        demandCardCoverUrl?: string | null
+      } | null
+    }[]
+  }
+  return (d.demands || []).map((item) => ({
+    id: item.id,
+    imageUrl:
+      item.mediaUrls?.[0] ||
+      item.user?.demandCardCoverUrl ||
+      item.user?.coverUrl ||
+      '',
+    title: item.title || '未命名需求',
+    price: item.minPrice ? `¥${item.minPrice}` : '',
+  }))
 }

@@ -3,8 +3,8 @@
 /* 字体在 index.html 中通过 <link> 加载，避免出现在 @import tailwindcss 之后的 @import（违反 CSS 规则顺序） */
 
 /* ── 设计 Token ──
-   色彩策略: Restrained（产品默认），暖色暗底 + 单琥珀强调色
-   反参考: 不用紫蓝渐变、不用纯黑、不用霓虹发光、不用玻璃态做默认材质
+   色彩策略: 暖色暗底 + 琥珀强调色为主，辅以紫蓝渐变作为 AI/创意高亮
+   反参考: 不用纯黑、不用霓虹发光、不用玻璃态做默认材质
    OKLCH 色彩空间，感知均匀，WCAG 2.1 AA 对比度 */
 :root {
   --sidebar-w: 100px;
@@ -14,7 +14,7 @@
   --accent-hover: oklch(65% 0.17 48);
   --accent-muted: oklch(58% 0.16 45 / 0.12);
   --accent-ghost: oklch(58% 0.16 45 / 0.06);
-  /* 渐变仅用于极少数 Committed 表面（如 Profile 封面），不作为品牌标识 */
+  /* 渐变可广泛用于 AI 相关元素、按钮、卡片背景；紫蓝渐变用于 Think/深度思考模式 */
   --accent-gradient: linear-gradient(135deg, oklch(58% 0.16 45), oklch(52% 0.18 35));
   /* 兼容旧变量（逐步迁移中） */
   --primary-start: oklch(58% 0.16 45);
