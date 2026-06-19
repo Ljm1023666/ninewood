@@ -1078,10 +1078,11 @@ function PageGridCard({ item }: { item: PageGridItem }) {
       type="button"
       onClick={onClick}
       className="group relative grid w-full h-full place-items-center overflow-hidden bg-card cursor-pointer select-none isolate transition-shadow duration-300 hover:z-[2] hover:shadow-[0_8px_24px_-8px_color-mix(in_srgb,var(--accent-color)_25%,transparent),0_0_0_1px_color-mix(in_srgb,var(--accent-color)_40%,transparent)]"
+      style={{ ['--brand' as string]: pixelColors[0] }}
     >
       <PixelCanvas colors={pixelColors} gap={5} speed={30} />
       <div className="relative z-[1] flex flex-col items-center gap-2 transition-all duration-300 group-hover:scale-[1.06]">
-        <span className="text-foreground/25 group-hover:text-accent transition-colors duration-300 [&>svg]:size-7">
+        <span className="transition-opacity duration-300 [&>svg]:size-7 text-foreground/60 group-hover:text-[var(--brand)]">
           {icon}
         </span>
         <span className="text-[13px] font-semibold text-foreground/35 group-hover:text-foreground/90 transition-colors duration-300">
@@ -1098,14 +1099,16 @@ export const Component = ({
 }: ComponentProps = {}) => {
   return (
     <section
-      className="w-full bg-background px-4 py-20 md:px-12 md:py-24"
+      className="mx-auto w-full max-w-[1160px]"
       style={{
         fontFamily: "'Montserrat', ui-sans-serif, system-ui, sans-serif",
       }}
     >
       <div
         className="grid grid-cols-5 max-w-[1160px] mx-auto gap-px bg-border border border-border"
-        style={{ gridTemplateRows: `repeat(${Math.max(4, Math.ceil((pages?.length ?? 14) / 5) + 1)}, 96px)` }}
+        style={{
+          gridTemplateRows: `repeat(${Math.max(4, Math.ceil((pages?.length ?? 14) / 5) + 1)}, 96px)`,
+        }}
       >
         {pages
           ? pages.map((item, i) => {
@@ -1114,7 +1117,11 @@ export const Component = ({
                 <div
                   key={item.id}
                   className="w-full h-full"
-                  style={slot ? { gridRow: slot.row, gridColumn: slot.col } : undefined}
+                  style={
+                    slot
+                      ? { gridRow: slot.row, gridColumn: slot.col }
+                      : undefined
+                  }
                 >
                   <PageGridCard item={item} />
                 </div>

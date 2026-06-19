@@ -1,11 +1,23 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, PenSquare, Users, MessageCircle, Layers, Search, HelpCircle, User, LogOut } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
-import { useUserStore } from "@/stores/user"
+import * as React from 'react'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Menu,
+  X,
+  Compass,
+  PenSquare,
+  Users,
+  MessageCircle,
+  Layers,
+  Search,
+  HelpCircle,
+  User,
+  LogOut,
+} from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useUserStore } from '@/stores/user'
 
 interface MenuItem {
   id: number
@@ -21,18 +33,44 @@ interface ScrollNavbarProps {
 }
 
 const defaultMenuItems: MenuItem[] = [
-  { id: 1, title: "发布", url: "/demands/create", icon: <PenSquare className="w-5 h-5" /> },
-  { id: 2, title: "圈子", url: "/circles", icon: <Users className="w-5 h-5" /> },
-  { id: 3, title: "消息", url: "/messages", icon: <MessageCircle className="w-5 h-5" /> },
-  { id: 4, title: "卡池", url: "/card-pool", icon: <Layers className="w-5 h-5" /> },
-  { id: 5, title: "找人", url: "/search", icon: <Search className="w-5 h-5" /> },
-  { id: 6, title: "帮助", url: "/help", icon: <HelpCircle className="w-5 h-5" /> },
-  { id: 7, title: "我的", url: "/profile", icon: <User className="w-5 h-5" /> },
+  {
+    id: 0,
+    title: '发现',
+    url: '/discover',
+    icon: <Compass className="size-5" />,
+  },
+  {
+    id: 1,
+    title: '发布',
+    url: '/demands/create',
+    icon: <PenSquare className="size-5" />,
+  },
+  { id: 2, title: '圈子', url: '/circles', icon: <Users className="size-5" /> },
+  {
+    id: 3,
+    title: '消息',
+    url: '/messages',
+    icon: <MessageCircle className="size-5" />,
+  },
+  {
+    id: 4,
+    title: '卡池',
+    url: '/card-pool',
+    icon: <Layers className="size-5" />,
+  },
+  { id: 5, title: '找人', url: '/search', icon: <Search className="size-5" /> },
+  {
+    id: 6,
+    title: '帮助',
+    url: '/help',
+    icon: <HelpCircle className="size-5" />,
+  },
+  { id: 7, title: '我的', url: '/profile', icon: <User className="size-5" /> },
 ]
 
 export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
   menuItems = defaultMenuItems,
-  className = "",
+  className = '',
 }) => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -42,17 +80,28 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
 
   const allItems: MenuItem[] = [
     ...menuItems,
-    { id: 99, title: "注销", icon: <LogOut className="w-5 h-5" />, onClick: () => { logout(); navigate('/login') } },
+    {
+      id: 99,
+      title: '注销',
+      icon: <LogOut className="size-5" />,
+      onClick: () => {
+        logout()
+        navigate('/login')
+      },
+    },
   ]
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       accumulatedRef.current += e.deltaY
-      accumulatedRef.current = Math.max(0, Math.min(accumulatedRef.current, 200))
+      accumulatedRef.current = Math.max(
+        0,
+        Math.min(accumulatedRef.current, 200),
+      )
       setIsScrolled(accumulatedRef.current > 40)
     }
-    window.addEventListener("wheel", handleWheel, { passive: true })
-    return () => window.removeEventListener("wheel", handleWheel)
+    window.addEventListener('wheel', handleWheel, { passive: true })
+    return () => window.removeEventListener('wheel', handleWheel)
   }, [])
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
@@ -63,10 +112,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
       scale: 0.8,
       y: -50,
       transition: {
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
-        when: "afterChildren" as const,
+        when: 'afterChildren' as const,
         staggerChildren: 0.05,
         staggerDirection: -1,
       },
@@ -76,10 +125,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
       scale: 1,
       y: 0,
       transition: {
-        type: "spring" as const,
+        type: 'spring' as const,
         stiffness: 300,
         damping: 30,
-        when: "beforeChildren" as const,
+        when: 'beforeChildren' as const,
         staggerChildren: 0.1,
       },
     },
@@ -91,7 +140,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
       y: 0,
       opacity: 1,
       scale: 1,
-      transition: { type: "spring" as const, stiffness: 400, damping: 25 },
+      transition: { type: 'spring' as const, stiffness: 400, damping: 25 },
     },
   }
 
@@ -109,7 +158,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
           y: isScrolled ? -100 : 0,
           opacity: isScrolled ? 0 : 1,
         }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={`fixed top-0 left-0 right-0 z-50 bg-black/99 backdrop-blur-xl border-b border-white/10 ${className}`}
       >
         <div className="max-w-7xl mx-auto pl-2 pr-4 sm:px-6 lg:px-8">
@@ -162,7 +211,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="size-6" />
               </motion.button>
             </div>
           </div>
@@ -176,18 +225,18 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
           scale: isScrolled ? 1 : 0,
           opacity: isScrolled ? 1 : 0,
         }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="fixed top-6 right-6 z-50"
       >
         <motion.button
           onClick={toggleMenu}
           className="w-14 h-14 bg-foreground text-background rounded-full shadow-lg flex items-center justify-center"
           variants={hamburgerVariants}
-          animate={isScrolled ? "scrolled" : "normal"}
+          animate={isScrolled ? 'scrolled' : 'normal'}
           whileHover={{ scale: 1.1, rotate: 180 }}
           whileTap={{ scale: 0.9 }}
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="size-6" />
         </motion.button>
       </motion.div>
 
@@ -217,7 +266,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="size-5" />
                 </motion.button>
 
                 <div className="space-y-4 mt-8">
@@ -247,7 +296,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                         </Link>
                       ) : (
                         <button
-                          onClick={() => { item.onClick?.(); setIsMenuOpen(false) }}
+                          onClick={() => {
+                            item.onClick?.()
+                            setIsMenuOpen(false)
+                          }}
                           className="flex items-center space-x-4 p-4 rounded-xl hover:bg-white/5 transition-colors group w-full text-left"
                         >
                           <motion.div
@@ -276,7 +328,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                   transition={{
                     duration: 2,
                     repeat: Infinity,
-                    ease: "easeInOut",
+                    ease: 'easeInOut',
                   }}
                 />
                 <motion.div
@@ -288,7 +340,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                   transition={{
                     duration: 2.5,
                     repeat: Infinity,
-                    ease: "easeInOut",
+                    ease: 'easeInOut',
                     delay: 0.5,
                   }}
                 />

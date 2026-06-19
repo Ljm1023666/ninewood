@@ -48,7 +48,7 @@ export function CanvasModal({
                     onClick={onClose}
                     className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="size-5" />
                   </button>
                   {title && (
                     <h2 className="text-lg font-semibold text-text-primary truncate">

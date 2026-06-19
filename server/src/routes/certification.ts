@@ -15,6 +15,7 @@ const searchSchema = z.object({
   tags: z.string().optional(), // 逗号分隔
   regionId: z.coerce.number().int().optional(),
   minRating: z.coerce.number().min(0).max(5).optional(),
+  maxRating: z.coerce.number().min(0).max(5).optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
 });
@@ -44,6 +45,7 @@ certificationRouter.get('/providers', async (req: Request, res: Response) => {
       tags,
       regionId: params.regionId,
       minRating: params.minRating,
+      maxRating: params.maxRating,
       page: params.page,
       limit: params.limit,
     });

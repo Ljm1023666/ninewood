@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import * as tencentcloud from 'tencentcloud-sdk-nodejs-sms';
 import { prisma } from '../lib/prisma.js';
-import { ipToCity } from './ipgeo.service.js';
+import { resolveIpRegion } from './ipgeo.service.js';
 import { config } from '../config.js';
 
 const SmsClient = tencentcloud.sms.v20210111.Client;
@@ -18,6 +18,7 @@ type LegacyUser = {
   coverUrl: string | null;
   demandCardCoverUrl: string | null;
   cityCode: string | null;
+  ipRegion?: string | null;
   bio: string | null;
   birthday?: Date | null;
   certificationLevel: string | null;
@@ -62,6 +63,7 @@ function legacyUserResponse(user: LegacyUser) {
     coverUrl: user.coverUrl,
     demandCardCoverUrl: user.demandCardCoverUrl,
     cityCode: user.cityCode,
+    ipRegion: user.ipRegion || null,
     bio: user.bio,
     birthday: user.birthday?.toISOString?.() ?? user.birthday ?? null,
     certificationLevel: user.certificationLevel || 'NONE',
@@ -229,7 +231,7 @@ export const authService = {
         phone,
         nickname: `用户_${tail}`,
         passwordHash,
-        cityCode: ip ? ipToCity(ip) : null,
+        ipRegion: ip ? await resolveIpRegion(ip).catch(() => null) : null,
       },
       select: {
         id: true,
@@ -258,7 +260,7 @@ export const authService = {
     };
   },
 
-  async login(phone: string, password: string) {
+  async login(phone: string, password: string, ip?: string) {
     const legacyUser = await findLegacyUserByPhone(phone);
     if (legacyUser) {
       let valid = false;
@@ -293,6 +295,13 @@ export const authService = {
       await prisma.user.update({ where: { id: modernUser.id }, data: { passwordHash: hash } });
     }
     if (!valid) throw { status: 400, message: '密码错误' };
+
+    // 异步更新 IP 属地
+    if (ip && !modernUser.ipRegion) {
+      resolveIpRegion(ip).then(region => {
+        prisma.user.update({ where: { id: modernUser.id }, data: { ipRegion: region } }).catch(() => {})
+      }).catch(() => {})
+    }
 
     return {
       user: modernUserResponse(modernUser),

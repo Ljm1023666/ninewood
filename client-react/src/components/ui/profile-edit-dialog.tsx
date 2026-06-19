@@ -1,109 +1,105 @@
-"use client";
+'use client'
 
-import { useState, useEffect, useRef } from "react";
-import { useId } from "react";
+import { useState, useEffect, useRef } from 'react'
+import { useId } from 'react'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DateWheelPicker } from "@/components/ui/date-wheel-picker";
-import { cn } from "@/lib/utils";
-import { UserPen, Cake, Camera } from "lucide-react";
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DateWheelPicker } from '@/components/ui/date-wheel-picker'
+import { cn } from '@/lib/utils'
+import { UserPen, Cake, Camera } from 'lucide-react'
 
-const BIO_MAX = 200;
+const BIO_MAX = 200
 
 export interface ProfileEditDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
   user: {
-    nickname?: string;
-    bio?: string | null;
-    birthday?: string | null;
-    avatarUrl?: string | null;
-  } | null;
-  isDark: boolean;
+    nickname?: string
+    bio?: string | null
+    birthday?: string | null
+    avatarUrl?: string | null
+  } | null
   onSave: (data: {
-    nickname: string;
-    bio: string;
-    birthday?: string;
-  }) => Promise<void>;
-  onAvatarChange: (file: File) => Promise<void>;
-  uploadingKind: "avatar" | "cover" | null;
+    nickname: string
+    bio: string
+    birthday?: string
+  }) => Promise<void>
+  onAvatarChange: (file: File) => Promise<void>
+  uploadingKind: 'avatar' | 'cover' | null
 }
 
 export function ProfileEditDialog({
   open,
   onOpenChange,
   user,
-  isDark,
   onSave,
   onAvatarChange,
   uploadingKind,
 }: ProfileEditDialogProps) {
-  const id = useId();
-  const [nickname, setNickname] = useState("");
-  const [bio, setBio] = useState("");
-  const [birthday, setBirthday] = useState<Date | undefined>();
-  const [birthdayEditing, setBirthdayEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-  const prevOpen = useRef(false);
+  const id = useId()
+  const [nickname, setNickname] = useState('')
+  const [bio, setBio] = useState('')
+  const [birthday, setBirthday] = useState<Date | undefined>()
+  const [birthdayEditing, setBirthdayEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const prevOpen = useRef(false)
 
   useEffect(() => {
     if (open && !prevOpen.current && user) {
-      setNickname(user.nickname || "");
-      setBio(user.bio || "");
-      setBirthday(user.birthday ? new Date(user.birthday) : undefined);
-      setBirthdayEditing(false);
-      setAvatarPreview(null);
+      setNickname(user.nickname || '')
+      setBio(user.bio || '')
+      setBirthday(user.birthday ? new Date(user.birthday) : undefined)
+      setBirthdayEditing(false)
+      setAvatarPreview(null)
     }
-    prevOpen.current = open;
-  }, [open, user]);
+    prevOpen.current = open
+  }, [open, user])
 
-  const bioRemaining = BIO_MAX - bio.length;
+  const bioRemaining = BIO_MAX - bio.length
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const v = e.target.value;
-    if (v.length <= BIO_MAX) setBio(v);
-  };
+    const v = e.target.value
+    if (v.length <= BIO_MAX) setBio(v)
+  }
 
   const handleSave = async () => {
-    const n = nickname.trim();
-    if (!n) return;
-    setSaving(true);
+    const n = nickname.trim()
+    if (!n) return
+    setSaving(true)
     try {
       await onSave({
         nickname: n,
         bio: bio.trim(),
         birthday: birthday?.toISOString(),
-      });
-      onOpenChange(false);
+      })
+      onOpenChange(false)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
-  const handleAvatarSelect = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setAvatarPreview(url);
-    await onAvatarChange(file);
-  };
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setAvatarPreview(url)
+    await onAvatarChange(file)
+  }
 
-  const displayAvatar = avatarPreview || user?.avatarUrl;
-  const isUploading = uploadingKind === "avatar";
+  const displayAvatar = avatarPreview || user?.avatarUrl
+  const isUploading = uploadingKind === 'avatar'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,7 +110,7 @@ export function ProfileEditDialog({
             className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border"
             aria-hidden="true"
           >
-            <UserPen className="opacity-80" size={16} strokeWidth={2} />
+            <UserPen className="opacity-80 size-4" />
           </div>
           <DialogHeader>
             <DialogTitle className="text-left">编辑资料</DialogTitle>
@@ -129,13 +125,16 @@ export function ProfileEditDialog({
           <div className="relative shrink-0">
             <Avatar
               className={cn(
-                "h-16 w-16 rounded-full border-2 border-border/50",
-                isUploading && "opacity-50",
+                'h-16 w-16 rounded-full border-2 border-border/50',
+                isUploading && 'opacity-50',
               )}
             >
-              <AvatarImage src={displayAvatar || ""} alt={user?.nickname || ""} />
+              <AvatarImage
+                src={displayAvatar || ''}
+                alt={user?.nickname || ''}
+              />
               <AvatarFallback className="text-xl">
-                {(user?.nickname || "?")[0]}
+                {(user?.nickname || '?')[0]}
               </AvatarFallback>
             </Avatar>
             <button
@@ -145,7 +144,7 @@ export function ProfileEditDialog({
               className="absolute bottom-0 right-0 flex size-5 items-center justify-center rounded-full bg-foreground/80 text-background hover:bg-foreground transition"
               aria-label="更换头像"
             >
-              <Camera size={11} />
+              <Camera className="size-3" />
             </button>
           </div>
           <input
@@ -157,7 +156,7 @@ export function ProfileEditDialog({
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-foreground">
-              {user?.nickname || "用户"}
+              {user?.nickname || '用户'}
             </p>
             <p className="text-xs text-muted-foreground">
               点击下方图标更换头像
@@ -169,8 +168,8 @@ export function ProfileEditDialog({
         <form
           className="space-y-5"
           onSubmit={(e) => {
-            e.preventDefault();
-            handleSave();
+            e.preventDefault()
+            handleSave()
           }}
         >
           <div className="space-y-4">
@@ -200,7 +199,7 @@ export function ProfileEditDialog({
 
             <div className="space-y-2">
               <Label className="flex items-center gap-1.5">
-                <Cake size={14} />
+                <Cake className="size-3.5" />
                 生日
               </Label>
               {birthdayEditing ? (
@@ -225,12 +224,12 @@ export function ProfileEditDialog({
                 <div className="flex items-center justify-between rounded-lg border border-input bg-muted/40 px-3 py-2 shadow-sm shadow-black/5">
                   <span className="text-sm text-foreground">
                     {birthday
-                      ? birthday.toLocaleDateString("zh-CN", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
+                      ? birthday.toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
                         })
-                      : "未设置"}
+                      : '未设置'}
                   </span>
                   <Button
                     variant="ghost"
@@ -238,7 +237,7 @@ export function ProfileEditDialog({
                     type="button"
                     onClick={() => setBirthdayEditing(true)}
                   >
-                    {birthday ? "修改" : "设置"}
+                    {birthday ? '修改' : '设置'}
                   </Button>
                 </div>
               )}
@@ -250,10 +249,10 @@ export function ProfileEditDialog({
             className="w-full bg-foreground text-background hover:bg-foreground/90"
             disabled={!nickname.trim() || saving}
           >
-            {saving ? "保存中..." : "保存"}
+            {saving ? '保存中...' : '保存'}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

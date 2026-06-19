@@ -127,8 +127,10 @@ export default function DemandDetail() {
   const { addDemandToSingles, hand } = usePersistedGlobalHand()
   const singlesIdsRef = useRef<string[]>([])
   // 每次 hand 变化时更新 ref
-  const singlesEntry = hand.find((h) =>
-    h.scope.path.length >= 2 && h.scope.path[h.scope.path.length - 1] === '__singles__'
+  const singlesEntry = hand.find(
+    (h) =>
+      h.scope.path.length >= 2 &&
+      h.scope.path[h.scope.path.length - 1] === '__singles__',
   )
   singlesIdsRef.current = singlesEntry?.scope.leafFilter ?? []
   const [allDemands, setAllDemands] = useState<any[]>([])
@@ -185,10 +187,15 @@ export default function DemandDetail() {
 
       if (singlesIds.length > 0) {
         // 按 IDs 批量加载手牌需求
-        const listRes = await demandApi.list({ ids: singlesIds.join(','), limit: 200 })
+        const listRes = await demandApi.list({
+          ids: singlesIds.join(','),
+          limit: 200,
+        })
         const fetched = (listRes.data.data?.demands || []) as any[]
         // 替换为最新数据
-        const merged = fetched.map((d: any) => d.id === id ? { ...d, ...detail } : d)
+        const merged = fetched.map((d: any) =>
+          d.id === id ? { ...d, ...detail } : d,
+        )
         // 确保当前需求在列表中
         if (!merged.some((d: any) => d.id === id)) {
           merged.unshift(detail)
@@ -366,10 +373,7 @@ export default function DemandDetail() {
       </div>,
     )
   }
-  if (!demand)
-    return pageShell(
-      <ErrorState message="需求不存在或已被删除" />,
-    )
+  if (!demand) return pageShell(<ErrorState message="需求不存在或已被删除" />)
 
   const canSwipeCycle = allDemands.length > 1
   const hasPrev = canSwipeCycle
@@ -382,13 +386,13 @@ export default function DemandDetail() {
 
       {/* 不用 overflow-y-auto 包住卡片：会与 x 轴合成 auto，横向裁掉 3D 翻面/倾斜溢出；整页滚动交给外层 layout */}
       <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col items-stretch justify-center overflow-visible py-6">
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="sync" custom={direction}>
           <motion.div
             custom={direction}
-            initial={{ opacity: 0, y: direction * 64 }}
+            initial={{ opacity: 0, y: direction * 48 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -direction * 64 }}
-            transition={{ duration: 0.52, ease: [0.25, 0.46, 0.45, 0.94] }}
+            exit={{ opacity: 0, y: -direction * 48 }}
+            transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="flex w-full min-w-0 flex-col items-center px-3"
           >
             <div className="relative">
@@ -400,9 +404,10 @@ export default function DemandDetail() {
                 aria-label={favorited ? '取消收藏' : '收藏'}
               >
                 <Heart
-                  size={20}
                   className={
-                    favorited ? 'fill-red-500 text-red-500' : 'fill-none'
+                    favorited
+                      ? 'fill-red-500 text-red-500 size-5'
+                      : 'fill-none size-5'
                   }
                 />
               </button>
@@ -435,7 +440,12 @@ export default function DemandDetail() {
                   activeDotIndex={0}
                   onSwipeNext={hasNext ? goNext : undefined}
                   onSwipePrev={hasPrev ? goPrev : undefined}
-                  onAddToHand={() => { if (demand?.id) { addDemandToSingles(demand.id); toast('已加入手牌', 'success') } }}
+                  onAddToHand={() => {
+                    if (demand?.id) {
+                      addDemandToSingles(demand.id)
+                      toast('已加入手牌', 'success')
+                    }
+                  }}
                   className="shadow-none"
                 />
               </CometCard>
@@ -458,6 +468,8 @@ export default function DemandDetail() {
               已有人接单，服务进行中
             </p>
           </div>
+        ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
+          <SettlementPanel demandId={demand.id} />
         ) : null}
       </div>
     </div>
@@ -486,7 +498,8 @@ function RequestPanel({ demandId }: { demandId: string }) {
     }
   }
 
-  if (done) return <p className="text-center text-sm text-emerald-400">已提交申请</p>
+  if (done)
+    return <p className="text-center text-sm text-emerald-400">已提交申请</p>
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
@@ -519,7 +532,8 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    demandApi.getApplicantsV2(demandId)
+    demandApi
+      .getApplicantsV2(demandId)
       .then((r: any) => setApplicants(r.data?.data || []))
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -540,7 +554,8 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
     setApplicants((prev) => prev.filter((a) => a.id !== applicantId))
   }
 
-  if (loading) return <p className="text-center text-sm text-white/40">加载中...</p>
+  if (loading)
+    return <p className="text-center text-sm text-white/40">加载中...</p>
   if (applicants.length === 0) return null
 
   return (
@@ -558,7 +573,9 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
               <p className="text-sm font-medium text-white">
                 {a.user?.nickname || '匿名'}
               </p>
-              <p className="mt-1 text-xs text-white/50 line-clamp-2">{a.message}</p>
+              <p className="mt-1 text-xs text-white/50 line-clamp-2">
+                {a.message}
+              </p>
             </div>
             <div className="flex shrink-0 gap-2">
               <button
@@ -576,6 +593,75 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// ═══ AI 2.8: 结算明细面板 ═══
+function SettlementPanel({ demandId }: { demandId: string }) {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    demandApi
+      .getSettlement(demandId)
+      .then((res) => setData(res.data?.data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [demandId])
+
+  if (loading)
+    return <p className="text-center text-sm text-white/40">加载结算明细...</p>
+  if (!data) return null
+
+  const s = data.summary || data.breakdown?.summary
+  const items = data.breakdown?.items || data.items || []
+
+  return (
+    <div className="relative z-10 mx-auto mt-6 w-full max-w-md px-3">
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 backdrop-blur-md">
+        <p className="mb-3 text-sm font-medium text-emerald-400">结算明细</p>
+        <div className="space-y-2 text-sm">
+          {items.map((item: any, i: number) => (
+            <div key={i} className="flex justify-between">
+              <span className="text-white/50">{item.label}</span>
+              <span className="text-white/70">
+                {item.direction === 'PAY' ? '-' : '+'}¥{item.amount.toFixed(2)}
+              </span>
+            </div>
+          ))}
+          {s && (
+            <>
+              <div className="my-1 border-t border-white/10" />
+              <div className="flex justify-between font-medium">
+                <span className="text-white/60">需求者支付</span>
+                <span className="text-red-400">
+                  -¥{s.demanderPaid.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between font-medium">
+                <span className="text-white/60">服务者收入</span>
+                <span className="text-emerald-400">
+                  +¥{s.providerReceived.toFixed(2)}
+                </span>
+              </div>
+              {s.depositReturned > 0 && (
+                <div className="flex justify-between font-medium">
+                  <span className="text-white/60">押金退回</span>
+                  <span className="text-amber-400">
+                    +¥{s.depositReturned.toFixed(2)}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        {data.timestamp && (
+          <p className="mt-3 text-xs text-white/20">
+            结算时间：{new Date(data.timestamp).toLocaleString('zh-CN')}
+          </p>
+        )}
       </div>
     </div>
   )

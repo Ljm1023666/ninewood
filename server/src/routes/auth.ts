@@ -4,7 +4,7 @@ import { authService } from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rate-limit.js';
 import { success, fail } from '../utils/response.js';
-import { getClientIp, ipToCity } from '../services/ipgeo.service.js';
+import { getClientIp } from '../services/ipgeo.service.js';
 
 export const authRouter = Router();
 
@@ -138,7 +138,8 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 authRouter.post('/login', async (req: Request, res: Response) => {
   try {
     const { phone, password } = loginSchema.parse(req.body);
-    const result = await authService.login(phone, password);
+    const ip = getClientIp(req);
+    const result = await authService.login(phone, password, ip);
     success(res, result, '登录成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);

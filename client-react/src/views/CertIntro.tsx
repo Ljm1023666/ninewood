@@ -75,7 +75,7 @@ export default function CertIntro() {
               tMuted,
             )}
           >
-            <ShieldCheck size={14} className="text-accent" aria-hidden />
+            <ShieldCheck className="text-foreground size-3.5" aria-hidden />
             认证体系
           </p>
           <h1
@@ -186,13 +186,13 @@ export default function CertIntro() {
                           style={{ background: `${color}18`, color }}
                         >
                           {j === 0 ? (
-                            <Zap size={13} />
+                            <Zap className="size-3" />
                           ) : j === 1 ? (
-                            <Star size={13} />
+                            <Star className="size-3" />
                           ) : j === 2 ? (
-                            <Users size={13} />
+                            <Users className="size-3" />
                           ) : (
-                            <Award size={13} />
+                            <Award className="size-3" />
                           )}
                         </div>
                         <span
@@ -221,7 +221,7 @@ export default function CertIntro() {
             borderRadius="24px"
             className={`p-8 text-center ${tPrimary}`}
           >
-            <Award size={40} className="mx-auto mb-4 text-amber-400" />
+            <Award className="mx-auto mb-4 text-foreground size-10" />
             <h2 className="mb-2 text-xl font-bold">准备好了吗？</h2>
             <p className={`mb-6 text-sm ${tMuted}`}>
               前往认证中心查看你的当前进度
@@ -232,7 +232,7 @@ export default function CertIntro() {
               className="inline-flex items-center gap-2 !rounded-xl !px-6 !py-3 !text-sm font-semibold"
             >
               进入认证中心
-              <ArrowRight size={16} />
+              <ArrowRight className="size-4" />
             </AcetGradientButton>
           </LiquidGlassCard>
         </CardSticky>

@@ -104,6 +104,7 @@ export function streamMessage(
   message: string,
   thinkMode = false,
   context?: Record<string, unknown>,
+  webSearch = false,
 ): {
   abort: () => void
   onEvent: (event: string, handler: (data: unknown) => void) => void
@@ -143,7 +144,7 @@ export function streamMessage(
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ message, thinkMode, context }),
+          body: JSON.stringify({ message, thinkMode, context, webSearch }),
           signal: controller.signal,
         },
       )

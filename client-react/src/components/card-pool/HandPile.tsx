@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronUp } from 'lucide-react'
+import { ChevronUp, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
 import { packButtonClass } from '@/components/card-pool/browse-black-cards'
@@ -482,17 +482,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                                 className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/30 text-white/60 hover:bg-red-500/60 hover:text-white transition-colors"
                                 aria-label="移除此卡包"
                               >
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.5"
-                                  strokeLinecap="round"
-                                >
-                                  <path d="M5 12H19" />
-                                </svg>
+                                <X className="size-3" />
                               </button>
                               <div className="flex h-full w-full flex-col">
                                 {/* 色条 + 标题 */}

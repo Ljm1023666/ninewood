@@ -97,7 +97,7 @@ export default function Follows() {
                   : 'text-text-muted hover:text-text-secondary',
               )}
             >
-              <Users size={14} />
+              <Users className="size-3.5" />
               粉丝
             </button>
             <button
@@ -112,7 +112,7 @@ export default function Follows() {
                   : 'text-text-muted hover:text-text-secondary',
               )}
             >
-              <UserCheck size={14} />
+              <UserCheck className="size-3.5" />
               关注
             </button>
           </div>
@@ -121,7 +121,7 @@ export default function Follows() {
         {/* Loading */}
         {loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 size={28} className="animate-spin text-accent" />
+            <Loader2 className="animate-spin text-accent size-7" />
             <p className="mt-3 text-sm text-text-muted">加载中...</p>
           </div>
         )}
@@ -131,9 +131,9 @@ export default function Follows() {
           <div className="flex flex-col items-center justify-center py-20">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-bg-secondary">
               {mode === 'followers' ? (
-                <Users size={24} className="text-text-muted" />
+                <Users className="text-text-muted size-6" />
               ) : (
-                <UserCheck size={24} className="text-text-muted" />
+                <UserCheck className="text-text-muted size-6" />
               )}
             </div>
             <p className="mt-4 text-sm font-medium text-text-primary">
@@ -253,9 +253,8 @@ export default function Follows() {
                 )}
 
                 <ChevronLeft
-                  size={14}
                   className={cn(
-                    'shrink-0 rotate-180 text-text-muted/40 opacity-0 transition-opacity group-hover:opacity-100',
+                    'shrink-0 rotate-180 text-text-muted/40 opacity-0 transition-opacity group-hover:opacity-100 size-3.5',
                   )}
                 />
               </div>
@@ -280,7 +279,7 @@ export default function Follows() {
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 size={14} className="animate-spin" />
+                  <Loader2 className="animate-spin size-3.5" />
                   加载中...
                 </span>
               ) : (

@@ -80,7 +80,11 @@ export default function Settings() {
   async function saveBlocklist() {
     setSavingBlocklist(true)
     try {
-      await userApi.updateBlocklist({ tags: blockedTags, keywords, ageRanges: [] })
+      await userApi.updateBlocklist({
+        tags: blockedTags,
+        keywords,
+        ageRanges: [],
+      })
       toast('屏蔽设置已保存', 'success')
     } catch {
       toast('保存失败，请重试', 'error')
@@ -122,7 +126,7 @@ export default function Settings() {
           aria-labelledby="appearance-heading"
         >
           <div className="mb-4 flex items-center gap-2 text-text-secondary">
-            <Palette className="h-4 w-4 shrink-0" aria-hidden />
+            <Palette className="size-4 shrink-0" aria-hidden />
             <h2
               id="appearance-heading"
               className="text-sm font-bold uppercase tracking-wider"
@@ -186,7 +190,7 @@ export default function Settings() {
                       )}
                       aria-hidden
                     >
-                      <Check className="h-3 w-3" strokeWidth={3} />
+                      <Check className="size-3" strokeWidth={3} />
                     </span>
                   )}
                 </button>
@@ -214,12 +218,12 @@ export default function Settings() {
             aria-label="前往个人主页"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-card">
-              <UserRound className="h-5 w-5 text-text-primary" aria-hidden />
+              <UserRound className="size-5 text-text-primary" aria-hidden />
             </span>
             <span className="flex-1 text-sm font-semibold text-text-primary">
               个人主页
             </span>
-            <ChevronRight className="h-4 w-4 text-text-muted" aria-hidden />
+            <ChevronRight className="size-4 text-text-muted" aria-hidden />
           </button>
 
           <button
@@ -229,20 +233,22 @@ export default function Settings() {
             aria-label="前往认证中心"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg-card">
-              <Award className="h-5 w-5 text-text-primary" aria-hidden />
+              <Award className="size-5 text-text-primary" aria-hidden />
             </span>
             <span className="flex-1 text-sm font-semibold text-text-primary">
               认证中心
             </span>
-            <ChevronRight className="h-4 w-4 text-text-muted" aria-hidden />
+            <ChevronRight className="size-4 text-text-muted" aria-hidden />
           </button>
         </section>
 
         {/* ── 推送屏蔽 ── */}
         <section className="mb-4 rounded-[14px] border border-border bg-bg-card/60 p-5">
           <div className="mb-4 flex items-center gap-2 text-text-secondary">
-            <BellOff className="h-4 w-4 shrink-0" aria-hidden />
-            <h2 className="text-sm font-bold uppercase tracking-wider">推送屏蔽</h2>
+            <BellOff className="size-4 shrink-0" aria-hidden />
+            <h2 className="text-sm font-bold uppercase tracking-wider">
+              推送屏蔽
+            </h2>
           </div>
           <p className="mb-4 text-sm text-text-muted">
             设置屏蔽条件后，匹配的推送将不会通知你
@@ -276,7 +282,12 @@ export default function Settings() {
             {keywords.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {keywords.map((kw) => (
-                  <Chip key={kw} variant="outlined" className="gap-1" tabIndex={-1}>
+                  <Chip
+                    key={kw}
+                    variant="outlined"
+                    className="gap-1"
+                    tabIndex={-1}
+                  >
                     {kw}
                     <button
                       type="button"
@@ -334,7 +345,7 @@ export default function Settings() {
             <span className="flex-1 text-sm font-semibold text-text-primary">
               隐私政策
             </span>
-            <ChevronRight className="h-4 w-4 text-text-muted" />
+            <ChevronRight className="size-4 text-text-muted" />
           </button>
           <button
             type="button"
@@ -344,7 +355,7 @@ export default function Settings() {
             <span className="flex-1 text-sm font-semibold text-text-primary">
               服务条款
             </span>
-            <ChevronRight className="h-4 w-4 text-text-muted" />
+            <ChevronRight className="size-4 text-text-muted" />
           </button>
         </section>
 
@@ -359,7 +370,7 @@ export default function Settings() {
           )}
           aria-label="退出当前账户"
         >
-          <LogOut className="h-4 w-4" aria-hidden />
+          <LogOut className="size-4" aria-hidden />
           退出登录
         </button>
 

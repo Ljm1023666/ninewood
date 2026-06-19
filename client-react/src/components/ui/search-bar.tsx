@@ -1,18 +1,18 @@
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { Search } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { cn } from "@/lib/utils"
+import type React from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { Search } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
 interface SearchBarProps {
   placeholder?: string
   onSearch?: (query: string) => void
 }
 
-const SearchBar = ({ placeholder = "Search...", onSearch }: SearchBarProps) => {
+const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isFocused, setIsFocused] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
@@ -36,24 +36,24 @@ const SearchBar = ({ placeholder = "Search...", onSearch }: SearchBarProps) => {
       <motion.form
         onSubmit={handleSubmit}
         className="relative flex items-center justify-center"
-        initial={{ width: "260px" }}
-        animate={{ width: isFocused ? "360px" : "260px" }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        initial={{ width: '260px' }}
+        animate={{ width: isFocused ? '360px' : '260px' }}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
         <div
           className={cn(
-            "flex items-center w-full rounded-full border relative overflow-hidden transition-colors",
+            'flex items-center w-full rounded-full border relative overflow-hidden transition-colors',
             isFocused
-              ? "border-purple-400/70 bg-white/20 shadow-lg shadow-purple-500/20"
-              : "border-white/40 bg-white/10 backdrop-blur-md",
+              ? 'border-purple-400/70 bg-white/20 shadow-lg shadow-purple-500/20'
+              : 'border-white/40 bg-white/10 backdrop-blur-md',
           )}
         >
           <div className="pl-4 py-2.5">
             <Search
-              size={18}
               className={cn(
-                "transition-colors",
-                isFocused ? "text-purple-300" : "text-white/50",
+                'transition-colors',
+                isFocused ? 'text-purple-300' : 'text-white/50',
+                'size-4.5',
               )}
             />
           </div>
@@ -61,14 +61,15 @@ const SearchBar = ({ placeholder = "Search...", onSearch }: SearchBarProps) => {
           <input
             ref={inputRef}
             type="text"
+            aria-label="搜索需求"
             placeholder={placeholder}
             value={searchQuery}
             onChange={handleChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             className={cn(
-              "w-full py-2.5 bg-transparent outline-none placeholder:text-white/50 font-medium text-sm relative z-10",
-              isFocused ? "text-white" : "text-white/80",
+              'w-full py-2.5 bg-transparent outline-none placeholder:text-white/50 font-medium text-sm relative z-10',
+              isFocused ? 'text-white' : 'text-white/80',
             )}
           />
 
@@ -87,7 +88,6 @@ const SearchBar = ({ placeholder = "Search...", onSearch }: SearchBarProps) => {
           </AnimatePresence>
         </div>
       </motion.form>
-
     </div>
   )
 }

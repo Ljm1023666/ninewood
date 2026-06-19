@@ -101,7 +101,7 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
           onClick={onClose}
           className="flex items-center gap-1 text-sm text-text-secondary"
         >
-          <X className="h-5 w-5" />
+          <X className="size-5" />
           取消
         </button>
         <span className="text-base font-bold">发起群聊</span>
@@ -129,7 +129,7 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
       {/* 搜索 + 已选 */}
       <div className="shrink-0 border-b border-border bg-bg-secondary px-4 pb-3 pt-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}

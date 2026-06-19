@@ -108,7 +108,7 @@ agentRouter.delete('/conversations/:id', authMiddleware, async (req: Request, re
 agentRouter.post('/conversations/:id/stream', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-    const { message, thinkMode, context } = req.body;
+    const { message, thinkMode, webSearch, context } = req.body;
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: '请输入消息内容' });
     }
@@ -142,6 +142,7 @@ agentRouter.post('/conversations/:id/stream', authMiddleware, async (req: Reques
         message,
         history,
         thinking: thinkMode ?? false,
+        webSearch: webSearch ?? false,
         context,
       },
       send,

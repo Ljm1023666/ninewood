@@ -223,16 +223,31 @@ export const poolService = {
   async completeDemand(demandId: string, userId: string, coverImage: string) {
     const demand = await prisma.demand.findUnique({
       where: { id: demandId },
-      select: { userId: true, stage: true, tagName: true, amountEstimate: true },
+      select: { userId: true, stage: true, tagName: true, amountEstimate: true, minPrice: true, deposit: true },
     });
     if (!demand) throw { status: 404, message: '需求不存在' };
     if (demand.userId !== userId) throw { status: 403, message: '无权操作' };
     if (demand.stage === 'completed') throw { status: 400, message: '需求已完成' };
 
+    // 查找关联订单获取成交价
+    const order = await prisma.order.findFirst({
+      where: { demandId },
+      select: { agreedPrice: true, providerId: true },
+    });
+    const finalPrice = order?.agreedPrice ? Number(order.agreedPrice) : Number(demand.minPrice);
+
     await prisma.demand.update({
       where: { id: demandId },
-      data: { stage: 'completed', coverImage },
+      data: { stage: 'completed', coverImage, status: 'COMPLETED' },
     });
+
+    // AI 2.8: 创建结算记录
+    try {
+      const { transactionService } = await import('./transaction.service.js');
+      await transactionService.createSettlement(demandId, finalPrice);
+    } catch (err) {
+      console.warn('[Pool] Settlement creation failed:', err);
+    }
 
     // 更新标签统计数据
     if (demand.tagName && demand.amountEstimate != null) {
