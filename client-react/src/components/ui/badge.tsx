@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 
 /** shadcn/ui 风格 Badge：小标签、描边/填充变体，用于列表元信息 */
 const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-sm font-semibold leading-none transition-[color,background-color,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+  'inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-sm font-semibold leading-none transition-[color,background-color,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/10 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
   {
     variants: {
       variant: {
