@@ -8,19 +8,28 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const config = {
   port: parseInt(process.env.PORT || '3001', 10),
-  jwtSecret: process.env.JWT_SECRET || 'dev-secret-do-not-use-in-prod',
+  jwtSecret: process.env.JWT_SECRET || (() => {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[Ninewood] FATAL: JWT_SECRET 环境变量未设置，拒绝启动');
+      process.exit(1);
+    }
+    console.warn('[Ninewood] 警告: JWT_SECRET 未设置，使用开发默认值（严禁用于生产环境）');
+    return 'dev-secret-do-not-use-in-prod';
+  })(),
   jwtExpiresIn: 60 * 60 * 24 * 7, // 7 days in seconds
   uploadDir: path.join(__dirname, '..', 'uploads'),
   corsOrigins: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
     : ['http://localhost:5173', 'http://localhost:3000', 'app://.'],
 
-  // AI（MiniMax，兼容 OpenAI / DeepSeek 接口格式）
+  // MiniMax AI（OpenAI 兼容接口）
   aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimax.chat/v1',
   aiApiKey: process.env.AI_API_KEY || '',
+  // 默认模型（用于普通问答、分类等非思考任务）
   aiModel: process.env.AI_MODEL || 'MiniMax-M2.7-highspeed',
-  // think 模式用推理模型，非 think 用快模型；未设置则回退到 aiModel
+  // think 模式用推理模型；未设置则回退到 aiModel
   aiThinkModel: process.env.AI_THINK_MODEL || '',
+  // 快速模式用轻量模型；未设置则回退到 aiModel
   aiFastModel: process.env.AI_FAST_MODEL || '',
 
   // Tencent Cloud SMS
