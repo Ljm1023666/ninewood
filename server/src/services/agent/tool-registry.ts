@@ -51,7 +51,9 @@ class ToolRegistry {
   }
 
   /** 构建 OpenAI 兼容的工具列表（用于 API 请求） */
-  toOpenAITools(): Array<{
+  toOpenAITools(
+    filter?: (tool: RegisteredTool) => boolean,
+  ): Array<{
     type: 'function';
     function: {
       name: string;
@@ -59,7 +61,8 @@ class ToolRegistry {
       parameters: Record<string, unknown>;
     };
   }> {
-    return this.listAll().map((t) => ({
+    const list = filter ? this.listAll().filter(filter) : this.listAll();
+    return list.map((t) => ({
       type: 'function' as const,
       function: {
         name: t.definition.name,
@@ -67,6 +70,10 @@ class ToolRegistry {
         parameters: t.definition.parameters,
       },
     }));
+  }
+
+  requiresConfirmation(name: string): boolean {
+    return this.tools.get(name)?.requiresConfirmation ?? false;
   }
 
   /** 执行工具调用 */

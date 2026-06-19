@@ -1,10 +1,14 @@
-import { config } from '../../config.js';
+import { config, resolveLlmCredentials } from '../../config.js';
 import { readSSEStream } from '../ai/client.js';
 import { toolRegistry, type ToolContext } from './tool-registry.js';
 import { loadAllSkills, buildSkillPrompt } from './skill-loader.js';
 import { buildKnowledgeIndex } from './knowledge-loader.js';
 import { addMessage, truncateTitle } from './conversation.js';
 import type { ToolResult } from './tool-registry.js';
+import {
+  normalizeAccessMode,
+  type AgentAccessMode,
+} from './access-mode.js';
 
 // ─── 工具调用限流 ──────────────────────────────────────────────────────────
 // 同一会话内，单次用户消息最多触发 MAX_TOOL_CALLS 次工具调用
@@ -22,6 +26,7 @@ export interface AgentExecuteParams {
   webSearch?: boolean;
   model?: string;
   context?: Record<string, unknown>;
+  accessMode?: AgentAccessMode;
 }
 
 /** SSE 事件发送器 */
@@ -75,6 +80,7 @@ function buildSystemPrompt(
   ctx: ToolContext,
   options: {
     useTools: boolean;
+    accessMode: AgentAccessMode;
     context?: Record<string, unknown>;
   },
 ): string {
@@ -93,6 +99,28 @@ function buildSystemPrompt(
 - 用户聊什么就回什么，不要强行把话题转到发布需求上
 - 只有当用户明确表达想找人/找服务/发需求时，才引导填写表单
 - 如果有不确定的地方，向用户追问确认`;
+
+  if (options.accessMode === 'readonly') {
+    prompt += `
+
+【只读建议模式】
+- 你不能调用任何工具，也不能声称已替用户执行操作
+- 仅提供分析、步骤说明与操作建议
+- 如需实际执行，提示用户切换到「请求批准」或「完全访问」`;
+  } else if (options.accessMode === 'approval') {
+    prompt += `
+
+【请求批准模式】
+- 查询、搜索、跳转等只读工具可直接调用
+- 发布/修改/下架/申请/接受/拒绝等写操作会提交给用户批准，批准前不要声称已完成
+- 不要使用联网搜索`;
+  } else {
+    prompt += `
+
+【完全访问模式】
+- 你已获授权直接调用工具完成操作（含写操作）
+- 必要时可使用联网搜索补充信息`;
+  }
 
   if (options.useTools) {
     prompt += `
@@ -168,16 +196,18 @@ export async function executeAgent(
     thinking = false,
     webSearch = false,
     model,
+    accessMode: accessModeInput,
   } = params;
 
-  // 获取可用工具
+  const accessMode = normalizeAccessMode(accessModeInput);
   const availableTools = toolRegistry.listAll();
-  const useTools = availableTools.length > 0;
+  const useTools = accessMode !== 'readonly' && availableTools.length > 0;
+  const useWebSearch = accessMode === 'full' && webSearch !== false;
 
   // 系统提示
   const systemPrompt = buildSystemPrompt(
     { userId, conversationId },
-    { useTools, context: params.context },
+    { useTools, accessMode, context: params.context },
   );
 
   const messages = buildMessages(systemPrompt, message, history);
@@ -201,11 +231,8 @@ export async function executeAgent(
       messages,
     };
 
-    // 根据模型名自动路由到对应提供商
+    const { baseUrl: apiBaseUrl, apiKey } = resolveLlmCredentials(selectedModel)
     const isDeepSeek = selectedModel.startsWith('deepseek')
-    const dsCfg = config.providers?.deepseek
-    const apiBaseUrl = isDeepSeek && dsCfg ? dsCfg.baseUrl : config.aiBaseUrl
-    const apiKey = isDeepSeek && dsCfg?.apiKey ? dsCfg.apiKey : config.aiApiKey
 
     if (thinking) {
       // DeepSeek V4+ 用 thinking_mode，旧模型用 thinking
@@ -219,7 +246,7 @@ export async function executeAgent(
       body.thinking_mode = 'non-thinking'
     }
 
-    if (webSearch) {
+    if (useWebSearch) {
       body.web_search = isDeepSeek ? { enable: true } : true
     }
 
@@ -310,6 +337,30 @@ export async function executeAgent(
       try { args = JSON.parse(tc.arguments); } catch { /* use empty */ }
 
       send('tool_call', { name: tc.name, arguments: args });
+
+      const needsApproval =
+        accessMode === 'approval' && toolRegistry.requiresConfirmation(tc.name);
+
+      if (needsApproval) {
+        const pendingMessage = `操作「${tc.name}」已提交批准，等待用户确认后再执行。`;
+        send('tool_pending', {
+          name: tc.name,
+          arguments: args,
+          message: pendingMessage,
+        });
+        toolResults.push({
+          success: false,
+          message: pendingMessage,
+          data: { pending: true, name: tc.name, arguments: args },
+        });
+        send('tool_result', {
+          name: tc.name,
+          success: false,
+          data: { pending: true, arguments: args },
+          message: pendingMessage,
+        });
+        continue;
+      }
 
       const result = await toolRegistry.execute(tc.name, args, {
         userId,
@@ -416,10 +467,7 @@ async function continueWithToolResults(
   });
 
   const selectedModel = model || config.aiModel
-  const isDS = selectedModel.startsWith('deepseek')
-  const dsCfg = config.providers?.deepseek
-  const apiBaseUrl = isDS && dsCfg ? dsCfg.baseUrl : config.aiBaseUrl
-  const apiKey = isDS && dsCfg?.apiKey ? dsCfg.apiKey : config.aiApiKey
+  const { baseUrl: apiBaseUrl, apiKey } = resolveLlmCredentials(selectedModel)
 
   const body: Record<string, unknown> = {
     model: selectedModel,
