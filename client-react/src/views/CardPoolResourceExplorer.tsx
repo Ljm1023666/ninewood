@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Folder,
-  FileType2,
-} from 'lucide-react'
+import { ChevronLeft, Folder, FileType2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/confirm-dialog'
@@ -36,18 +30,6 @@ import {
   saveSharedCardPoolFocus,
 } from '@/components/card-pool/tablePersistence'
 
-/** 从某一节点 id 沿 parent 链回溯到 root，得到 root→该节点的 path */
-function pathIdsFromRootTo(nodeId: string): string[] | null {
-  const rev: string[] = []
-  let cur: string | null = nodeId
-  while (cur) {
-    rev.push(cur)
-    cur = TAXONOMY[cur]?.parent ?? null
-  }
-  if (rev[rev.length - 1] !== 'root') return null
-  return rev.reverse()
-}
-
 const DESKTOP_GRID_ROWS_LS = 'ninewood.cardPool.desktopGridRows'
 
 function readDesktopGridRows(): number {
@@ -59,116 +41,6 @@ function readDesktopGridRows(): number {
   } catch {
     return 2
   }
-}
-
-const TREE_INDENT = [
-  'pl-0',
-  'pl-2',
-  'pl-4',
-  'pl-6',
-  'pl-8',
-  'pl-10',
-  'pl-12',
-  'pl-14',
-  'pl-16',
-  'pl-[4.25rem]',
-  'pl-[5rem]',
-] as const
-
-function TaxonomyTreePanel({
-  focusPath,
-  expanded,
-  onToggleExpand,
-  onSelectNodeId,
-}: {
-  focusPath: string[]
-  expanded: ReadonlySet<string>
-  onToggleExpand: (id: string) => void
-  onSelectNodeId: (id: string) => void
-}) {
-  function Row({ id, depth }: { id: string; depth: number }) {
-    const meta = TAXONOMY[id]
-    if (!meta) return null
-    const kids = meta.childIds
-    const open = id === 'root' ? true : expanded.has(id)
-    const selected = focusPath[focusPath.length - 1] === id
-    const pl =
-      TREE_INDENT[Math.min(depth, TREE_INDENT.length - 1)] ?? 'pl-[5rem]'
-    return (
-      <div>
-        <div
-          className={cn(
-            'flex items-center gap-0.5 rounded py-0.5',
-            pl,
-            selected && 'bg-accent/15',
-          )}
-        >
-          {kids.length > 0 ? (
-            <button
-              type="button"
-              className="shrink-0 rounded p-1 text-text-muted hover:bg-accent/10"
-              aria-label={
-                id === 'root' ? '一级「全部」始终展开' : '双击展开或收起子菜单'
-              }
-              title={
-                id === 'root'
-                  ? '一级「全部」始终展开'
-                  : '双击：展开或收起子菜单（单击不会切换）'
-              }
-              onClick={(e) => e.stopPropagation()}
-              onDoubleClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (id === 'root') return
-                const wasOpen = open
-                onToggleExpand(id)
-                if (!wasOpen) onSelectNodeId(id)
-              }}
-            >
-              {open ? (
-                <ChevronDown className="size-3.5" />
-              ) : (
-                <ChevronRight className="size-3.5" />
-              )}
-            </button>
-          ) : (
-            <span className="w-5 shrink-0" aria-hidden />
-          )}
-          <button
-            type="button"
-            className={cn(
-              'min-w-0 flex-1 truncate px-1 py-1 text-left text-sm hover:bg-accent/10',
-              'text-text-primary',
-            )}
-            title={
-              kids.length > 0 && id !== 'root'
-                ? '单击：选中当前分类；双击：展开或收起子菜单（与左侧箭头一致）'
-                : '单击选中'
-            }
-            onClick={() => onSelectNodeId(id)}
-            onDoubleClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              if (id === 'root' || kids.length === 0) return
-              const wasOpen = open
-              onToggleExpand(id)
-              if (!wasOpen) onSelectNodeId(id)
-            }}
-          >
-            {meta.label}
-          </button>
-        </div>
-        {open &&
-          kids.map((cid) => <Row key={cid} id={cid} depth={depth + 1} />)}
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-0.5">
-      <Row id="root" depth={0} />
-    </div>
-  )
 }
 
 /** 右侧：Windows 资源管理器「详细信息」式列表（无卡包大图） */
@@ -211,10 +83,7 @@ function ExplorerDetailsScopeRow({
         <td className="px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-2">
             {hasKids ? (
-              <Folder
-                className="size-4 shrink-0 text-accent"
-                aria-hidden
-              />
+              <Folder className="size-4 shrink-0 text-accent" aria-hidden />
             ) : (
               <FileType2
                 className="size-4 shrink-0 text-text-muted"
@@ -400,14 +269,12 @@ export default function CardPoolResourceExplorer() {
   const [focus, setFocus] = useState<BlackScope>(
     () => loadSharedCardPoolFocus() ?? { path: ['root'], leafFilter: null },
   )
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(['root']))
-  const expandedRef = useRef(expanded)
-  expandedRef.current = expanded
   const [childTotals, setChildTotals] = useState<Record<string, number>>({})
   const [leafDesktop, setLeafDesktop] = useState<Record<string, string> | null>(
     null,
   )
   const [openingCarousel, setOpeningCarousel] = useState(false)
+  const [selectedTab, setSelectedTab] = useState<'browse' | 'hand'>('browse')
   const [desktopOpen, setDesktopOpen] = useState<{
     apiParams: Record<string, string>
     blackScope: BlackScope
@@ -434,17 +301,6 @@ export default function CardPoolResourceExplorer() {
 
   useEffect(() => {
     setDesktopOpen(null)
-  }, [focusPathKey])
-
-  /** 仅展开当前路径上的祖先，不把末段节点自动展开，子菜单由双击打开 */
-  useEffect(() => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      for (let i = 1; i < focus.path.length - 1; i++) {
-        next.add(focus.path[i]!)
-      }
-      return next
-    })
   }, [focusPathKey])
 
   useEffect(() => {
@@ -551,36 +407,8 @@ export default function CardPoolResourceExplorer() {
   }
 
   const pickChild = useCallback((s: BlackScope) => {
+    setSelectedTab('browse')
     setFocus(s)
-  }, [])
-
-  const onToggleExpand = useCallback((id: string) => {
-    if (id === 'root') return
-    const wasOpen = expandedRef.current.has(id)
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (wasOpen) next.delete(id)
-      else next.add(id)
-      return next
-    })
-    if (wasOpen) {
-      setFocus((f) => {
-        const idx = f.path.indexOf(id)
-        if (idx < 0) return f
-        /** 收起后焦点离开该节点及其子孙，避免 focusPathKey effect 立刻再次展开 */
-        if (f.path.length > idx) {
-          const nextPath = f.path.slice(0, Math.max(1, idx))
-          return { path: nextPath, leafFilter: null }
-        }
-        return f
-      })
-    }
-  }, [])
-
-  const onSelectNodeId = useCallback((id: string) => {
-    const path = pathIdsFromRootTo(id)
-    if (!path) return
-    setFocus({ path, leafFilter: null })
   }, [])
 
   return (
@@ -616,15 +444,45 @@ export default function CardPoolResourceExplorer() {
             <p className="mb-1.5 px-1 text-[11px] font-semibold text-text-muted">
               文件夹
             </p>
-            <p className="mb-2 px-1 text-[11px] leading-snug text-text-muted">
-              单击选择；双击名称或箭头展开/折叠。
-            </p>
-            <TaxonomyTreePanel
-              focusPath={focus.path}
-              expanded={expanded}
-              onToggleExpand={onToggleExpand}
-              onSelectNodeId={onSelectNodeId}
-            />
+            <div className="space-y-0.5">
+              {(
+                [
+                  { id: 'online', label: '线上服务' },
+                  { id: 'offline', label: '线下到场' },
+                  { id: 'hand', label: '手牌区域' },
+                ] as const
+              ).map((item) => {
+                const isHand = item.id === 'hand'
+                const isSelected = isHand
+                  ? selectedTab === 'hand'
+                  : focus.path.includes(item.id)
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={cn(
+                      'w-full rounded px-3 py-1.5 text-left text-sm transition-colors',
+                      'text-text-primary',
+                      isSelected ? 'bg-accent/15' : 'hover:bg-accent/10',
+                    )}
+                    onClick={() => {
+                      if (isHand) {
+                        setSelectedTab('hand')
+                        handDropZoneRef.current?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'start',
+                        })
+                      } else {
+                        setSelectedTab('browse')
+                        setFocus({ path: ['root', item.id], leafFilter: null })
+                      }
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                )
+              })}
+            </div>
           </nav>
 
           <div
@@ -703,7 +561,10 @@ export default function CardPoolResourceExplorer() {
                   const ok = addToHand(s)
                   if (!ok) toast('该范围已在手牌中', 'info')
                 }}
-                onJumpToPath={(path) => setFocus({ path, leafFilter: null })}
+                onJumpToPath={(path) => {
+                  setSelectedTab('browse')
+                  setFocus({ path, leafFilter: null })
+                }}
               />
             )}
           </div>
