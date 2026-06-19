@@ -37,7 +37,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://ninewood:ninewood_secret@postgres:5432/ninewood
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      JWT_SECRET: ${JWT_SECRET}
       SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:
       postgres:

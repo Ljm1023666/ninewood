@@ -28,7 +28,7 @@ export function WorkspaceSummary() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-white/30 uppercase tracking-wider">
+        <label className="text-sm font-medium text-text-muted uppercase tracking-wider">
           需求摘要
         </label>
       </div>
@@ -40,7 +40,7 @@ export function WorkspaceSummary() {
           value={fields.title}
           onChange={(e) => updateField('title', e.target.value)}
           placeholder="需求标题（AI 自动生成）"
-          className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2.5 text-sm text-white/80 placeholder:text-white/20 focus:border-white/20 focus:outline-none transition-colors"
+          className="flex-1 rounded-xl border border-border bg-bg-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
         />
         {!speedMode && <LockToggle fieldKey="title" />}
       </div>
@@ -52,7 +52,7 @@ export function WorkspaceSummary() {
           onChange={(e) => updateField('description', e.target.value)}
           placeholder="需求描述（AI 自动整理）"
           rows={4}
-          className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-sm text-white/80 placeholder:text-white/20 focus:border-white/20 focus:outline-none transition-colors resize-none"
+          className="flex-1 rounded-xl border border-border bg-bg-card px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors resize-none"
         />
         {!speedMode && (
           <div className="-mt-3 shrink-0">

@@ -20,7 +20,6 @@ export const orderService = {
 
     const agreedPrice = application.offerPrice || demand.minPrice;
 
-    // Wrap in transaction: order + demand status + notification
     const order = await prisma.$transaction(async (tx) => {
       const created = await tx.order.create({
         data: {
@@ -154,24 +153,24 @@ export const orderService = {
       data: { status: 'COMPLETED', completedAt: new Date() },
     });
 
-    // Increment provider completed orders
     await prisma.user.update({
       where: { id: order.providerId },
       data: { completedOrders: { increment: 1 } },
     });
 
-    // Refund deposit if exists for this demand
-    const deposit = await prisma.deposit.findFirst({
-      where: { userId: order.requesterId, status: 'PENDING' },
+    // 退还该需求关联的押金
+    const depositDemand = await prisma.depositDemand.findFirst({
+      where: {
+        demandId: order.demandId,
+        deposit: { userId: order.requesterId, status: 'PENDING' },
+      },
+      include: { deposit: true },
     });
-    if (deposit) {
-      const demandIds = deposit.demandIds as string[];
-      if (demandIds.includes(order.demandId)) {
-        await prisma.deposit.update({
-          where: { id: deposit.id },
-          data: { status: 'REFUNDED' },
-        });
-      }
+    if (depositDemand) {
+      await prisma.deposit.update({
+        where: { id: depositDemand.depositId },
+        data: { status: 'REFUNDED' },
+      });
     }
 
     await prisma.message.create({
@@ -185,6 +184,47 @@ export const orderService = {
     });
 
     return { message: '订单已完成' };
+  },
+
+  async cancel(orderId: string, userId: string) {
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) throw { status: 404, message: '订单不存在' };
+    if (order.requesterId !== userId) throw { status: 403, message: '仅需求方可取消' };
+    if (order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'DISPUTED') {
+      throw { status: 400, message: '订单状态不允许取消' };
+    }
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'CANCELLED' },
+    });
+
+    // 退还该需求关联的押金
+    const depositDemand = await prisma.depositDemand.findFirst({
+      where: {
+        demandId: order.demandId,
+        deposit: { userId: order.requesterId, status: 'PENDING' },
+      },
+      include: { deposit: true },
+    });
+    if (depositDemand) {
+      await prisma.deposit.update({
+        where: { id: depositDemand.depositId },
+        data: { status: 'REFUNDED' },
+      });
+    }
+
+    await prisma.message.create({
+      data: {
+        fromUserId: userId,
+        toUserId: order.providerId,
+        orderId,
+        content: '需求方已取消订单',
+        type: 'SYSTEM',
+      },
+    });
+
+    return { message: '订单已取消' };
   },
 
   async dispute(orderId: string, userId: string) {
@@ -215,19 +255,16 @@ export const orderService = {
     if (order.status !== 'IN_PROGRESS') throw { status: 400, message: '订单状态不允许部分完成' };
     if (newPrice >= Number(order.agreedPrice)) throw { status: 400, message: '部分完成报价必须低于原价' };
 
-    // Complete the original order at new price
     await prisma.order.update({
       where: { id: orderId },
       data: { status: 'COMPLETED', agreedPrice: newPrice, completedAt: new Date() },
     });
 
-    // Increment provider completed orders
     await prisma.user.update({
       where: { id: order.providerId },
       data: { completedOrders: { increment: 1 } },
     });
 
-    // Create a new "remaining" demand as draft (status=PENDING, ready for requester to republish)
     const remainingPrice = Number(order.demand.minPrice) - newPrice;
     const remainingDemand = await prisma.demand.create({
       data: {

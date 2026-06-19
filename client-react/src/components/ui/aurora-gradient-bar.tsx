@@ -79,18 +79,17 @@ export function AuroraGradientBar({
 
       layers.forEach((layer, idx) => {
         const gradient = ctx.createLinearGradient(0, 0, w, 0)
-        // 琥珀色基准：OKLCH(58% 0.16 45) -> L:58, C:0.16, H:45
-        // 我们在 H=45 附近微调 L 和 C，营造温暖的琥珀流动感，而不是 HSL 随机色
+        // 蓝色基准：色相 220，营造冷静的蓝色流动感
         const lBase = 48 + Math.sin(time * 0.01 + idx) * 8 * int
         const cBase = 0.12 + Math.cos(time * 0.008 + idx) * 0.04 * int
-        
+
         for (let i = 0; i <= 8; i++) {
           const pos = i / 8
           const l = lBase + Math.sin(pos * Math.PI + time * 0.02) * 10
           const c = cBase + Math.cos(pos * Math.PI + time * 0.01) * 0.05
           gradient.addColorStop(
             pos,
-            `oklch(${Math.min(75, Math.max(35, l))}% ${Math.min(0.2, Math.max(0.05, c))} 45)`,
+            `oklch(${Math.min(75, Math.max(35, l))}% ${Math.min(0.2, Math.max(0.05, c))} 220)`,
           )
         }
         ctx.globalCompositeOperation = 'source-over'
@@ -134,7 +133,10 @@ export function AuroraGradientBar({
   return (
     <canvas
       ref={canvasRef}
-      className={cn('pointer-events-none block h-full min-h-[44px] w-full', className)}
+      className={cn(
+        'pointer-events-none block h-full min-h-[44px] w-full',
+        className,
+      )}
       aria-hidden
     />
   )

@@ -1,306 +1,554 @@
 ---
-name: 九木 (Ninewood)
-description: Warm amber dark-themed professional workspace for freelancers and employers — trust-first, efficiency-driven, visually restrained.
+name: Ninewood
+version: 3.0
+description: >
+  A pure dark-themed professional workspace platform connecting freelancers and employers.
+  Trust-first, efficiency-driven, visually restrained. Pure black & white foundation with color used freely.
+  WCAG 2.1 AA compliant.
 colors:
-  warm-amber:
-    value: oklch(58% 0.16 45)
-    role: primary
-  warm-amber-hover:
-    value: oklch(65% 0.17 48)
-    role: primary-hover
-  warm-amber-deep:
-    value: oklch(52% 0.18 35)
-    role: primary-deep
-  warm-amber-muted:
-    value: oklch(58% 0.16 45 / 0.12)
-    role: primary-muted
-  warm-amber-ghost:
-    value: oklch(58% 0.16 45 / 0.06)
-    role: primary-ghost
-  dark-earth:
-    value: oklch(14% 0.005 60)
-    role: neutral-bg
-  dark-earth-raised:
-    value: oklch(17% 0.004 55)
-    role: neutral-surface
-  dark-earth-elevated:
-    value: oklch(21% 0.004 50)
-    role: neutral-elevated
-  card-surface:
-    value: oklch(58% 0.16 45 / 0.06)
-    role: neutral-card
-  warm-white:
-    value: oklch(95% 0 0)
-    role: neutral-text
-  warm-gray:
-    value: oklch(78% 0.003 60)
-    role: neutral-text-secondary
-  warm-muted:
-    value: oklch(58% 0.003 60)
-    role: neutral-text-muted
-  warm-border:
-    value: oklch(32% 0.003 60)
-    role: neutral-border
-  semantic-green:
-    value: oklch(60% 0.15 150)
-    role: success
-  semantic-amber:
-    value: oklch(68% 0.16 80)
-    role: warning
-  semantic-red:
-    value: oklch(55% 0.19 22)
-    role: error
+  pure-black:        { value: "#000000", role: neutral-bg }
+  near-black:        { value: "#0A0A0A", role: neutral-surface }
+  card-black:        { value: "#0F0F0F", role: neutral-card }
+  elevated-gray:     { value: "#1A1A1A", role: neutral-elevated }
+  pure-white:        { value: "#FFFFFF", role: neutral-text }
+  off-white:         { value: "#9A9A9A", role: neutral-text-secondary }
+  muted-gray:        { value: "#5A5A5A", role: neutral-text-muted }
+  border-gray:       { value: "#2A2A2A", role: neutral-border }
+  accent:            { value: "#3388FF", role: primary }
+  accent-hover:      { value: "#5599FF", role: primary-hover }
+  accent-muted:      { value: "rgba(51,136,255,0.12)", role: primary-muted }
+  accent-ghost:      { value: "rgba(51,136,255,0.06)", role: primary-ghost }
+  semantic-green:    { value: "#00CC66", role: success }
+  semantic-orange:   { value: "#FF9900", role: warning }
+  semantic-red:      { value: "#FF3333", role: error }
 typography:
-  body:
-    fontFamily: "Montserrat, Segoe UI, system-ui, -apple-system, sans-serif"
-    fontSize: "1.0625rem"
-    fontWeight: 400
-    lineHeight: 1.6
-  label:
-    fontFamily: "Montserrat, Segoe UI, system-ui, -apple-system, sans-serif"
-    fontSize: "0.8125rem"
-    fontWeight: 500
-    letterSpacing: "0.02em"
-  mono:
-    fontFamily: "Roboto Mono, JetBrains Mono, Fira Code, Cascadia Code, monospace"
-    fontSize: "0.875rem"
-    fontWeight: 400
-rounded:
-  sm: "6px"
-  md: "10px"
-  lg: "14px"
-  xl: "20px"
-  full: "9999px"
+  body:  { family: "Montserrat, Segoe UI, system-ui, -apple-system, sans-serif",   size: 1.0625rem, weight: 400, lineHeight: 1.6 }
+  label: { family: "Montserrat, Segoe UI, system-ui, -apple-system, sans-serif",   size: 0.8125rem, weight: 500, letterSpacing: 0.02em }
+  mono:  { family: "Roboto Mono, JetBrains Mono, Fira Code, Cascadia Code, monospace", size: 0.875rem, weight: 400 }
+radius:
+  sm: 6px
+  md: 10px
+  lg: 14px
+  xl: 20px
+  full: 9999px
 spacing:
-  xs: "0.5rem"
-  sm: "0.75rem"
-  md: "1rem"
-  lg: "1.5rem"
-  xl: "2rem"
-  card-padding: "1.25rem"
+  xs: 0.5rem
+  sm: 0.75rem
+  md: 1rem
+  lg: 1.5rem
+  xl: 2rem
+  card-padding: 1.25rem
 components:
   button-primary:
-    backgroundColor: "{colors.warm-amber}"
-    textColor: "{colors.warm-white}"
-    rounded: "{rounded.md}"
-    padding: "12px 24px"
+    bg: "{colors.pure-white}"
+    color: "{colors.pure-black}"
+    radius: "{radius.md}"
+    padding: 12px 24px
   button-primary-hover:
-    backgroundColor: "{colors.warm-amber-hover}"
+    bg: "{colors.off-white}"
   button-ghost:
-    backgroundColor: "transparent"
-    textColor: "{colors.warm-muted}"
-    rounded: "{rounded.md}"
-    padding: "12px 16px"
+    bg: transparent
+    color: "{colors.muted-gray}"
+    radius: "{radius.md}"
+    padding: 12px 16px
   button-ghost-hover:
-    backgroundColor: "{colors.warm-amber-ghost}"
-    textColor: "{colors.warm-amber}"
+    bg: "rgba(255,255,255,0.06)"
+    color: "{colors.pure-white}"
   card-list-item:
-    backgroundColor: "{colors.card-surface}"
-    rounded: "{rounded.md}"
+    bg: "{colors.card-black}"
+    radius: "{radius.md}"
   card-list-item-hover:
-    backgroundColor: "{colors.warm-amber-ghost}"
-  input-glass:
-    backgroundColor: "{colors.warm-amber-ghost}"
-    rounded: "{rounded.md}"
-    padding: "14px 16px"
+    bg: "{colors.near-black}"
+    border: "{colors.border-gray}"
+  input:
+    bg: "{colors.near-black}"
+    border: "{colors.border-gray}"
+    radius: "{radius.md}"
+    padding: 14px 16px
   toggle-on:
-    backgroundColor: "{colors.warm-amber}"
-    rounded: "{rounded.full}"
-    height: "28px"
-    width: "52px"
+    bg: "{colors.pure-white}"
+    radius: "{radius.full}"
+    h: 28px
+    w: 52px
   toggle-off:
-    backgroundColor: "{colors.dark-earth-elevated}"
-    rounded: "{rounded.full}"
-    height: "28px"
-    width: "52px"
+    bg: "{colors.elevated-gray}"
+    radius: "{radius.full}"
+    h: 28px
+    w: 52px
 ---
 
-# Design System: 九木 (Ninewood)
+# Design System · Ninewood
 
-## 1. Overview
+> **Creative North Star** — Absolute Clarity.
+> Pure black. Pure white. Color used with purpose.
+> Contrast leads. Typography defines hierarchy.
+> Every surface stripped to its essential function. Every pixel justified.
 
-**Creative North Star: "The Warm Workshop"**
+---
 
-A freelancer leans into their monitor at 11 PM, the only light in the room is the screen. The interface doesn't compete for attention; it recedes into the task. Warm amber accents mark what's actionable against a deep earth-toned backdrop. Every pixel earns its place. The tool feels solid and reliable, like a well-built workbench you don't think about because it just works.
+## 1. Design Principles
 
-Ninewood is a product-register system. Restrained color strategy: one accent (warm amber) used on ~8% of any given surface. The dark theme isn't a stylistic choice; it's an ergonomic one for users spending hours managing demands, orders, and conversations.
+| # | Principle | Definition |
+|---|-----------|------------|
+| 1 | **Black & White Foundation** | Pure black `#000` for depth, pure white `#FFF` for signal. Grays bridge the extremes. This neutral base lets any color you introduce carry clear meaning. |
+| 2 | **Color With Purpose** | No fixed color palette. Use any color that serves the function — a vibrant blue for links, green for success, amber for warning, etc. The only rule: color must communicate, not decorate. |
+| 3 | **Contrast = Hierarchy** | Value contrast separates surfaces, text, and interactive elements. If a layout doesn't work in grayscale, adding color won't fix it. |
+| 4 | **Complete State Coverage** | Every interactive element ships with: `default` · `hover` · `focus` · `active` · `disabled` · `loading` · `error`. No partial implementations. |
+| 5 | **Motion With Meaning** | Animate `transform` and `opacity` only. Respect `prefers-reduced-motion`. Transitions provide feedback and show state change — never decoration alone. |
+| 6 | **WCAG 2.1 AA Minimum** | Body text ≥ 4.5:1 contrast. Large text ≥ 3:1. Focus rings visible. All interactive elements keyboard-accessible. |
 
-This system rejects the aesthetic of cyberpunk terminals, purple-blue AI-generated slop, and decorative glassmorphism. It embraces familiarity that earns trust: standard navigation patterns, consistent component vocabulary, motion that conveys state rather than decoration.
+---
 
-**Key Characteristics:**
-- Dark with purpose: warm-toned dark backgrounds reduce fatigue during long work sessions
-- One accent, used sparingly: warm amber appears only on primary actions, selections, and state indicators
-- Flat at rest, subtle on interaction: surfaces gain depth only when hovered or focused
-- Standardized component vocabulary: every interactive element has seven consistent states (default, hover, focus, active, disabled, loading, error)
-- Efficiency-forward: content density matches work pace; skeleton loading states instead of spinners; empty states that teach
+## 2. Color System
 
-## 2. Colors: The Warm Earth + Amber Palette
+The palette is built on a **pure black → white** axis. Grays provide surface stepping. Beyond that, any color is available — use it when it serves the interface, leave it out when it doesn't. This is not a restrictive palette; it's a clean starting point.
 
-A single-saturation accent family over a gradient of tinted dark neutrals. The accent is warm amber (OKLCH hue 45), chosen because it signals warmth and urgency without the aggression of red or the artificiality of neon. Every neutral is tinted toward the accent hue at chroma 0.003–0.005, so the background feels cohesive rather than sterile.
+### 2.1 Monochrome Foundation
 
-### Primary
-- **Warm Amber** (`oklch(58% 0.16 45)`): Primary actions (buttons, toggles), selected states, focus rings, current navigation indicator. Used on at most ~8% of any screen surface. The rarity is the point.
-- **Warm Amber Hover** (`oklch(65% 0.17 48)`): Hover state for primary buttons and interactive elements. Slightly lighter and more saturated to signal availability.
-- **Warm Amber Deep** (`oklch(52% 0.18 35)`): Gradient end-point for accent gradient surfaces (profile covers). Not used standalone.
-- **Warm Amber Muted** (`oklch(58% 0.16 45 / 0.12)`): Focus ring outer glow, selected chip backgrounds.
-- **Warm Amber Ghost** (`oklch(58% 0.16 45 / 0.06)`): Hover backgrounds, card tint, subtle accent presence on inactive surfaces.
+```
+  Pure Black      #000000    ████████    Page background — zero light, maximum depth
+  Near Black      #0A0A0A    ████████    Sidebar, raised panels, input backgrounds
+  Card Black      #0F0F0F    ████████    Card surfaces — barely lifted from page
+  Elevated Gray   #1A1A1A    ████████    Toggle off-state, popover backgrounds
+  Border Gray     #2A2A2A    ████████    Borders, dividers, input strokes
+  ─────────────────────────────────────────────────────────────────
+  Muted Gray      #5A5A5A    ████████    Placeholders, captions, tertiary text
+  Off White       #9A9A9A    ████████    Secondary text, descriptions, icons (idle)
+  Pure White      #FFFFFF    ████████    Primary text, active icons, primary buttons
+```
 
-### Secondary
-None. This system uses a single accent. A second named color role would dilute the restraint.
+### 2.2 Accent (Recommended)
 
-### Neutral
-- **Dark Earth** (`oklch(14% 0.005 60)`): Page background. The deepest surface; barely tinted warm to avoid pure-black sterility.
-- **Dark Earth Raised** (`oklch(17% 0.004 55)`): Secondary surfaces: sidebars, secondary panels, muted backgrounds.
-- **Dark Earth Elevated** (`oklch(21% 0.004 50)`): Tertiary surfaces: toggle off-states, elevated panels, hover targets on dark surfaces.
-- **Card Surface** (`oklch(58% 0.16 45 / 0.06)`): Card backgrounds. Translucent amber tint over the dark base for subtle tonal distinction.
-- **Warm White** (`oklch(95% 0 0)`): Primary text. Near-white, slightly warm.
-- **Warm Gray** (`oklch(78% 0.003 60)`): Secondary text. Readable but clearly subordinate to primary.
-- **Warm Muted** (`oklch(58% 0.003 60)`): Muted text, placeholders, captions. Visible but not attention-grabbing.
-- **Warm Border** (`oklch(32% 0.003 60)`): Borders, dividers, input strokes. Visible but not prominent.
+Accent colors are entirely free. A clean blue is recommended for interactive cues (links, focus rings, selected states) based on its universal readability and professional association.
 
-### Semantic
-- **Green** (`oklch(60% 0.15 150)`): Success states, active indicators, confirmed transactions.
-- **Amber** (`oklch(68% 0.16 80)`): Warning states, low-activity indicators, pending actions.
-- **Red** (`oklch(55% 0.19 22)`): Errors, destructive actions, expired/frozen states.
+### 2.3 Semantic Colors
 
-### Named Rules
-**The One Voice Rule.** The warm amber accent is used on ≤10% of any given screen for action elements. Its rarity is the point — an interface that's 40% amber has no accent at all. Purple-blue gradients for AI surfaces do not count toward the amber budget; they occupy a separate visual layer for intelligence/creativity signaling.
+```
+  Green   #00CC66    ████████    Success, confirmed, active, completed
+  Orange  #FF9900    ████████    Warning, pending, attention needed
+  Red     #FF3333    ████████    Error, destructive, expired, frozen
+```
 
-**The No-Black Rule.** Never use `#000` or `#fff`. Every neutral is tinted toward the accent hue (chroma 0.003–0.005). Pure black feels cold and digital; warm-tinted dark feels physical and trustworthy.
+Semantic colors convey system status at a glance. Green for success, orange for warning, red for error. Use them in badges, toasts, form validation, and any status indicator.
 
-**The Gradient Rule.** Gradients are permitted across the UI — on buttons, cards, AI-related surfaces, and decorative elements. The warm amber gradient (`oklch(58% 0.16 45) → oklch(52% 0.18 35)`) remains the primary brand gradient. Purple-blue gradients (`purple-500 → blue-500` range) are approved for AI/Think mode surfaces, thought process panels, and creative/experimental feature areas. This creates a clear visual language: **amber = action, purple-blue = intelligence**.
+### 2.4 Using Color Freely
+
+The monochrome tokens above are the **neutral foundation**, not a cage. You are free to introduce any color for:
+
+- **Brand elements** (logos, headers, marketing surfaces)
+- **Feature identity** (AI panels, premium badges, thematic sections)
+- **Data visualization** (charts, graphs, heatmaps)
+- **Status and state** (badges, toasts, validation)
+- **Interactive cues** (links, icons, accent buttons)
+
+The only guideline: **don't let color undermine the pure black/white contrast hierarchy.** If the page reads well in grayscale, any color on top of it will work.
+
+---
 
 ## 3. Typography
 
-**Display Font:** Not used. Product UI has no display typography needs.
-**Body Font:** Montserrat, with Segoe UI and system-ui fallback. Montserrat brings warmth and geometry without distracting.
-**Label/Mono Font:** Roboto Mono for data, prices, and code-like values.
+**Body:** Montserrat — geometric, clean, professional. Fallback: Segoe UI → system-ui → -apple-system → sans-serif
+**Mono:** Roboto Mono — tabular, precise. Fallback: JetBrains Mono → Fira Code → Cascadia Code → monospace
 
-**Character:** One well-tuned sans carries the entire interface. Montserrat's geometric warmth complements the amber accent; Roboto Mono signals precision for numbers and data.
+### 3.1 Type Scale
 
-### Hierarchy
+| Token | `font-size` | `font-weight` | `line-height` | `letter-spacing` | Usage |
+|-------|------------|---------------|---------------|-------------------|-------|
+| **Heading XL** | `2rem` | `800` | `1.1` | `-0.02em` | Page titles only — max once per view |
+| **Heading LG** | `1.5rem` | `700` | `1.2` | `-0.01em` | Section headers, card-list section titles |
+| **Heading MD** | `1.125rem` | `600` | `1.3` | `0` | Card titles, subsection labels |
+| **Body** | `1.0625rem` | `400` | `1.6` | `0` | All body copy — cap at 65–75ch for prose |
+| **Label** | `0.8125rem` | `500` | `1.5` | `0.02em` | Form labels, nav items, metadata, overlines |
+| **Mono** | `0.875rem` | `400` | `1.5` | `0` | Prices, order IDs, code, data values |
 
-- **Heading XL** (`font-weight: 800, font-size: 2rem, line-height: 1.1, letter-spacing: -0.02em`): Page titles only (Settings, Demand Detail). Maximum once per page.
-- **Heading LG** (`font-weight: 700, font-size: 1.5rem, line-height: 1.2, letter-spacing: -0.01em`): Section headers, card-list section titles.
-- **Heading MD** (`font-weight: 600, font-size: 1.125rem, line-height: 1.3`): Card titles, subsection labels.
-- **Body** (`font-weight: 400, font-size: 1.0625rem, line-height: 1.6`): All body copy. Capped at 65–75ch for prose; denser for data.
-- **Label** (`font-weight: 500, font-size: 0.8125rem, letter-spacing: 0.02em`): Form labels, nav items, metadata. Uppercase section overlines where needed (tracking: 0.05em).
-- **Mono** (`font-weight: 400, font-size: 0.875rem`): Prices, order IDs, codes, data values.
+### 3.2 Type Rules
 
-### Named Rules
-**The Scale Gap Rule.** Adjacent heading sizes differ by at least 1.25:1. No flat scales; hierarchy must be instantly readable.
+| Rule | Requirement |
+|------|-------------|
+| **Scale Gap** | Adjacent heading levels differ by ≥ 1.25× in font size. No flat scales. |
+| **Single Sans** | One sans family for all headings, body, buttons, and labels. |
+| **No Gradient Text** | `background-clip: text` is banned. Text is `#FFF`, `#9A9A9A`, or `#5A5A5A`. |
+| **No Display Fonts** | Display/headline typefaces are prohibited in the UI layer. |
+| **Weight = Hierarchy** | Three weights only: 400 (body), 600 (emphasis), 800 (headings). No 500, no 300. |
 
-**The No-Display Rule.** Display fonts are prohibited in UI context. One sans family carries headings, body, buttons, and labels. Product UI doesn't need editorial contrast; it needs consistency.
+---
 
-## 4. Elevation
+## 4. Spacing & Radius
 
-This system conveys depth through tonal layering, not heavy shadows. The three background tiers (Dark Earth → Raised → Elevated) create a ladder of surfaces. Shadows are small and structural, not atmospheric.
+### 4.1 Spacing Scale
 
-When an interactive element is hovered or focused, it lifts subtly with a small shadow and a one-pixel amber-tinted border. At rest, surfaces are effectively flat.
+```
+  xs   0.5rem   (8px)     Tight internal gaps — icon+label, chip padding
+  sm   0.75rem  (12px)    Compact gaps — list item internals, inline groups
+  md   1rem     (16px)    Default gap — card internals, form groups
+  lg   1.5rem   (24px)    Section gaps — between card groups, page sections
+  xl   2rem     (32px)    Page-level gaps — hero sections, major dividers
+  ─────────────────────────────────────────────────────────────────
+  card-padding   1.25rem (20px)   Standard internal card padding
+```
 
-### Shadow Vocabulary
+### 4.2 Radius Scale
 
-- **Shadow Small** (`0 2px 8px rgba(0, 0, 0, 0.35)`): Subtle card lift on hover.
-- **Shadow Medium** (`0 6px 20px rgba(0, 0, 0, 0.45)`): Dropdowns, popovers, tooltips.
-- **Shadow Large** (`0 12px 36px rgba(0, 0, 0, 0.55)`): Modals, full-page overlays.
-- **Elevation 1** (`0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.35), 0 0 0 1px oklch(58% 0.16 45 / 0.08)`): Structural lift for cards at rest.
-- **Elevation 2** (`0 6px 16px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.32), 0 0 0 1px oklch(58% 0.16 45 / 0.12)`): Raised cards (hover, selected, dialog surfaces).
+```
+  sm    6px     Chips, badges, small interactive elements
+  md   10px     Buttons, inputs, cards, list items (DEFAULT)
+  lg   14px     Larger cards, dialogs, featured panels
+  xl   20px     Modal containers, prominent sections
+  full 9999px   Toggle switches, avatar circles, pill badges
+```
 
-### Named Rules
-**The Flat-By-Default Rule.** Surfaces are flat at rest. Shadows appear only as a response to state (hover, elevation, focus). A card that always has a shadow is always shouting; a card that rises on hover is speaking when it matters.
+---
 
-## 5. Components
+## 5. Elevation
 
-### Buttons
-**Character:** Tactile and confident. Primary buttons carry the full amber weight; secondary and ghost variants use transparency for hierarchy.
+Depth is conveyed through **pure luminance stepping**. Surfaces lift from black `#000` through subtle gray gradations. Shadows are small, structural, and state-driven.
 
-- **Shape:** Rounded at 10px (`--radius`). Consistent across all variants.
-- **Primary:** `background: oklch(58% 0.16 45)`, `color: #fafafa`, `padding: 12px 24px`. High-contrast, unmistakably actionable.
-- **Hover:** `background: oklch(65% 0.17 48)`. Slightly lighter; signals readiness.
-- **Focus:** `box-shadow: 0 0 0 3px oklch(58% 0.16 45 / 0.35)`. Amber ring, 3px offset, sufficient for WCAG 2.1 AA.
-- **Disabled:** `opacity: 0.5`. Standard disengagement.
-- **Loading:** Spinner icon replaces label icon; button text remains. Width does not change.
-- **Secondary/Ghost:** Transparent background with muted text. Hover gains `oklch(58% 0.16 45 / 0.06)` background and amber text.
+### 5.1 Surface Tiers
 
-### List Item Cards
-**Character:** Quiet containers that lift on approach. No side-stripe — the entire border shifts color.
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │  Pure Black      #000000    Page background                 │  ← background
+  │  Near Black      #0A0A0A    Sidebar, input backgrounds       │  ← surface
+  │  Card Black      #0F0F0F    Cards, list items                │  ← card
+  │  Elevated Gray   #1A1A1A    Popovers, toggle off-state       │  ← elevated
+  └─────────────────────────────────────────────────────────────┘
+```
 
-- **Shape:** Rounded at 10px. Full border, not accent stripe.
-- **Rest:** `background: oklch(58% 0.16 45 / 0.06)`, `border: 1px solid oklch(32% 0.003 60)`.
-- **Hover:** Border shifts to `oklch(58% 0.16 45 / 0.5)`, background warms to `oklch(58% 0.16 45 / 0.06)`. Subtle scale-down on active: `scale(0.99)`.
-- **Internal padding:** 1.25rem (`--card-padding`).
+### 5.2 Shadow Tokens
 
-### Toggle Switch
-**Character:** Small but unmistakable. Full amber gradient when on; dark elevated surface when off.
+| Token | Value | Use Case |
+|-------|-------|----------|
+| **Shadow Small** | `0 2px 8px rgba(0,0,0,0.35)` | Cards on hover — subtle lift |
+| **Shadow Medium** | `0 6px 20px rgba(0,0,0,0.45)` | Dropdowns, popovers, tooltips |
+| **Shadow Large** | `0 12px 36px rgba(0,0,0,0.55)` | Modals, full-page overlays |
+| **Elevation 1** | `0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06)` | Cards at rest |
+| **Elevation 2** | `0 6px 16px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.32), inset 0 0 0 1px rgba(255,255,255,0.08)` | Raised cards, dialogs |
 
-- **Shape:** Fully rounded pill: 52px wide, 28px tall.
-- **On:** `background: linear-gradient(135deg, oklch(58% 0.16 45), oklch(52% 0.18 35))`, knob at right.
-- **Off:** `background: oklch(21% 0.004 50)`, knob at left.
-- **Accessibility:** Must have `role="switch"` and `aria-checked`. Label linked via `aria-label`.
-- **Transition:** 200ms on background and knob position. No bounce.
+### 5.3 Elevation Rules
 
-### Glass Input
-**Character:** Subtle amber-tinted field that intensifies on focus. Not decorative glass — functional feedback.
+| Rule | Definition |
+|------|------------|
+| **Flat by Default** | Surfaces carry no shadow at rest. Shadows appear only as state feedback. |
+| **Pure Value Stepping** | Depth comes from value steps (`#000` → `#0A0A0A` → `#0F0F0F` → `#1A1A1A`). This ensures the hierarchy works independently of any colors you layer on top. |
 
-- **Shape:** Rounded at 10px, full width, 14px vertical padding.
-- **Rest:** `background: oklch(58% 0.16 45 / 0.06)`, `border: 1px solid oklch(32% 0.003 60)`.
-- **Focus:** Border shifts to `oklch(58% 0.16 45)`, outer glow `0 0 0 3px oklch(58% 0.16 45 / 0.12)`.
-- **Placeholder:** `color: oklch(58% 0.003 60)`.
+---
 
-### Chips / Badges
-**Character:** Small, scannable tags for status and categorization. Border + translucent background.
+## 6. Component Specifications
 
-- **Shape:** Rounded at 6px (`--radius-sm`), with border.
-- **Active/Selected:** `border-color: oklch(58% 0.16 45 / 0.3)`, `background: oklch(58% 0.16 45 / 0.12)`, `text: oklch(58% 0.16 45)`.
-- **Neutral:** `border-color: oklch(32% 0.003 60)`, `background: transparent`, `text: oklch(78% 0.003 60)`.
-- **Semantic variants:** Green (success/active), Amber (warning/pending), Red (error/expired). Same structure, different chroma anchor.
+### 6.1 Buttons
 
-### Skeleton Loading
-**Character:** Content-shaped waiting states. Never a center spinner for content areas.
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Primary    bg: #FFFFFF    color: #000000                │
+  │             radius: 10px   padding: 12px 24px            │
+  │             font-weight: 600                             │
+  │                                                         │
+  │  Hover      bg: #DADADA (slightly muted white)           │
+  │  Focus      box-shadow: 0 0 0 3px rgba(51,136,255,0.40) │
+  │  Active     scale(0.98)                                  │
+  │  Disabled   opacity: 0.35     cursor: not-allowed        │
+  │  Loading    spinner replaces icon; label text remains;   │
+  │             button width does not change                 │
+  └─────────────────────────────────────────────────────────┘
 
-- **Shape:** Matches the content it replaces (text line, card, image block).
-- **Animation:** `shimmer` keyframe: background-position sweeps from 0 to -200% over 2s linear.
-- **Background:** `linear-gradient(90deg, oklch(78% 0.003 60 / 0.08), oklch(78% 0.003 60 / 0.16), oklch(78% 0.003 60 / 0.08))`.
-- **Respects:** `prefers-reduced-motion` — removes animation, keeps static placeholder.
+  ┌─────────────────────────────────────────────────────────┐
+  │  Ghost      bg: transparent    color: #9A9A9A            │
+  │             radius: 10px       padding: 12px 16px         │
+  │                                                         │
+  │  Hover      bg: rgba(255,255,255,0.06)  color: #FFFFFF   │
+  └─────────────────────────────────────────────────────────┘
+```
 
-### Error State
-**Character:** Honest failure communication. Tells the user what happened and offers a remedy.
+### 6.2 List Item Cards
 
-- **Container:** Centered on page, max-width 420px.
-- **Icon:** 48px, muted, optional.
-- **Message:** Primary text, one sentence. Never "Something went wrong" alone — be specific.
-- **Action:** "重试" (Retry) button as secondary variant. Always present alongside the error message.
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Rest       bg: #0F0F0F                                   │
+  │             border: 1px solid #2A2A2A                    │
+  │             radius: 10px     padding: 1.25rem            │
+  │                                                         │
+  │  Hover      border-color: rgba(255,255,255,0.20)         │
+  │             bg: #0A0A0A                                  │
+  │                                                         │
+  │  Active     transform: scale(0.99)                       │
+  └─────────────────────────────────────────────────────────┘
 
-### Sidebar Navigation
-**Character:** Fixed left rail. Warm amber accent marks the current location; everything else recedes.
+  No side-stripe borders. No colored accents.
+  The entire border shifts brightness on hover — full-frame feedback.
+```
 
-- **Width:** 72px collapsed (sidebar-w), 240px for settings sub-nav.
-- **Background:** `oklch(17% 0.004 55)` with `backdrop-filter: blur(12px)`.
-- **Active item:** Amber accent tint background, amber icon color, white text.
-- **Inactive item:** Muted text, transparent background. Hover gains subtle tertiary background.
-- **Brand strip:** Left-edge amber gradient line (sidebar-ct-accent): `linear-gradient(90deg, oklch(58% 0.16 45), oklch(52% 0.18 35) 3px, transparent 3px)`.
+### 6.3 Toggle Switch
 
-## 6. Do's and Don'ts
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Dimensions  52px × 28px    radius: 9999px (pill)        │
+  │                                                         │
+  │  ON          bg: #FFFFFF    knob at right edge           │
+  │  OFF         bg: #1A1A1A    knob at left edge            │
+  │                                                         │
+  │  Knob        bg: #000000 (on white) / #FFFFFF (on dark) │
+  │              width: 22px    height: 22px                 │
+  │                                                         │
+  │  Transition  200ms ease — background + knob position     │
+  │              No bounce, no overshoot                     │
+  │                                                         │
+  │  a11y        role="switch"  aria-checked="true|false"    │
+  │              aria-label on the toggle element            │
+  └─────────────────────────────────────────────────────────┘
+```
 
-### Do:
-- **Do** use the warm amber accent on primary actions, selected states, and focus rings only. Its power is in its rarity.
-- **Do** tint every neutral surface toward the accent hue (chroma 0.003–0.005). This prevents sterile gray-black backgrounds.
-- **Do** use skeleton loading for content areas; reserve spinners for inline actions (button loading, search submitting).
-- **Do** provide a retry action alongside every error message. Never leave the user stranded.
-- **Do** use `role="switch"` and `aria-checked` on toggle controls. State must be announced to assistive technology.
-- **Do** use Tailwind utility classes for all styling. Inline styles are prohibited; they indicate a component that hasn't been migrated.
-- **Do** respect `prefers-reduced-motion` — disable all non-essential animations when the user requests it.
-- **Do** use `focus-visible` for focus rings (not `:focus`), so mouse users don't see rings on click.
-- **Do** maintain WCAG 2.1 AA contrast for all text: 4.5:1 for body, 3:1 for large text (≥18px bold or ≥24px).
+### 6.4 Input
 
-### Don't:
-- **Don't** use gradient text (`background-clip: text`). This is an absolute ban. Use solid amber color for emphasis.
-- **Don't** use side-stripe borders (`border-left` or `border-right` > 1px as accent). Full border + background shift communicates the same hierarchy without the visual hack.
-- **Don't** use glassmorphism as a default surface treatment. Translucent amber tints are acceptable; decorative blurs and frosted glass are not.
-- **Don't** use purple-blue gradients as default surface or navigation colors. Reserve them for AI/Think mode surfaces and creative feature areas to maintain semantic distinction from amber action elements.
-- **Don't** use emoji as icons. Always use lucide-react icons for consistent sizing, stroke width, and color inheritance.
-- **Don't** use `#000` or `#fff`. Every neutral must carry a hint of the accent hue.
-- **Don't** create identical card grids (icon + heading + text repeated). Vary card layout, density, and visual hierarchy across sections.
-- **Don't** use modals as a first resort. Exhaust inline disclosure, expandable panels, and progressive reveal before reaching for a modal.
-- **Don't** animate CSS layout properties (`width`, `height`, `top`, `left`). Use `transform` and `opacity` only.
-- **Don't** ship a component with missing states. Every interactive element needs: default, hover, focus, active, disabled, loading, error.
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Rest       bg: #0A0A0A                                  │
+  │             border: 1px solid #2A2A2A                   │
+  │             radius: 10px     padding: 14px 16px          │
+  │             color: #FFFFFF    width: 100%                │
+  │                                                         │
+  │  Focus      border-color: #3388FF                        │
+  │             box-shadow: 0 0 0 3px rgba(51,136,255,0.15) │
+  │                                                         │
+  │  Placeholder  color: #5A5A5A                             │
+  │                                                         │
+  │  Error      border-color: #FF3333                        │
+  │             box-shadow: 0 0 0 3px rgba(255,51,51,0.15)  │
+  └─────────────────────────────────────────────────────────┘
+```
+
+### 6.5 Chips & Badges
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Shape      radius: 6px    border: 1px solid             │
+  │                                                         │
+  │  Selected   border: rgba(51,136,255,0.30)                │
+  │             bg: rgba(51,136,255,0.12)                   │
+  │             text: #3388FF                                │
+  │                                                         │
+  │  Neutral    border: #2A2A2A                              │
+  │             bg: transparent                              │
+  │             text: #9A9A9A                                │
+  │                                                         │
+  │  Success    Same structure — anchor to #00CC66           │
+  │  Warning    Same structure — anchor to #FF9900           │
+  │  Error      Same structure — anchor to #FF3333           │
+  └─────────────────────────────────────────────────────────┘
+```
+
+### 6.6 Skeleton Loading
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Shape      Matches the content it replaces              │
+  │             (text line height, card dimensions, etc.)    │
+  │                                                         │
+  │  Background linear-gradient(90deg,                       │
+  │               rgba(255,255,255,0.04),                   │
+  │               rgba(255,255,255,0.10),                   │
+  │               rgba(255,255,255,0.04))                   │
+  │                                                         │
+  │  Animation  shimmer: bg-position 0 → -200% over 2s       │
+  │             linear, infinite                             │
+  │                                                         │
+  │  a11y       Respects prefers-reduced-motion —             │
+  │             disables animation, keeps static placeholder │
+  └─────────────────────────────────────────────────────────┘
+
+  Never use a centered spinner for content-area loading.
+  Reserve spinners for inline actions: button submit, search.
+```
+
+### 6.7 Error State
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Container  centered on page    max-width: 420px         │
+  │                                                         │
+  │  Icon       48px, #5A5A5A, optional                     │
+  │                                                         │
+  │  Message    One sentence, specific.                      │
+  │             NEVER: "Something went wrong"               │
+  │             ALWAYS: "Failed to load demands —            │
+  │                      the server returned a 500 error"    │
+  │                                                         │
+  │  Action     "重试" (Retry) button, ghost variant         │
+  │             Always present alongside the error message   │
+  └─────────────────────────────────────────────────────────┘
+```
+
+### 6.8 Sidebar Navigation
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │  Width      72px collapsed    240px expanded (settings)  │
+  │                                                         │
+  │  Background #0A0A0A                                      │
+  │             backdrop-filter: blur(12px)                   │
+  │                                                         │
+  │  Active     bg: rgba(255,255,255,0.08)                   │
+  │             icon: #FFFFFF    text: #FFFFFF               │
+  │                                                         │
+  │  Inactive   text: #5A5A5A    bg: transparent              │
+  │             hover-bg: rgba(255,255,255,0.04)             │
+  │                                                         │
+  │  Brand      Left edge: 3px solid #FFFFFF                 │
+  │  Accent     Clean, minimal, unmistakable                  │
+  └─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 7. Interaction & Motion
+
+### 7.1 Timing
+
+| Type | Duration | Easing | Use |
+|------|----------|--------|-----|
+| **Micro** | `150ms` | `ease-out` | Hover transitions, icon color shifts, focus ring appearance |
+| **Standard** | `200ms` | `ease-in-out` | Toggle switches, card lift, expand/collapse |
+| **Entrance** | `300ms` | `ease-out` | Modal appear, dropdown reveal, page section fade-in |
+| **Exit** | `200ms` | `ease-in` | Modal dismiss, dropdown hide |
+
+### 7.2 Motion Constraints
+
+| Rule | Detail |
+|------|--------|
+| **Transform Only** | Animate `transform` and `opacity`. Never animate `width`, `height`, `top`, `left`, or any layout-triggering property. |
+| **Reduced Motion** | Wrap all non-essential animations in `@media (prefers-reduced-motion: no-preference)`. Essential = focus rings, loading indicators. |
+| **No Bounce** | Avoid spring/overshoot easing. Interfaces feel precise, not playful. |
+
+---
+
+## 8. Accessibility Baseline
+
+| Standard | Requirement |
+|----------|-------------|
+| **WCAG 2.1 AA** | Minimum compliance target for all views |
+| **Color Contrast** | Body text ≥ 4.5:1 (`#FFF` on `#000` = 21:1). Large text (≥18px bold or ≥24px) ≥ 3:1 |
+| **Focus Indicators** | `:focus-visible` only — 3px `#3388FF` ring, never removed. Mouse users see no rings on click. |
+| **Keyboard Navigation** | Tab order follows visual order. All interactive elements reachable via keyboard. |
+| **Toggle Switches** | `role="switch"` + `aria-checked` — state must be announced to screen readers |
+| **Error Messages** | Associated with inputs via `aria-describedby`. Live regions for async errors. |
+| **Reduced Motion** | Respect `prefers-reduced-motion` — disable decorative animations |
+
+---
+
+## 9. Constraints
+
+| # | Rule | Rationale |
+|---|------|-----------|
+| 1 | **No identical card grids** | Repeated `icon + heading + text` patterns create visual monotony. Vary layout, density, and hierarchy across sections. |
+| 2 | **Modals are last resort** | Exhaust inline expansion, collapsible panels, and progressive disclosure before reaching for a modal. |
+| 3 | **No inline styles** | All styling through Tailwind utility classes. Inline `style=` props indicate an incomplete migration. |
+| 4 | **No incomplete components** | Every interactive element ships with: default · hover · focus · active · disabled · loading · error. Ship all states or don't ship the component. |
+
+---
+
+## 10. Quick Reference
+
+### Color Cheatsheet
+
+```
+  PAGE BG      → #000000    Pure Black
+  SIDEBAR BG   → #0A0A0A    Near Black
+  CARD BG      → #0F0F0F    Card Black
+  ELEVATED     → #1A1A1A    Elevated Gray
+  BORDER       → #2A2A2A    Border Gray
+  ─────────────────────────────────────
+  TEXT PRIMARY → #FFFFFF    Pure White
+  TEXT SECOND  → #9A9A9A    Off White
+  TEXT MUTED   → #5A5A5A    Muted Gray
+  ─────────────────────────────────────
+  ACCENT       → #3388FF    Focus rings, links, selected
+  ACCENT HOVER → #5599FF    Link hover
+  ─────────────────────────────────────
+  SUCCESS      → #00CC66    Confirmed, active, done
+  WARNING      → #FF9900    Pending, attention
+  ERROR        → #FF3333    Failed, destructive
+```
+
+### Iconography
+
+```
+  Provider: lucide-react (exclusively)
+  Sizing:   size-4 (16px) for inline   ·   size-5 (20px) for standalone   ·   size-6 (24px) for decorative
+  Stroke:   strokeWidth={2} default    ·   strokeWidth={1.5} for subtler contexts
+  Color:    #FFFFFF for active/nav     ·   #9A9A9A for idle/secondary     ·   #5A5A5A for disabled
+```
+
+### Typography Cheatsheet
+
+```
+  PAGE TITLE    text-3xl (2rem)    font-extrabold (800)    leading-tight
+  SECTION       text-2xl (1.5rem)  font-bold (700)         leading-snug
+  CARD TITLE    text-lg (1.125rem) font-semibold (600)
+  BODY          text-base (1.0625rem) font-normal (400)    leading-relaxed
+  LABEL         text-xs (0.8125rem) font-medium (500)      tracking-wide
+  MONO          text-sm (0.875rem)  font-normal (400)      font-mono
+```
+
+---
+
+> **This document is the single source of truth for Ninewood's visual language.**
+> Every component, page, and interaction is evaluated against these specifications.
+> When a design decision is made, update this document. When a question arises, consult this document.
+
+---
+
+## 11. Version History
+
+### AI 1.6 — Agent 对话系统 + AI 服务层重构 + Redis + 安全增强 (2026-05-23)
+
+**Agent 对话系统**
+- 新增 `AgentConversation` / `AgentMessage` Prisma 模型
+- 后端：`routes/agent.ts` (CRUD + 流式对话)、`services/agent/conversation.ts`、`services/agent/executor.ts`
+- 工具注册系统：`services/agent/tool-registry.ts`、`services/agent/tools.ts`（Ninewood 业务工具）
+- Skill 加载器：`services/agent/skill-loader.ts`（.reasonix/skills 目录）
+- 前端：`views/AgentChat.tsx`、`api/agent.ts`、路由 `/agent` 和 `/agent/:id`
+
+**AI 服务层**
+- 供应商：MiniMax 单供应商 + 多模型（`AI_MODEL` / `AI_THINK_MODEL` / `AI_FAST_MODEL`）
+- `services/ai/client.ts` 统一封装：
+  - `chatCompletion()` / `chatCompletionStream()` — 业务路由直接调用
+  - `agentStream()` — Agent 模式带工具调用
+  - `readSSEStream()` — 共享 SSE 流解析器，消除 7 处重复
+  - `parseJSON()` / `extractThink()` — 公共工具函数
+- `services/ai/types.ts` — `ChatCompletionParams` / `AgentStreamParams` / `ToolDefinition` 等类型
+
+**Agent 执行器优化**
+- `executor.ts` 使用共享 `readSSEStream`，不再重复 SSE 解析
+- 工具调用批量化：收集所有工具结果后单次 AI 总结，避免 N+1 请求
+- 错误链路完整：工具执行失败/总结失败统一通过 SSE 通知前端
+
+**Redis 集成 + 限流**
+- 新增 `lib/redis.ts`（ioredis 连接管理，`delCache` 使用 SCAN 而非 KEYS）
+- 新增 `middleware/rate-limit.ts`（全局 / API / 认证 / 抢单 分层限流）
+
+**Deposit 重构**
+- Schema：`demandIds Json` → `DepositDemand` 关联表
+- 新增 `CANCELLED` / `REFUNDED` 订单状态
+- 更新 `deposit.service.ts`、`order.service.ts` 适配新模型
+
+**安全增强**
+- 请求体限制：500MB → 10MB
+- JWT_SECRET 生产环境缺失时拒绝启动
+- 全局限流中间件
+
+**修复**
+- `autoTitle` → `truncateTitle`（原名暗示 AI 摘要，实际是截断）
+- skill-loader 路径修正：`.deepcode/skills/` → `.reasonix/skills/`
+- AgentChat 临时消息 ID 改用 `crypto.randomUUID()`
+- `config.ts` 简化：移除冗余的多供应商抽象，保持 MiniMax + 模型可配置
+
+**UI 更新**
+- 6 个新组件：`ai-input`、`animated-search-bar`、`animated-theme-toggle`、`limelight-nav`、`modern-timeline`、`pixel-logo-grid`
+- 所有暗色主题 textSecondary / textMuted 亮度提升（对比度增强）
+- Help 页面重写、Settings 页面重构、DemandCreate 工作区改造
+- AgentChat 页面（对话列表 + 流式聊天界面）
+
+**测试 & 工具**
+- 新增 `deposit.test.ts`、`order.test.ts`
+- 新增 `create-shortcut.ps1`、`fix_help.py`
+- 新增 `.dockerignore`
+- 移除 `package-lock.json`（统一使用 pnpm）

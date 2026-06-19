@@ -37,7 +37,10 @@ export default function Home() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
         if (!inputValue) setIsActive(false)
       }
     }
@@ -60,12 +63,24 @@ export default function Home() {
   const letterVariants = {
     initial: { opacity: 0, filter: 'blur(12px)', y: 10 },
     animate: {
-      opacity: 1, filter: 'blur(0px)', y: 0,
-      transition: { opacity: { duration: 0.25 }, filter: { duration: 0.4 }, y: { type: 'spring', stiffness: 80, damping: 20 } },
+      opacity: 1,
+      filter: 'blur(0px)',
+      y: 0,
+      transition: {
+        opacity: { duration: 0.25 },
+        filter: { duration: 0.4 },
+        y: { duration: 0.35, ease: 'easeOut' },
+      },
     },
     exit: {
-      opacity: 0, filter: 'blur(12px)', y: -10,
-      transition: { opacity: { duration: 0.2 }, filter: { duration: 0.3 }, y: { type: 'spring', stiffness: 80, damping: 20 } },
+      opacity: 0,
+      filter: 'blur(12px)',
+      y: -10,
+      transition: {
+        opacity: { duration: 0.2 },
+        filter: { duration: 0.3 },
+        y: { duration: 0.3, ease: 'easeIn' },
+      },
     },
   }
 
@@ -73,7 +88,7 @@ export default function Home() {
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col bg-[var(--bg-primary)] text-[var(--text-primary)]">
       <div className="relative flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center antialiased">
         <div className="relative z-10 mx-auto max-w-2xl p-4">
-          <h1 className="relative z-10 bg-gradient-to-b from-[var(--text-primary)] to-[var(--text-muted)] bg-clip-text text-center font-sans text-lg font-bold text-transparent md:text-7xl">
+          <h1 className="relative z-10 text-center font-sans text-lg font-bold text-text-primary md:text-7xl">
             发现
           </h1>
           <p />
@@ -86,12 +101,13 @@ export default function Home() {
             className="relative z-10 mx-auto mt-6 w-full max-w-xl rounded-2xl border border-[var(--border-color)] bg-[var(--bg-secondary)] overflow-hidden"
             animate={{
               height: isActive || inputValue ? 56 : 52,
-              boxShadow: isActive || inputValue
-                ? '0 4px 24px rgba(0,0,0,0.2)'
-                : '0 1px 4px rgba(0,0,0,0.08)',
+              boxShadow:
+                isActive || inputValue
+                  ? '0 4px 24px rgba(0,0,0,0.2)'
+                  : '0 1px 4px rgba(0,0,0,0.08)',
             }}
             initial={false}
-            transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             onClick={() => setIsActive(true)}
           >
             <div className="flex items-center gap-2 px-3 py-2 h-full">
@@ -127,14 +143,25 @@ export default function Home() {
                         variants={{
                           initial: {},
                           animate: { transition: { staggerChildren: 0.025 } },
-                          exit: { transition: { staggerChildren: 0.015, staggerDirection: -1 } },
+                          exit: {
+                            transition: {
+                              staggerChildren: 0.015,
+                              staggerDirection: -1,
+                            },
+                          },
                         }}
                       >
-                        {PLACEHOLDERS[placeholderIndex].split('').map((char, i) => (
-                          <motion.span key={i} variants={letterVariants} style={{ display: 'inline-block' }}>
-                            {char === ' ' ? '\u00A0' : char}
-                          </motion.span>
-                        ))}
+                        {PLACEHOLDERS[placeholderIndex]
+                          .split('')
+                          .map((char, i) => (
+                            <motion.span
+                              key={i}
+                              variants={letterVariants}
+                              style={{ display: 'inline-block' }}
+                            >
+                              {char === ' ' ? '\u00A0' : char}
+                            </motion.span>
+                          ))}
                       </motion.span>
                     )}
                   </AnimatePresence>

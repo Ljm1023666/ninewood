@@ -27,7 +27,8 @@ export function ListItemCard({
         'group relative overflow-hidden rounded-xl border border-border/90 bg-card/95 shadow-elevation-1',
         'transition-[border-color,box-shadow] duration-300',
         clickable && 'cursor-pointer',
-        clickable && 'hover:border-accent/50 hover:bg-accent-ghost hover:shadow-elevation-2',
+        clickable &&
+          'hover:border-white/20 hover:bg-bg-secondary hover:shadow-elevation-2',
         clickable && 'active:scale-[0.99]',
         className,
       )}

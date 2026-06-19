@@ -2,9 +2,13 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { authService } from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rate-limit.js';
 import { success, fail } from '../utils/response.js';
 
 export const authRouter = Router();
+
+// 认证接口统一限流
+authRouter.use(authLimiter);
 
 const sendCodeSchema = z.object({
   phone: z.string().regex(/^\d{11}$/, '请输入有效的手机号'),

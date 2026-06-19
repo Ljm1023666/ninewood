@@ -287,8 +287,7 @@ export default function Profile() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.22 } }}
               onClick={handleIntroClick}
-              className="fixed inset-0 z-[var(--z-max)] cursor-pointer overflow-hidden"
-              style={{ background: 'var(--bg-primary)' }}
+              className="fixed inset-0 z-[var(--z-max)] cursor-pointer overflow-hidden bg-bg-primary"
             >
               {/* 封面大图 */}
               <motion.div
@@ -321,8 +320,7 @@ export default function Profile() {
                   intro.shrink ? { opacity: 0, y: 12 } : { opacity: 1, y: 0 }
                 }
                 transition={{ duration: 0.38 }}
-                className="absolute inset-x-4 z-10 text-center pointer-events-none"
-                style={{ bottom: '60%' }}
+                className="absolute inset-x-4 z-10 text-center pointer-events-none bottom-[60%]"
               >
                 <p className="text-[26px] font-bold text-white/95 tracking-[4px] drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
                   {displayUser?.nickname}
@@ -366,7 +364,7 @@ export default function Profile() {
 
       <div
         className={cn(
-          'relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto thin-scroll transition-opacity duration-200',
+          'relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto overflow-x-hidden thin-scroll transition-opacity duration-200',
           intro.show && !intro.shrink ? 'opacity-0' : 'opacity-100',
         )}
       >

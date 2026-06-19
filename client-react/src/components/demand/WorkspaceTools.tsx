@@ -62,7 +62,7 @@ export function WorkspaceTools() {
     <div className="space-y-4">
       {/* 润色工具 */}
       <div>
-        <label className="text-sm font-medium text-white/30 uppercase tracking-wider">
+        <label className="text-sm font-medium text-text-muted uppercase tracking-wider">
           润色工具
         </label>
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -77,7 +77,7 @@ export function WorkspaceTools() {
               type="button"
               disabled={!description.trim() || polishing !== null}
               onClick={() => handlePolish(action)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-sm text-white/50 hover:border-white/15 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-muted hover:border-border hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               {polishing === action ? (
                 <span className="inline-block size-3 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
@@ -87,7 +87,7 @@ export function WorkspaceTools() {
               {label}
             </button>
           ))}
-          <span className="w-px bg-white/[0.06] mx-1 self-stretch" />
+          <span className="w-px bg-border mx-1 self-stretch" />
           {(
             [
               ['formal', '正式版', Wand2],
@@ -99,7 +99,7 @@ export function WorkspaceTools() {
               type="button"
               disabled={!description.trim() || polishing !== null}
               onClick={() => handlePolish(action)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-sm text-white/50 hover:border-white/15 hover:text-white/70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-card px-3 py-1.5 text-sm text-text-muted hover:border-border hover:text-text-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
               {polishing === action ? (
                 <span className="inline-block size-3 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
@@ -115,7 +115,7 @@ export function WorkspaceTools() {
       {/* 缺失信息（可勾选队列） */}
       {allItems.length > 0 && (
         <div>
-          <label className="text-sm font-medium text-white/30 uppercase tracking-wider flex items-center gap-1.5">
+          <label className="text-sm font-medium text-text-muted uppercase tracking-wider flex items-center gap-1.5">
             <AlertTriangle className="size-3 text-amber-400/60" />
             缺失信息
             {missingQueue.length > 0 && (

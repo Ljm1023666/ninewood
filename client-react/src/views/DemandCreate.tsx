@@ -670,7 +670,7 @@ export default function DemandCreate() {
             try {
               const { line } = JSON.parse(data)
               if (line) {
-                thinkAccRef.current += (thinkAccRef.current ? '\n' : '') + line
+                thinkAccRef.current += line
                 setThinkText(thinkAccRef.current)
               }
             } catch {
@@ -838,14 +838,13 @@ export default function DemandCreate() {
   )
 
   return (
-    <div className="min-h-screen bg-[#0c0414] text-white flex flex-col relative overflow-x-hidden">
-      {/* 渐变光效 */}
-      <div className="flex gap-[10rem] rotate-[-20deg] absolute top-[-40rem] right-[-30rem] z-[0] blur-[5rem] skew-[-40deg] opacity-40">
+    <div className="demand-create-root min-h-screen flex flex-col relative overflow-x-hidden">
+      <div className="hidden gap-[10rem] rotate-[-20deg] absolute top-[-40rem] right-[-30rem] z-[0] blur-[5rem] skew-[-40deg] opacity-40">
         <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-purple-400" />
         <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-blue-400" />
         <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-violet-400" />
       </div>
-      <div className="flex gap-[10rem] rotate-[-20deg] absolute top-[-50rem] right-[-50rem] z-[0] blur-[5rem] skew-[-40deg] opacity-30">
+      <div className="hidden gap-[10rem] rotate-[-20deg] absolute top-[-50rem] right-[-50rem] z-[0] blur-[5rem] skew-[-40deg] opacity-30">
         <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-purple-400" />
         <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-blue-400" />
         <div className="w-[10rem] h-[20rem] bg-linear-90 from-white to-violet-400" />
@@ -856,12 +855,12 @@ export default function DemandCreate() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex size-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-white/50 hover:border-white/20 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
+          className="flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-muted hover:border-border hover:text-text-primary hover:bg-bg-tertiary transition-all duration-200"
         >
           <ArrowLeft className="size-4" />
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white/40 tracking-wide">
+          <span className="text-sm font-medium text-text-muted tracking-wide">
             需求工作区
           </span>
           <button
@@ -875,7 +874,7 @@ export default function DemandCreate() {
               }
               clearDraft()
             }}
-            className="inline-flex items-center gap-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1 text-sm text-white/30 hover:border-white/15 hover:text-white/50 transition-all"
+            className="inline-flex items-center gap-1 rounded-lg border border-border bg-bg-card px-2.5 py-1 text-sm text-text-muted hover:border-border hover:text-text-secondary transition-all"
           >
             <Plus className="size-3" />
             新建
@@ -931,7 +930,7 @@ export default function DemandCreate() {
       {/* 双栏内容区 */}
       <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
         {/* 左栏：对话 */}
-        <div className="flex w-[42%] min-w-0 shrink-0 flex-col border-r border-white/[0.04]">
+        <div className="flex w-[42%] min-w-0 shrink-0 flex-col border-r border-border">
           <div
             ref={scrollRef}
             className="flex-1 overflow-y-auto thin-scroll"
@@ -942,14 +941,14 @@ export default function DemandCreate() {
             >
               {messages.length === 0 && !loading && (
                 <div className="flex flex-col items-center gap-4 py-4">
-                  <div className="flex size-14 items-center justify-center rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                  <div className="flex size-14 items-center justify-center rounded-2xl bg-bg-card border border-border">
                     <Sparkles className="size-7 text-purple-400/60" />
                   </div>
                   <div className="text-center">
-                    <h1 className="text-2xl font-bold text-white/85">
+                    <h1 className="text-2xl font-bold text-text-primary">
                       你想找什么样的服务者？
                     </h1>
-                    <p className="text-sm text-white/25 mt-2">
+                    <p className="text-sm text-text-muted mt-2">
                       用自然语言描述需求，AI 会帮你理清并追问细节
                     </p>
                   </div>
@@ -967,14 +966,14 @@ export default function DemandCreate() {
                     {msg.role === 'user' ? (
                       <div className="flex justify-end">
                         <div className="max-w-[80%] rounded-2xl rounded-br-lg bg-accent/12 px-4 py-2.5">
-                          <span className="text-sm text-white/80">
+                          <span className="text-sm text-text-primary">
                             {msg.content}
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                        <span className="text-sm text-white/70 whitespace-pre-wrap">
+                      <div className="rounded-2xl border border-border bg-bg-card px-4 py-3">
+                        <span className="text-sm text-text-secondary whitespace-pre-wrap">
                           {msg.content}
                           {msg.isStreaming && (
                             <span className="inline-block w-0.5 h-4 bg-purple-400/60 ml-0.5 animate-pulse align-middle" />
@@ -983,26 +982,26 @@ export default function DemandCreate() {
 
                         {/* 确认发布卡片 */}
                         {msg.toolCall && (
-                          <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                          <div className="mt-3 pt-3 border-t border-border">
                             <div className="flex items-center gap-2 mb-3 text-sm text-emerald-400/80">
                               <Check className="size-3.5" />
                               <span>AI 已确认信息完整，可以发布</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                               {msg.toolCall.arguments.title && (
-                                <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                  <span className="text-white/25">标题</span>
-                                  <p className="text-white/70 mt-0.5">
+                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
+                                  <span className="text-text-muted">标题</span>
+                                  <p className="text-text-secondary mt-0.5">
                                     {msg.toolCall.arguments.title}
                                   </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.serviceType && (
-                                <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                  <span className="text-white/25">
+                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
+                                  <span className="text-text-muted">
                                     服务类型
                                   </span>
-                                  <p className="text-white/70 mt-0.5 inline-flex items-center gap-1">
+                                  <p className="text-text-secondary mt-0.5 inline-flex items-center gap-1">
                                     {msg.toolCall.arguments.serviceType ===
                                     'ONLINE' ? (
                                       <Monitor className="size-3 text-blue-400/60" />
@@ -1017,34 +1016,36 @@ export default function DemandCreate() {
                                 </div>
                               )}
                               {msg.toolCall.arguments.budget && (
-                                <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                  <span className="text-white/25">预算</span>
-                                  <p className="text-white/70 mt-0.5">
+                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
+                                  <span className="text-text-muted">预算</span>
+                                  <p className="text-text-secondary mt-0.5">
                                     {msg.toolCall.arguments.budget}
                                   </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.schedule && (
-                                <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                  <span className="text-white/25">时间</span>
-                                  <p className="text-white/70 mt-0.5">
+                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
+                                  <span className="text-text-muted">时间</span>
+                                  <p className="text-text-secondary mt-0.5">
                                     {msg.toolCall.arguments.schedule}
                                   </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.category && (
-                                <div className="rounded-lg bg-white/[0.03] px-3 py-2">
-                                  <span className="text-white/25">分类</span>
-                                  <p className="text-white/70 mt-0.5">
+                                <div className="rounded-lg bg-bg-secondary px-3 py-2">
+                                  <span className="text-text-muted">分类</span>
+                                  <p className="text-text-secondary mt-0.5">
                                     {msg.toolCall.arguments.category}
                                   </p>
                                 </div>
                               )}
                             </div>
                             {msg.toolCall.arguments.description && (
-                              <div className="rounded-lg bg-white/[0.03] px-3 py-2 mb-3 text-sm">
-                                <span className="text-white/25">详细描述</span>
-                                <p className="text-white/60 mt-0.5">
+                              <div className="rounded-lg bg-bg-secondary px-3 py-2 mb-3 text-sm">
+                                <span className="text-text-muted">
+                                  详细描述
+                                </span>
+                                <p className="text-text-secondary mt-0.5">
                                   {msg.toolCall.arguments.description}
                                 </p>
                               </div>
@@ -1078,14 +1079,14 @@ export default function DemandCreate() {
                 ) && (
                   <div className="flex items-center gap-2 px-4 py-2">
                     <span className="inline-block size-3.5 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
-                    <span className="text-sm text-white/35">AI 分析中…</span>
+                    <span className="text-sm text-text-muted">AI 分析中…</span>
                   </div>
                 )}
             </div>
           </div>
 
           {/* 输入区域 */}
-          <div className="shrink-0 border-t border-white/[0.04] px-4 py-3">
+          <div className="shrink-0 border-t border-border px-4 py-3">
             <div className="w-full max-w-xl mx-auto">
               {isThinkMode && (
                 <div className="mb-2">
@@ -1114,10 +1115,10 @@ export default function DemandCreate() {
           <div className="max-w-lg mx-auto space-y-6 py-6 px-6">
             {messages.length === 0 && !workspaceFields.title ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-white/[0.02] border border-white/[0.04] mb-4">
-                  <Sparkles className="size-6 text-white/15" />
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-bg-card border border-border mb-4">
+                  <Sparkles className="size-6 text-text-muted/60" />
                 </div>
-                <p className="text-sm text-white/20 max-w-48 leading-relaxed">
+                <p className="text-sm text-text-muted max-w-48 leading-relaxed">
                   在左侧描述你的需求，AI 会同步整理到这里
                 </p>
               </div>

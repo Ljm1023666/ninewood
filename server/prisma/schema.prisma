@@ -40,6 +40,8 @@ enum OrderStatus {
   IN_PROGRESS
   WAITING_REVIEW
   COMPLETED
+  CANCELLED
+  REFUNDED
   DISPUTED
 }
 
@@ -141,9 +143,10 @@ model Demand {
   isPublic       Boolean      @default(true)
   createdAt      DateTime     @default(now())
 
-  applications DemandApplication[]
-  orders       Order[]
-  favoritedBy  DemandFavorite[]
+  applications     DemandApplication[]
+  orders           Order[]
+  favoritedBy      DemandFavorite[]
+  depositRelations DepositDemand[]
 
   @@index([userId])
   @@index([cityCode])
@@ -231,16 +234,26 @@ model CircleMember {
 }
 
 model Deposit {
-  id        String        @id @default(uuid())
-  userId    String
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount    Decimal       @db.Decimal(10, 2)
-  demandIds Json
-  status    DepositStatus @default(PENDING)
-  createdAt DateTime      @default(now())
+  id              String          @id @default(uuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal         @db.Decimal(10, 2)
+  status          DepositStatus   @default(PENDING)
+  createdAt       DateTime        @default(now())
+
+  demandRelations DepositDemand[]
 
   @@index([userId])
   @@index([status])
+}
+
+model DepositDemand {
+  depositId String
+  deposit   Deposit @relation(fields: [depositId], references: [id], onDelete: Cascade)
+  demandId  String
+  demand    Demand  @relation(fields: [demandId], references: [id], onDelete: Cascade)
+
+  @@id([depositId, demandId])
 }
 
 model Complaint {
@@ -330,4 +343,38 @@ model DemandFavorite {
   @@unique([userId, demandId])
   @@index([userId])
   @@index([demandId])
+}
+
+// ── Agent 对话系统 ──
+
+model AgentConversation {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @default("新对话")
+  model     String?
+  provider  String?  // minimax | deepseek
+  thinkMode Boolean  @default(false)
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages AgentMessage[]
+
+  @@index([userId])
+  @@index([updatedAt])
+}
+
+model AgentMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String   // user | assistant | system | tool
+  content        String
+  thinking       String?  // 思考过程（DeepSeek V4 thinking/reasoning）
+  toolCalls      Json?    // 工具调用记录 [{ name, arguments, result }]
+  tokenCount     Int?
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
 }

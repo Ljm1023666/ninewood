@@ -549,6 +549,7 @@ export default function CardPoolResourceExplorer() {
                   keyword=""
                   serviceType="ALL"
                   scrollRootRef={scrollRef}
+                  renderMode="timeline"
                 />
               </div>
             ) : (
