@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 import {
   Plus,
   Lightbulb,
@@ -52,11 +53,14 @@ function ModelSelector({
   selectedModel,
   onModelChange,
   models = DEFAULT_MODELS,
+  appearance = 'dark',
 }: {
   selectedModel?: string
   onModelChange?: (model: Model) => void
   models?: Model[]
+  appearance?: 'dark' | 'light'
 }) {
+  const isLight = appearance === 'light'
   const [isOpen, setIsOpen] = useState(false)
   const [selected, setSelected] = useState(
     models.find((m) => m.id === selectedModel) || models[0],
@@ -72,7 +76,12 @@ function ModelSelector({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 text-[#8a8a8f] hover:text-white hover:bg-white/5 active:scale-95"
+        className={cn(
+          'flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all duration-200 active:scale-95',
+          isLight
+            ? 'text-[#666] hover:bg-black/5 hover:text-[#111]'
+            : 'text-[#8a8a8f] hover:bg-white/5 hover:text-white',
+        )}
       >
         {selected.icon}
         <span>{selected.name}</span>
@@ -86,20 +95,37 @@ function ModelSelector({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute bottom-full left-0 mb-2 z-50 min-w-[220px] bg-[#1a1a1e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200">
+          <div
+            className={cn(
+              'absolute bottom-full left-0 z-50 mb-2 min-w-[220px] overflow-hidden rounded-xl border shadow-2xl animate-in fade-in duration-200',
+              isLight
+                ? 'border-black/10 bg-white shadow-black/10'
+                : 'border-white/10 bg-[#1a1a1e]/95 shadow-black/50 backdrop-blur-xl',
+            )}
+          >
             <div className="p-1.5">
-              <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#5a5a5f]">
+              <div
+                className={cn(
+                  'px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider',
+                  isLight ? 'text-[#888]' : 'text-[#5a5a5f]',
+                )}
+              >
                 选择模型
               </div>
               {models.map((model) => (
                 <button
                   key={model.id}
                   onClick={() => handleSelect(model)}
-                  className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-left transition-all duration-150 ${
+                  className={cn(
+                    'flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-all duration-150',
                     selected.id === model.id
-                      ? 'bg-white/10 text-white'
-                      : 'text-[#a0a0a5] hover:bg-white/5 hover:text-white'
-                  }`}
+                      ? isLight
+                        ? 'bg-black/5 text-[#111]'
+                        : 'bg-white/10 text-white'
+                      : isLight
+                        ? 'text-[#555] hover:bg-black/5 hover:text-[#111]'
+                        : 'text-[#a0a0a5] hover:bg-white/5 hover:text-white',
+                  )}
                 >
                   <div className="flex-shrink-0">{model.icon}</div>
                   <div className="flex-1 min-w-0">
@@ -152,6 +178,10 @@ interface BoltChatInputProps {
   onWebSearchChange: (v: boolean) => void
   placeholder?: string
   models?: Model[]
+  /** 浅色页面用 light，默认深色 Composer */
+  appearance?: 'dark' | 'light'
+  /** Codex 风格：大圆角 + 黑色方块发送/停止 */
+  variant?: 'default' | 'codex'
 }
 
 export function BoltChatInput({
@@ -164,7 +194,11 @@ export function BoltChatInput({
   onWebSearchChange,
   models,
   placeholder = '输入你的问题...',
+  appearance = 'dark',
+  variant = 'default',
 }: BoltChatInputProps) {
+  const isLight = appearance === 'light'
+  const isCodex = variant === 'codex' && isLight
   const [message, setMessage] = useState('')
   const [showAttachMenu, setShowAttachMenu] = useState(false)
   const [files, setFiles] = useState<AttachedFile[]>([])
@@ -234,7 +268,12 @@ export function BoltChatInput({
           {files.map((f, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-white/10 text-white/80"
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs',
+                isLight
+                  ? 'bg-black/5 text-[#333]'
+                  : 'bg-white/10 text-white/80',
+              )}
             >
               {f.name}
               <button
@@ -248,8 +287,20 @@ export function BoltChatInput({
         </div>
       )}
 
-      <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
-      <div className="relative rounded-2xl bg-[#1e1e22] ring-1 ring-white/[0.08] shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_2px_20px_rgba(0,0,0,0.4)]">
+      {!isLight ? (
+        <div className="pointer-events-none absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-white/[0.08] to-transparent" />
+      ) : null}
+      <div
+        className={cn(
+          'relative',
+          isCodex ? 'rounded-[28px]' : 'rounded-2xl',
+          isLight
+            ? isCodex
+              ? 'border border-black/[0.06] bg-white shadow-[0_4px_24px_rgba(0,0,0,0.08)]'
+              : 'border border-black/[0.08] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)]'
+            : 'bg-[#1e1e22] shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_2px_20px_rgba(0,0,0,0.4)] ring-1 ring-white/[0.08]',
+        )}
+      >
         <div className="relative">
           <textarea
             ref={textareaRef}
@@ -257,7 +308,12 @@ export function BoltChatInput({
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full resize-none bg-transparent text-[15px] text-white placeholder-[#5a5a5f] px-5 pt-5 pb-3 focus:outline-none min-h-[56px] max-h-[200px]"
+            className={cn(
+              'max-h-[200px] min-h-[56px] w-full resize-none bg-transparent px-5 pt-5 pb-3 text-[15px] focus:outline-none',
+              isLight
+                ? 'text-[#111] placeholder-[#999]'
+                : 'text-white placeholder-[#5a5a5f]',
+            )}
             style={{ height: '56px' }}
             rows={1}
           />
@@ -270,7 +326,12 @@ export function BoltChatInput({
             <div className="relative">
               <button
                 onClick={() => setShowAttachMenu(!showAttachMenu)}
-                className="flex items-center justify-center size-8 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-[#8a8a8f] hover:text-white transition-all duration-200 active:scale-95"
+                className={cn(
+                  'flex size-8 items-center justify-center rounded-full transition-all duration-200 active:scale-95',
+                  isLight
+                    ? 'bg-black/[0.04] text-[#666] hover:bg-black/[0.08] hover:text-[#111]'
+                    : 'bg-white/[0.08] text-[#8a8a8f] hover:bg-white/[0.12] hover:text-white',
+                )}
               >
                 <Plus
                   className={`size-4 transition-transform duration-200 ${showAttachMenu ? 'rotate-45' : ''}`}
@@ -289,8 +350,15 @@ export function BoltChatInput({
                     className="fixed inset-0 z-40"
                     onClick={() => setShowAttachMenu(false)}
                   />
-                  <div className="absolute bottom-full left-0 mb-2 z-50 bg-[#1a1a1e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in duration-200">
-                    <div className="p-1.5 min-w-[180px]">
+                  <div
+                    className={cn(
+                      'absolute bottom-full left-0 z-50 mb-2 min-w-[180px] overflow-hidden rounded-xl border shadow-2xl animate-in fade-in duration-200',
+                      isLight
+                        ? 'border-black/10 bg-white shadow-black/10'
+                        : 'border-white/10 bg-[#1a1a1e]/95 shadow-black/50 backdrop-blur-xl',
+                    )}
+                  >
+                    <div className="p-1.5">
                       {[
                         {
                           icon: <Paperclip className="size-4" />,
@@ -311,7 +379,12 @@ export function BoltChatInput({
                         <button
                           key={i}
                           onClick={item.action}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[#a0a0a5] hover:bg-white/5 hover:text-white transition-all duration-150"
+                          className={cn(
+                            'flex w-full items-center gap-3 rounded-lg px-3 py-2 transition-all duration-150',
+                            isLight
+                              ? 'text-[#555] hover:bg-black/5 hover:text-[#111]'
+                              : 'text-[#a0a0a5] hover:bg-white/5 hover:text-white',
+                          )}
                         >
                           {item.icon}
                           <span className="text-sm">{item.label}</span>
@@ -326,6 +399,7 @@ export function BoltChatInput({
               selectedModel={selectedModel}
               onModelChange={(m) => setSelectedModel(m.id)}
               models={models}
+              appearance={appearance}
             />
           </div>
 
@@ -335,11 +409,16 @@ export function BoltChatInput({
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => onThinkModeChange(!thinkMode)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+              className={cn(
+                'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all duration-200',
                 thinkMode
-                  ? 'bg-purple-500/20 text-purple-300'
-                  : 'text-[#6a6a6f] hover:text-white hover:bg-white/5'
-              }`}
+                  ? isLight
+                    ? 'bg-purple-500/15 text-purple-700'
+                    : 'bg-purple-500/20 text-purple-300'
+                  : isLight
+                    ? 'text-[#666] hover:bg-black/5 hover:text-[#111]'
+                    : 'text-[#6a6a6f] hover:bg-white/5 hover:text-white',
+              )}
             >
               <Lightbulb className="size-3.5" />
               <span>思考</span>
@@ -347,11 +426,16 @@ export function BoltChatInput({
 
             <button
               onClick={() => onWebSearchChange(!webSearch)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+              className={cn(
+                'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all duration-200',
                 webSearch
-                  ? 'bg-blue-500/20 text-blue-300'
-                  : 'text-[#6a6a6f] hover:text-white hover:bg-white/5'
-              }`}
+                  ? isLight
+                    ? 'bg-blue-500/15 text-blue-700'
+                    : 'bg-blue-500/20 text-blue-300'
+                  : isLight
+                    ? 'text-[#666] hover:bg-black/5 hover:text-[#111]'
+                    : 'text-[#6a6a6f] hover:bg-white/5 hover:text-white',
+              )}
             >
               <Bolt className="size-3.5" />
               <span>搜索</span>
@@ -360,19 +444,42 @@ export function BoltChatInput({
             {loading ? (
               <button
                 onClick={onStop}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-red-500/80 hover:bg-red-500 text-white transition-all duration-200 active:scale-95"
+                className={cn(
+                  'flex items-center justify-center transition-all duration-200 active:scale-95',
+                  isCodex
+                    ? 'size-9 rounded-xl bg-[#1a1a1a] text-white hover:bg-black'
+                    : 'gap-1.5 rounded-full bg-red-500/80 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-500',
+                )}
+                aria-label="停止"
               >
-                <Square className="size-3 fill-current" />
-                停止
+                <Square className={cn('fill-current', isCodex ? 'size-3.5' : 'size-3')} />
+                {!isCodex ? <span>停止</span> : null}
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
                 disabled={!message.trim()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#1488fc] hover:bg-[#1a94ff] text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 shadow-[0_0_20px_rgba(20,136,252,0.3)]"
+                className={cn(
+                  'flex items-center justify-center text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
+                  isCodex
+                    ? 'size-9 rounded-xl bg-[#1a1a1a] hover:bg-black'
+                    : cn(
+                        'gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium',
+                        isLight
+                          ? 'bg-[#3388FF] shadow-[0_2px_12px_rgba(51,136,255,0.25)] hover:bg-[#2a7ae8]'
+                          : 'bg-[#1488fc] shadow-[0_0_20px_rgba(20,136,252,0.3)] hover:bg-[#1a94ff]',
+                      ),
+                )}
+                aria-label="发送"
               >
-                <span>发送</span>
-                <SendHorizontal className="size-3.5" />
+                {isCodex ? (
+                  <SendHorizontal className="size-4" />
+                ) : (
+                  <>
+                    <span>发送</span>
+                    <SendHorizontal className="size-3.5" />
+                  </>
+                )}
               </button>
             )}
           </div>
