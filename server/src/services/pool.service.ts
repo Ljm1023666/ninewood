@@ -102,22 +102,11 @@ export const poolService = {
 
   // ======== 死池检索 ========
   async getDead(params: {
-    userId: string;
     regionId?: number;
     tagName?: string;
     page?: number;
     limit?: number;
   }) {
-    // 门控校验：必须先访问过完成列表
-    const user = await prisma.user.findUnique({
-      where: { id: params.userId },
-      select: { hasVisitedCompletedList: true },
-    });
-
-    if (!user?.hasVisitedCompletedList) {
-      throw { status: 403, message: '请先查看您的完成列表' };
-    }
-
     const page = params.page || 1;
     const limit = params.limit || 20;
 

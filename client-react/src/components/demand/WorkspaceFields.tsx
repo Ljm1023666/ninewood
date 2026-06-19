@@ -20,10 +20,13 @@ function LockToggle({ fieldKey }: { fieldKey: string }) {
   )
 }
 
+function LockToggleSlot({ fieldKey }: { fieldKey: string }) {
+  return <LockToggle fieldKey={fieldKey} />
+}
+
 export function WorkspaceFields() {
   const fields = useDemandWorkspaceStore((s) => s.fields)
   const updateField = useDemandWorkspaceStore((s) => s.updateField)
-  const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
 
   return (
     <div className="space-y-3">
@@ -59,7 +62,7 @@ export function WorkspaceFields() {
             线下
           </button>
         </div>
-        {!speedMode && <LockToggle fieldKey="serviceType" />}
+        <LockToggleSlot fieldKey="serviceType" />
       </div>
 
       {/* 预算 + 时间 */}
@@ -67,7 +70,7 @@ export function WorkspaceFields() {
         <div>
           <div className="flex items-center gap-1 mb-1">
             <label className="block text-sm text-text-muted">预算</label>
-            {!speedMode && <LockToggle fieldKey="budget" />}
+            <LockToggleSlot fieldKey="budget" />
           </div>
           <input
             type="text"
@@ -80,7 +83,7 @@ export function WorkspaceFields() {
         <div>
           <div className="flex items-center gap-1 mb-1">
             <label className="block text-sm text-text-muted">时间</label>
-            {!speedMode && <LockToggle fieldKey="schedule" />}
+            <LockToggleSlot fieldKey="schedule" />
           </div>
           <input
             type="text"
@@ -96,7 +99,7 @@ export function WorkspaceFields() {
       <div>
         <div className="flex items-center gap-1 mb-1">
           <label className="block text-sm text-text-muted">分类</label>
-          {!speedMode && <LockToggle fieldKey="category" />}
+          <LockToggleSlot fieldKey="category" />
         </div>
         <input
           type="text"
@@ -129,12 +132,10 @@ function KeywordTags() {
   const keywords = useDemandWorkspaceStore((s) => s.fields.suggestedKeywords)
   const lockedKeywords = useDemandWorkspaceStore((s) => s.lockedKeywords)
   const toggleKeywordLock = useDemandWorkspaceStore((s) => s.toggleKeywordLock)
-  const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
-
   return (
     <div>
       <label className="block text-sm text-text-muted mb-1">
-        关键词{speedMode ? '（点击解锁）' : '（点击锁定）'}
+        关键词（点击锁定）
       </label>
       <div className="flex flex-wrap gap-1">
         {keywords.map((kw) => {

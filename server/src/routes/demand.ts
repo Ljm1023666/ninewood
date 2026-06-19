@@ -166,6 +166,7 @@ demandRouter.get('/search', async (req: Request, res: Response) => {
     const params = {
       keyword: qstr(req.query.keyword),
       tagName: qstr(req.query.tagName),
+      tagNames: qstr(req.query.tagNames),
       category: qstr(req.query.category),
       categories: qstr(req.query.categories),
       taxonomyLeafId: qstr(req.query.taxonomyLeafId),
@@ -250,10 +251,9 @@ demandRouter.get('/active', async (req: Request, res: Response) => {
 
 // ======== 死池检索 ========
 // GET /api/demands/dead
-demandRouter.get('/dead', authMiddleware, async (req: Request, res: Response) => {
+demandRouter.get('/dead', async (req: Request, res: Response) => {
   try {
     const params = {
-      userId: req.user!.userId,
       regionId: req.query.regionId ? Number(req.query.regionId) : undefined,
       tagName: req.query.tagName ? (req.query.tagName as string).split(',').filter(Boolean)?.[0] : undefined,
       page: req.query.page ? Number(req.query.page) : 1,

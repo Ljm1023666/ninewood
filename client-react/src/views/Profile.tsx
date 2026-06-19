@@ -5,11 +5,13 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { userApi } from '@/api/user'
+import { authApi } from '@/api/auth'
 import { cn } from '@/lib/utils'
 import { certLabel, certColor } from '@/constants/cert'
 import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetFavouriteButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { ProfileEditDialog } from '@/components/ui/profile-edit-dialog'
 import { toast } from '@/components/ui/confirm-dialog'
 import {
   Settings,
@@ -26,6 +28,8 @@ import {
   Users,
   ShieldCheck,
   Heart,
+  Cake,
+  MapPin,
 } from 'lucide-react'
 
 const PROFILE_HERO_FALLBACK =
@@ -121,9 +125,7 @@ export default function Profile() {
     if (!displayUser?.id) return
     navigate(`/follows/${displayUser.id}?mode=${mode}`)
   }
-  const [editing, setEditing] = useState(false)
-  const [nickname, setNickname] = useState('')
-  const [bio, setBio] = useState('')
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [uploadingKind, setUploadingKind] = useState<'avatar' | 'cover' | null>(
     null,
   )
@@ -155,6 +157,13 @@ export default function Profile() {
         try {
           const r = await userApi.certStatus()
           setCertStatus(r.data.data)
+        } catch {
+          /* noop */
+        }
+        // 刷新自己的用户信息（如 IP 属地）
+        try {
+          const r = await authApi.getMe()
+          setUser(r.data.data)
         } catch {
           /* noop */
         }
@@ -225,19 +234,18 @@ export default function Profile() {
     }
   }
 
-  async function saveProfile() {
-    const n = nickname.trim()
-    if (!n) {
-      toast('昵称不能为空', 'error')
-      return
-    }
+  async function handleProfileSave(data: {
+    nickname: string
+    bio: string
+    birthday?: string
+  }) {
     try {
-      await userApi.updateProfile({ nickname: n, bio: bio.trim() || '' })
+      await userApi.updateProfile(data)
       await useUserStore.getState().refreshUser()
-      setEditing(false)
       toast('已保存', 'success')
     } catch (e: any) {
       toast(e.response?.data?.message || '保存失败', 'error')
+      throw e // 让 dialog 知道保存失败，不关闭
     }
   }
 
@@ -457,24 +465,9 @@ export default function Profile() {
                 </div>
               )}
               <div className="min-w-0 flex-1 pt-0.5">
-                {editing ? (
-                  <input
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    aria-label="昵称"
-                    placeholder="昵称"
-                    className={cn(
-                      'w-full rounded-lg border px-2 py-1.5 text-sm outline-none',
-                      isDark
-                        ? 'border-white/25 bg-black/20 text-white placeholder:text-white/40'
-                        : 'border-black/10 bg-black/[0.04] text-text-primary placeholder:text-text-muted',
-                    )}
-                  />
-                ) : (
-                  <h2 className="truncate text-lg font-extrabold tracking-tight drop-shadow-sm">
-                    {displayUser?.nickname}
-                  </h2>
-                )}
+                <h2 className="truncate text-lg font-extrabold tracking-tight drop-shadow-sm">
+                  {displayUser?.nickname}
+                </h2>
                 <span
                   className="mt-1 inline-block rounded px-2 py-0.5 text-sm font-semibold"
                   style={{
@@ -488,51 +481,25 @@ export default function Profile() {
               </div>
             </div>
 
-            {editing ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <input
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="个人简介..."
-                  className={cn(
-                    'min-w-[200px] flex-1 rounded-lg border px-2 py-2 text-sm outline-none',
-                    isDark
-                      ? 'border-white/25 bg-black/20 text-white placeholder:text-white/40'
-                      : 'border-black/10 bg-black/[0.04] text-text-primary placeholder:text-text-muted',
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={saveProfile}
-                  className={cn(
-                    'rounded-lg px-4 py-2 text-sm font-semibold backdrop-blur-sm',
-                    isDark
-                      ? 'bg-white/20 text-white hover:bg-white/30'
-                      : 'bg-black/[0.08] text-text-primary hover:bg-black/[0.12]',
-                  )}
-                >
-                  保存
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditing(false)
-                    setNickname(displayUser?.nickname || '')
-                    setBio(displayUser?.bio ?? '')
-                  }}
-                  className={cn(
-                    'rounded-lg border px-4 py-2 text-sm',
-                    isDark
-                      ? 'border-white/20 text-white/80 hover:bg-white/10'
-                      : 'border-black/[0.08] text-text-secondary hover:bg-black/[0.04]',
-                  )}
-                >
-                  取消
-                </button>
-              </div>
-            ) : (
-              <p className={`mt-3 text-sm leading-relaxed ${textSecondary}`}>
-                {displayUser?.bio || '这个人很懒，什么都没写...'}
+            <p className={`mt-3 text-sm leading-relaxed ${textSecondary}`}>
+              {displayUser?.bio || '这个人很懒，什么都没写...'}
+            </p>
+            {displayUser?.cityCode && (
+              <p className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}>
+                <MapPin size={14} />
+                IP 属地：{displayUser.cityCode}
+              </p>
+            )}
+            {displayUser?.birthday && (
+              <p
+                className={`mt-2 flex items-center gap-1.5 text-sm ${textSubtle}`}
+              >
+                <Cake size={14} />
+                {new Date(displayUser.birthday).toLocaleDateString('zh-CN', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </p>
             )}
 
@@ -540,11 +507,7 @@ export default function Profile() {
               {isMe ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setNickname(displayUser?.nickname || '')
-                    setBio(displayUser?.bio || '')
-                    setEditing(true)
-                  }}
+                  onClick={() => setEditDialogOpen(true)}
                   className={cn(
                     'flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold backdrop-blur-sm',
                     isDark
@@ -870,6 +833,18 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      <ProfileEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        user={displayUser}
+        isDark={isDark}
+        onSave={handleProfileSave}
+        onAvatarChange={async (file) => {
+          await uploadImage('avatar', file)
+        }}
+        uploadingKind={uploadingKind}
+      />
     </>
   )
 }

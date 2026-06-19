@@ -92,6 +92,7 @@ export default function Layout() {
     p.startsWith('/follows/') ||
     p === '/settings' ||
     p === '/help' ||
+    p === '/dashboard' ||
     p === '/cert-center'
   const showBack = !hideGlobalBack
   /** 需求详情页 3D 翻面会略超出卡片盒模型；全站 main 的 overflow-hidden 会裁掉透视溢出，仅在此路由放宽 */

@@ -73,6 +73,47 @@ export const tagService = {
   },
 
   /**
+   * 获取标签列表，附带活跃需求数量（可按地域筛选）
+   */
+  async listWithCounts(regionId?: number, stageFilter?: string) {
+    const tags = await prisma.tag.findMany({ orderBy: { totalCompleted: 'desc' } })
+
+    const stage = stageFilter === 'completed' ? 'completed' : 'active'
+    const where: any = { stage, tagName: { not: null } }
+    if (regionId != null) where.regionId = regionId
+
+    const counts = await prisma.demand.groupBy({
+      by: ['tagName'],
+      where,
+      _count: { id: true },
+      _sum: { amountEstimate: true },
+      _avg: { minPrice: true },
+    })
+
+    const countMap = new Map(counts.map(c => [c.tagName!, {
+      count: c._count.id,
+      totalAmount: Number(c._sum.amountEstimate || 0),
+      avgPrice: Math.round(Number(c._avg.minPrice || 0)),
+    }]))
+
+    // 未分类计数
+    const untaggedWhere: any = { stage, tagName: null }
+    if (regionId != null) untaggedWhere.regionId = regionId
+    const untagged = await prisma.demand.count({ where: untaggedWhere })
+
+    return {
+      tags: tags.map(t => ({
+        ...t,
+        activeCount: countMap.get(t.name)?.count || 0,
+      avgPrice: countMap.get(t.name)?.avgPrice || 0,
+      totalAmount: countMap.get(t.name)?.totalAmount || 0,
+      totalEstimatedAmount: Number(t.totalEstimatedAmount),
+      })),
+      untagged,
+    }
+  },
+
+  /**
    * 删除标签
    */
   async delete(name: string) {

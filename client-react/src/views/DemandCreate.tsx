@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
+import { cn } from '@/lib/utils'
 import { demandApi } from '@/api/demand'
 import { toast } from '@/components/ui/confirm-dialog'
 import { PromptInputBox } from '@/components/ui/prompt-input-box'
@@ -8,6 +9,9 @@ import { WorkspaceSummary } from '@/components/demand/WorkspaceSummary'
 import { WorkspaceFields } from '@/components/demand/WorkspaceFields'
 import { WorkspaceTools } from '@/components/demand/WorkspaceTools'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
+import { useUserStore } from '@/stores/user'
+import { InfoCard } from '@/components/ui/info-card'
+import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import {
   Sparkles,
   ArrowLeft,
@@ -33,6 +37,49 @@ interface ChatMsg {
   toolCall?: { name: string; arguments: Record<string, string> } | null
   /** 思考模式下的 reasoning_content，有 tool_call 的轮次必须回传 */
   reasoningContent?: string
+}
+
+/** 简单排版：加粗、列表、段落间距 */
+function formatAIText(text: string): string {
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+
+  // 加粗 **text**
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-text-primary">$1</strong>')
+
+  // 按双换行分段
+  const paragraphs = html.split(/\n\n+/)
+  return paragraphs
+    .map((p) => {
+      const trimmed = p.trim()
+      if (!trimmed) return ''
+
+      // 检测有序列表（每行以数字+点号开头）
+      const lines = trimmed.split('\n')
+      const isOrderedList = lines.every((l) => /^\d+[\.\)]\s/.test(l.trim()))
+      if (isOrderedList && lines.length > 1) {
+        const items = lines
+          .map((l) => `<li>${l.trim().replace(/^\d+[\.\)]\s*/, '')}</li>`)
+          .join('')
+        return `<ol class="list-decimal pl-5 my-2 space-y-1">${items}</ol>`
+      }
+
+      // 检测无序列表
+      const isUnorderedList = lines.every((l) => /^[-•*]\s/.test(l.trim()))
+      if (isUnorderedList && lines.length > 1) {
+        const items = lines
+          .map((l) => `<li>${l.trim().replace(/^[-•*]\s*/, '')}</li>`)
+          .join('')
+        return `<ul class="list-disc pl-5 my-2 space-y-1">${items}</ul>`
+      }
+
+      // 普通段落
+      const withBreaks = trimmed.replace(/\n/g, '<br/>')
+      return `<p class="my-1">${withBreaks}</p>`
+    })
+    .join('')
 }
 
 function ThinkingPanel({
@@ -137,12 +184,37 @@ export default function DemandCreate() {
   const [thinkText, setThinkText] = useState('')
   const [thinkCollapsed, setThinkCollapsed] = useState(false)
   const [isThinkMode, setIsThinkMode] = useState(false)
+  const [canvasMode, setCanvasMode] = useState(false)
   const thinkAccRef = useRef('')
+  const abortRef = useRef<AbortController | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [publishing, setPublishing] = useState(false)
   const [forcePublishing, setForcePublishing] = useState(false)
   const [draftInput, setDraftInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 注入 AI 光标动画样式
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ai-cursor {
+        display: inline-block;
+        width: 2px;
+        height: 1.1em;
+        background: #a78bfa;
+        margin-left: 1px;
+        vertical-align: text-bottom;
+        animation: ai-cursor-blink 1s step-end infinite;
+      }
+      @keyframes ai-cursor-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+    `
+    document.head.appendChild(style)
+    return () => { document.head.removeChild(style) }
+  }, [])
 
   const workspaceFields = useDemandWorkspaceStore((s) => s.fields)
   const workspaceReady = useDemandWorkspaceStore((s) => s.readyToPublish)
@@ -230,29 +302,45 @@ export default function DemandCreate() {
     }
   }, [messages, draftInput, workspaceFields, saveDraft])
 
+  // 消息变化前记录用户是否在底部
+  const wasAtBottomRef = useRef(true)
   useEffect(() => {
-    if (scrollRef.current)
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    const el = scrollRef.current
+    if (!el) return
+    if (wasAtBottomRef.current) {
+      el.scrollTop = el.scrollHeight
+    }
   }, [messages, thinkText])
 
+  // 监听用户手动滚动，更新是否在底部的标记
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const handleScroll = () => {
+      wasAtBottomRef.current =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 40
+    }
+    el.addEventListener('scroll', handleScroll, { passive: true })
+    return () => el.removeEventListener('scroll', handleScroll)
+  }, [])
+
   // Refs for handlers declared after sendMessage (avoids useBeforeDefine)
-  const handleAggressiveModeRef = useRef<(text: string) => Promise<void>>(
+  const handleAggressiveModeRef = useRef<(text: string, signal: AbortSignal) => Promise<void>>(
     undefined as any,
   )
-  const handleCanvasModeRef = useRef<(text: string) => Promise<void>>(
+  const handleCanvasModeRef = useRef<(text: string, signal: AbortSignal) => Promise<void>>(
     undefined as any,
   )
   const handleDefaultModeRef = useRef<
     (
       history: { role: 'user' | 'assistant'; content: string }[],
       thinkMode: boolean,
+      signal: AbortSignal,
     ) => Promise<void>
   >(undefined as any)
   const handleMissingInfoBatchAnalysisRef = useRef<() => Promise<void>>(
     undefined as any,
   )
-
-  let _analyzeSeq = 0
 
   const sendMessage = useCallback(
     async (rawMessage: string) => {
@@ -266,10 +354,12 @@ export default function DemandCreate() {
       if (!text) return
 
       setDraftInput('')
+      setExpandedIds(new Set())
       setLoading(true)
       setIsThinkMode(isThink)
       setThinkText('')
       setThinkCollapsed(false)
+      if (isThink) setCanvasMode(false)
       thinkAccRef.current = ''
 
       const speedMode = useDemandWorkspaceStore.getState().speedMode
@@ -303,37 +393,6 @@ export default function DemandCreate() {
         currentMsg,
       ]
 
-      // 并行：非流式分析（所有模式下都更新工作区）
-      const seq = ++_analyzeSeq
-      fetch('/api/ai/analyze-demand', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: history
-            .map((m) => `${m.role === 'user' ? '用户' : 'AI'}: ${m.content}`)
-            .join('\n'),
-        }),
-      })
-        .then((r) => r.json())
-        .then((json) => {
-          if (json.data && seq === _analyzeSeq) {
-            applyAnalyze({
-              title: json.data.title,
-              summary: json.data.summary,
-              missingInfo: json.data.missingInfo,
-              confidence: json.data.confidence,
-              suggestedKeywords: json.data.suggestedKeywords,
-              scopeLabels: json.data.scopePath,
-              serviceType: json.data.serviceType,
-              budget: json.data.budget,
-              schedule: json.data.schedule,
-              category: json.data.category,
-              taxonomyLeafId: json.data.taxonomyLeafId,
-            })
-          }
-        })
-        .catch(() => {})
-
       // 如果有勾选的缺失信息待回答，优先走缺失信息回答流程
       const queuedMissing = useDemandWorkspaceStore.getState().missingQueue
       if (queuedMissing.length > 0) {
@@ -341,10 +400,8 @@ export default function DemandCreate() {
           .getState()
           .recordAnswerAndAdvance(text)
         if (allDone) {
-          // 所有问题都已收集答案 → 统一调用 AI 分析
           await handleMissingInfoBatchAnalysisRef.current()
         } else {
-          // 还有待答问题 → 提示用户继续
           const remaining =
             useDemandWorkspaceStore.getState().missingQueue.length
           setMessages((prev) => [
@@ -356,37 +413,70 @@ export default function DemandCreate() {
             },
           ])
         }
+        abortRef.current = null
         setLoading(false)
         return
       }
 
+      const ctrl = new AbortController()
+      abortRef.current = ctrl
       try {
         if (isCanvas) {
-          await handleCanvasModeRef.current(text)
+          await handleCanvasModeRef.current(text, ctrl.signal)
         } else if (isThink) {
-          await handleDefaultModeRef.current(history, true)
+          await handleDefaultModeRef.current(history, true, ctrl.signal)
         } else if (speedMode) {
-          // Speed ON：一句话生成草稿，不追问
-          await handleAggressiveModeRef.current(text)
+          await handleAggressiveModeRef.current(text, ctrl.signal)
         } else {
-          // Speed OFF：Agent 对话，逐步补全信息
-          await handleDefaultModeRef.current(history, false)
+          await handleDefaultModeRef.current(history, false, ctrl.signal)
         }
-      } catch {
+      } catch (e: any) {
+        if (e?.name === 'AbortError') {
+          setThinkText('')
+          thinkAccRef.current = ''
+          setIsThinkMode(false)
+          setMessages((prev) => [
+            ...prev,
+            { id: newMsgId(), role: 'assistant', content: '⏹ 已中断' },
+          ])
+          return
+        }
         setMessages((prev) => [
           ...prev,
           { id: newMsgId(), role: 'assistant', content: '网络异常' },
         ])
       } finally {
+        abortRef.current = null
         setLoading(false)
       }
     },
     [applyAgent, applyAnalyze],
   )
 
+  // 包装 applyAnalyze，同步在左边栏显示 AI 行为
+  const analyzeAndLog = useCallback(
+    (data: Parameters<typeof applyAnalyze>[0]) => {
+      applyAnalyze(data)
+      const parts: string[] = []
+      if (data.title) parts.push(`标题：${data.title}`)
+      if (data.serviceType) parts.push(`类型：${data.serviceType === 'ONLINE' ? '线上' : '线下'}`)
+      if (data.budget) parts.push(`预算：${data.budget}`)
+      if (data.schedule) parts.push(`时间：${data.schedule}`)
+      if (data.category) parts.push(`分类：${data.category}`)
+      if (data.summary && !data.title) parts.push(data.summary)
+      if (parts.length > 0) {
+        setMessages((prev) => [
+          ...prev,
+          { id: newMsgId(), role: 'assistant', content: `📋 ${parts.join(' · ')}` },
+        ])
+      }
+    },
+    [applyAnalyze],
+  )
+
   /** 激进模式：一句话直接生成草稿，不追问 */
   const handleAggressiveMode = useCallback(
-    async (text: string) => {
+    async (text: string, signal: AbortSignal) => {
       const assistantId = newMsgId()
       setMessages((prev) => [
         ...prev,
@@ -403,15 +493,16 @@ export default function DemandCreate() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text }),
+          signal,
         })
         if (!res.ok) throw new Error('分析失败')
         const json = await res.json()
 
         if (json.data) {
-          applyAnalyze({
+          analyzeAndLog({
             title: json.data.title,
             summary: json.data.summary,
-            missingInfo: [], // 激进模式：不展示缺失信息
+            missingInfo: [],
             confidence: json.data.confidence,
             suggestedKeywords: json.data.suggestedKeywords,
             scopeLabels: json.data.scopePath,
@@ -436,7 +527,8 @@ export default function DemandCreate() {
             ),
           )
         }
-      } catch {
+      } catch (e: any) {
+        if (e?.name === 'AbortError') throw e
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
@@ -452,7 +544,7 @@ export default function DemandCreate() {
 
   /** Canvas 模式：直接提取结构化字段，减少对话 */
   const handleCanvasMode = useCallback(
-    async (text: string) => {
+    async (text: string, signal: AbortSignal) => {
       const store = useDemandWorkspaceStore.getState()
       const requirementState = {
         confirmed: Object.fromEntries(
@@ -472,6 +564,7 @@ export default function DemandCreate() {
           requirementState,
           thinkMode: false,
         }),
+        signal,
       })
       if (!res.ok || !res.body) {
         setMessages((prev) => [
@@ -486,7 +579,6 @@ export default function DemandCreate() {
       let buf = ''
       const assistantId = newMsgId()
       let hasMsg = false
-
       const ensure = (content: string) => {
         if (!hasMsg) {
           hasMsg = true
@@ -517,8 +609,11 @@ export default function DemandCreate() {
           if (eventType === 'result') {
             try {
               const r = JSON.parse(data)
-              applyAnalyze({
+              analyzeAndLog({
+                title: r.title,
                 summary: r.summary,
+                budget: r.budget,
+                category: r.category,
                 scopeLabels: r.scopeLabels,
                 serviceType: r.serviceType,
                 confidence: r.confidence,
@@ -527,6 +622,10 @@ export default function DemandCreate() {
                 readyToPublish: r.readyToPublish,
                 taxonomyLeafId: r.taxonomyLeafId,
               })
+              if (r.title) {
+                const s = useDemandWorkspaceStore.getState()
+                if (!s.fieldOverrides.has('title')) s.toggleLock('title')
+              }
               ensure(
                 `📝 ${r.summary || '已分析需求'}\n\n` +
                   (r.missingInfo?.length
@@ -581,7 +680,7 @@ export default function DemandCreate() {
       }
       const json = await res.json()
       if (json.data) {
-        applyAnalyze({
+        analyzeAndLog({
           title: json.data.title,
           summary: json.data.summary,
           missingInfo: json.data.missingInfo,
@@ -618,11 +717,13 @@ export default function DemandCreate() {
     async (
       history: { role: 'user' | 'assistant'; content: string }[],
       thinkMode: boolean,
+      signal: AbortSignal,
     ) => {
       const res = await fetch('/api/ai/agent-demand-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: history, thinkMode }),
+        signal,
       })
       if (!res.ok || !res.body) {
         setMessages((prev) => [
@@ -881,7 +982,9 @@ export default function DemandCreate() {
                 )
                   return
               }
+              abortRef.current?.abort()
               clearDraft()
+              useDemandWorkspaceStore.getState().setSpeedMode(true)
             }}
             className="inline-flex items-center gap-1 rounded-lg border border-border bg-bg-card px-2.5 py-1 text-sm text-text-muted hover:border-border hover:text-text-secondary transition-all"
           >
@@ -940,8 +1043,10 @@ export default function DemandCreate() {
       <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
         {/* 左栏：对话 */}
         <div className="flex w-[42%] min-w-0 shrink-0 flex-col border-r border-border">
-          <div
+          <motion.div
             ref={scrollRef}
+            animate={{ opacity: canvasMode && speedMode ? 0 : 1 }}
+            transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
             className="flex-1 overflow-y-auto thin-scroll"
             style={{ padding: '0 1rem', scrollbarGutter: 'stable' }}
           >
@@ -965,31 +1070,94 @@ export default function DemandCreate() {
               )}
 
               <AnimatePresence>
-                {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    {msg.role === 'user' ? (
-                      <div className="flex justify-end">
-                        <div className="max-w-[80%] rounded-2xl rounded-br-lg bg-accent/12 px-4 py-2.5">
-                          <span className="text-sm text-text-primary">
-                            {msg.content}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl border border-border bg-bg-card px-4 py-3">
-                        <span className="text-sm text-text-secondary whitespace-pre-wrap">
-                          {msg.content}
-                          {msg.isStreaming && (
-                            <span className="inline-block w-0.5 h-4 bg-purple-400/60 ml-0.5 animate-pulse align-middle" />
-                          )}
-                        </span>
+                {messages.map((msg, i) => {
+                  const isLastMsg = i === messages.length - 1
 
-                        {/* 确认发布卡片 */}
+                  // 用户消息
+                  if (msg.role === 'user') {
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <div className="flex justify-end">
+                          <div className="max-w-[99%] rounded-sm border border-border bg-bg-card px-4 py-3">
+                            <span className="text-sm text-text-primary">
+                              {msg.content}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  }
+
+                  // AI 消息折叠
+                  const isCollapsed = !msg.isStreaming && !isLastMsg && !expandedIds.has(msg.id)
+                  if (isCollapsed) {
+                    return (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setExpandedIds((prev) => new Set([...prev, msg.id]))}
+                          className="py-1 text-left w-full hover:bg-bg-secondary/30 rounded-sm px-1 -mx-1 transition-colors"
+                        >
+                          <span className="text-sm text-text-muted line-clamp-1">
+                            {msg.content.slice(0, 80)}
+                            {msg.content.length > 80 ? '…' : ''}
+                          </span>
+                        </button>
+                      </motion.div>
+                    )
+                  }
+
+                  // AI 消息展开
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <div className="py-1">
+                        {!isLastMsg && !msg.isStreaming && (
+                          <div className="flex justify-end mb-1">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedIds((prev) => {
+                                const next = new Set(prev)
+                                next.delete(msg.id)
+                                return next
+                              })}
+                              className="text-xs text-text-muted hover:text-text-secondary"
+                            >
+                              收起 ↑
+                            </button>
+                          </div>
+                        )}
+                        {msg.isStreaming && !msg.content ? (
+                          <span className="text-sm text-text-muted italic">
+                            填写中...
+                          </span>
+                        ) : (
+                          <div
+                            className={`text-sm text-text-primary`}
+                            dangerouslySetInnerHTML={{
+                              __html:
+                                formatAIText(msg.content) +
+                                (msg.isStreaming
+                                  ? '<span class="ai-cursor"></span>'
+                                  : ''),
+                            }}
+                          />
+                        )}
+
                         {msg.toolCall && (
                           <div className="mt-3 pt-3 border-t border-border">
                             <div className="flex items-center gap-2 mb-3 text-sm text-emerald-400/80">
@@ -1007,63 +1175,45 @@ export default function DemandCreate() {
                               )}
                               {msg.toolCall.arguments.serviceType && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">
-                                    服务类型
-                                  </span>
+                                  <span className="text-text-muted">服务类型</span>
                                   <p className="text-text-secondary mt-0.5 inline-flex items-center gap-1">
-                                    {msg.toolCall.arguments.serviceType ===
-                                    'ONLINE' ? (
+                                    {msg.toolCall.arguments.serviceType === 'ONLINE' ? (
                                       <Monitor className="size-3 text-blue-400/60" />
                                     ) : (
                                       <MapPin className="size-3 text-orange-400/60" />
                                     )}
-                                    {msg.toolCall.arguments.serviceType ===
-                                    'ONLINE'
-                                      ? '线上'
-                                      : '线下'}
+                                    {msg.toolCall.arguments.serviceType === 'ONLINE' ? '线上' : '线下'}
                                   </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.budget && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
                                   <span className="text-text-muted">预算</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.budget}
-                                  </p>
+                                  <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.budget}</p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.schedule && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
                                   <span className="text-text-muted">时间</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.schedule}
-                                  </p>
+                                  <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.schedule}</p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.category && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
                                   <span className="text-text-muted">分类</span>
-                                  <p className="text-text-secondary mt-0.5">
-                                    {msg.toolCall.arguments.category}
-                                  </p>
+                                  <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.category}</p>
                                 </div>
                               )}
                             </div>
                             {msg.toolCall.arguments.description && (
                               <div className="rounded-lg bg-bg-secondary px-3 py-2 mb-3 text-sm">
-                                <span className="text-text-muted">
-                                  详细描述
-                                </span>
-                                <p className="text-text-secondary mt-0.5">
-                                  {msg.toolCall.arguments.description}
-                                </p>
+                                <span className="text-text-muted">详细描述</span>
+                                <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.description}</p>
                               </div>
                             )}
                             <button
                               type="button"
-                              onClick={() =>
-                                handlePublishFromChat(msg.toolCall!)
-                              }
+                              onClick={() => handlePublishFromChat(msg.toolCall!)}
                               disabled={publishing}
                               className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
                             >
@@ -1077,9 +1227,9 @@ export default function DemandCreate() {
                           </div>
                         )}
                       </div>
-                    )}
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  )
+                })}
               </AnimatePresence>
 
               {loading &&
@@ -1092,10 +1242,10 @@ export default function DemandCreate() {
                   </div>
                 )}
             </div>
-          </div>
+          </motion.div>
 
           {/* 输入区域 */}
-          <div className="shrink-0 border-t border-border px-4 py-3">
+          <div className="shrink-0 px-4 py-3">
             <div className="w-full max-w-xl mx-auto">
               {isThinkMode && (
                 <div className="mb-2">
@@ -1110,11 +1260,14 @@ export default function DemandCreate() {
               <PromptInputBox
                 onSend={(message) => sendMessage(message)}
                 isLoading={loading}
+                onAbort={() => abortRef.current?.abort()}
                 enableSpeed
                 speedMode={speedMode}
                 onSpeedChange={(on) =>
                   useDemandWorkspaceStore.getState().setSpeedMode(on)
                 }
+                onCanvasChange={setCanvasMode}
+                onPublish={doPublish}
                 placeholder="说点什么？"
                 value={draftInput}
                 onInputChange={setDraftInput}
@@ -1123,30 +1276,142 @@ export default function DemandCreate() {
           </div>
         </div>
 
-        {/* 右栏：工作区 */}
+        {/* 右栏：工作区 / Canvas 卡牌背面 */}
         <div className="flex-1 min-w-0 overflow-y-auto thin-scroll">
-          <div className="max-w-lg mx-auto space-y-6 py-6 px-6">
-            {messages.length === 0 && !workspaceFields.title ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-bg-card border border-border mb-4">
-                  <Sparkles className="size-6 text-text-muted/60" />
+          <div className="w-full max-w-lg mx-auto py-6 px-6">
+            {canvasMode ? (
+                <div className="flex items-start justify-center pt-12">
+                  <CanvasCardBack fields={workspaceFields} />
                 </div>
-                <p className="text-sm text-text-muted max-w-48 leading-relaxed">
-                  在左侧描述你的需求，AI 会同步整理到这里
-                </p>
-              </div>
-            ) : (
-              <>
-                <WorkspaceSummary />
-                <WorkspaceFields />
-                {!speedMode && <WorkspaceTools />}
-              </>
-            )}
+              ) : messages.length === 0 && !workspaceFields.title ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-bg-card border border-border mb-4">
+                    <Sparkles className="size-6 text-text-muted/60" />
+                  </div>
+                  <p className="text-sm text-text-muted max-w-48 leading-relaxed">
+                    在左侧描述你的需求，AI 会同步整理到这里
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <WorkspaceSummary />
+                  <WorkspaceFields />
+                  <WorkspaceTools />
+                </div>
+              )}
           </div>
         </div>
       </div>
     </div>
   )
+}
+
+/** Canvas 模式卡牌 —— 3D 翻转：正面封面 + 背面 InfoCard */
+function CanvasCardBack({ fields }: { fields: ReturnType<typeof useDemandWorkspaceStore.getState>['fields'] }) {
+  const [flipped, setFlipped] = useState(true)
+  const manualRef = useRef(false)
+  const currentUser = useUserStore((s) => s.user)
+  const coverUrl = currentUser?.coverUrl || publisherUserCoverPreset(currentUser?.id)
+  const title = fields.title || '标题待写入…'
+  const description = fields.description || '描述内容将随输入同步写入卡牌背面…'
+  const budgetNum = parseBudgetStr(fields.budget)
+  const priceStr = budgetNum > 0 ? `¥${budgetNum.toLocaleString()}` : '¥?'
+
+  const handleFlip = () => {
+    manualRef.current = true
+    setFlipped((v) => !v)
+  }
+
+  return (
+    <div
+      className="relative aspect-[9/16] w-[min(440px,90%)] max-w-full shrink-0 cursor-pointer select-none rounded-3xl"
+      style={{ perspective: '1400px' }}
+      onClick={handleFlip}
+    >
+      {/* 翻转层 */}
+      <div
+        className="absolute inset-0 rounded-3xl"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transformOrigin: '50% 50%',
+          transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        {/* 正面：封面图 + 标题色条（价格驱动 shimmer 颜色） */}
+        <div
+          className="absolute inset-0 overflow-hidden rounded-3xl shadow-lg"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(0deg) translateZ(0)' }}
+        >
+          <img
+            src={publisherUserCoverPreset(undefined)}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 z-10 flex min-h-0 flex-col pt-16">
+            <div
+              className={cn(
+                'relative shrink-0 flex w-full justify-center overflow-hidden px-4 backdrop-blur-sm [text-rendering:optimizeLegibility]',
+                budgetNum > 0
+                  ? budgetNum > 10000 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--rainbow'
+                  : budgetNum > 3000 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--gold'
+                  : budgetNum > 1000 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--red'
+                  : budgetNum > 500 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--orange'
+                  : budgetNum > 100 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--violet'
+                  : budgetNum > 10 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--blue'
+                  : 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--green'
+                  : 'bg-black/40',
+              )}
+            style={{ paddingTop: 16, paddingBottom: 16 }}
+            >
+              <h3 className="relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight text-white [text-shadow:none]">
+                {title}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        {/* 背面：InfoCard */}
+        <div
+          className="absolute inset-0 overflow-hidden rounded-3xl shadow-lg"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(2px)' }}
+        >
+          <InfoCard
+            fillContainer
+            descriptionMode="scroll"
+            shellBorderRadius="1.5rem"
+            image={coverUrl || publisherUserCoverPreset(undefined)}
+            imageAlt={title}
+            title={title}
+            description={description}
+            borderColor="var(--ic-border-1)"
+            borderBgColor="var(--ic-border-bg)"
+            cardBgColor="var(--ic-card-bg)"
+            textColor="var(--ic-text)"
+            hoverTextColor="var(--ic-hover-text-1)"
+            fontFamily="var(--font-family)"
+            rtlFontFamily="var(--font-family)"
+            effectBgColor="var(--ic-border-1)"
+            patternColor1="var(--ic-pattern-1)"
+            patternColor2="var(--ic-pattern-2)"
+            contentPadding="14.3px 16px"
+          />
+          {/* 底部价格 */}
+          <div className="pointer-events-none absolute bottom-5 left-4 z-20">
+            <span className="flip-card-back-price text-3xl font-extrabold leading-none [text-shadow:none]">
+              {priceStr}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function parseBudgetStr(budget: string): number {
+  if (!budget) return 0
+  const n = Number(budget.replace(/[^\d.]/g, ''))
+  return Number.isFinite(n) ? n : 0
 }
 
 /** 从预算字符串中提取最小价格数字 */

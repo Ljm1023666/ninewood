@@ -29,6 +29,7 @@ const Help = lazy(() => import('@/views/Help'))
 const AgentChat = lazy(() => import('@/views/AgentChat'))
 const Privacy = lazy(() => import('@/views/Privacy'))
 const Terms = lazy(() => import('@/views/Terms'))
+const Licenses = lazy(() => import('@/views/Licenses'))
 const NewGroupChat = lazy(() => import('@/views/NewGroupChat'))
 const CardPool = lazy(() => import('@/views/CardPool'))
 const CardPoolResourceExplorer = lazy(
@@ -38,6 +39,7 @@ const DeadPool = lazy(() => import('@/views/DeadPool'))
 const MyTags = lazy(() => import('@/views/MyTags'))
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
+const Dashboard = lazy(() => import('@/views/Dashboard'))
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
   return (
@@ -73,6 +75,14 @@ export const router = createBrowserRouter([
         element: <Layout />,
         children: [
           { index: true, element: <Home /> },
+          {
+            path: 'dashboard',
+            element: (
+              <LazyLoad>
+                <Dashboard />
+              </LazyLoad>
+            ),
+          },
           {
             path: 'card-pool/explorer',
             element: (
@@ -311,6 +321,14 @@ export const router = createBrowserRouter([
     element: (
       <LazyLoad>
         <Terms />
+      </LazyLoad>
+    ),
+  },
+  {
+    path: '/licenses',
+    element: (
+      <LazyLoad>
+        <Licenses />
       </LazyLoad>
     ),
   },
