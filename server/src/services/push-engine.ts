@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI 2.7 推送匹配引擎
  * 7 步规则链 + 实际发送通知
  */
@@ -130,7 +130,7 @@ export async function matchAndPush(
 
 /**
  * Stage 1.1: 需求发布后自动触发一次推送，仅命中 autoReceive=true 的服务者
- * 错误不会反向影响 demand 创布（由调用方 catch 吃掉）
+ * 错误不会反向影响 demand 创建（由调用方 catch 吃掉）
  */
 export async function triggerAutoReceivePush(
   demandId: string,

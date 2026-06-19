@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+﻿import { Router, Request, Response } from 'express'
 import { authMiddleware } from '../middleware/auth.js'
 import { z } from 'zod'
 import { success, fail } from '../utils/response.js'
@@ -160,7 +160,7 @@ userTagRouter.patch('/:tagName/auto-receive', authMiddleware, async (req: Reques
       return fail(res, '该标签未开启，请先 POST /api/user-tags/:tagName', 404)
     }
 
-    // 身份校验：优先 UserTag.certified，笺中 User.certificationLevel
+    // 身份校验：优先 UserTag.certified，兜底 User.certificationLevel
     let eligible = tag.certified
     if (!eligible) {
       const user = await prisma.user.findUnique({
