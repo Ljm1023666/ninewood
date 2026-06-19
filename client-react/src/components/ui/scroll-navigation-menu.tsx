@@ -36,7 +36,7 @@ const defaultMenuItems: MenuItem[] = [
   {
     id: 0,
     title: '发现',
-    url: '/discover',
+    url: '/',
     icon: <Compass className="size-5" />,
   },
   {

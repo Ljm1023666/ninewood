@@ -3168,10 +3168,15 @@
       "ofhc-bath"
     ]
   },
-  "ofhc-daily": {
+  "ofhck-daily": {
     "label": "日常做饭",
     "parent": "ofh-cook",
     "childIds": []
+  },
+  "ofhc-daily": {
+    "label": "日常保洁",
+    "parent": "ofh-clean",
+    "childIds": ["ofhcd-2h", "ofhcd-3h", "ofhcd-4h"]
   },
   "ofhcd-2h": {
     "label": "2小时",
@@ -3463,7 +3468,7 @@
     "label": "私厨/家宴",
     "parent": "of-home",
     "childIds": [
-      "ofhc-daily",
+      "ofhck-daily",
       "ofhc-party",
       "ofhc-banquet",
       "ofhc-diet"

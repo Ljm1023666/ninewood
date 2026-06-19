@@ -22,7 +22,8 @@ export const config = {
     ? process.env.CORS_ORIGINS.split(',')
     : ['http://localhost:5173', 'http://localhost:3000', 'app://.'],
 
-  // MiniMax AI（OpenAI 兼容接口）
+  // MiniMax / DeepSeek AI（OpenAI 兼容接口）
+  aiProvider: process.env.AI_PROVIDER || 'minimax',
   aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimax.chat/v1',
   aiApiKey: process.env.AI_API_KEY || '',
   // 默认模型（用于普通问答、分类等非思考任务）
@@ -31,6 +32,15 @@ export const config = {
   aiThinkModel: process.env.AI_THINK_MODEL || '',
   // 快速模式用轻量模型；未设置则回退到 aiModel
   aiFastModel: process.env.AI_FAST_MODEL || '',
+
+  // 多提供商配置（用于模型选择器切换）
+  providers: {
+    deepseek: {
+      baseUrl: process.env.DS_BASE_URL || 'https://api.deepseek.com',
+      apiKey: process.env.DS_API_KEY || '',
+      defaultModel: process.env.DS_MODEL || 'deepseek-v4-pro',
+    },
+  },
 
   // hCaptcha 人机验证
   hcaptcha: {

@@ -211,6 +211,31 @@ const CATEGORIES: { name: string; templates: DemandTpl[] }[] = [
   ]},
 ]
 
+// 分类 → 服务类型 & taxonomy 叶子 ID 映射（必须与前端 TAXONOMY 一致）
+const CATEGORY_TAXONOMY_MAP: Record<
+  string,
+  { serviceType: 'ONLINE' | 'OFFLINE'; taxonomyLeafId: string }
+> = {
+  '家政服务': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofhcd-2h' },
+  '装修维修': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofre-circuit' },
+  '教育培训': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofs-interview' },
+  '设计创意': { serviceType: 'ONLINE', taxonomyLeafId: 'oldumi-social' },
+  'IT技术': { serviceType: 'ONLINE', taxonomyLeafId: 'oldvwf-react' },
+  '摄影摄像': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofev-photo' },
+  '医疗健康': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofha-general' },
+  '法律咨询': { serviceType: 'ONLINE', taxonomyLeafId: 'olpl-contract' },
+  '翻译服务': { serviceType: 'ONLINE', taxonomyLeafId: 'ol-write' },
+  '餐饮美食': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofhck-daily' },
+  '健身运动': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofhm-tui' },
+  '搬家货运': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofhmm-studio' },
+  '宠物服务': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofpb-home' },
+  '美容美发': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofb-hair' },
+  '音乐艺术': { serviceType: 'ONLINE', taxonomyLeafId: 'ol-music' },
+  '跑腿代办': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofm-labor' },
+  '汽车服务': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofac-drunk' },
+  '农业园艺': { serviceType: 'OFFLINE', taxonomyLeafId: 'ofpp-garden' },
+}
+
 // 辅助: 填充模板中的占位符
 function fillTpl(tpl: DemandTpl): { title: string; desc: string; price: number; cat: string } {
   const N = () => String(rand(1, 8))
@@ -235,7 +260,7 @@ async function main() {
   let admin = await prisma.user.findUnique({ where: { phone: adminPhone } })
   if (!admin) {
     admin = await prisma.user.create({
-      data: { phone: adminPhone, nickname: '管理员', passwordHash: PWD, role: 'ADMIN', cityCode: '110000', certificationLevel: 'ADVANCED', creditScore: 100, completedOrders: 0, bio: '平台管理员' },
+      data: { phone: adminPhone, nickname: '管理员', passwordHash: PWD, role: 'ADMIN', cityCode: '110000', certificationLevel: 'ADVANCED', creditScore: 100, completedOrders: 0, bio: '平台管理员', avatarUrl: '/uploads/avatars/avatar_01.png', coverUrl: '/uploads/covers/cover_01.png' },
     })
   }
   console.log('✅ 管理员就绪')
@@ -259,9 +284,13 @@ async function main() {
       const orders = cert === 'ADVANCED' ? rand(20, 90) : cert === 'INTERMEDIATE' ? rand(5, 40) : cert === 'BASIC' ? rand(0, 15) : 0
       const tags = pickN(TAG_POOL, rand(1, 5))
 
+      const avatarNum = String(createdUsers % 20 + 1).padStart(2, '0')
+      const coverNum = createdUsers % 14 + 1
       const user = await prisma.user.create({
         data: {
           phone, nickname: genNick(city.name), passwordHash: PWD,
+          avatarUrl: `/uploads/avatars/avatar_${avatarNum}.png`,
+          coverUrl: `/uploads/covers/cover_${String(coverNum).padStart(2, '0')}.png`,
           cityCode: city.code, certificationLevel: cert, creditScore: credit,
           completedOrders: orders,
           bio: `${pick(['资深','专业','热爱','靠谱','热情','认真','有耐心','经验丰富'])}${pick(PROF_SUFFIXES)}从业者，${city.name}${pick(['本地','全城','三环内','全市区'])}可服务，${rand(2,20)}年经验，${tags.slice(0,3).join('、')}专家`,
@@ -305,12 +334,17 @@ async function main() {
     const status = Math.random() < 0.4 ? 'COMPLETED' : Math.random() < 0.3 ? 'ACTIVE' : Math.random() < 0.15 ? 'FROZEN' : 'ACTIVE'
     const minPrice = Math.max(10, filled.price)
     const tags = [filled.cat]
+    const txMap = CATEGORY_TAXONOMY_MAP[filled.cat] ?? { serviceType: 'OFFLINE', taxonomyLeafId: 'ofhcd-2h' }
 
     try {
+      const cardNum = createdDemands % 14 + 1
+      const cardExt = cardNum <= 10 ? 'jpg' : cardNum <= 11 ? 'jpeg' : 'png'
       const demand = await prisma.demand.create({
         data: {
           userId: publisherId, title: filled.title, description: filled.desc,
-          minPrice, category: filled.cat, serviceType: 'OFFLINE',
+          minPrice, category: filled.cat, serviceType: txMap.serviceType,
+          taxonomyLeafId: txMap.taxonomyLeafId,
+          mediaUrls: [`/uploads/card-covers/100${String(cardNum).padStart(2, '0')}.${cardExt}`],
           expireAt: visibleUntil, visibilityWindow: win * 24 * 60, visibleUntil,
           status: status as any, tags, regionId: null,
           stage: status === 'COMPLETED' ? 'completed' : 'active',

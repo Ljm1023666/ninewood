@@ -400,6 +400,7 @@ export const demandService = {
           certificationLevel: d.certificationLevel,
         },
         mediaUrls: d.mediaUrls,
+        coverImage: d.coverImage,
         isSnatched: false,
         createdAt: d.createdAt,
         descriptionPreview:
@@ -456,6 +457,7 @@ export const demandService = {
       isExample: d.isExample,
       user: d.user,
       mediaUrls: d.mediaUrls,
+      coverImage: d.coverImage,
       isSnatched: false,
       createdAt: d.createdAt,
       // AI 2.5

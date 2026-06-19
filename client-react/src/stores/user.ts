@@ -10,6 +10,7 @@ export interface User {
   coverUrl: string | null
   demandCardCoverUrl: string | null
   cityCode: string | null
+  ipRegion?: string | null
   certificationLevel: string
   snatchCredits: number
   creditScore: number

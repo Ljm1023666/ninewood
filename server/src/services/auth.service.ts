@@ -80,7 +80,7 @@ function modernUserResponse(user: LegacyUser) {
 async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> {
   try {
     const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
       phone,
     );
     return rows?.[0] || null;
@@ -92,7 +92,7 @@ async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> 
 async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
   try {
     const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
       userId,
     );
     return rows?.[0] || null;
@@ -129,6 +129,7 @@ async function findModernUserByPhone(phone: string): Promise<LegacyUser | null> 
         coverUrl: true,
         demandCardCoverUrl: true,
         cityCode: true,
+        ipRegion: true,
         certificationLevel: true,
         snatchCredits: true,
         creditScore: true,
@@ -155,6 +156,7 @@ async function findModernUserById(userId: string): Promise<LegacyUser | null> {
         coverUrl: true,
         demandCardCoverUrl: true,
         cityCode: true,
+        ipRegion: true,
         certificationLevel: true,
         snatchCredits: true,
         creditScore: true,
@@ -241,6 +243,7 @@ export const authService = {
         coverUrl: true,
         demandCardCoverUrl: true,
         cityCode: true,
+        ipRegion: true,
         certificationLevel: true,
         snatchCredits: true,
         creditScore: true,

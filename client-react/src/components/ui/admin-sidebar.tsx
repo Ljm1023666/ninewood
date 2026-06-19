@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { useUserStore } from '@/stores/user'
 import {
   LayoutDashboard,
   BarChart3,
@@ -104,12 +105,11 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({
   activeTab,
-  activeItem,
   onNavigate,
   onBack,
-}: AdminSidebarProps) {
+}: Omit<AdminSidebarProps, 'activeItem'> & { activeItem?: string }) {
   const [collapsed, setCollapsed] = useState(false)
-  const sections = sidebarConfigs[activeTab] || []
+  const user = useUserStore((s) => s.user)
 
   return (
     <aside
@@ -151,7 +151,7 @@ export function AdminSidebar({
       </div>
 
       {/* 一级导航 */}
-      <nav className="space-y-1 px-3 py-3">
+      <nav className="flex-1 space-y-1 px-3 py-3 border-t border-white/[0.06]">
         {MAIN_NAV.map((item) => {
           const active = activeTab === item.id
           return (
@@ -174,46 +174,6 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* 二级导航 */}
-      {sections.length > 0 && (
-        <nav className="flex-1 overflow-y-auto border-t border-white/[0.06] px-3 py-4">
-          {sections.map((section) => (
-            <div key={section.label}>
-              {!collapsed && (
-                <p className="mb-2 px-3 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
-                  {section.label}
-                </p>
-              )}
-              <div className="space-y-0.5">
-                {section.items.map((item) => {
-                  const active = activeItem === item.id
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      title={collapsed ? item.label : undefined}
-                      onClick={() => onNavigate(activeTab, item.id)}
-                      className={cn(
-                        'flex w-full items-center gap-3 rounded-md px-3 py-2 text-[13px] transition-colors duration-200',
-                        active
-                          ? 'bg-orange-500/15 text-orange-300'
-                          : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300',
-                      )}
-                    >
-                      <item.icon
-                        className="size-3.5 shrink-0"
-                        strokeWidth={1.75}
-                      />
-                      {!collapsed && <span>{item.label}</span>}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
-      )}
-
       {/* 底部 */}
       <div className="mt-auto space-y-2 border-t border-white/[0.06] p-3">
         {onBack && !collapsed && (
@@ -232,16 +192,23 @@ export function AdminSidebar({
             collapsed && 'justify-center',
           )}
         >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-[11px] font-medium">
-            A
-          </div>
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              className="size-8 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-[11px] font-medium">
+              {user?.nickname?.charAt(0) || 'A'}
+            </div>
+          )}
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-sm font-medium leading-tight text-zinc-200">
-                管理员
+                {user?.nickname || '用户'}
               </p>
               <p className="truncate text-[11px] text-zinc-500">
-                admin@ninewood
+                {user?.phone || '—'}
               </p>
             </div>
           )}

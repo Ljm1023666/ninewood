@@ -19,7 +19,7 @@ const footerLinks: FooterSection[] = [
   {
     label: '平台',
     links: [
-      { title: '发现需求', href: '/discover' },
+      { title: '发现需求', href: '/' },
       { title: '发布需求', href: '/demands/create' },
       { title: '卡池', href: '/card-pool' },
       { title: '服务者', href: '/providers' },

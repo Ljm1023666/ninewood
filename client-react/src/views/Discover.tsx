@@ -3,6 +3,7 @@ import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import { toast } from '@/components/ui/confirm-dialog'
 import { HorizonHeroSection } from '@/components/ui/horizon-hero-section'
 import { ScrollNavbar } from '@/components/ui/scroll-navigation-menu'
+import { Footer } from '@/components/ui/footer-section'
 
 import { SearchBar } from '@/components/ui/search-bar'
 import { InputWithTags } from '@/components/ui/input-with-tags'
@@ -221,9 +222,9 @@ export default function Discover() {
   )
 
   return (
-    <>
+    <div className="flex min-h-full flex-col">
       <ScrollNavbar />
-      <HorizonHeroSection sections={heroSections}>
+      <HorizonHeroSection sections={heroSections} footer={<Footer />}>
         {showResults && (
           <div ref={resultsRef} className="w-full">
             <DemandDiscoveryList
@@ -247,6 +248,6 @@ export default function Discover() {
           </div>
         )}
       </HorizonHeroSection>
-    </>
+    </div>
   )
 }

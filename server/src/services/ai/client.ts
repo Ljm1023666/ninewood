@@ -288,7 +288,13 @@ export async function agentStream(params: AgentStreamParams): Promise<void> {
   };
 
   if (chatParams.thinking) {
-    body.thinking = { type: 'enabled' };
+    if ((body.model as string).startsWith('deepseek-v4')) {
+      body.thinking_mode = 'thinking'
+    } else {
+      body.thinking = { type: 'enabled' }
+    }
+  } else if ((body.model as string).startsWith('deepseek-v4')) {
+    body.thinking_mode = 'non-thinking'
   }
 
   if (chatParams.webSearch) {

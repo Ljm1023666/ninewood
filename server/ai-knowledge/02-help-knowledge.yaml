@@ -1,0 +1,839 @@
+# ============================================================================
+# 九木帮助知识库 — AI 友好结构化格式
+# 取代 Help.tsx 中的人类自然语言 FAQ，供 AI 消费
+# ============================================================================
+
+# ── 门户页/页面路由映射 ──────────────────────────────────────────────────────
+
+page_map:
+  - id: demand-create
+    path: /demands/create
+    title: 发布需求
+    category: 发布
+    keywords: [发布, 发需求, 创建需求, 发单, 新建需求]
+
+  - id: providers
+    path: /providers
+    title: 找服务者
+    category: 发现
+    keywords: [找服务者, 搜索服务, 出租车, 司机]
+
+  - id: my-demands
+    path: /my-demands
+    title: 我的需求
+    category: 管理
+    keywords: [我的需求, 管理需求, 我发的, 已发布]
+
+  - id: orders
+    path: /orders
+    title: 订单
+    category: 交易
+    keywords: [订单, 交易, 支付, 订单记录]
+
+  - id: cert-center
+    path: /cert-center
+    title: 认证中心
+    category: 认证
+    keywords: [认证, 资质, 证书, 认证中心, 等级]
+
+  - id: messages
+    path: /messages
+    title: 消息
+    category: 沟通
+    keywords: [消息, 私信, 聊天, 通知, 对话, 联系]
+
+  - id: settings
+    path: /settings
+    title: 设置
+    category: 系统
+    keywords: [设置, 配置, 偏好, 主题]
+
+  - id: profile
+    path: /profile
+    title: 个人主页
+    category: 个人
+    keywords: [个人主页, 资料, 编辑资料, 头像, 我的]
+
+  - id: card-pool
+    path: /card-pool
+    title: 卡池
+    category: 发现
+    keywords: [卡池, 分类, 手牌, 卡包, 筛选需求, 服务分类]
+
+  - id: dead-pool
+    path: /card-pool/dead
+    title: 死池
+    category: 发现
+    keywords: [死池, 过期, 流拍, 捡漏, 已结束]
+
+  - id: discover
+    path: /discover
+    title: 发现页
+    category: 发现
+    keywords: [发现, 搜索, 浏览, 寻觅, 遇见, 星空]
+
+  - id: agent
+    path: /agent
+    title: AI 助手
+    category: 工具
+    keywords: [AI, 助手, 机器人, 对话, agent, 智能]
+
+  - id: circles
+    path: /circles
+    title: 圈子
+    category: 社交
+    keywords: [圈子, 社区, 群组, 交流, 加入圈子]
+
+  - id: my-bids
+    path: /my-bids
+    title: 我的应标
+    category: 管理
+    keywords: [应标, 竞标, 投标, 投递]
+
+  - id: tag-stats
+    path: /tag-stats
+    title: 市场分析
+    category: 数据
+    keywords: [统计, 市场, 分析, 指标, 趋势]
+
+  - id: welfare
+    path: /welfare
+    title: 公益中心
+    category: 公益
+    keywords: [公益, 慈善, 求助, 捐赠, 寻人]
+
+  - id: dashboard
+    path: /dashboard
+    title: 管理后台
+    category: 管理
+    keywords: [管理, 后台, 管理员, dashboard, admin, 监控]
+
+  - id: transactions
+    path: /transactions
+    title: 交易记录
+    category: 交易
+    keywords: [交易, 记录, 结算, 明细, 账单, 收支]
+
+  - id: push-settings
+    path: /push-settings
+    title: 推送设置
+    category: 系统
+    keywords: [推送, 通知, 偏好, 排除]
+
+# ── FAQ 知识库 ──────────────────────────────────────────────────────────────
+
+# 每个条目包含：
+#   id: 唯一标识（可用于锚点跳转）
+#   category: 分类
+#   tags: 标签（用于意图匹配）
+#   related: 相关 FAQ 的 id 列表
+#   intent_map: 用户意图 → 该 FAQ 的映射信号
+#   answer: 结构化答案（取代自然语言段落）
+#     - summary: 一句话总结
+#     - preconditions: 前置条件/须知
+#     - steps: 操作步骤 [title, description, params]
+#     - warnings: 注意事项
+#     - examples: 示例
+
+faq:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  发布与管理需求
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: how-to-publish
+    category: demand
+    tags: [发布, 发需求, 创建需求, 发单]
+    related: [how-to-review, how-to-cancel, circle-demand]
+
+    answer:
+      summary: "进入发布页 → 填标题/描述/预算/分类 → 选择服务方式 → 设置有效期 → 提交审核"
+      preconditions:
+        - "认证等级 != NONE"
+        - "无 FROZEN 状态需求"
+        - "标题 2-100 字"
+        - "描述 2-2000 字"
+        - "预算 1-999,999 元"
+        - "有效期 1-30 天"
+      steps:
+        - title: 进入发布页
+          action: navigate /demands/create
+          params: {}
+        - title: 填写标题
+          action: input title
+          params: { field: title, type: string, min: 2, max: 100, tip: "简洁明了地描述需求" }
+        - title: 填写描述
+          action: input description
+          params: { field: description, type: string, min: 2, max: 2000, tip: "越详细越容易匹配到合适的服务方" }
+        - title: 设置预算
+          action: input minPrice
+          params: { field: minPrice, type: number, min: 1, max: 999999, unit: 元 }
+        - title: 选择分类
+          action: select category
+          params: { auto: "AI 根据标题和描述推荐", manual: true }
+        - title: 选择服务方式
+          action: select serviceType
+          params: { options: ["ONLINE", "OFFLINE"] }
+        - title: 设置有效期
+          action: input expireDays
+          params: { field: expireDays, type: number, min: 1, max: 30, default: 7, unit: 天 }
+        - title: 提交发布
+          action: submit
+          params: {}
+          result: "进入审核状态 (PENDING)"
+      warnings:
+        - type: warning
+          content: "账户冻结状态无法发布新需求"
+        - type: info
+          content: "圈内发布：进入圈子详情页后发布，该需求只在圈内展示"
+      examples:
+        - query: "发布王者荣耀代打需求，预算 200，有效期 3 天"
+          params: { title: "王者荣耀代打需求", serviceType: ONLINE, minPrice: 200, expireDays: 3 }
+        - query: "帮我发一个找平面设计师的需求"
+          params: { category: "设计", serviceType: ONLINE }
+
+  - id: how-to-review
+    category: demand
+    tags: [审核, 审核时间, 通过, 审核中, 等待]
+    related: [how-to-publish, my-demands-manage]
+
+    answer:
+      summary: "自动审核秒级到分钟级完成；人工复核需 1-2 个工作日"
+      flow:
+        - type: auto
+          description: "敏感词检测 + 内容合规校验"
+          duration: "秒 ~ 分钟"
+        - type: manual
+          trigger: "敏感词标记或系统无法自动判断"
+          duration: "1-2 个工作日"
+          notification: "消息通知发送审核结果"
+      constraints:
+        - "标题和描述中避免敏感词可加快自动审核"
+        - "审核通过后若被举报违规，仍可能被冻结或下架"
+      status_inspection:
+        - page: /my-demands
+          field: status
+          values:
+            PENDING: "审核中"
+            ACTIVE: "已通过"
+            FROZEN: "已冻结"
+
+  - id: how-to-cancel
+    category: demand
+    tags: [取消, 下架, 删除需求, 撤回]
+    related: [my-demands-manage]
+
+    answer:
+      summary: "在我的需求中找到目标需求 → 详情页底部「下架需求」"
+      steps:
+        - action: navigate /my-demands
+        - action: click demand -> detail
+        - action: click '下架需求' -> confirm
+      warnings:
+        - type: warning
+          content: "下架后需求不可恢复。建议考虑修改而非直接下架"
+        - type: tip
+          content: "已过期需求自动下架，无需手动操作"
+      constraints:
+        - "已有人申请的需求建议先沟通"
+
+  - id: my-demands-manage
+    category: demand
+    tags: [我的需求, 已发布, 管理需求, 需求列表]
+    related: [how-to-cancel, order-lifecycle]
+
+    answer:
+      summary: "导航到 /my-demands → 查看所有需求列表+状态标签 → 点击进入详情管理申请"
+      feature:
+        page: /my-demands
+        status_labels:
+          PENDING: "审核中"
+          ACTIVE: "已上架"
+          WITHDRAWN: "已下架"
+          COMPLETED: "已完成"
+          FROZEN: "已冻结"
+          IN_PROGRESS: "进行中"
+        actions_on_detail:
+          - "查看申请人列表 (V1 和 V2)"
+          - "接受/拒绝申请人"
+          - "下架需求"
+      lifecycle:
+        - "发布 → 审核中 → 已上架 → (有人申请) → 创建订单 → 完成 → 评价"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  发现与匹配
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: how-to-find
+    category: discover
+    tags: [找需求, 接单, 匹配, 发现, 搜索需求, 接活]
+    related: [how-to-tags, what-is-cardpool, how-to-apply]
+
+    answer:
+      summary: "发现页提供三种模式：遇见(AI搜索)、寻觅(标签筛选)、探索(分类浏览)"
+      modes:
+        - name: 遇见
+          action: "首屏搜索框输入关键词"
+          engine: "AI 分析意图匹配需求"
+          display: "玻璃卡片展现，可滑动浏览"
+          example: "输入'王者荣耀 陪玩' → AI 匹配相关需求"
+        - name: 寻觅
+          action: "输入标签关键词按回车添加"
+          engine: "标签精确筛选"
+          display: "需求列表实时更新，每页 12 条"
+          feature: "支持多标签组合筛选"
+        - name: 探索
+          status: building
+          description: "按服务类别分栏浏览"
+      tips:
+        - "自然语言搜索效果优于单一关键词"
+        - "Ask AI 搜索自动生成标签并同步到寻觅区域"
+
+  - id: how-to-apply
+    category: discover
+    tags: [申请, 接单, 抢单, 承接, 报名]
+    related: [credit-system, order-lifecycle, how-to-contact]
+
+    answer:
+      summary: "发现页点击需求卡片 → 详情页 → 「申请接单」"
+      steps:
+        - action: "点击需求卡片进入详情"
+        - action: "阅读需求细节（描述、预算、截止时间）"
+        - action: "点击「申请接单」→ 系统创建私信对话"
+        - action: "等待需求方审核回应"
+      tips:
+        - "附上自我介绍和经验说明能提高被接受概率"
+        - "每个用户有抢单信用额度限制"
+        - "频繁申请后不履约将影响信用分"
+      constraints:
+        - "不能申请自己的需求"
+        - "不能重复申请同一需求"
+        - "已满员的需求不接受新申请"
+
+  - id: how-to-tags
+    category: discover
+    tags: [标签, 筛选, 寻觅, 关键词]
+    related: [how-to-find]
+
+    answer:
+      summary: "寻觅区域输入框输入关键词 → Enter 添加标签 → 实时筛选需求列表"
+      steps:
+        - action: "滚动到寻觅区域"
+        - action: "输入关键词后按 Enter 添加为标签胶囊"
+        - action: "可添加多个标签（系统按最后标签匹配）"
+        - action: "点击标签 × 删除单个标签"
+      params:
+        tag_limit: 10
+        match_mode: "模糊匹配"
+        display: "每页 12 条，支持翻页"
+      tips:
+        - "模糊匹配：输入'王者'即可匹配'王者荣耀'"
+        - "Ask AI 搜索自动生成的标签同步到寻觅区域"
+
+  - id: what-is-discover-page
+    category: discover
+    tags: [发现页, 遇见, 寻觅, 星空, 玻璃卡片, 滑切]
+    related: [how-to-tags, how-to-apply, what-is-cardpool]
+
+    answer:
+      summary: "沉浸式星空主题需求探索入口，集成 AI 搜索 + 标签筛选 + 分类浏览"
+      modules:
+        - "遇见: AI 智能搜索，自然语言匹配需求，玻璃卡片展示"
+        - "寻觅: 标签精准筛选，多标签组合，每页 12 条"
+        - "探索: 分类浏览（建设中）"
+      card_interaction:
+        - "点击进入详情页"
+        - "上下滑切切换卡片"
+        - "3D 翻转设计：正面封面+标题，背面完整描述"
+      tips:
+        - "自然语言搜索效果更好"
+
+  - id: two-phase-ordering
+    category: discover
+    tags: [两段式, 接单, 申请, 审核, 筛选, 接受, 拒绝]
+    related: [credit-system, order-lifecycle, how-to-apply]
+
+    answer:
+      summary: "两段式接单：Phase 1 发送申请 → Phase 2 需求方审核并接受/拒绝"
+      phases:
+        - phase: 1
+          name: 发送请求
+          action: "需求详情页点击「申请接单」→ 填写意向说明"
+          cost: "消耗 1 抢单额度"
+        - phase: 2
+          name: 需求方审核
+          action: "需求方在「我的需求」查看申请人列表"
+          criteria:
+            - "认证等级"
+            - "过往评价"
+            - "意向说明"
+          outcomes:
+            - "接受 → 创建担保订单"
+            - "拒绝 → 不扣信用分"
+      tips:
+        - "需求方先筛选最合适的服务方再创建订单，减少盲目抢单导致的纠纷"
+        - "若需求设置了 isCertifiedOnly，未认证用户无法申请"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  订单与支付
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: order-lifecycle
+    category: order
+    tags: [订单, 生命周期, 状态, 流程]
+    related: [how-payment-works, order-dispute]
+
+    answer:
+      summary: "九木采用担保交易：创建订单 → 付款(平台托管) → 履约 → 验收 → 打款"
+      lifecycle:
+        - step: 创建订单
+          status: PENDING
+          description: "需求方接受申请后创建"
+        - step: 需求方付款
+          status: IN_PROGRESS
+          description: "资金由平台托管"
+        - step: 服务方履约
+          status: IN_PROGRESS
+          description: "双方可通过消息沟通进度"
+        - step: 服务方提交完成
+          status: WAITING_REVIEW
+        - step: 需求方验收
+          status: COMPLETED
+          description: "平台将款项打给服务方"
+        - step: 争议（可选）
+          status: DISPUTED
+          description: "平台客服介入"
+      rules:
+        - "验收期不主动确认 → 系统自动完成并打款"
+        - "纠纷中 → 交易暂停，客服介入"
+      related_pages: [orders, transactions]
+
+  - id: how-payment-works
+    category: order
+    tags: [支付, 付款, 交易, 担保, 打款, 退款, 托管]
+    related: [order-lifecycle, order-dispute]
+
+    answer:
+      summary: "需求方付款到平台托管 → 服务完成验收 → 平台打款给服务方"
+      flow:
+        - "订单创建 → 状态 PENDING"
+        - "需求方点击「去支付」→ 完成付款"
+        - "平台托管资金 → 状态 IN_PROGRESS"
+        - "服务方开始工作"
+        - "服务完成 → 需求方确认验收"
+        - "平台打款给服务方 → 状态 COMPLETED"
+      guarantees:
+        - "服务方完成约定服务即可收到款项"
+        - "需求方不满意可申请退款或纠纷介入"
+      warnings:
+        - type: danger
+          content: "私下交易不受平台保护"
+
+  - id: order-dispute
+    category: order
+    tags: [纠纷, 争议, 投诉, 维权, 退款, 客服]
+    related: [how-payment-works, credit-system]
+
+    answer:
+      summary: "优先协商 → 申请纠纷介入 → 平台调查 → 裁决处理"
+      steps:
+        - action: "通过消息与对方友好协商"
+        - action: "在订单详情页点击「申请纠纷介入」，提交证据（聊天记录、截图等）"
+        - action: "平台客服查看双方证据，交易暂停"
+        - action: "平台裁决：退款/继续履约/其他"
+      tips:
+        - "保留好沟通记录和服务交付证据"
+        - "虚假纠纷申请会影响信用分"
+
+  - id: how-transactions-work
+    category: order
+    tags: [交易, 记录, 结算, 明细, 账单, 收支]
+    related: [how-payment-works, order-lifecycle]
+
+    answer:
+      summary: "/transactions → 查看所有已完成交易的结算明细"
+      features:
+        page: /transactions
+        columns:
+          - "交易金额"
+          - "交易时间"
+          - "对方信息"
+          - "订单编号"
+        detail_breakdown:
+          - "服务费"
+          - "平台抽成"
+          - "实际到账金额"
+        filters:
+          - "时间范围"
+          - "交易类型"
+        export: "CSV 格式"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  认证与信用
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: how-to-cert
+    category: cert
+    tags: [认证, 实名, 资质, 技能认证, 上传证件]
+    related: [cert-benefits, credit-system]
+
+    answer:
+      summary: "个人主页 → 认证中心 → 选择认证类型 → 提交材料 → 等待审核 1-3 个工作日"
+      steps:
+        - action: navigate /profile -> 认证中心
+        - action: "选择实名认证或技能认证"
+        - action: "上传身份证件/技能证书/作品集"
+        - action: "等待审核，结果通过消息通知"
+      tips:
+        - "先完成基础实名认证，再逐级申请更高技能认证"
+        - "每次升级认证都会提升信用权重"
+
+  - id: cert-benefits
+    category: cert
+    tags: [认证等级, NONE, BASIC, INTERMEDIATE, ADVANCED, MASTER, 权重]
+    related: [how-to-cert]
+
+    answer:
+      summary: "认证分 5 级，等级越高权益越多"
+      levels:
+        - level: NONE
+          title: 未认证
+          permissions: [浏览需求, 发布需求]
+          restrictions: [无法申请抢单]
+        - level: BASIC
+          title: 基础认证
+          permissions: [基础抢单权限]
+          credit_score: 60
+        - level: INTERMEDIATE
+          title: 中级认证
+          permissions: [抢单权重提升, 可同时申请更多订单]
+        - level: ADVANCED
+          title: 高级认证
+          permissions: [搜索结果和推荐中优先展示]
+        - level: MASTER
+          title: 大师认证
+          permissions: [专属标识, 最高信用权重]
+
+  - id: credit-system
+    category: feature
+    tags: [信用分, 抢单额度, 额度, 积分, 信用, 违约]
+    related: [cert-benefits, how-to-cert]
+
+    answer:
+      summary: "信用分初始 60，影响抢单权重和搜索排名；抢单额度随时间恢复"
+      credit_score:
+        initial: 60
+        increase: "完成订单并获好评 → +1~3"
+        decrease: "违约/纠纷败诉 → -5~20"
+        effects:
+          - "影响抢单权重"
+          - "影响搜索排名"
+      snatch_credits:
+        initial: 3
+        regen: "每 24 小时恢复全部额度"
+        refund: "完成订单返还部分额度"
+        cost_per_apply: 1
+      warnings:
+        - type: warning
+          content: "频繁申请后不履约或取消订单会导致信用分快速下降，严重者限制功能"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  沟通与社区
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: how-to-contact
+    category: social
+    tags: [联系, 消息, 私信, 聊天, 沟通, 对话, 语音]
+    related: [notifications-troubleshoot]
+
+    answer:
+      summary: "需求详情页「联系对方」或「申请接单」→ 自动创建私信对话；消息列表可查看所有记录"
+      features:
+        chat_types: [文字, 图片, 文件, 语音]
+        group_chat: "多人协作自动创建群聊（合并会话）"
+      tips:
+        - "重要沟通建议在平台内完成，以便作为纠纷证据"
+      page: /messages
+
+  - id: how-to-circles
+    category: social
+    tags: [圈子, 加入圈子, 创建圈子, 社区, 群组]
+    related: [circle-demand]
+
+    answer:
+      summary: "圈子广场浏览 → 加入/创建 → 圈内互动"
+      steps:
+        - action: navigate /circles
+        - action: "公开圈点击「加入」；私密圈需邀请"
+        - action: "创建圈子：填写名称/简介/封面"
+        - action: "选择公开圈或私密圈（创建后不可更改）"
+        - action: "圈内发布需求、查看成员、参与讨论"
+      warnings:
+        - type: info
+          content: "圈内需求仅在圈子内可见"
+        - type: warning
+          content: "DEFUNCT 状态圈子无法加入或发布需求"
+
+  - id: circle-demand
+    category: social
+    tags: [圈内发布, 圈子需求, 社区发布]
+    related: [how-to-circles, how-to-publish]
+
+    answer:
+      summary: "进入目标圈子详情页 → 点击「发布需求」→ 填写提交 → 自动跳回圈子"
+      constraints:
+        - "圈内需求标记为 isPublic: false，仅圈内展示"
+        - "仍需走平台审核流程"
+
+  - id: notifications-troubleshoot
+    category: social
+    tags: [通知, 消息通知, 收不到, 提醒, 推送]
+    related: [how-to-contact]
+
+    answer:
+      summary: "检查浏览器通知权限 → 检查应用内设置 → 检查网络 → 刷新 → 清除缓存"
+      troubleshooting:
+        - check: "浏览器通知设置 -> 九木网站通知权限已开启"
+        - check: "系统通知设置 (Windows 通知中心)"
+        - check: "应用内设置 -> 消息提醒开关已打开"
+        - check: "网络连接正常 (Socket.IO 断连会自动降级到 10 秒轮询)"
+        - action: "刷新页面或重新登录"
+        - action: "清除浏览器缓存后重新登录"
+      note: "Electron 桌面应用通知权限跟随系统设置"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  平台特色功能
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: what-is-cardpool
+    category: feature
+    tags: [卡池, 分类, 手牌, 黑卡, 卡包, 筛选需求, 桌面, 弃牌]
+    related: [how-to-find]
+
+    answer:
+      summary: "卡牌式服务分类浏览：浏览黑卡 → 叶子节点开卡动画 → 加入手牌 → 桌面实时匹配需求"
+      steps:
+        - action: navigate /card-pool
+        - action: "浏览分类黑卡，点击叶子节点触开卡动画（散落→圆形→底弧排列）"
+        - action: "将感兴趣的分类加入手牌（手牌状态持久化到本地存储）"
+        - action: "桌面区实时展示手牌分类下的匹配需求列表"
+        - action: "不需要的分类移到弃牌区，也可恢复"
+      advanced: "卡池资源管理器查看全局焦点分类树"
+      tips:
+        - "手牌状态跨页面保持（localStorage）"
+        - "右键桌面区域自定义列表行数"
+
+  - id: how-to-search-users
+    category: feature
+    tags: [找人, 用户, 搜索用户, 个人主页, 找师傅]
+    related: []
+
+    answer:
+      summary: "/search → 输入昵称或关键词 → 查看用户列表 → 访问个人主页"
+      steps:
+        - action: navigate /search
+        - action: "输入昵称或关键词模糊匹配"
+        - action: "查看结果列表（头像、昵称、认证等级）"
+        - action: "点击用户进入个人主页"
+      tips:
+        - "帮助页输入'找师傅'直接跳转到找人页面"
+      endpoint: "GET /api/users/search?keyword="
+
+  - id: what-is-tag-stats
+    category: feature
+    tags: [市场分析, 标签统计, 指标, 趋势, 供需, 数据]
+    related: [how-to-tags]
+
+    answer:
+      summary: "以标签维度展示市场指标：需求数量、活跃服务者数、平均报价、成交率"
+      features:
+        page: /tag-stats
+        metrics_per_tag:
+          - "需求数量"
+          - "活跃服务者数"
+          - "平均报价"
+          - "成交率"
+        detail: "趋势图、供需比变化"
+        refresh_interval: "每小时"
+        window: "近 30 天"
+      usage:
+        - "供需比判断：需求多、服务者少 → 竞争小、成功率高"
+        - "参考平均报价区间设定价格"
+
+  - id: what-is-dashboard
+    category: feature
+    tags: [管理, 后台, 管理员, dashboard, admin, 监控, 封禁]
+    related: []
+
+    answer:
+      summary: "管理员运营工具：业务指标监控 + 用户管理 + 需求管理 + 系统资源"
+      access: "仅 ADMIN 角色可访问"
+      modules:
+        - section: 业务指标
+          metrics: [用户总数, 需求总数, 订单量, 交易额]
+        - section: 用户管理
+          actions: [搜索, 封禁, 解封, 调整认证等级]
+        - section: 需求管理
+          actions: [审核, 冻结, 下架]
+        - section: 系统资源
+          metrics: [服务器资源, API 调用量, 存储用量]
+      warnings:
+        - type: warning
+          content: "操作权限较高，封禁用户或下架需求请谨慎执行"
+
+  - id: what-is-welfare
+    category: feature
+    tags: [公益, 福利, 慈善, 求助, 捐赠, 寻人, 资金池]
+    related: [how-to-publish]
+
+    answer:
+      summary: "公益板块：发布公益需求（免服务费/免保证金）+ 查看公益资金池"
+      features:
+        page: /welfare
+        actions:
+          - "浏览公益需求列表"
+          - "发布公益需求（走常规审核，不收费）"
+          - "查看公益资金池余额和捐赠记录"
+      penalties:
+        - "虚假公益需求永久封禁"
+
+  - id: how-to-use-agent
+    category: feature
+    tags: [AI, 助手, 机器人, 对话, agent, 智能, 聊天]
+    related: [how-to-publish, how-to-find]
+
+    answer:
+      summary: "导航栏 AI 助手图标 → 输入问题 → AI 实时回答"
+      capabilities:
+        - "问答：平台使用问题"
+        - "需求搜索：'帮我找王者荣耀陪练' → 返回匹配需求列表"
+        - "操作指导：'怎么发布需求' → 步骤说明"
+      technical:
+        model: "MiniMax LLM"
+        language: "中文自然语言"
+        context: "会话内保留，刷新页面清空"
+      tips:
+        - "问题描述越具体，回答越精准"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  #  个人与偏好
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - id: edit-profile
+    category: settings
+    tags: [个人资料, 修改资料, 头像, 昵称, 简介, 编辑]
+    related: [how-to-cert]
+
+    answer:
+      summary: "/profile → 编辑按钮 → 修改头像/封面/昵称/简介 → 保存"
+      editable_fields:
+        - "头像（自动裁剪优化）"
+        - "封面图（支持平台预设或自定义上传）"
+        - "昵称"
+        - "个人简介（Bio）：建议包含擅长领域和服务范围"
+
+  - id: switch-theme
+    category: settings
+    tags: [主题, 深色, 浅色, 暗黑, 白天, 切换主题, 夜间模式]
+    related: []
+
+    answer:
+      summary: "导航栏底部月亮/太阳图标一键切换 → 设置页更多预设 → 跟随系统"
+      methods:
+        - "侧边栏底部主题切换按钮"
+        - "设置页面浏览更多预设"
+        - "开启跟随系统（自动匹配 Windows 深色/浅色）"
+      note: "深色主题采用纯黑底色 #000 + 灰度层次"
+
+# ── 意图 → 页面/FAQ 匹配规则 ──────────────────────────────────────────────
+
+intent_routing:
+  description: "用自然语言查询命中页面或 FAQ 的规则"
+
+  page_intent_map:
+    - intent: publish
+      page: demand-create
+      params: [game, service]
+    - intent: manage
+      page: my-demands
+      params: []
+    - intent: discover
+      page: discover
+      params: [game, service]
+    - intent: settings
+      page: settings
+      params: []
+    - intent: cert
+      page: cert-center
+      params: []
+    - intent: messages
+      page: messages
+      params: []
+
+  keyword_boost:
+    game_name: { page: [demand-create, discover], weight: +15 }
+    service_type: { page: [demand-create], weight: +10 }
+
+  question_patterns:
+    - "怎么"
+    - "如何"
+    - "怎样"
+    - "能不能"
+    - "是不是"
+    - "是什么"
+    - "怎么办"
+    - "为什么"
+    - "啥是"
+
+  known_games:
+    - 王者荣耀, 农药
+    - LOL, 英雄联盟, 撸啊撸
+    - 绝地求生, 吃鸡, PUBG, 和平精英
+    - 原神
+    - 梦幻西游
+    - 穿越火线, CF
+    - DNF, 地下城
+    - CSGO, CS2
+    - 魔兽世界, WOW
+    - 炉石传说
+    - 金铲铲之战, 云顶之弈
+    - 永劫无间
+    - Apex英雄, APEX
+    - VALORANT, 瓦罗兰特, 瓦
+    - 逆水寒
+    - 剑网3
+    - 第五人格
+    - 崩坏, 星穹铁道, 绝区零
+    - 明日方舟
+    - 碧蓝航线
+    - 阴阳师
+    - 蛋仔派对
+    - 光遇
+
+  known_services:
+    - 代打, 代练, 上分
+    - 陪玩, 陪练, 教学
+    - 带教学, 带刷, 代肝
+    - 代做任务, 代做, 代挂
+    - 设计
+    - 开发
+    - 翻译
+    - 咨询
+    - 维修
+    - 保洁, 家政
+
+# ── 提示词模板（用于 AI 回答的格式化参考） ──────────────────────────────────
+
+response_templates:
+
+  page_referral:
+    pattern: "您要找的是不是「{title}」？{summary} 要帮您跳转过去吗？"
+    params: [title, summary]
+
+  operation_guide:
+    pattern: "操作步骤如下：\n{steps}\n\n⚠️ {warning}\n💡 {tip}"
+    params: [steps, warning, tip]
+
+  rule_info:
+    pattern: "这个操作的规则是：{rule}\n\n当前状态：{current_status}"
+    params: [rule, current_status]

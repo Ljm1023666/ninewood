@@ -1,6 +1,7 @@
 import { demandApi } from '@/api/demand'
 import type { BlackScope } from '@/components/card-pool/types'
 import { subtreeLeafIds } from '@/components/card-pool/taxonomy'
+import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 
 /** 卡包开启动画用的卡片数据 */
 export interface PackCardData {
@@ -18,9 +19,7 @@ export function scopeToApiParams(scope: BlackScope): Record<string, string> {
 
   // __singles__ 特殊处理：用 ids 参数传递需求 ID 列表
   if (p.length >= 2 && p[1] === '__singles__') {
-    if (scope.leafFilter && scope.leafFilter.length > 0) {
-      out.ids = scope.leafFilter.join(',')
-    }
+    out.ids = scope.leafFilter?.length ? scope.leafFilter.join(',') : ''
     return out
   }
 
@@ -48,19 +47,6 @@ export function scopeToApiParams(scope: BlackScope): Record<string, string> {
     out.taxonomyLeafIds = leaves.join(',')
   }
   return out
-}
-
-export function searchParamsToQueryString(
-  params: Record<string, string>,
-): string {
-  const sp = new URLSearchParams()
-  if (params.serviceType) sp.set('serviceType', params.serviceType)
-  if (params.category) sp.set('category', params.category)
-  if (params.categories) sp.set('categories', params.categories)
-  if (params.taxonomyLeafId) sp.set('taxonomyLeafId', params.taxonomyLeafId)
-  if (params.taxonomyLeafIds) sp.set('taxonomyLeafIds', params.taxonomyLeafIds)
-  if (params.ids) sp.set('ids', params.ids)
-  return sp.toString()
 }
 
 export async function fetchTotalForScope(scope: BlackScope): Promise<number> {
@@ -92,7 +78,9 @@ export async function fetchPackContents(
       descriptionPreview?: string
       minPrice: number
       mediaUrls?: string[] | null
+      coverImage?: string | null
       user?: {
+        id?: string
         coverUrl?: string | null
         demandCardCoverUrl?: string | null
       } | null
@@ -101,12 +89,9 @@ export async function fetchPackContents(
   return (d.demands || []).map((item) => ({
     id: item.id,
     imageUrl:
-      item.mediaUrls?.[0] ||
-      item.user?.demandCardCoverUrl ||
-      item.user?.coverUrl ||
-      '',
+      item.user?.demandCardCoverUrl || publisherUserCoverPreset(item.user?.id),
     title: item.title || '未命名需求',
-    price: item.minPrice ? `¥${item.minPrice}` : '',
+    price: item.minPrice != null ? `¥${item.minPrice}` : '',
     description: item.descriptionPreview || '',
   }))
 }

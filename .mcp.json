@@ -19,6 +19,16 @@
         "mcp"
       ],
       "cwd": "E:/Ninewood/client-react"
+    },
+    "MiniMax": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["minimax-coding-plan-mcp", "-y"],
+      "env": {
+        "MINIMAX_API_KEY": "sk-cp-tW7JVhRDcWH_2-SgfCVwYol7jF_FO5dzubv3k53Ba7LMH-_TE5jwZCFwYKLICAGHb75wkTvdrlP3tP7rgidoA6yBkkXYiUJw0Ki3t9MJwMmM_S2UodH8Gps",
+        "MINIMAX_API_HOST": "https://api.minimaxi.com",
+        "MINIMAX_MCP_BASE_PATH": "E:/Ninewood/.minimax-mcp-output"
+      }
     }
   }
 }

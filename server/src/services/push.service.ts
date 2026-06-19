@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import type { Server as SocketIOServer } from 'socket.io';
+import { shouldReceivePush } from './push-engine.js';
 
 export const pushService = {
   /**
@@ -33,7 +34,7 @@ export const pushService = {
     });
 
     // 5. 过滤：排除被屏蔽的用户
-    const matched = candidates.filter((u) => {
+    const unblocked = candidates.filter((u) => {
       const blocklist = (u.pushBlocklist || {}) as { keywords?: string[]; ageRanges?: string[] };
       return !pushService.isBlocked(blocklist, {
         title: demand.title,
@@ -41,8 +42,24 @@ export const pushService = {
       });
     });
 
-    // 6. 通过 Socket.IO 发送通知给每个匹配用户
-    for (const user of matched) {
+    // 6. 过滤：检查推送偏好（排除关键词/标签/区域 + 全局开关）
+    const rejectReasons: Record<string, number> = {};
+    const accepted: typeof unblocked = [];
+    for (const user of unblocked) {
+      const { accept, reason } = await shouldReceivePush(user.id, {
+        tags: demand.tags || [],
+        regions: demand.regionId ? [demand.regionId] : [],
+        excludeKeywords: config.keywords || [],
+      });
+      if (accept) {
+        accepted.push(user);
+      } else {
+        rejectReasons[reason || 'UNKNOWN'] = (rejectReasons[reason || 'UNKNOWN'] || 0) + 1;
+      }
+    }
+
+    // 7. 通过 Socket.IO 发送通知给通过所有规则的用户
+    for (const user of accepted) {
       try {
         io.to(`user:${user.id}`).emit('push:new_demand', {
           demandId: demand.id,
@@ -56,8 +73,13 @@ export const pushService = {
       }
     }
 
-    // 7. 返回匹配数量
-    return { matched: matched.length, total: candidates.length };
+    // 8. 返回匹配统计
+    return {
+      matched: candidates.length,
+      unblocked: unblocked.length,
+      sent: accepted.length,
+      rejected: rejectReasons,
+    };
   },
 
   /**
