@@ -21,6 +21,39 @@ export interface SemanticClassifyResult {
   results: SemanticMatch[]
 }
 
+export interface NavigateMatch {
+  name: string
+  path: string
+  title: string
+  similarity: number
+}
+
+export interface NavigateResponse {
+  source: 'local'
+  match: NavigateMatch | null
+  candidates: NavigateMatch[]
+}
+
+/** 调用本地语义分类器 /navigate 端点，识别页面导航意图 */
+export async function semanticNavigate(text: string, threshold = 0.25): Promise<NavigateMatch | null> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 1500)
+    const res = await fetch('http://127.0.0.1:8001/navigate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, threshold }),
+      signal: controller.signal,
+    })
+    clearTimeout(timeout)
+    if (!res.ok) return null
+    const data: NavigateResponse = await res.json()
+    return data.match
+  } catch {
+    return null
+  }
+}
+
 /**
  * 调用本地 GPU 语义分类器
  * 超时 500ms，超时返回空结果（自动降级）
