@@ -1,9 +1,10 @@
-import { startFreezeDemandsCron } from './freeze-demands.js';
+﻿import { startFreezeDemandsCron } from './freeze-demands.js';
 import { startSnatchResetCron } from './snatch-reset.js';
 import { startCircleActivityCron } from './circle-activity.js';
 import { startCleanupMessagesCron } from './cleanup-messages.js';
 import { runCompressionScheduler } from './compression-scheduler.js';
 import { startDemandWindowCron } from './demand-window.js';
+import { startTimeLimitReminderCron } from './time-limit-reminder.js';
 import { runLifecycleCron } from '../services/card-lifecycle.js';
 
 export function startAllCronJobs() {
@@ -12,6 +13,9 @@ export function startAllCronJobs() {
   startCircleActivityCron();
   startCleanupMessagesCron();
   startDemandWindowCron(); // AI 2.5: 30s 扫描紧急窗口 + 沟通超时
+  // Stage 1.3: 服务时限到期一次性提醒(60s,DB 站内消息,不做 socket)
+  // processTimeLimitReminders: 扫描 IN_PROGRESS + timeLimit<=now + 关联 order IN_PROGRESS,幂等发送 SYSTEM 消息
+  startTimeLimitReminderCron();
   // AI 2.8: 卡池生命周期 — 每 6 小时
   setInterval(() => {
     runLifecycleCron().catch(err => console.error('[Cron] Lifecycle failed:', err));

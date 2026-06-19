@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+﻿import { prisma } from '../lib/prisma.js';
 import { walletService } from './wallet.service.js';
 import { checkFrozenBeforePublish } from './deposit-new.js'
 import type { Server as SocketIOServer } from 'socket.io'
@@ -63,6 +63,8 @@ export const demandService = {
     expectedOutcome?: string;
     visibilityWindow?: number;
     maxApplicants?: number;
+    // Stage 1.3: 可选服务时限(分钟),服务端换算为 timeLimit
+    timeLimitMinutes?: number;
     tags?: string[];
     aiTags?: string[];
     tagsConfirmed?: boolean;
@@ -128,6 +130,10 @@ export const demandService = {
           visibilityWindow: win,
           visibleUntil,
           maxApplicants: params.maxApplicants || 10,
+          // Stage 1.3: 发布时换算绝对截止时间;未传则保持 null
+          timeLimit: params.timeLimitMinutes != null
+            ? new Date(Date.now() + params.timeLimitMinutes * 60_000)
+            : null,
           tags: params.tags || [],
           aiTags: params.aiTags || [],
           tagsConfirmed: params.tagsConfirmed || false,

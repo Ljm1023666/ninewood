@@ -1,4 +1,4 @@
-import { Monitor, MapPin, Lock, LockOpen } from 'lucide-react'
+﻿import { Monitor, MapPin, Lock, LockOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { MaterialSwitch } from '@/components/ui/material-switch'
@@ -162,6 +162,28 @@ export function WorkspaceFields() {
             className="ws-input"
           />
         </div>
+      </div>
+
+      <div className="ws-field">
+        <label className="ws-field-label">服务时限（分钟，可选）</label>
+        <input
+          type="number"
+          value={fields.timeLimitMinutes ?? ''}
+          onChange={(e) => {
+            const v = e.target.value
+            updateField(
+              'timeLimitMinutes',
+              v === '' ? undefined : Math.max(15, Math.min(10080, Number(v) || 0)),
+            )
+          }}
+          min={15}
+          max={10080}
+          placeholder="如 60（最小 15，最大 10080）"
+          className="ws-input"
+        />
+        <p style={{ marginTop: 6, fontSize: 12, color: "var(--ws-text-muted, #888)" }}>
+          可选；到期后平台会提醒双方确认进度，不会自动扣款
+        </p>
       </div>
     </div>
   )

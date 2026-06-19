@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,6 +17,9 @@ export const config = {
     return 'dev-secret-do-not-use-in-prod';
   })(),
   jwtExpiresIn: 60 * 60 * 24 * 7, // 7 days in seconds
+
+  // 用户默认点数（开发期模拟货币，1 点 = 1 元；见 D5 决策）
+  defaultUserPoints: 1_000_000,
   uploadDir: path.join(__dirname, '..', 'uploads'),
   corsOrigins: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
