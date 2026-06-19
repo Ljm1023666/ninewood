@@ -133,7 +133,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     // Create scene elements
     createStarField()
     createNebula()
-    createBlackHole()
 
     // Start animation
     animate()
@@ -195,10 +194,6 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
               vColor = color;
               vec3 pos = position;
 
-              float angle = time * 0.05 * (1.0 - depth * 0.3);
-              mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-              pos.xy = rot * pos.xy;
-
               vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
               gl_PointSize = size * (300.0 / -mvPosition.z);
               gl_Position = projectionMatrix * mvPosition;
@@ -206,12 +201,19 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           `,
           fragmentShader: /* glsl */ `
             varying vec3 vColor;
+            uniform float time;
 
             void main() {
               float dist = length(gl_PointCoord - vec2(0.5));
               if (dist > 0.5) discard;
 
-              float opacity = 1.0 - smoothstep(0.0, 0.5, dist);
+              float base = 1.0 - smoothstep(0.0, 0.5, dist);
+              // 每个星点用 vColor 作伪随机种子，产生不同的闪烁相位
+              float seed = fract(vColor.r * 31.7 + vColor.g * 17.3 + vColor.b * 53.9);
+              float speed = 3.0 + seed * 7.0;
+              float twinkle = 0.5 + 0.5 * sin(time * speed + seed * 6.28);
+              float opacity = base * (0.05 + 0.95 * twinkle);
+
               gl_FragColor = vec4(vColor, opacity);
             }
           `,
@@ -622,30 +624,36 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   }, [isReady])
 
   // Scroll handling
+  const rafRef = useRef<number | null>(null)
+
   const handleScroll = useCallback(() => {
-    const el = containerRef.current
-    if (!el) return
+    if (rafRef.current) return // throttle to 1 per frame
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null
+      const el = containerRef.current
+      if (!el) return
 
-    const scrollY = el.scrollTop
-    const containerHeight = el.clientHeight
-    const contentHeight = el.scrollHeight
-    const maxScroll = contentHeight - containerHeight
-    const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1)
+      const scrollY = el.scrollTop
+      const containerHeight = el.clientHeight
+      const contentHeight = el.scrollHeight
+      const maxScroll = contentHeight - containerHeight
+      const progress = Math.min(Math.max(scrollY / maxScroll, 0), 1)
 
-    setScrollProgress(progress)
-    const newSection = Math.min(Math.floor(progress * totalSections), totalSections - 1)
-    setCurrentSection(newSection)
+      setScrollProgress(progress)
+      const newSection = Math.min(Math.floor(progress * totalSections), totalSections - 1)
+      setCurrentSection(newSection)
 
-    const refs = threeRefs.current
+      const refs = threeRefs.current
 
-    const totalProgress = progress * totalSections
-    const sp = progress >= 0.99 && newSection === totalSections - 1 ? 1 : totalProgress % 1
-    setSectionProgress(sp)
+      const totalProgress = progress * totalSections
+      const sp = progress >= 0.99 && newSection === totalSections - 1 ? 1 : totalProgress % 1
 
     const cameraPositions = [
       { x: 0, y: 30, z: 300 },
       { x: 0, y: 40, z: -50 },
       { x: 0, y: 50, z: -700 },
+      { x: 0, y: 60, z: -1400 },
+      { x: 0, y: 70, z: -2100 },
     ]
 
     const currentPos = cameraPositions[newSection] || cameraPositions[0]
@@ -666,6 +674,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     if (refs.nebula && refs.mountains.length > 3) {
       refs.nebula.position.z = refs.mountains[3].position.z
     }
+    }) // end rAF
   }, [totalSections])
 
   useEffect(() => {
@@ -689,6 +698,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   return (
     <div ref={containerRef} className="hero-container cosmos-style">
       <style>{`
+        /* z-index 令牌系统: canvas(0) < sidebar(10) < scroll(2) < hero(3) < toast(9999) */
         .hero-container {
           flex: 1;
           min-height: 0;
@@ -712,7 +722,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
         }
         .hero-content {
           position: relative;
-          z-index: 2;
+          z-index: 3;
           opacity: 0;
           display: flex;
           flex-direction: column;
@@ -777,7 +787,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
         }
         .scroll-sections {
           position: relative;
-          z-index: 3;
+          z-index: 2;
         }
         .content-section {
           min-height: 100vh;
@@ -798,12 +808,23 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           z-index: 2;
           position: relative;
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-container *,
+          .hero-container *::before,
+          .hero-container *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
       `}</style>
 
       <canvas ref={canvasRef} className="hero-canvas" />
 
       {/* Hero content */}
-      <div ref={heroContentRef} className="hero-content cosmos-content">
+      <div ref={heroContentRef} className="hero-content cosmos-content"
+        style={{ opacity: Math.max(0, 1 - scrollProgress * totalSections) }}
+      >
         <h1 ref={titleRef} className="hero-title">
           {splitTitle(sections[0]?.title || 'DISCOVER')}
         </h1>
@@ -816,10 +837,9 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
         {sections[0]?.render && (
           <div
             ref={searchBarRef}
-            className="relative z-20 w-full max-w-md mx-auto mt-8"
-            style={{ opacity: Math.max(0, 1 - scrollProgress * totalSections) }}
+            className="relative z-20 w-full mx-auto mt-8"
           >
-            {sections[0].render()}
+            {React.useMemo(() => sections[0].render?.(), [sections[0]])}
           </div>
         )}
       </div>
@@ -846,8 +866,12 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       {/* Scroll sections */}
       <div className="scroll-sections">
         {sections.slice(1).map((section, i) => {
+          const s = i + 1
+          const dist = Math.abs(currentSection - s)
+          const secOpacity = dist >= 1 ? 0 : 1 - dist
           return (
             <section key={i} className="content-section">
+              <div style={{ opacity: secOpacity, transition: 'opacity 0.3s linear' }}>
               <h1 className="hero-title">{splitTitle(section.title)}</h1>
               <div className="hero-subtitle cosmos-subtitle">
                 <p className="subtitle-line">{section.subtitle.line1}</p>
@@ -858,6 +882,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
                   {section.render()}
                 </div>
               )}
+              </div>
             </section>
           )
         }

@@ -12,11 +12,13 @@
     },
     "shadcn": {
       "type": "stdio",
-      "command": "npx",
+      "command": "pnpm",
       "args": [
+        "exec",
         "shadcn",
         "mcp"
-      ]
+      ],
+      "cwd": "E:/Ninewood/client-react"
     }
   }
 }

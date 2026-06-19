@@ -34,6 +34,15 @@ const createSchema = z.object({
   amountEstimate: z.coerce.number().optional(),
   expireAt: z.string().min(1),
   circleId: z.string().optional(),
+  // AI 2.5 新字段
+  expectedOutcome: z.string().min(1).max(500).optional(),
+  visibilityWindow: z.coerce.number().min(1).max(1440).optional(),
+  maxApplicants: z.coerce.number().min(1).max(100).optional(),
+  tags: z.union([z.string(), z.array(z.string())]).transform(v => typeof v === 'string' ? v.split(',').filter(Boolean) : v).optional(),
+  aiTags: z.union([z.string(), z.array(z.string())]).transform(v => typeof v === 'string' ? v.split(',').filter(Boolean) : v).optional(),
+  tagsConfirmed: z.coerce.boolean().optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
 });
 
 /**
@@ -405,5 +414,128 @@ demandRouter.put('/:id/push', authMiddleware, async (req, res) => {
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '参数验证失败', 400, e.errors);
     fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ═══════ AI 2.5: 两段式接单 ═══════
+
+const requestSchema = z.object({ message: z.string().min(1).max(500) });
+
+// POST /api/demands/:id/request — 请求接单 (Phase 1)
+demandRouter.post('/:id/request', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const data = requestSchema.parse(req.body);
+    const result = await demandService.requestDemand(
+      req.params.id,
+      req.user!.userId,
+      data.message,
+    );
+    success(res, result, '已申请', 201);
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    if (e.message?.includes('满员') || e.message?.includes('上限')) {
+      return fail(res, e.message, 429);
+    }
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/demands/:id/accept/:applicantId — 正式接单 (Phase 2)
+demandRouter.post('/:id/accept/:applicantId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await demandService.acceptApplicant(
+      req.params.id,
+      req.params.applicantId,
+      req.user!.userId,
+    );
+    success(res, result, '已接受');
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/demands/:id/reject/:applicantId — 拒绝申请
+demandRouter.post('/:id/reject/:applicantId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await demandService.rejectApplicant(
+      req.params.id,
+      req.params.applicantId,
+      req.user!.userId,
+    );
+    success(res, result, '已拒绝');
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// GET /api/demands/:id/applicants-v2 — 获取 V2 申请人列表
+demandRouter.get('/:id/applicants-v2', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const apps = await demandService.getApplicantsV2(req.params.id, req.user!.userId);
+    success(res, apps);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/demands/:id/withdraw — 自行撤回
+demandRouter.post('/:id/withdraw', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await demandService.withdrawDemand(req.params.id, req.user!.userId);
+    success(res, result, '已撤回');
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ═══ AI 2.8: 弹性延期 ═══
+const lifecycleExtendSchema = z.object({
+  months: z.coerce.number().int().min(1).max(12),
+});
+
+// POST /api/demands/:id/extend-lifecycle
+demandRouter.post('/:id/extend-lifecycle', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { months } = lifecycleExtendSchema.parse(req.body);
+    const { prisma } = await import('../lib/prisma.js');
+    const { extendLifecycle } = await import('../services/card-lifecycle.js');
+
+    const demand = await prisma.demand.findUnique({ where: { id: req.params.id } });
+    if (!demand) return fail(res, '需求不存在', 404);
+    if (demand.userId !== req.user!.userId) return fail(res, '无权操作', 403);
+
+    if (!demand.coverDeletedAt || !demand.detailDeletedAt || !demand.fullDeletedAt) {
+      // 初始化生命周期（兼容旧数据）
+      const { initLifecycle } = await import('../services/card-lifecycle.js');
+      const init = initLifecycle(demand.visibilityWindow);
+      await prisma.demand.update({
+        where: { id: demand.id },
+        data: init,
+      });
+      demand.coverDeletedAt = init.coverDeletedAt;
+      demand.detailDeletedAt = init.detailDeletedAt;
+      demand.fullDeletedAt = init.fullDeletedAt;
+    }
+
+    const { newCover, newDetail, newFull } = extendLifecycle(
+      demand.coverDeletedAt,
+      demand.detailDeletedAt,
+      demand.fullDeletedAt,
+      months,
+    );
+
+    await prisma.demand.update({
+      where: { id: demand.id },
+      data: {
+        coverDeletedAt: newCover,
+        detailDeletedAt: newDetail,
+        fullDeletedAt: newFull,
+      },
+    });
+
+    success(res, { newCoverDeletedAt: newCover, newDetailDeletedAt: newDetail, newFullDeletedAt: newFull });
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '参数错误', 400, e.errors);
+    fail(res, e.message || 'server error', 500);
   }
 });

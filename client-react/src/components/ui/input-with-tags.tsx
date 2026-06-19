@@ -103,7 +103,7 @@ const InputWithTags = ({
           placeholder={placeholder || "Type something and press Enter..."}
           whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.12)" }}
           whileTap={{ scale: 0.99, backgroundColor: "rgba(255,255,255,0.08)" }}
-          className="w-full px-4 py-2 bg-white/10 border-none rounded-xl backdrop-blur-sm text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-2 bg-white/15 border border-white/10 rounded-xl backdrop-blur-md text-white placeholder:text-white/40 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ outline: 'none', boxShadow: 'none', WebkitAppearance: 'none' }}
           disabled={limit ? tags.length >= limit : false}
         />

@@ -35,4 +35,23 @@ export const demandApi = {
   getMyStatus() {
     return api.get('/demands/my-status')
   },
+  // AI 2.5
+  requestDemand(id: string, message: string) {
+    return api.post(`/demands/${id}/request`, { message })
+  },
+  acceptApplicant(id: string, applicantId: string) {
+    return api.post(`/demands/${id}/accept/${applicantId}`)
+  },
+  rejectApplicant(id: string, applicantId: string) {
+    return api.post(`/demands/${id}/reject/${applicantId}`)
+  },
+  getApplicantsV2(id: string) {
+    return api.get(`/demands/${id}/applicants-v2`)
+  },
+  withdrawDemand(id: string) {
+    return api.post(`/demands/${id}/withdraw`)
+  },
+  searchProviders(params: { tagName?: string; regionId?: number; page?: number }) {
+    return api.get('/providers/search', { params })
+  },
 }
