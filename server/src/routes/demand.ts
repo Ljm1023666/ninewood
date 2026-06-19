@@ -3,7 +3,7 @@ import { snatchLimiter } from '../middleware/rate-limit.js';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
 import { upload, verifyUpload } from '../middleware/upload.js';
-import { demandService } from '../services/demand.service.js';
+import { demandService, extendComm } from '../services/demand.service.js';
 import { success, fail, paginated } from '../utils/response.js';
 import { q } from '../utils/query.js';
 import { poolService } from '../services/pool.service.js';
@@ -35,7 +35,7 @@ const createSchema = z.object({
   expireAt: z.string().min(1),
   circleId: z.string().optional(),
   // AI 2.5 新字段
-  expectedOutcome: z.string().min(1).max(500).optional(),
+  expectedOutcome: z.string().min(1).max(500),
   visibilityWindow: z.coerce.number().min(1).max(1440).optional(),
   maxApplicants: z.coerce.number().min(1).max(100).optional(),
   tags: z.union([z.string(), z.array(z.string())]).transform(v => typeof v === 'string' ? v.split(',').filter(Boolean) : v).optional(),
@@ -156,11 +156,12 @@ demandRouter.post('/', authMiddleware, upload.fields([
     if (files.images) files.images.forEach(f => mediaUrls.push(`/uploads/${f.filename}`));
     if (files.video) files.video.forEach(f => mediaUrls.push(`/uploads/${f.filename}`));
 
+    const io = req.app.get('io');
     const demand = await demandService.create({
       userId: req.user!.userId,
       ...data,
       mediaUrls,
-    });
+    }, io);
 
     success(res, demand, '发布成功', 201);
   } catch (e: any) {
@@ -474,6 +475,28 @@ demandRouter.get('/:id/applicants-v2', authMiddleware, async (req: Request, res:
     const apps = await demandService.getApplicantsV2(req.params.id, req.user!.userId);
     success(res, apps);
   } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/demands/:id/extend-comm — 延长沟通窗口
+const extendCommSchema = z.object({
+  applicantId: z.string().uuid(),
+  minutes: z.coerce.number().int().min(1).max(60),
+});
+
+demandRouter.post('/:id/extend-comm', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const data = extendCommSchema.parse(req.body);
+    const result = await extendComm(
+      req.params.id,
+      data.applicantId,
+      req.user!.userId,
+      data.minutes,
+    );
+    success(res, result, '已延长沟通时间');
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
     fail(res, e.message || '服务器错误', e.status || 500);
   }
 });
