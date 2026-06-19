@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  ChevronLeft,
-  Send,
-  Smile,
-} from 'lucide-react'
+import { ChevronLeft, Send, Smile } from 'lucide-react'
 import { useUserStore } from '@/stores/user'
 import { useChatStore, type ChatMessage } from '@/stores/chat'
 import { messageApi } from '@/api/message'
@@ -223,160 +219,169 @@ export default function ChatDetail() {
     <>
       <BackButton />
       <TemplateChatRightShell
-      embedInLayout
-      currentChat={{
-        id: isMergeChat ? `merge:${currentMergeId}` : peerId,
-        name: peerNickname,
-        message: '',
-        image: isMergeChat ? '' : peerUser?.avatarUrl?.trim() || '',
-      }}
-      avatarFallback={peerNickname.slice(0, 2)}
-      onProfileClick={
-        !isMergeChat && peerId
-          ? () => navigate(`/profile/${peerId}`)
-          : undefined
-      }
-      headerLeading={
-        <Button
-          variant="ghost"
-          size="icon"
-          type="button"
-          className="shrink-0"
-          aria-label="返回会话列表"
-          onClick={() => navigate('/messages')}
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-      }
-      middle={
-        <div
-          ref={listRef}
-          className="thin-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-bg-primary px-2 py-2"
-        >
-          {initialLoading && messages.length === 0 ? (
-            <div className="flex flex-col gap-3 px-4 pt-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'flex items-end gap-2',
-                    i % 2 === 0 ? 'flex-row-reverse' : 'flex-row',
-                  )}
-                >
-                  {i % 2 !== 0 && <div className="size-8 shrink-0" />}
-                  <div className={cn(
-                    'flex flex-col gap-1',
-                    i % 2 === 0 ? 'items-end' : 'items-start',
-                  )}>
-                    <Skeleton className={cn(
-                      'h-8 rounded-2xl',
-                      i % 2 === 0 ? 'w-48' : 'w-36',
-                    )} />
-                    <Skeleton className={cn(
-                      'h-8 rounded-2xl',
-                      i % 2 === 0 ? 'w-32' : 'w-44',
-                    )} />
-                  </div>
-                  {i % 2 === 0 && <div className="size-8 shrink-0" />}
-                </div>
-              ))}
-            </div>
-          ) : (
-            messages.map((m: ChatMessage, idx: number) => {
-            const senderId = m.senderId || m.fromUserId
-            return (
-              <div key={m.id || m.createdAt}>
-                <TimeDivider
-                  timestamp={m.createdAt}
-                  prevTimestamp={idx > 0 ? messages[idx - 1].createdAt : null}
-                />
-                <MessageBubble
-                  content={m.content}
-                  isMine={senderId === myId}
-                  type={m.type}
-                  nickname={
-                    isMergeChat
-                      ? (m as any).fromUser?.nickname || '成员'
-                      : peerNickname
-                  }
-                  avatarUrl={
-                    isMergeChat
-                      ? (m as any).fromUser?.avatarUrl || ''
-                      : senderId === myId
-                        ? userStore.user?.avatarUrl || ''
-                        : peerUser?.avatarUrl || ''
-                  }
-                  hideAvatar={false}
-                  isGroupedWithPrev={false}
-                />
-              </div>
-            )
-          }))}
-        </div>
-      }
-      inputRow={
-        <>
-          {showEmoji ? (
-            <div className="max-h-[200px] shrink-0 overflow-y-auto border-t border-border bg-card px-3 py-2">
-              <div className="flex flex-wrap gap-0.5">
-                {emojis.map((e) => (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => {
-                      setInput(input + e)
-                      setShowEmoji(false)
-                    }}
-                    className="cursor-pointer rounded-md px-2 py-1.5 text-[28px] hover:bg-bg-tertiary"
+        embedInLayout
+        currentChat={{
+          id: isMergeChat ? `merge:${currentMergeId}` : peerId,
+          name: peerNickname,
+          message: '',
+          image: isMergeChat ? '' : peerUser?.avatarUrl?.trim() || '',
+        }}
+        avatarFallback={peerNickname.slice(0, 2)}
+        onProfileClick={
+          !isMergeChat && peerId
+            ? () => navigate(`/profile/${peerId}`)
+            : undefined
+        }
+        headerLeading={
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            className="shrink-0"
+            aria-label="返回会话列表"
+            onClick={() => navigate('/messages')}
+          >
+            <ChevronLeft className="size-5" />
+          </Button>
+        }
+        middle={
+          <div
+            ref={listRef}
+            className="thin-scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-bg-primary px-2 py-2"
+          >
+            {initialLoading && messages.length === 0 ? (
+              <div className="flex flex-col gap-3 px-4 pt-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'flex items-end gap-2',
+                      i % 2 === 0 ? 'flex-row-reverse' : 'flex-row',
+                    )}
                   >
-                    {e}
-                  </button>
+                    {i % 2 !== 0 && <div className="size-8 shrink-0" />}
+                    <div
+                      className={cn(
+                        'flex flex-col gap-1',
+                        i % 2 === 0 ? 'items-end' : 'items-start',
+                      )}
+                    >
+                      <Skeleton
+                        className={cn(
+                          'h-8 rounded-2xl',
+                          i % 2 === 0 ? 'w-48' : 'w-36',
+                        )}
+                      />
+                      <Skeleton
+                        className={cn(
+                          'h-8 rounded-2xl',
+                          i % 2 === 0 ? 'w-32' : 'w-44',
+                        )}
+                      />
+                    </div>
+                    {i % 2 === 0 && <div className="size-8 shrink-0" />}
+                  </div>
                 ))}
               </div>
-            </div>
-          ) : null}
-
-          {/* ActionSheet 暂不可用 */}
-
-          <div className="flex h-12 shrink-0 items-center gap-0.5 border-t border-border bg-card px-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              onClick={() => {
-                setShowEmoji(!showEmoji)
-              }}
-              title="表情"
-            >
-              <Smile className="h-5 w-5" />
-            </Button>
-
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') void send()
-              }}
-              placeholder="输入消息…"
-              className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 text-[15px] text-text-primary shadow-none focus-visible:ring-0"
-            />
-
-            <Button
-              variant="ghost"
-              size="icon"
-              type="button"
-              title="发送"
-              onClick={() => void send()}
-              disabled={!input.trim()}
-            >
-              <Send className="h-5 w-5" />
-            </Button>
+            ) : (
+              messages.map((m: ChatMessage, idx: number) => {
+                const senderId = m.senderId || m.fromUserId
+                return (
+                  <div key={m.id || m.createdAt}>
+                    <TimeDivider
+                      timestamp={m.createdAt}
+                      prevTimestamp={
+                        idx > 0 ? messages[idx - 1].createdAt : null
+                      }
+                    />
+                    <MessageBubble
+                      content={m.content}
+                      isMine={senderId === myId}
+                      type={m.type}
+                      nickname={
+                        isMergeChat
+                          ? (m as any).fromUser?.nickname || '成员'
+                          : peerNickname
+                      }
+                      avatarUrl={
+                        isMergeChat
+                          ? (m as any).fromUser?.avatarUrl || ''
+                          : senderId === myId
+                            ? userStore.user?.avatarUrl || ''
+                            : peerUser?.avatarUrl || ''
+                      }
+                      hideAvatar={false}
+                      isGroupedWithPrev={false}
+                    />
+                  </div>
+                )
+              })
+            )}
           </div>
+        }
+        inputRow={
+          <>
+            {showEmoji ? (
+              <div className="max-h-[200px] shrink-0 overflow-y-auto border-t border-border bg-card px-3 py-2">
+                <div className="flex flex-wrap gap-0.5">
+                  {emojis.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      onClick={() => {
+                        setInput(input + e)
+                        setShowEmoji(false)
+                      }}
+                      className="cursor-pointer rounded-md px-2 py-1.5 text-[28px] hover:bg-bg-tertiary"
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
-          {/* 文件上传暂不可用 */}
-        </>
-      }
-    />
+            {/* ActionSheet 暂不可用 */}
+
+            <div className="flex h-12 shrink-0 items-center gap-0.5 border-t border-border bg-card px-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                onClick={() => {
+                  setShowEmoji(!showEmoji)
+                }}
+                title="表情"
+              >
+                <Smile className="size-5" />
+              </Button>
+
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void send()
+                }}
+                placeholder="输入消息…"
+                className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 text-[15px] text-text-primary shadow-none focus-visible:ring-0"
+              />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                title="发送"
+                onClick={() => void send()}
+                disabled={!input.trim()}
+              >
+                <Send className="size-5" />
+              </Button>
+            </div>
+
+            {/* 文件上传暂不可用 */}
+          </>
+        }
+      />
     </>
   )
 }

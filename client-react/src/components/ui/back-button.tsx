@@ -14,7 +14,7 @@ export function BackButton({ onBack, label = '返回' }: BackButtonProps) {
 
   return (
     <Button variant="link" onClick={handleClick} aria-label={label}>
-      <ChevronLeft className="me-1 opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+      <ChevronLeft className="me-1 opacity-60 size-4" aria-hidden="true" />
       {label}
     </Button>
   )

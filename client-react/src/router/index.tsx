@@ -5,6 +5,7 @@ import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
 
+const Home = lazy(() => import('@/views/Home'))
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
 const MessagesIndexPlaceholder = lazy(
@@ -23,6 +24,12 @@ const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 const Discover = lazy(() => import('@/views/Discover'))
 const Providers = lazy(() => import('@/views/Providers'))
+const UserTagsManage = lazy(() => import('@/views/UserTagsManage'))
+const PushSettings = lazy(() => import('@/views/PushSettings'))
+const WelfareCenter = lazy(() => import('@/views/WelfareCenter'))
+const TransactionHistory = lazy(() => import('@/views/TransactionHistory'))
+const CircleList = lazy(() => import('@/views/CircleList'))
+const TagStatsDashboard = lazy(() => import('@/views/TagStatsDashboard'))
 const CertifiedSearch = lazy(() => import('@/views/CertifiedSearch'))
 const MyBids = lazy(() => import('@/views/MyBids'))
 const Help = lazy(() => import('@/views/Help'))
@@ -64,27 +71,40 @@ function AuthGuard() {
 
 function GuestGuard() {
   const token = localStorage.getItem('token')
-  if (token) return <Navigate to="/" replace />
+  if (token) return <Navigate to="/discover" replace />
   return <LoginPage />
 }
 
 export const router = createBrowserRouter([
+  /* ── 公共首页（Landing Page，不需要登录） ── */
+  {
+    path: '/',
+    element: (
+      <LazyLoad>
+        <Home />
+      </LazyLoad>
+    ),
+  },
+  /* ── 需要登录的路由 ── */
   {
     element: <AuthGuard />,
     children: [
       {
+        path: 'dashboard',
+        element: (
+          <LazyLoad>
+            <Dashboard />
+          </LazyLoad>
+        ),
+      },
+      {
         element: <Layout />,
         children: [
-          { index: true, element: (
-              <LazyLoad>
-                <Discover />
-              </LazyLoad>
-            )},
           {
-            path: 'dashboard',
+            path: 'discover',
             element: (
               <LazyLoad>
-                <Dashboard />
+                <Discover />
               </LazyLoad>
             ),
           },
@@ -123,14 +143,58 @@ export const router = createBrowserRouter([
           },
           { path: 'settings', element: <Settings /> },
           {
-            path: 'discover',
-            element: <Navigate to="/" replace />,
-          },
-          {
             path: 'providers',
             element: (
               <LazyLoad>
                 <Providers />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'my-tags-manage',
+            element: (
+              <LazyLoad>
+                <UserTagsManage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'push-settings',
+            element: (
+              <LazyLoad>
+                <PushSettings />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'welfare',
+            element: (
+              <LazyLoad>
+                <WelfareCenter />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'transactions',
+            element: (
+              <LazyLoad>
+                <TransactionHistory />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'circles-list',
+            element: (
+              <LazyLoad>
+                <CircleList />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'tag-stats',
+            element: (
+              <LazyLoad>
+                <TagStatsDashboard />
               </LazyLoad>
             ),
           },

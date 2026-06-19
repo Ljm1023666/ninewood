@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Wrench, Check, ChevronRight, ChevronDown } from 'lucide-react'
 import { BackButton } from '@/components/ui/back-button'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -27,6 +28,7 @@ export default function AgentChat() {
   const [loading, setLoading] = useState(false)
   const [thinking, setThinking] = useState(false)
   const [thinkMode, setThinkMode] = useState(true)
+  const [webSearch, setWebSearch] = useState(false)
   const [streamText, setStreamText] = useState('')
   const [thinkingLines, setThinkingLines] = useState<string[]>([])
   const [thinkingCollapsed, setThinkingCollapsed] = useState(false)
@@ -140,7 +142,7 @@ export default function AgentChat() {
     setToolCalls([])
     setThinking(true)
 
-    const stream = streamMessage(convId, text, thinkMode)
+    const stream = streamMessage(convId, text, thinkMode, undefined, webSearch)
     abortRef.current = stream.abort
 
     let currentThinkLines: string[] = []
@@ -251,18 +253,20 @@ export default function AgentChat() {
   }
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100">
-      <BackButton />
+    <div className="flex h-full min-h-0 bg-background text-foreground">
+      <div className="absolute left-4 top-4 z-50">
+        <BackButton />
+      </div>
       {/* 侧边栏 */}
       <div
         className={`${
           sidebarOpen ? 'w-72' : 'w-0'
-        } transition-all duration-200 overflow-hidden border-r border-zinc-800 flex flex-col`}
+        } transition-all duration-200 overflow-hidden border-r border-border flex flex-col`}
       >
-        <div className="p-4 border-b border-zinc-800">
+        <div className="p-4 border-b border-border">
           <button
             onClick={handleNewChat}
-            className="w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            className="w-full py-2.5 px-4 bg-muted hover:bg-muted text-foreground rounded-lg text-sm font-medium transition-colors cursor-pointer"
           >
             + 新建对话
           </button>
@@ -275,13 +279,13 @@ export default function AgentChat() {
               onClick={() => selectConversation(conv.id)}
               className={`group flex items-center px-4 py-3 cursor-pointer transition-colors ${
                 activeId === conv.id
-                  ? 'bg-zinc-800 border-l-2 border-zinc-400'
-                  : 'hover:bg-zinc-900 border-l-2 border-transparent'
+                  ? 'bg-muted border-l-2 border-accent'
+                  : 'hover:bg-secondary border-l-2 border-transparent'
               }`}
             >
               <div className="flex-1 min-w-0">
                 <div className="text-sm truncate">{conv.title}</div>
-                <div className="text-xs text-zinc-500 mt-0.5">
+                <div className="text-xs text-muted mt-0.5">
                   {conv._count.messages} 条消息
                   {conv.thinkMode && ' · 思考'}
                 </div>
@@ -291,7 +295,7 @@ export default function AgentChat() {
                   e.stopPropagation()
                   handleDelete(conv.id)
                 }}
-                className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400 text-xs px-1.5 py-0.5 transition-all cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 text-muted hover:text-red-400 text-xs px-1.5 py-0.5 transition-all cursor-pointer"
               >
                 删除
               </button>
@@ -303,23 +307,32 @@ export default function AgentChat() {
       {/* 主对话区域 */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* 顶部栏 */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-zinc-500 hover:text-zinc-300 text-lg cursor-pointer"
+            className="text-muted hover:text-foreground text-lg cursor-pointer"
           >
             {sidebarOpen ? '◁' : '▷'}
           </button>
-          <span className="text-sm text-zinc-400 font-medium">AI 助手</span>
+          <span className="text-sm text-secondary font-medium">AI 助手</span>
           <div className="flex-1" />
-          <label className="flex items-center gap-2 text-xs text-zinc-500 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
             <input
               type="checkbox"
               checked={thinkMode}
               onChange={(e) => setThinkMode(e.target.checked)}
-              className="w-3.5 h-3.5 accent-zinc-500 cursor-pointer"
+              className="w-3.5 h-3.5 accent-foreground cursor-pointer"
             />
             深度思考
+          </label>
+          <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
+            <input
+              type="checkbox"
+              checked={webSearch}
+              onChange={(e) => setWebSearch(e.target.checked)}
+              className="w-3.5 h-3.5 accent-blue-500 cursor-pointer"
+            />
+            联网搜索
           </label>
         </div>
 
@@ -327,7 +340,7 @@ export default function AgentChat() {
         <div className="flex-1 overflow-y-auto px-4 py-6">
           {messages.length === 0 && !loading && (
             <div className="flex items-center justify-center h-full">
-              <div className="text-center text-zinc-600">
+              <div className="text-center text-muted">
                 <div className="text-4xl mb-4">九</div>
                 <div className="text-sm">九木 AI 助手</div>
                 <div className="text-xs mt-1">
@@ -345,17 +358,17 @@ export default function AgentChat() {
               <div
                 className={`max-w-[75%] ${
                   msg.role === 'user'
-                    ? 'bg-zinc-800 rounded-2xl rounded-br-md px-4 py-3'
+                    ? 'bg-muted rounded-2xl rounded-br-md px-4 py-3'
                     : ''
                 }`}
               >
                 {/* 思考过程 */}
                 {msg.thinking && (
                   <details className="mb-3">
-                    <summary className="text-xs text-zinc-500 cursor-pointer hover:text-zinc-400">
+                    <summary className="text-xs text-muted cursor-pointer hover:text-secondary">
                       思考过程 ({msg.thinking.split('\n').length} 行)
                     </summary>
-                    <div className="mt-2 text-xs text-zinc-500 bg-zinc-900 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                    <div className="mt-2 text-xs text-muted bg-secondary rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
                       {msg.thinking}
                     </div>
                   </details>
@@ -372,17 +385,19 @@ export default function AgentChat() {
                     {msg.toolCalls.map((tc, i) => (
                       <div
                         key={i}
-                        className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2"
+                        className="bg-secondary border border-border rounded-lg px-3 py-2"
                       >
-                        <div className="text-xs font-medium text-zinc-400 mb-1">
-                          🔧 {tc.name}
+                        <div className="text-xs font-medium text-secondary mb-1">
+                          <Wrench className="size-3 inline mr-1" />
+                          {tc.name}
                         </div>
-                        <div className="text-xs text-zinc-600">
+                        <div className="text-xs text-muted">
                           {JSON.stringify(tc.arguments, null, 2)}
                         </div>
                         {tc.result && (
                           <div className="text-xs text-green-500/70 mt-1">
-                            ✓ {String(tc.result)}
+                            <Check className="size-3 inline mr-1 text-green-500/70" />
+                            {String(tc.result)}
                           </div>
                         )}
                       </div>
@@ -398,13 +413,17 @@ export default function AgentChat() {
             <div className="mb-4">
               <button
                 onClick={() => setThinkingCollapsed(!thinkingCollapsed)}
-                className="text-xs text-zinc-500 hover:text-zinc-400 cursor-pointer"
+                className="text-xs text-muted hover:text-secondary cursor-pointer"
               >
-                {thinkingCollapsed ? '▶' : '▼'} 正在思考... (
-                {thinkingLines.join('').length} 字)
+                {thinkingCollapsed ? (
+                  <ChevronRight className="size-3 inline" />
+                ) : (
+                  <ChevronDown className="size-3 inline" />
+                )}{' '}
+                正在思考... ({thinkingLines.join('').length} 字)
               </button>
               {!thinkingCollapsed && (
-                <div className="mt-2 text-xs text-zinc-500 bg-zinc-900 rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                <div className="mt-2 text-xs text-muted bg-secondary rounded-lg p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
                   {thinkingLines.join('')}
                 </div>
               )}
@@ -415,18 +434,22 @@ export default function AgentChat() {
           {toolCalls.map((tc, i) => (
             <div
               key={i}
-              className="mb-3 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 max-w-[75%]"
+              className="mb-3 bg-secondary border border-border rounded-lg px-3 py-2 max-w-[75%]"
             >
-              <div className="text-xs font-medium text-zinc-400">
-                🔧 {tc.name}
+              <div className="text-xs font-medium text-secondary">
+                <Wrench className="size-3 inline mr-1" />
+                {tc.name}
                 {tc.result ? (
-                  <span className="text-green-500/70 ml-2">✓ 完成</span>
+                  <span className="text-green-500/70 ml-2">
+                    <Check className="size-3 inline mr-0.5" />
+                    完成
+                  </span>
                 ) : (
-                  <span className="text-zinc-600 ml-2">执行中...</span>
+                  <span className="text-muted ml-2">执行中...</span>
                 )}
               </div>
               {tc.result && (
-                <div className="text-xs text-zinc-500 mt-1">{tc.result}</div>
+                <div className="text-xs text-muted mt-1">{tc.result}</div>
               )}
             </div>
           ))}
@@ -443,9 +466,9 @@ export default function AgentChat() {
           {/* 加载指示器 */}
           {loading && !streamText && !thinking && toolCalls.length === 0 && (
             <div className="flex gap-1.5 mb-6">
-              <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce [animation-delay:0.1s]" />
-              <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-2 h-2 bg-muted rounded-full animate-bounce" />
+              <div className="w-2 h-2 bg-muted rounded-full animate-bounce [animation-delay:0.1s]" />
+              <div className="w-2 h-2 bg-muted rounded-full animate-bounce [animation-delay:0.2s]" />
             </div>
           )}
 
@@ -453,7 +476,7 @@ export default function AgentChat() {
         </div>
 
         {/* 输入区域 */}
-        <div className="border-t border-zinc-800 p-4">
+        <div className="border-t border-border p-4">
           <div className="flex items-end gap-3 max-w-3xl mx-auto">
             <textarea
               ref={inputRef}
@@ -462,12 +485,12 @@ export default function AgentChat() {
               onKeyDown={handleKeyDown}
               placeholder="输入消息... (Enter 发送, Shift+Enter 换行)"
               rows={1}
-              className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 resize-none focus:outline-none focus:border-zinc-600"
+              className="flex-1 bg-secondary border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-text-muted resize-none focus:outline-none focus:border-zinc-600"
             />
             {loading ? (
               <button
                 onClick={handleStop}
-                className="px-4 py-3 bg-red-900/50 hover:bg-red-900/70 text-red-300 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+                className="px-4 py-3 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded-xl text-sm font-medium transition-colors cursor-pointer"
               >
                 停止
               </button>
@@ -475,7 +498,7 @@ export default function AgentChat() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 text-zinc-100 rounded-xl text-sm font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
+                className="px-4 py-3 bg-muted hover:bg-muted disabled:opacity-30 text-foreground rounded-xl text-sm font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 发送
               </button>

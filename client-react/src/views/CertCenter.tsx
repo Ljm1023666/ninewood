@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { userApi } from '@/api/user'
 import { certLabel, certColor } from '@/constants/cert'
 
-import { BackButton } from '@/components/ui/back-button'
+import { PageHeader } from '@/components/layout/PageHeader'
 
 const steps = [
   { level: 'NONE', label: '未认证', desc: '初始状态' },
@@ -47,16 +47,14 @@ export default function CertCenter() {
     (certColor as any)[certStatus?.certificationLevel] || '#6b7280'
 
   return (
-    <div className="relative flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
-      <div className="absolute top-4 left-4 z-10">
-        <BackButton />
-      </div>
-      <div className="relative z-10 box-border flex w-full max-w-4xl shrink-0 flex-col self-center px-5 pb-12 md:px-10 pt-16">
-        <section className="pb-4 pt-4 mb-6">
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
-            认证中心
-          </h1>
-        </section>
+    <div className="relative flex h-full min-h-0 w-full min-w-0 flex-col items-center overflow-y-auto thin-scroll bg-bg-primary">
+      <div className="w-full max-w-4xl px-5 md:px-10 pt-8 pb-12">
+        <PageHeader
+          title="认证中心"
+          onBack="back"
+          divider={false}
+          className="mb-6"
+        />
 
         {certStatus && (
           <section className="relative mb-8 overflow-hidden rounded-[20px] border border-border bg-card p-7">

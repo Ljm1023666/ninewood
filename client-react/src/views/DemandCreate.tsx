@@ -22,6 +22,7 @@ import {
   Check,
   Zap,
   Plus,
+  ChevronDown,
 } from 'lucide-react'
 
 let _msgId = 0
@@ -47,7 +48,10 @@ function formatAIText(text: string): string {
     .replace(/>/g, '&gt;')
 
   // 加粗 **text**
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-text-primary">$1</strong>')
+  html = html.replace(
+    /\*\*(.+?)\*\*/g,
+    '<strong class="font-semibold text-text-primary">$1</strong>',
+  )
 
   // 按双换行分段
   const paragraphs = html.split(/\n\n+/)
@@ -58,10 +62,10 @@ function formatAIText(text: string): string {
 
       // 检测有序列表（每行以数字+点号开头）
       const lines = trimmed.split('\n')
-      const isOrderedList = lines.every((l) => /^\d+[\.\)]\s/.test(l.trim()))
+      const isOrderedList = lines.every((l) => /^\d+[.)]\s/.test(l.trim()))
       if (isOrderedList && lines.length > 1) {
         const items = lines
-          .map((l) => `<li>${l.trim().replace(/^\d+[\.\)]\s*/, '')}</li>`)
+          .map((l) => `<li>${l.trim().replace(/^\d+[.)]\s*/, '')}</li>`)
           .join('')
         return `<ol class="list-decimal pl-5 my-2 space-y-1">${items}</ol>`
       }
@@ -151,7 +155,7 @@ function ThinkingPanel({
           <span
             className={`inline-block transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
           >
-            ▼
+            <ChevronDown className="size-3.5" />
           </span>
         </button>
         {isLoading && (
@@ -213,7 +217,9 @@ export default function DemandCreate() {
       }
     `
     document.head.appendChild(style)
-    return () => { document.head.removeChild(style) }
+    return () => {
+      document.head.removeChild(style)
+    }
   }, [])
 
   const workspaceFields = useDemandWorkspaceStore((s) => s.fields)
@@ -325,12 +331,12 @@ export default function DemandCreate() {
   }, [])
 
   // Refs for handlers declared after sendMessage (avoids useBeforeDefine)
-  const handleAggressiveModeRef = useRef<(text: string, signal: AbortSignal) => Promise<void>>(
-    undefined as any,
-  )
-  const handleCanvasModeRef = useRef<(text: string, signal: AbortSignal) => Promise<void>>(
-    undefined as any,
-  )
+  const handleAggressiveModeRef = useRef<
+    (text: string, signal: AbortSignal) => Promise<void>
+  >(undefined as any)
+  const handleCanvasModeRef = useRef<
+    (text: string, signal: AbortSignal) => Promise<void>
+  >(undefined as any)
   const handleDefaultModeRef = useRef<
     (
       history: { role: 'user' | 'assistant'; content: string }[],
@@ -409,7 +415,7 @@ export default function DemandCreate() {
             {
               id: newMsgId(),
               role: 'assistant',
-              content: `📝 已记录答案。还有 ${remaining} 项待回答，请继续输入。`,
+              content: `已记录答案。还有 ${remaining} 项待回答，请继续输入。`,
             },
           ])
         }
@@ -459,7 +465,8 @@ export default function DemandCreate() {
       applyAnalyze(data)
       const parts: string[] = []
       if (data.title) parts.push(`标题：${data.title}`)
-      if (data.serviceType) parts.push(`类型：${data.serviceType === 'ONLINE' ? '线上' : '线下'}`)
+      if (data.serviceType)
+        parts.push(`类型：${data.serviceType === 'ONLINE' ? '线上' : '线下'}`)
       if (data.budget) parts.push(`预算：${data.budget}`)
       if (data.schedule) parts.push(`时间：${data.schedule}`)
       if (data.category) parts.push(`分类：${data.category}`)
@@ -467,7 +474,11 @@ export default function DemandCreate() {
       if (parts.length > 0) {
         setMessages((prev) => [
           ...prev,
-          { id: newMsgId(), role: 'assistant', content: `📋 ${parts.join(' · ')}` },
+          {
+            id: newMsgId(),
+            role: 'assistant',
+            content: `${parts.join(' · ')}`,
+          },
         ])
       }
     },
@@ -483,7 +494,7 @@ export default function DemandCreate() {
         {
           id: assistantId,
           role: 'assistant',
-          content: '⚡ 正在生成需求草稿…',
+          content: '正在生成需求草稿…',
           isStreaming: true,
         },
       ])
@@ -520,7 +531,7 @@ export default function DemandCreate() {
               m.id === assistantId
                 ? {
                     ...m,
-                    content: '⚡ 已生成需求草稿，确认无误后发布',
+                    content: '已生成需求草稿，确认无误后发布',
                     isStreaming: false,
                   }
                 : m,
@@ -532,7 +543,7 @@ export default function DemandCreate() {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: '⚡ 分析异常，请重试', isStreaming: false }
+              ? { ...m, content: '分析异常，请重试', isStreaming: false }
               : m,
           ),
         )
@@ -627,11 +638,11 @@ export default function DemandCreate() {
                 if (!s.fieldOverrides.has('title')) s.toggleLock('title')
               }
               ensure(
-                `📝 ${r.summary || '已分析需求'}\n\n` +
+                `${r.summary || '已分析需求'}\n\n` +
                   (r.missingInfo?.length
-                    ? `⚠️ 还需补充：${r.missingInfo.join('、')}`
+                    ? `还需补充：${r.missingInfo.join('、')}`
                     : r.readyToPublish
-                      ? '✅ 信息完整，可以发布'
+                      ? '信息完整，可以发布'
                       : ''),
               )
             } catch {
@@ -699,7 +710,7 @@ export default function DemandCreate() {
         {
           id: newMsgId(),
           role: 'assistant',
-          content: '✅ 已综合所有回答更新工作区。',
+          content: '已综合所有回答更新工作区。',
         },
       ])
     } catch {
@@ -916,7 +927,8 @@ export default function DemandCreate() {
         if (f.regionId) fd.append('regionId', String(f.regionId))
         if (f.tagName) fd.append('tagName', f.tagName)
         if (f.isCertifiedOnly) fd.append('isCertifiedOnly', 'true')
-        if (f.amountEstimate) fd.append('amountEstimate', String(f.amountEstimate))
+        if (f.amountEstimate)
+          fd.append('amountEstimate', String(f.amountEstimate))
         if (f.pushConfig) fd.append('pushConfig', JSON.stringify(f.pushConfig))
         if (f.coverImage) fd.append('coverImage', f.coverImage)
         await demandApi.create(fd)
@@ -1056,7 +1068,7 @@ export default function DemandCreate() {
               {messages.length === 0 && !loading && (
                 <div className="flex flex-col items-center gap-4 py-4">
                   <div className="flex size-14 items-center justify-center rounded-2xl bg-bg-card border border-border">
-                    <Sparkles className="size-7 text-purple-500 dark:text-purple-400/60" />
+                    <Sparkles className="size-5 text-foreground" />
                   </div>
                   <div className="text-center">
                     <h1 className="text-2xl font-bold text-text-primary">
@@ -1094,7 +1106,8 @@ export default function DemandCreate() {
                   }
 
                   // AI 消息折叠
-                  const isCollapsed = !msg.isStreaming && !isLastMsg && !expandedIds.has(msg.id)
+                  const isCollapsed =
+                    !msg.isStreaming && !isLastMsg && !expandedIds.has(msg.id)
                   if (isCollapsed) {
                     return (
                       <motion.div
@@ -1105,7 +1118,9 @@ export default function DemandCreate() {
                       >
                         <button
                           type="button"
-                          onClick={() => setExpandedIds((prev) => new Set([...prev, msg.id]))}
+                          onClick={() =>
+                            setExpandedIds((prev) => new Set([...prev, msg.id]))
+                          }
                           className="py-1 text-left w-full hover:bg-bg-secondary/30 rounded-sm px-1 -mx-1 transition-colors"
                         >
                           <span className="text-sm text-text-muted line-clamp-1">
@@ -1130,11 +1145,13 @@ export default function DemandCreate() {
                           <div className="flex justify-end mb-1">
                             <button
                               type="button"
-                              onClick={() => setExpandedIds((prev) => {
-                                const next = new Set(prev)
-                                next.delete(msg.id)
-                                return next
-                              })}
+                              onClick={() =>
+                                setExpandedIds((prev) => {
+                                  const next = new Set(prev)
+                                  next.delete(msg.id)
+                                  return next
+                                })
+                              }
                               className="text-xs text-text-muted hover:text-text-secondary"
                             >
                               收起 ↑
@@ -1175,45 +1192,63 @@ export default function DemandCreate() {
                               )}
                               {msg.toolCall.arguments.serviceType && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
-                                  <span className="text-text-muted">服务类型</span>
+                                  <span className="text-text-muted">
+                                    服务类型
+                                  </span>
                                   <p className="text-text-secondary mt-0.5 inline-flex items-center gap-1">
-                                    {msg.toolCall.arguments.serviceType === 'ONLINE' ? (
-                                      <Monitor className="size-3 text-blue-400/60" />
+                                    {msg.toolCall.arguments.serviceType ===
+                                    'ONLINE' ? (
+                                      <Monitor className="size-3 text-accent/60" />
                                     ) : (
-                                      <MapPin className="size-3 text-orange-400/60" />
+                                      <MapPin className="size-3 text-warning/60" />
                                     )}
-                                    {msg.toolCall.arguments.serviceType === 'ONLINE' ? '线上' : '线下'}
+                                    {msg.toolCall.arguments.serviceType ===
+                                    'ONLINE'
+                                      ? '线上'
+                                      : '线下'}
                                   </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.budget && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
                                   <span className="text-text-muted">预算</span>
-                                  <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.budget}</p>
+                                  <p className="text-text-secondary mt-0.5">
+                                    {msg.toolCall.arguments.budget}
+                                  </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.schedule && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
                                   <span className="text-text-muted">时间</span>
-                                  <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.schedule}</p>
+                                  <p className="text-text-secondary mt-0.5">
+                                    {msg.toolCall.arguments.schedule}
+                                  </p>
                                 </div>
                               )}
                               {msg.toolCall.arguments.category && (
                                 <div className="rounded-lg bg-bg-secondary px-3 py-2">
                                   <span className="text-text-muted">分类</span>
-                                  <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.category}</p>
+                                  <p className="text-text-secondary mt-0.5">
+                                    {msg.toolCall.arguments.category}
+                                  </p>
                                 </div>
                               )}
                             </div>
                             {msg.toolCall.arguments.description && (
                               <div className="rounded-lg bg-bg-secondary px-3 py-2 mb-3 text-sm">
-                                <span className="text-text-muted">详细描述</span>
-                                <p className="text-text-secondary mt-0.5">{msg.toolCall.arguments.description}</p>
+                                <span className="text-text-muted">
+                                  详细描述
+                                </span>
+                                <p className="text-text-secondary mt-0.5">
+                                  {msg.toolCall.arguments.description}
+                                </p>
                               </div>
                             )}
                             <button
                               type="button"
-                              onClick={() => handlePublishFromChat(msg.toolCall!)}
+                              onClick={() =>
+                                handlePublishFromChat(msg.toolCall!)
+                              }
                               disabled={publishing}
                               className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
                             >
@@ -1280,25 +1315,25 @@ export default function DemandCreate() {
         <div className="flex-1 min-w-0 overflow-y-auto thin-scroll">
           <div className="w-full max-w-lg mx-auto py-6 px-6">
             {canvasMode ? (
-                <div className="flex items-start justify-center pt-12">
-                  <CanvasCardBack fields={workspaceFields} />
+              <div className="flex items-start justify-center pt-12">
+                <CanvasCardBack fields={workspaceFields} />
+              </div>
+            ) : messages.length === 0 && !workspaceFields.title ? (
+              <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-bg-card border border-border mb-4">
+                  <Sparkles className="size-5 text-text-muted/60" />
                 </div>
-              ) : messages.length === 0 && !workspaceFields.title ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-bg-card border border-border mb-4">
-                    <Sparkles className="size-6 text-text-muted/60" />
-                  </div>
-                  <p className="text-sm text-text-muted max-w-48 leading-relaxed">
-                    在左侧描述你的需求，AI 会同步整理到这里
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <WorkspaceSummary />
-                  <WorkspaceFields />
-                  <WorkspaceTools />
-                </div>
-              )}
+                <p className="text-sm text-text-muted max-w-48 leading-relaxed">
+                  在左侧描述你的需求，AI 会同步整理到这里
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <WorkspaceSummary />
+                <WorkspaceFields />
+                <WorkspaceTools />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1307,11 +1342,16 @@ export default function DemandCreate() {
 }
 
 /** Canvas 模式卡牌 —— 3D 翻转：正面封面 + 背面 InfoCard */
-function CanvasCardBack({ fields }: { fields: ReturnType<typeof useDemandWorkspaceStore.getState>['fields'] }) {
+function CanvasCardBack({
+  fields,
+}: {
+  fields: ReturnType<typeof useDemandWorkspaceStore.getState>['fields']
+}) {
   const [flipped, setFlipped] = useState(true)
   const manualRef = useRef(false)
   const currentUser = useUserStore((s) => s.user)
-  const coverUrl = currentUser?.coverUrl || publisherUserCoverPreset(currentUser?.id)
+  const coverUrl =
+    currentUser?.coverUrl || publisherUserCoverPreset(currentUser?.id)
   const title = fields.title || '标题待写入…'
   const description = fields.description || '描述内容将随输入同步写入卡牌背面…'
   const budgetNum = parseBudgetStr(fields.budget)
@@ -1341,7 +1381,10 @@ function CanvasCardBack({ fields }: { fields: ReturnType<typeof useDemandWorkspa
         {/* 正面：封面图 + 标题色条（价格驱动 shimmer 颜色） */}
         <div
           className="absolute inset-0 overflow-hidden rounded-3xl shadow-lg"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(0deg) translateZ(0)' }}
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(0deg) translateZ(0)',
+          }}
         >
           <img
             src={publisherUserCoverPreset(undefined)}
@@ -1353,16 +1396,22 @@ function CanvasCardBack({ fields }: { fields: ReturnType<typeof useDemandWorkspa
               className={cn(
                 'relative shrink-0 flex w-full justify-center overflow-hidden px-4 backdrop-blur-sm [text-rendering:optimizeLegibility]',
                 budgetNum > 0
-                  ? budgetNum > 10000 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--rainbow'
-                  : budgetNum > 3000 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--gold'
-                  : budgetNum > 1000 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--red'
-                  : budgetNum > 500 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--orange'
-                  : budgetNum > 100 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--violet'
-                  : budgetNum > 10 ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--blue'
-                  : 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--green'
+                  ? budgetNum > 10000
+                    ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--rainbow'
+                    : budgetNum > 3000
+                      ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--gold'
+                      : budgetNum > 1000
+                        ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--red'
+                        : budgetNum > 500
+                          ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--orange'
+                          : budgetNum > 100
+                            ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--violet'
+                            : budgetNum > 10
+                              ? 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--blue'
+                              : 'flip-card-title-bar-shimmer flip-card-title-bar-shimmer--green'
                   : 'bg-black/40',
               )}
-            style={{ paddingTop: 16, paddingBottom: 16 }}
+              style={{ paddingTop: 16, paddingBottom: 16 }}
             >
               <h3 className="relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight text-white [text-shadow:none]">
                 {title}
@@ -1374,7 +1423,10 @@ function CanvasCardBack({ fields }: { fields: ReturnType<typeof useDemandWorkspa
         {/* 背面：InfoCard */}
         <div
           className="absolute inset-0 overflow-hidden rounded-3xl shadow-lg"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg) translateZ(2px)' }}
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg) translateZ(2px)',
+          }}
         >
           <InfoCard
             fillContainer

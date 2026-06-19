@@ -4,656 +4,504 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 const DEFAULT_PASSWORD = '1';
 
-const testUsers = [
-  { phone: '13800000001', nickname: '张师傅', bio: '20年水电维修经验，持电工证，北京朝阳区随叫随到', cityCode: '110000', cert: 'ADVANCED' as const, credit: 92, orders: 68, role: 'ADMIN' as const },
-  { phone: '13800000002', nickname: '李设计', bio: 'UI/UX设计师，擅长品牌视觉和移动端界面', cityCode: '310000', cert: 'INTERMEDIATE' as const, credit: 78, orders: 25 },
-  { phone: '13800000003', nickname: '王同学', bio: '计算机大三学生，课余接单，熟悉前端和Python', cityCode: '110000', cert: 'BASIC' as const, credit: 62, orders: 6 },
-  { phone: '13800000004', nickname: '赵阿姨', bio: '10年家政经验，擅长深度保洁和收纳整理', cityCode: '440100', cert: 'ADVANCED' as const, credit: 95, orders: 82 },
-  { phone: '13800000005', nickname: '刘工头', bio: '装修队长，带领5人团队，擅长旧房翻新和水电改造', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 74, orders: 31 },
-  { phone: '13800000006', nickname: '陈老师', bio: '重点中学数学教师，辅导中高考数学10年', cityCode: '330100', cert: 'ADVANCED' as const, credit: 88, orders: 45 },
-  { phone: '13800000007', nickname: '周跑腿', bio: '成都同城跑腿，电动车全城可达，代买代送代排队', cityCode: '510100', cert: 'BASIC' as const, credit: 66, orders: 11 },
-  { phone: '13800000008', nickname: '吴摄影', bio: '自由摄影师，擅长人像和活动跟拍，设备Sony A7M4', cityCode: '110000', cert: 'INTERMEDIATE' as const, credit: 80, orders: 19 },
-  { phone: '13800000009', nickname: '郑律师', bio: '执业律师，擅长合同纠纷和劳动仲裁', cityCode: '310000', cert: 'ADVANCED' as const, credit: 90, orders: 55 },
-  { phone: '13800000010', nickname: '钱医生', bio: '三甲医院内科主治医师，提供健康咨询', cityCode: '320100', cert: 'ADVANCED' as const, credit: 86, orders: 41 },
-  { phone: '13800000011', nickname: '孙司机', bio: '搬家货运司机，4.2米厢式货车，广州佛山全境', cityCode: '440100', cert: 'BASIC' as const, credit: 58, orders: 14 },
-  { phone: '13800000012', nickname: '马翻译', bio: '英日双语翻译，CATTI二级，曾为多家外企提供同传', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 76, orders: 22 },
-  { phone: '13800000013', nickname: '朱会计', bio: '注册会计师，代账报税、财务顾问，服务中小企业50+', cityCode: '110000', cert: 'ADVANCED' as const, credit: 93, orders: 60 },
-  { phone: '13800000014', nickname: '胡教练', bio: '健身教练，ACE认证，擅长减脂增肌和体态矫正', cityCode: '510100', cert: 'INTERMEDIATE' as const, credit: 72, orders: 28 },
-  { phone: '13800000015', nickname: '林美容', bio: '美容师，擅长韩式半永久和皮肤管理', cityCode: '500000', cert: 'BASIC' as const, credit: 64, orders: 8 },
-  { phone: '13800000016', nickname: '何码农', bio: '全栈开发10年，Go/React/Python技术栈', cityCode: '330100', cert: 'ADVANCED' as const, credit: 91, orders: 48 },
-  { phone: '13800000017', nickname: '郭厨师', bio: '持证厨师，擅长川菜和粤菜，可上门做家宴', cityCode: '610100', cert: 'INTERMEDIATE' as const, credit: 82, orders: 35 },
-  { phone: '13800000018', nickname: '杨花匠', bio: '园艺师，擅长庭院设计、绿植养护和盆栽造型', cityCode: '530100', cert: 'BASIC' as const, credit: 60, orders: 9 },
-  { phone: '13800000019', nickname: '罗维修', bio: '手机电脑维修，屏幕更换电池更换主板维修', cityCode: '420100', cert: 'INTERMEDIATE' as const, credit: 77, orders: 24 },
-  { phone: '13800000020', nickname: '梁新人', bio: '刚来这个平台，什么都想试试，请大家多多关照', cityCode: '120000', cert: 'NONE' as const, credit: 60, orders: 0 },
+// ====================================================================
+// 50 真实用户 — 涵盖各城市、职业、认证等级
+// ====================================================================
+const realUsers = [
+  // 北京 (110000)
+  { phone: '13901001001', nickname: '张师傅水电', cityCode: '110000', cert: 'ADVANCED' as const, credit: 92, orders: 68, role: 'ADMIN' as const, bio: '20年水电维修经验，持电工证，朝阳区随叫随到，擅长老旧线路改造和智能家居安装' },
+  { phone: '13901001002', nickname: '李设计师', cityCode: '110000', cert: 'INTERMEDIATE' as const, credit: 78, orders: 25, bio: 'UI/UX设计师，5年互联网大厂经验，擅长B端SaaS产品和企业品牌视觉' },
+  { phone: '13901001003', nickname: '王同学接单', cityCode: '110000', cert: 'BASIC' as const, credit: 62, orders: 6, bio: '北邮计算机大三，课余接前端/爬虫/自动化脚本，性价比高，沟通响应快' },
+  { phone: '13901001004', nickname: '赵律师说法', cityCode: '110000', cert: 'ADVANCED' as const, credit: 90, orders: 55, bio: '执业律师12年，律所合伙人，擅长公司法、合同纠纷、知识产权' },
+  { phone: '13901001005', nickname: '陈摄影光影', cityCode: '110000', cert: 'INTERMEDIATE' as const, credit: 80, orders: 19, bio: '自由摄影师，Sony A7M4+大三元，擅长商业人像、活动跟拍、产品静物' },
+  { phone: '13901001006', nickname: '刘工头装修', cityCode: '110000', cert: 'ADVANCED' as const, credit: 85, orders: 42, bio: '装修队长18年，带领8人团队，旧房翻新、水电改造、全屋定制一条龙' },
+  { phone: '13901001007', nickname: '孙会计代账', cityCode: '110000', cert: 'ADVANCED' as const, credit: 93, orders: 60, bio: '注册会计师/税务师，代账报税、财务顾问，已服务中小企业200+家' },
+  { phone: '13901001008', nickname: '周跑腿团队', cityCode: '110000', cert: 'BASIC' as const, credit: 66, orders: 11, bio: '北京同城跑腿团队，5台电动车覆盖朝阳海淀丰台，代买代送代排队代办' },
+  // 上海 (310000)
+  { phone: '13902101001', nickname: '吴翻译中英', cityCode: '310000', cert: 'INTERMEDIATE' as const, credit: 76, orders: 22, bio: '英日双语翻译，CATTI二级，曾为多家外企提供同传和商务谈判翻译' },
+  { phone: '13902101002', nickname: '郑监理验房', cityCode: '310000', cert: 'ADVANCED' as const, credit: 88, orders: 38, bio: '国家注册监理工程师，15年验房经验，精装/毛坯/二手房全面检测' },
+  { phone: '13902101003', nickname: '冯教练健身', cityCode: '310000', cert: 'INTERMEDIATE' as const, credit: 72, orders: 28, bio: 'NSCA-CPT认证教练，擅长减脂塑形、运动康复，上海浦东浦西均可上门' },
+  { phone: '13902101004', nickname: '褚花艺师', cityCode: '310000', cert: 'BASIC' as const, credit: 64, orders: 8, bio: '荷兰DFA花艺师认证，承接婚礼花艺、开业花篮、日常花礼定制' },
+  { phone: '13902101005', nickname: '卫老师钢琴', cityCode: '310000', cert: 'ADVANCED' as const, credit: 87, orders: 45, bio: '上海音乐学院硕士，钢琴教学15年，英皇考级/艺考生辅导/成人零基础' },
+  // 广州 (440100)
+  { phone: '13902001001', nickname: '赵阿姨家政', cityCode: '440100', cert: 'ADVANCED' as const, credit: 95, orders: 82, bio: '10年家政经验，擅长深度保洁、收纳整理、月子餐，天河越秀海珠全境' },
+  { phone: '13902001002', nickname: '钱医生问诊', cityCode: '440100', cert: 'ADVANCED' as const, credit: 86, orders: 41, bio: '三甲医院内科副主任医师，提供常见病在线问诊、体检报告解读、慢病管理' },
+  { phone: '13902001003', nickname: '孙司机搬家', cityCode: '440100', cert: 'BASIC' as const, credit: 58, orders: 14, bio: '搬家货运6年，4.2米厢式货车+2名搬运工，广州佛山中山全境，价格透明' },
+  { phone: '13902001004', nickname: '李剪辑后期', cityCode: '440100', cert: 'INTERMEDIATE' as const, credit: 70, orders: 16, bio: '达芬奇调色师+PR剪辑，服务过MCN机构和品牌客户，短视频/宣传片/Vlog' },
+  // 深圳 (440300)
+  { phone: '13907551001', nickname: '马程序猿', cityCode: '440300', cert: 'ADVANCED' as const, credit: 91, orders: 48, bio: '全栈开发12年，Go/React/Vue/Python技术栈，可接Web/小程序/API开发' },
+  { phone: '13907551002', nickname: '朱设计师Ui', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 77, orders: 23, bio: '资深UI设计师，6年产品设计经验，擅长移动端App和企业管理系统界面' },
+  { phone: '13907551003', nickname: '胡产品经理', cityCode: '440300', cert: 'BASIC' as const, credit: 68, orders: 10, bio: '5年B端产品经理，可提供需求分析、PRD撰写、产品原型设计咨询' },
+  // 杭州 (330100)
+  { phone: '13905711001', nickname: '陈老师数学', cityCode: '330100', cert: 'ADVANCED' as const, credit: 88, orders: 45, bio: '重点中学数学高级教师，辅导中高考数学12年，擅长几何导数压轴题突破' },
+  { phone: '13905711002', nickname: '林摄影师', cityCode: '330100', cert: 'INTERMEDIATE' as const, credit: 74, orders: 17, bio: '婚礼/旅拍摄影师，自然光+纪实风格，西湖/灵隐/龙井外景拍摄专家' },
+  { phone: '13905711003', nickname: '黄园艺绿植', cityCode: '330100', cert: 'BASIC' as const, credit: 60, orders: 7, bio: '园艺师，擅长阳台花园设计、室内绿植养护、多肉组盆，杭城可上门' },
+  // 成都 (510100)
+  { phone: '13902801001', nickname: '胡教练减肥', cityCode: '510100', cert: 'INTERMEDIATE' as const, credit: 72, orders: 28, bio: 'ACE认证健身教练，擅长减脂增肌和产后恢复，成华区自营工作室' },
+  { phone: '13902801002', nickname: '周跑腿成都', cityCode: '510100', cert: 'BASIC' as const, credit: 66, orders: 11, bio: '成都三环内跑腿代办，电动车快送，火锅排队/医院挂号/文件递送' },
+  { phone: '13902801003', nickname: '何大厨上门', cityCode: '510100', cert: 'INTERMEDIATE' as const, credit: 82, orders: 35, bio: '持证厨师，18年川菜功底，可上门做家宴/私宴/团建餐，食材可代购' },
+  { phone: '13902801004', nickname: '吕导游成都', cityCode: '510100', cert: 'BASIC' as const, credit: 61, orders: 9, bio: '成都本地导游，可定制熊猫基地/都江堰/青城山一日游，包车+讲解' },
+  // 重庆 (500000)
+  { phone: '13902301001', nickname: '施大厨火锅', cityCode: '500000', cert: 'INTERMEDIATE' as const, credit: 78, orders: 32, bio: '重庆火锅底料炒制师傅，可上门做正宗老火锅/江湖菜，自带锅具底料' },
+  { phone: '13902301002', nickname: '张房产中介', cityCode: '500000', cert: 'BASIC' as const, credit: 65, orders: 13, bio: '链家金牌经纪人，渝北/江北/渝中三区房源熟悉，二手房买卖租赁代办' },
+  { phone: '13902301003', nickname: '孔瑜伽教练', cityCode: '500000', cert: 'INTERMEDIATE' as const, credit: 71, orders: 21, bio: '全美瑜伽联盟RYT-500认证，擅长哈他瑜伽/流瑜伽/孕产瑜伽，可上门授课' },
+  // 武汉 (420100)
+  { phone: '13902701001', nickname: '罗师傅修机', cityCode: '420100', cert: 'INTERMEDIATE' as const, credit: 77, orders: 24, bio: '手机/电脑维修8年，芯片级维修，换屏换电池换主板，武昌汉口均可上门' },
+  { phone: '13902701002', nickname: '蔡老师英语', cityCode: '420100', cert: 'ADVANCED' as const, credit: 84, orders: 39, bio: '英语专业八级/雅思8.0，10年教龄，擅长中高考冲刺和成人商务英语' },
+  { phone: '13902701003', nickname: '彭教练驾校', cityCode: '420100', cert: 'BASIC' as const, credit: 63, orders: 15, bio: '驾校教练/陪练，自带教练车（副刹），洪山/光谷/江夏区域，科二科三陪练' },
+  // 南京 (320100)
+  { phone: '13902501001', nickname: '钱医生内科', cityCode: '320100', cert: 'ADVANCED' as const, credit: 86, orders: 41, bio: '三甲医院内科主治医师，提供常见病在线问诊、体检报告解读、慢病管理方案' },
+  { phone: '13902501002', nickname: '孟设计师品牌', cityCode: '320100', cert: 'INTERMEDIATE' as const, credit: 73, orders: 18, bio: '品牌设计师，服务过30+初创企业，擅长LOGO/VI/包装/画册全套品牌设计' },
+  { phone: '13902501003', nickname: '萧琴师调律', cityCode: '320100', cert: 'BASIC' as const, credit: 59, orders: 5, bio: '钢琴调律师，持国家职业资格证，南京及周边上门调律，每年服务200+台琴' },
+  // 西安 (610100)
+  { phone: '13902901001', nickname: '郭厨师私宴', cityCode: '610100', cert: 'INTERMEDIATE' as const, credit: 82, orders: 35, bio: '持证厨师14年，擅长陕菜和粤菜，可上门做家宴/年会/团建餐，可选清真' },
+  { phone: '13902901002', nickname: '董导游西安', cityCode: '610100', cert: 'BASIC' as const, credit: 62, orders: 12, bio: '西安持证导游，兵马俑/华清池/城墙/陕历博深度讲解，可定制美食探店路线' },
+  { phone: '13902901003', nickname: '梁书法老师', cityCode: '610100', cert: 'INTERMEDIATE' as const, credit: 75, orders: 20, bio: '陕西省书协会员，楷行草皆能，成人/少儿书法教学，碑林区可上门授课' },
+  // 昆明 (530100)
+  { phone: '13908711001', nickname: '杨花艺园艺', cityCode: '530100', cert: 'BASIC' as const, credit: 60, orders: 9, bio: '园艺师8年，擅长多肉组盆、阳台花园、庭院设计，昆明的花材从不让人失望' },
+  { phone: '13908711002', nickname: '段师傅白族菜', cityCode: '530100', cert: 'INTERMEDIATE' as const, credit: 70, orders: 17, bio: '大理白族菜传人，擅长乳扇/酸辣鱼/生皮等大理特色，可上门做白族风情家宴' },
+  // 天津 (120000)
+  { phone: '13902201001', nickname: '梁新人入驻', cityCode: '120000', cert: 'NONE' as const, credit: 60, orders: 0, bio: '刚来平台，擅长视频剪辑和文案策划，希望能接到合适的单，欢迎沟通' },
+  { phone: '13902201002', nickname: '石老师围棋', cityCode: '120000', cert: 'ADVANCED' as const, credit: 89, orders: 44, bio: '业余5段，围棋教学20年，培养省冠军多人，南开/和平/河西可上门' },
+  // 长沙 (430100)
+  { phone: '13907311001', nickname: '谭师傅装修', cityCode: '430100', cert: 'INTERMEDIATE' as const, credit: 76, orders: 26, bio: '装修包工头10年，水电木瓦油全活儿，长沙市内可免费量房出报价方案' },
+  { phone: '13907311002', nickname: '廖教练游泳', cityCode: '430100', cert: 'BASIC' as const, credit: 63, orders: 11, bio: '国家二级游泳运动员退役，持救生员证+教练证，湘江世纪城/梅溪湖可约' },
+  // 郑州 (410100)
+  { phone: '13903711001', nickname: '冯师傅家电', cityCode: '410100', cert: 'INTERMEDIATE' as const, credit: 79, orders: 30, bio: '家电维修15年，冰箱/空调/洗衣机/热水器全品牌维修，郑州四环内上门' },
+  { phone: '13903711002', nickname: '曹老师书法', cityCode: '410100', cert: 'ADVANCED' as const, credit: 83, orders: 36, bio: '中国书协会员，毛笔/硬笔教学20年，艺考生辅导/成人书法/少儿启蒙' },
+  // 青岛 (370200)
+  { phone: '13905321001', nickname: '姜船长出海', cityCode: '370200', cert: 'BASIC' as const, credit: 67, orders: 14, bio: '持游艇驾照，青岛近海海钓/帆船体验/海上团建，含渔具和安全装备' },
+  { phone: '13905321002', nickname: '田摄影师海景', cityCode: '370200', cert: 'INTERMEDIATE' as const, credit: 74, orders: 19, bio: '旅拍摄影师，青岛婚纱旅拍专家，八大关/栈桥/小麦岛/崂山经典机位' },
 ];
 
+// ====================================================================
+// 200+ 真实需求
+// ====================================================================
 const demandTemplates = [
-  { title: '家电清洗服务', desc: '需要深度清洗空调和洗衣机各一台，需自备工具和清洗剂', price: 8, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.91, lng: 116.40 },
-  { title: 'Logo设计', desc: '科技创业公司需要设计简洁现代的Logo，包含名片和信封设计', price: 88, cat: '设计', type: 'ONLINE' as const },
-  { title: '高中数学辅导', desc: '高二学生需要数学一对一辅导，函数和几何薄弱，每周一次', price: 200, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.92, lng: 116.38 },
-  { title: '搬家搬运', desc: '一居室搬家，从朝阳区搬到海淀区，需要一辆面包车和搬運工', price: 980, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.95, lng: 116.32 },
-  { title: '英语翻译需求', desc: '需要翻译一份商务合同（中译英），约3000字，要求专业术语准确', price: 300, cat: '咨询服务', type: 'ONLINE' as const },
-  { title: '家庭私厨上门', desc: '周末家庭聚餐6人，需要上门做一桌川菜，食材可自行准备', price: 2800, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.93, lng: 116.36 },
-  { title: '手机屏幕维修', desc: 'iPhone 15 Pro屏幕碎裂需要更换，要求原装屏', price: 250, cat: '维修服务', type: 'OFFLINE' as const, lat: 39.90, lng: 116.41 },
-  { title: '健身私教课', desc: '需要一位健身教练指导减脂，每周3次，每次1小时', price: 180, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.94, lng: 116.33 },
-  { title: '小程序前端开发', desc: '需要一个微信小程序的前端页面，包含用户登录和商品列表', price: 8800, cat: '技术开发', type: 'ONLINE' as const },
-  { title: '证件照拍摄', desc: '需要专业证件照拍摄，白底和蓝底各一组，精修出片', price: 100, cat: '设计', type: 'OFFLINE' as const, lat: 39.91, lng: 116.39 },
-  { title: '宠物代遛', desc: '工作日白天金毛一条，需要附近靠谱人士代遛一小时，自备牵引绳', price: 45, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.88, lng: 116.42 },
-  { title: '婚礼跟妆', desc: '户外草坪婚礼，需要跟妆师跟全程，含补妆和换造型', price: 1200, cat: '设计', type: 'OFFLINE' as const, lat: 31.23, lng: 121.47 },
-  { title: '吉他上门教学', desc: '零基础想学弹唱，每周一次，每次45分钟，家里有吉他', price: 160, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.92, lng: 116.35 },
-  { title: '旧衣改裁', desc: '两条牛仔裤改短改瘦，希望当天可取，可送到你工作室', price: 80, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.89, lng: 116.37 },
-  { title: '雅思口语陪练', desc: '目标6.5，需要母语级陪练每周两次，线上视频即可', price: 220, cat: '教育培训', type: 'ONLINE' as const },
-  { title: '办公室开荒保洁', desc: '新租写字楼约200㎡，玻璃地毯深度清洁，周末作业', price: 900, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.96, lng: 116.30 },
-  { title: '短视频剪辑', desc: '探店素材约15条，需要快节奏字幕+配乐，交付1080p', price: 600, cat: '设计', type: 'ONLINE' as const },
-  { title: '甲醛检测', desc: '新房入住前做一次甲醛与TVOC检测，需要出具简易报告', price: 280, cat: '咨询服务', type: 'OFFLINE' as const, lat: 40.00, lng: 116.28 },
-  { title: '闲置手机回收估价', desc: 'iPhone 13 128G 无拆修，希望上门验机当面打款', price: 1800, cat: '维修服务', type: 'OFFLINE' as const, lat: 39.91, lng: 116.40 },
-  { title: '多肉组盆造景', desc: '阳台花架需要一组北欧风多肉拼盘，含盆与土', price: 320, cat: '家政服务', type: 'OFFLINE' as const, lat: 24.99, lng: 102.72 },
-  { title: '民宿空间摄影', desc: '共8间房，需要自然光+补光各一套图，用于平台头图', price: 12800, cat: '设计', type: 'OFFLINE' as const, lat: 30.25, lng: 120.17 },
-  { title: '城市骑行向导', desc: '周末半天带骑友走长安街沿线经典路线，需熟悉路况与补给点', price: 200, cat: '咨询服务', type: 'OFFLINE' as const, lat: 39.90, lng: 116.39 },
+  // ── 家政服务 (ONLINE通用) ──
+  { title: '空调深度清洗', desc: '家用空调挂机2台+柜机1台，需拆机清洗滤网蒸发器，自备清洁剂和防护布', price: 168, cat: '家政服务', type: 'ONLINE' },
+  { title: '日常保洁三小时', desc: '60㎡一居室定期保洁，擦灰拖地擦窗，自备工具清洁剂', price: 120, cat: '家政服务', type: 'ONLINE' },
+  { title: '油烟机拆洗', desc: '侧吸式油烟机深度拆洗，油污重需浸泡处理，请自带清洗剂和防护垫', price: 150, cat: '家政服务', type: 'ONLINE' },
+  { title: '新家开荒保洁', desc: '120㎡三室两厅新装修完工，全屋开荒保洁含玻璃地面厨卫，有装修残留需清理', price: 680, cat: '家政服务', type: 'ONLINE' },
+  { title: '收纳整理全屋', desc: '两室一厅全屋收纳整理，含衣柜/厨房/书柜，需自带收纳工具和标签机', price: 380, cat: '家政服务', type: 'ONLINE' },
+  { title: '地毯沙发清洗', desc: '客厅3m×2m羊毛地毯+布艺沙发3人位，需自带抽取式清洗机和洗涤剂', price: 280, cat: '家政服务', type: 'ONLINE' },
+  { title: '擦窗服务全屋', desc: '18楼全屋玻璃清洁，含窗框和纱窗，需专业擦窗器和安全绳索', price: 200, cat: '家政服务', type: 'ONLINE' },
+  { title: '宠物上门喂养一周', desc: '出差一周需要每天上门喂猫铲屎换水，英短一只，猫粮猫砂已备好，需发视频确认', price: 210, cat: '家政服务', type: 'ONLINE' },
+  { title: '老人陪诊半天', desc: '带70岁老人去三甲医院看心内科，帮忙挂号排队取药，需有耐心和陪诊经验', price: 180, cat: '家政服务', type: 'ONLINE' },
+  { title: '月子餐制作', desc: '产妇产后第二周，需要每日上门制作两餐月子餐，食材自备，会煲汤优先', price: 350, cat: '家政服务', type: 'ONLINE' },
+  { title: '花园除草修剪', desc: '50㎡小院草坪修剪+月季修剪+杂草清除，请自带割草机和园艺工具', price: 250, cat: '家政服务', type: 'ONLINE' },
+  { title: '家具组装宜家', desc: '宜家PAX衣柜2米款+配套抽屉/隔板，附带MALM书桌一张，需自带电钻工具', price: 180, cat: '家政服务', type: 'ONLINE' },
+  { title: '搬家打包协助', desc: '协助打包一居室物品，需要自带打包材料（纸箱/气泡膜/胶带），8小时内完成', price: 320, cat: '家政服务', type: 'ONLINE' },
+  { title: '墙面修补刷漆', desc: '客厅一面墙（约12㎡）墙面裂缝修补+刷乳胶漆，有轻微起皮和钉眼，需自带工具材料', price: 350, cat: '家政服务', type: 'ONLINE' },
+  { title: '水管疏通', desc: '厨房水槽下水堵塞，可能油污堆积，需自带管道疏通机，老小区管径较窄', price: 150, cat: '家政服务', type: 'ONLINE' },
+  { title: '电路排查检修', desc: '老房子频繁跳闸，需全屋电路检测找到漏电点并修复，有电工证优先', price: 280, cat: '家政服务', type: 'ONLINE' },
+  { title: '窗帘安装', desc: '三扇窗户罗马杆+窗帘安装，已有电钻，需自带水平仪和膨胀螺丝', price: 160, cat: '家政服务', type: 'ONLINE' },
+  { title: '马桶更换安装', desc: '旧马桶拆除+新马桶安装，包括法兰圈更换和打胶密封，需自带安装工具', price: 300, cat: '家政服务', type: 'ONLINE' },
+  { title: '热水器安装', desc: '燃气热水器新机安装，需预留燃气管道接口，需持有燃气具安装资质证', price: 350, cat: '家政服务', type: 'ONLINE' },
+  { title: '除甲醛服务', desc: '新房120㎡全屋甲醛治理，需喷涂光触媒或生物酶，出具CMA检测报告', price: 1800, cat: '家政服务', type: 'ONLINE' },
+
+  // ── 技术开发 ──
+  { title: '微信小程序开发商城', desc: '需要做一个社区团购小程序，包含用户登录、商品列表、购物车、下单支付、团长管理后台', price: 18000, cat: '技术开发', type: 'ONLINE' },
+  { title: '企业官网搭建', desc: '科技公司需要搭建responsive官网，5个页面（首页/产品/关于/新闻/联系），含管理后台CMS', price: 8000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'API接口对接开发', desc: '需要对接微信支付/支付宝/银联三个支付渠道的API，统一封装成内部接口，含沙箱测试', price: 5000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'React后台管理系统', desc: '内部ERP系统的前端重构，从jQuery迁移到React+Ant Design，约30个页面', price: 25000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'Python爬虫脚本', desc: '爬取某电商平台特定品类商品数据（价格/销量/评价），每日定时更新存入MySQL数据库', price: 3000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'Flutter App开发', desc: '做一个健身打卡App，含日历打卡、训练视频库、数据统计图表、社区分享功能', price: 35000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'DevOps部署维护', desc: '帮现有的Node.js项目配置Docker+K8s+CI/CD流水线（GitHub Actions），含监控告警', price: 6000, cat: '技术开发', type: 'ONLINE' },
+  { title: '数据库优化咨询', desc: '现有MySQL数据库查询缓慢（百万级数据），需要索引优化、SQL改写和分库分表方案', price: 4000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'IoT固件开发', desc: 'ESP32智能开关的固件开发，需支持WiFi配网和MQTT通信，提供完整源码和文档', price: 8000, cat: '技术开发', type: 'ONLINE' },
+  { title: '区块链DApp开发', desc: '基于以太坊的NFT铸造和交易市场DApp，含智能合约（Solidity）和前端页面', price: 45000, cat: '技术开发', type: 'ONLINE' },
+  { title: '自动化测试脚本', desc: 'Web端E2E自动化测试（Playwright），覆盖登录/注册/下单/支付核心流程约30个用例', price: 5000, cat: '技术开发', type: 'ONLINE' },
+  { title: 'WordPress主题定制', desc: '企业博客需要定制WordPress主题，含响应式设计、SEO优化、多语言支持（中英文）', price: 4500, cat: '技术开发', type: 'ONLINE' },
+
+  // ── 设计 ──
+  { title: '品牌VI设计全套', desc: '初创科技公司需要Logo+名片+信纸+PPT模板+品牌色板+VI手册，极简科技风', price: 5000, cat: '设计', type: 'ONLINE' },
+  { title: 'App UI界面设计', desc: '社交App的UI设计（iOS+Android），约40个页面，含交互原型和设计规范文档', price: 12000, cat: '设计', type: 'ONLINE' },
+  { title: '产品包装设计', desc: '高端茶叶礼盒包装设计，需要三个系列的设计稿（经典/新式/伴手礼），含刀版图和效果图', price: 3000, cat: '设计', type: 'ONLINE' },
+  { title: '电商详情页设计', desc: '家居类目产品详情页10张，含主图/细节图/场景图/尺码表，淘宝天猫风格', price: 1500, cat: '设计', type: 'ONLINE' },
+  { title: '海报设计活动', desc: '618大促活动海报5张+朋友圈推广图10张+banner广告图8张，统一视觉风格', price: 1200, cat: '设计', type: 'ONLINE' },
+  { title: 'PPT设计美化', desc: '融资路演PPT美化（约30页），科技/数据可视化风格，含动态图表制作', price: 1800, cat: '设计', type: 'ONLINE' },
+  { title: '3D产品建模渲染', desc: '消费电子产品（蓝牙耳机）3D建模+白底渲染图8张+场景渲染图4张，Keyshot/C4D', price: 2500, cat: '设计', type: 'ONLINE' },
+  { title: '插画定制', desc: '儿童绘本内页插画20张，水彩/手绘风格，需要充满童趣和想象力，A4尺寸', price: 4000, cat: '设计', type: 'ONLINE' },
+  { title: '店铺装修设计', desc: '天猫旗舰店全店装修设计，含首页/详情页模板/活动页/分类页，品牌统一视觉', price: 6000, cat: '设计', type: 'ONLINE' },
+  { title: '字体设计定制', desc: '品牌专用中文字体设计（约2000个常用字），现代简约风，提供TTF/OTF文件', price: 20000, cat: '设计', type: 'ONLINE' },
+  { title: '信息图表设计', desc: '年度数据报告信息图设计（约15页），把复杂数据转化为直观可视化图表', price: 2200, cat: '设计', type: 'ONLINE' },
+  { title: '名片设计印刷', desc: '创意名片设计+印刷200张，特种纸/烫金工艺，需要多个方案备选', price: 800, cat: '设计', type: 'ONLINE' },
+
+  // ── 教育培训 ──
+  { title: '高一数学一对一', desc: '高一女生数学薄弱（函数/立体几何），每周六上午两小时，需有高中教学经验', price: 200, cat: '教育培训', type: 'ONLINE' },
+  { title: '雅思口语陪练', desc: '目标7.0分，需要母语级陪练每周三次每次一小时，线上视频，重点Part2&3练习', price: 180, cat: '教育培训', type: 'ONLINE' },
+  { title: '钢琴启蒙教学', desc: '6岁零基础琴童，每周一次课45分钟，家里有雅马哈电钢琴，需要耐心有儿童教学经验的老师', price: 160, cat: '教育培训', type: 'ONLINE' },
+  { title: '高考物理冲刺', desc: '高三物理冲刺，力学和电磁学综合题，每周两次每次1.5小时，需有高三带班经验', price: 250, cat: '教育培训', type: 'ONLINE' },
+  { title: 'Python编程入门', desc: '文科生零基础学Python，希望用三个月达到能写简单爬虫和数据分析脚本的水平', price: 3000, cat: '教育培训', type: 'ONLINE' },
+  { title: '书法课成人入门', desc: '零基础成人学毛笔楷书，每周日下午一次课，笔墨纸砚自备，希望有耐心和系统的教学计划', price: 150, cat: '教育培训', type: 'ONLINE' },
+  { title: '日语N2备考', desc: '已有N3基础想冲刺N2，需要系统语法梳理和真题训练，每周两次每次两小时', price: 200, cat: '教育培训', type: 'ONLINE' },
+  { title: '游泳私教成人', desc: '成人零基础学蛙泳，克服怕水心理，每周两次，希望在夏天前学会', price: 220, cat: '教育培训', type: 'ONLINE' },
+  { title: '考研英语辅导', desc: '英语二备考，阅读理解和新题型薄弱，需要系统讲解答题技巧和真题精析', price: 200, cat: '教育培训', type: 'ONLINE' },
+  { title: '素描基础班', desc: '零基础学素描，每周一次课，从几何体到静物组合，希望老师能提供教学大纲', price: 140, cat: '教育培训', type: 'ONLINE' },
+  { title: '声乐培训流行', desc: '喜欢唱歌想在KTV不跑调，学气息控制和基础发声，每周一次课，有钢琴最好', price: 180, cat: '教育培训', type: 'ONLINE' },
+  { title: '国际象棋入门', desc: '8岁男孩学国际象棋，零基础，希望有趣味教学方法激发兴趣，每周一次', price: 160, cat: '教育培训', type: 'ONLINE' },
+
+  // ── 咨询服务 ──
+  { title: '合同审核服务', desc: '一份股权转让协议（约20页）需要律师逐条审核并给出修改建议和风险提示', price: 1500, cat: '咨询服务', type: 'ONLINE' },
+  { title: '税务筹划方案', desc: '年营收500万的小微企业需要税务筹划方案，合理降低增值税和所得税负担', price: 3000, cat: '咨询服务', type: 'ONLINE' },
+  { title: '装修监理服务', desc: '新房128㎡整装，需要第三方监理全程跟踪（水电/木工/油漆/竣工四个节点验收）', price: 4000, cat: '咨询服务', type: 'ONLINE' },
+  { title: '心理咨询在线', desc: '职场焦虑/压力管理咨询，希望每周一次线上视频咨询50分钟，有心理学背景', price: 250, cat: '咨询服务', type: 'ONLINE' },
+  { title: '留学规划咨询', desc: '高二学生想去英国读本科，需要选校定位+文书指导+申请时间线规划', price: 2000, cat: '咨询服务', type: 'ONLINE' },
+  { title: '职业规划辅导', desc: '工作3年想转行互联网，需要职业规划/简历优化/模拟面试辅导，一共3次', price: 900, cat: '咨询服务', type: 'ONLINE' },
+  { title: '知识产权咨询', desc: '创业公司需要在商标注册（第9/42类）+软件著作权申请方面获得专业指导', price: 1200, cat: '咨询服务', type: 'ONLINE' },
+  { title: '营养师饮食方案', desc: '糖尿病人个性化饮食方案制定，含一周食谱和营养分析表，定期复查调整', price: 500, cat: '咨询服务', type: 'ONLINE' },
+  { title: '风水布局咨询', desc: '新房180㎡需要看风水布局，含户型分析+家具摆放建议+色彩搭配+化煞方案', price: 2800, cat: '咨询服务', type: 'ONLINE' },
+  { title: '保险规划方案', desc: '一家三口（35岁夫妻+3岁孩子）需要全面保险规划，含重疾/医疗/意外/寿险配比分析', price: 600, cat: '咨询服务', type: 'ONLINE' },
+
+  // ── 维修服务 ──
+  { title: 'iPhone换屏幕', desc: 'iPhone 14 Pro Max屏幕碎裂（外屏），需要更换原装外屏玻璃，保留原内屏', price: 350, cat: '维修服务', type: 'ONLINE' },
+  { title: '笔记本电脑清灰', desc: '联想拯救者Y9000P清灰换硅脂，风扇噪音大温度高，需带专业拆机工具', price: 100, cat: '维修服务', type: 'ONLINE' },
+  { title: 'MacBook电池更换', desc: 'MacBook Pro 2019款电池鼓包需要更换，需要原厂电池或高品质第三方电池', price: 450, cat: '维修服务', type: 'ONLINE' },
+  { title: '空调不制冷维修', desc: '格力柜机不制冷，可能是缺氟或压缩机故障，需要上门检测并报价', price: 200, cat: '维修服务', type: 'ONLINE' },
+  { title: '洗衣机不排水', desc: '滚筒洗衣机不排水，可能是排水泵堵塞或电磁阀故障，需要检测维修', price: 150, cat: '维修服务', type: 'ONLINE' },
+  { title: '汽车凹陷修复', desc: '车门被旁边车开门碰了一个小凹陷（未伤漆），需要无损凹陷修复不用喷漆', price: 300, cat: '维修服务', type: 'ONLINE' },
+  { title: '手表换电池', desc: '天梭力洛克机械表不走，需要机芯清洗保养，非电池问题，需专业修表工具', price: 400, cat: '维修服务', type: 'ONLINE' },
+  { title: '电瓶车更换控制器', desc: '雅迪电动车骑行中突然断电，可能是控制器故障，需要检测更换并匹配电机参数', price: 250, cat: '维修服务', type: 'ONLINE' },
+  { title: '家具修复补漆', desc: '实木餐桌被烫了一个白圈印（直径8cm），需要修复补漆恢复原色', price: 200, cat: '维修服务', type: 'ONLINE' },
+  { title: '密码锁安装', desc: '需要安装小米智能门锁Pro，原门为标准86型锁体，需自带开孔器和安装工具', price: 200, cat: '维修服务', type: 'ONLINE' },
+  { title: '打印机维修', desc: 'HP LaserJet MFP M227fdw提示卡纸但实际没有纸，可能是传感器故障需拆机检测', price: 180, cat: '维修服务', type: 'ONLINE' },
+  { title: '热水器打不着火', desc: '万和燃气热水器打不着火，有点火声但不着，可能是点火针或比例阀问题', price: 180, cat: '维修服务', type: 'ONLINE' },
+
+  // ── 更多家政 ──
+  { title: '保姆月嫂面试', desc: '需要一位有经验的育儿嫂，照顾8个月宝宝，白天8小时做五休二，要会早教互动', price: 5500, cat: '家政服务', type: 'ONLINE' },
+  { title: '家庭私厨周套餐', desc: '工作日五天晚餐送餐，三菜一汤标准，清淡口味，食材要求新鲜有机', price: 1500, cat: '家政服务', type: 'ONLINE' },
+  { title: '绿植租赁养护', desc: '办公室50盆绿植的每月定期养护（浇水/修剪/施肥/病虫害防治），含替换枯死植物', price: 800, cat: '家政服务', type: 'ONLINE' },
+  { title: '上门染发服务', desc: '想在家里染发（遮盖白发），已有染发剂，需要专业人士操作确保均匀和不过敏', price: 100, cat: '家政服务', type: 'ONLINE' },
+  { title: '产后修复指导', desc: '产后三个月需要腹直肌修复和盆底肌训练指导，有产后康复师资质优先', price: 280, cat: '家政服务', type: 'ONLINE' },
 ];
 
-/** 13800000001 起，idx 为 0-based */
-function phoneFromUserIndex(idx: number) {
-  return `138000000${String(idx + 1).padStart(2, '0')}`;
-}
+// ═══ 多城市映射 ═══
+const cityLatLng: Record<string, { lat: number; lng: number }> = {
+  '110000': { lat: 39.92, lng: 116.40 },  // 北京
+  '310000': { lat: 31.23, lng: 121.47 },  // 上海
+  '440100': { lat: 23.13, lng: 113.26 },  // 广州
+  '440300': { lat: 22.54, lng: 114.06 },  // 深圳
+  '330100': { lat: 30.25, lng: 120.17 },  // 杭州
+  '510100': { lat: 30.57, lng: 104.07 },  // 成都
+  '500000': { lat: 29.56, lng: 106.55 },  // 重庆
+  '420100': { lat: 30.59, lng: 114.30 },  // 武汉
+  '320100': { lat: 32.06, lng: 118.80 },  // 南京
+  '610100': { lat: 34.26, lng: 108.94 },  // 西安
+  '530100': { lat: 25.04, lng: 102.71 },  // 昆明
+  '120000': { lat: 39.12, lng: 117.20 },  // 天津
+  '430100': { lat: 28.23, lng: 112.94 },  // 长沙
+  '410100': { lat: 34.75, lng: 113.62 },  // 郑州
+  '370200': { lat: 36.07, lng: 120.38 },  // 青岛
+};
+
+// 标签列表
+const tagNames = [
+  '水电维修', '家电清洗', '保洁家政', '搬家搬运', '装修施工',
+  '前端开发', '后端开发', '小程序开发', 'Python开发', 'UI设计',
+  'Logo设计', '品牌VI', '3D建模', '插画设计', 'PPT设计',
+  '英语辅导', '数学辅导', '物理辅导', '钢琴教学', '健身教练',
+  '瑜伽教练', '游泳教学', '书法教学', '日语培训', '编程培训',
+  '法律咨询', '财务税务', '心理咨询', '营养健康', '留学规划',
+  '手机维修', '电脑维修', '家电维修', '汽车维修', '家具修复',
+  '摄影摄像', '视频剪辑', '翻译服务', '宠物服务', '跑腿代办',
+  '美容美发', '按摩理疗', '婚礼策划', '导游地陪', '驾校陪练',
+];
 
 async function main() {
-  // Clean existing data
-  await prisma.short.deleteMany();
-  await prisma.message.deleteMany();
-  await prisma.complaint.deleteMany();
-  await prisma.deposit.deleteMany();
-  await prisma.circleMember.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.demandApplication.deleteMany();
-  await prisma.demand.deleteMany();
-  await prisma.circle.deleteMany();
-  await prisma.user.deleteMany();
+  console.log('Clearing existing data...');
+  await prisma.$transaction([
+    prisma.short.deleteMany(),
+    prisma.review.deleteMany(),
+    prisma.message.deleteMany(),
+    prisma.complaint.deleteMany(),
+    prisma.depositDemand.deleteMany(),
+    prisma.deposit.deleteMany(),
+    prisma.circleDemand.deleteMany(),
+    prisma.circleMember.deleteMany(),
+    prisma.order.deleteMany(),
+    prisma.demandApplicantV2.deleteMany(),
+    prisma.demandApplication.deleteMany(),
+    prisma.demandFavorite.deleteMany(),
+    prisma.activeDemand.deleteMany(),
+    prisma.demand.deleteMany(),
+    prisma.circle.deleteMany(),
+    prisma.welfareFundPool.deleteMany(),
+    prisma.tagStats.deleteMany(),
+    prisma.certifiedProvider.deleteMany(),
+    prisma.userTag.deleteMany(),
+    prisma.pushPreference.deleteMany(),
+    prisma.agentMessage.deleteMany(),
+    prisma.agentConversation.deleteMany(),
+    prisma.conversationMergeMember.deleteMany(),
+    prisma.conversationMerge.deleteMany(),
+    prisma.follow.deleteMany(),
+    prisma.tag.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
+  console.log('Cleared.');
 
   const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
   const now = new Date();
-  const future = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const future = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
-  // Create 20 test users
-  const users: Record<string, string> = {};
-  for (let i = 0; i < testUsers.length; i++) {
-    const u = testUsers[i];
-    const avatarNum = String(i + 1).padStart(2, '0');
-    // 前 14 个用户配完整个人中心背景图（与 avatar_xx / cover_xx 资源一一对应）
-    const coverNum = i < 14 ? String(i + 1).padStart(2, '0') : null;
+  // ── 创建标签 ──
+  console.log('Creating tags...');
+  for (const tag of tagNames) {
+    await prisma.tag.upsert({
+      where: { name: tag },
+      update: {},
+      create: { name: tag, category: 'both', totalCompleted: 0, totalEstimatedAmount: 0, colorHistogram: [] },
+    });
+  }
+
+  // ── 创建用户 ──
+  console.log(`Creating ${realUsers.length} users...`);
+  const userMap: Record<string, { id: string; nickname: string; cityCode: string; cert: string }> = {};
+  for (let i = 0; i < realUsers.length; i++) {
+    const u = realUsers[i];
     const user = await prisma.user.create({
       data: {
         phone: u.phone,
         nickname: u.nickname,
-        avatarUrl: `/uploads/avatars/avatar_${avatarNum}.png`,
-        coverUrl: coverNum ? `/uploads/covers/cover_${coverNum}.png` : null,
+        passwordHash,
+        bio: u.bio,
         cityCode: u.cityCode,
         certificationLevel: u.cert,
-        snatchCredits: u.cert === 'ADVANCED' ? 3 : 0,
         creditScore: u.credit,
         completedOrders: u.orders,
-        role: (u as any).role || 'USER',
-        passwordHash,
+        role: u.role || 'USER',
+        serviceTags: [],
       },
     });
-    users[u.phone] = user.id;
+    userMap[u.phone] = { id: user.id, nickname: u.nickname, cityCode: u.cityCode, cert: u.cert };
   }
 
-  /* 发现页展示 PENDING；前几条 COMPLETED 保留订单演示；其余批量在架需求 */
-  const TOTAL_DEMANDS = 1000;
-  const COMPLETED_WITH_ORDER = 4;
-  const PENDING_TOTAL = TOTAL_DEMANDS - COMPLETED_WITH_ORDER;
-
-  /** 低价多、高价少：各档数量之和须等于 PENDING_TOTAL */
-  const PRICE_PYRAMID = [
-    { count: 420, min: 38, max: 188 },
-    { count: 280, min: 188, max: 880 },
-    { count: 150, min: 880, max: 4200 },
-    { count: 90, min: 4200, max: 16500 },
-    { count: 40, min: 16500, max: 58000 },
-    { count: 15, min: 58000, max: 195000 },
-    { count: 1, min: 198000, max: 360000 },
-  ] as const;
-
-  const pyramidSum = PRICE_PYRAMID.reduce((a, r) => a + r.count, 0);
-  if (pyramidSum !== PENDING_TOTAL) {
-    throw new Error(`PRICE_PYRAMID counts sum ${pyramidSum} !== PENDING_TOTAL ${PENDING_TOTAL}`);
-  }
-
-  function pyramidBand(slot: number) {
-    let start = 0;
-    for (let ti = 0; ti < PRICE_PYRAMID.length; ti++) {
-      const row = PRICE_PYRAMID[ti]!;
-      if (slot < start + row.count) {
-        return { tier: ti, min: row.min, max: row.max, local: slot - start };
-      }
-      start += row.count;
-    }
-    const last = PRICE_PYRAMID[PRICE_PYRAMID.length - 1]!;
-    return { tier: PRICE_PYRAMID.length - 1, min: last.min, max: last.max, local: 0 };
-  }
-
-  /** 可复现的 [0,1) 伪随机，避免 seed 每次跑数据飘太多 */
-  function det01(salt: number) {
-    let x = (salt >>> 0) ^ 0xdeadbeef;
-    x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
-    x = Math.imul(x ^ (x >>> 15), 0x846ca68b);
-    return (x >>> 0) / 4294967296;
-  }
-
-  function priceInPyramidSlot(slot: number) {
-    const { min, max } = pyramidBand(slot);
-    return Math.round(min + det01(slot * 977 + 13331) * (max - min));
-  }
-
-  const PREFIX = ['', '同城', '上门', '企业', '加急', '周末', '远程', '专线'] as const;
-  const CORE: [string, string][] = [
-    ['深度保洁', '家政服务'],
-    ['开荒保洁', '家政服务'],
-    ['月嫂陪护', '家政服务'],
-    ['搬家搬运', '家政服务'],
-    ['油烟机清洗', '家政服务'],
-    ['空调清洗', '家政服务'],
-    ['收纳整理', '家政服务'],
-    ['钟点工', '家政服务'],
-    ['手机换屏', '维修服务'],
-    ['电脑清灰', '维修服务'],
-    ['数据恢复', '维修服务'],
-    ['网络布线', '维修服务'],
-    ['打印机维修', '维修服务'],
-    ['家电维修', '维修服务'],
-    ['监控安装', '技术开发'],
-    ['NAS组网', '技术开发'],
-    ['小程序开发', '技术开发'],
-    ['企业官网', '技术开发'],
-    ['后台接口', '技术开发'],
-    ['UI设计', '设计'],
-    ['电商主图', '设计'],
-    ['短视频剪辑', '设计'],
-    ['平面物料', '设计'],
-    ['LOGO升级', '设计'],
-    ['活动策划', '咨询服务'],
-    ['品牌定位', '咨询服务'],
-    ['合同审查', '法律法务'],
-    ['劳动仲裁', '法律法务'],
-    ['商标注册', '法律法务'],
-    ['代账报税', '财务税务'],
-    ['审计配合', '财务税务'],
-    ['雅思口语', '教育培训'],
-    ['考研数学', '教育培训'],
-    ['公考面试', '教育培训'],
-    ['钢琴陪练', '教育培训'],
-    ['健身私教', '健身运动'],
-    ['瑜伽上门', '健身运动'],
-    ['婚礼跟拍', '婚庆摄影'],
-    ['证件照精修', '婚庆摄影'],
-    ['宠物寄养', '宠物服务'],
-    ['训犬指导', '宠物服务'],
-    ['同城跑腿', '同城跑腿'],
-    ['代驾', '汽车服务'],
-    ['年检代办', '汽车服务'],
-    ['验房', '房产相关'],
-    ['租房保洁', '房产相关'],
-    ['除甲醛检测', '环保检测'],
-    ['开锁换锁', '维修服务'],
-    ['管道疏通', '维修服务'],
-    ['心理咨询', '心理咨询'],
-    ['留学文书', '留学出国'],
-    ['同声翻译', '翻译语言'],
-    ['年会布置', '企业服务'],
-    ['仓储分拣', '仓储物流'],
-    ['跨境拍摄', '电商运营'],
-    ['直播代运营', '电商运营'],
-    ['私域搭建', '电商运营'],
-    ['农机检修', '三农服务'],
-    ['茶艺体验', '茶艺文化'],
-    ['潜水体验', '旅游出行'],
-    ['陪诊取药', '医疗健康'],
-    ['慢病饮食指导', '医疗健康'],
-    ['小儿推拿', '医疗健康'],
-    ['针灸推拿', '医疗健康'],
-    ['主持司仪', '婚庆摄影'],
-    ['化妆跟妆', '婚庆摄影'],
-    ['家庭私厨', '美食餐饮'],
-    ['团建拓展', '企业服务'],
-    ['猎头寻访', '企业服务'],
-    ['社保代缴', '企业服务'],
-    ['ISO体系辅导', '咨询服务'],
-    ['高企材料', '咨询服务'],
-    ['专利撰写', '法律法务'],
-    ['软著加急', '法律法务'],
-    ['配音配乐', '设计'],
-    ['三维建模', '设计'],
-    ['室内效果图', '设计'],
-    ['工装施工图', '设计'],
-    ['弱电智能化', '技术开发'],
-    ['服务器上架', '技术开发'],
-    ['渗透测试', '技术开发'],
-    ['等保整改', '技术开发'],
-    ['跨境电商申诉', '电商运营'],
-    ['独立站搭建', '电商运营'],
-    ['Shopify装修', '电商运营'],
-    ['红酒侍酒', '美食餐饮'],
-    ['法餐家宴', '美食餐饮'],
-    ['烘焙私教', '教育培训'],
-    ['游泳私教', '健身运动'],
-    ['羽毛球陪练', '健身运动'],
-    ['网球陪练', '健身运动'],
-    ['吉他入门', '教育培训'],
-    ['古筝陪练', '教育培训'],
-    ['日语口语', '教育培训'],
-    ['韩语入门', '教育培训'],
-    ['西语翻译', '翻译语言'],
-    ['同传设备租', '翻译语言'],
-    ['展会搭建', '企业服务'],
-    ['灯光音响', '婚庆摄影'],
-    ['航拍测绘', '设计'],
-    ['企业宣传片', '设计'],
-    ['绿植租摆', '家政服务'],
-    ['大理石结晶', '家政服务'],
-    ['外墙清洗', '家政服务'],
-    ['地毯清洗', '家政服务'],
-    ['沙发护理', '家政服务'],
-    ['床垫除螨', '家政服务'],
-    ['净水换芯', '维修服务'],
-    ['地暖清洗', '维修服务'],
-    ['智能门锁安装', '维修服务'],
-    ['充电桩报装', '汽车服务'],
-    ['汽车美容', '汽车服务'],
-    ['四轮定位', '汽车服务'],
-    ['钣金喷漆', '汽车服务'],
-    ['道路救援', '汽车服务'],
-    ['新车装潢', '汽车服务'],
-    ['法拍尽调', '房产相关'],
-    ['民宿代运营', '房产相关'],
-    ['商铺转让', '房产相关'],
-    ['商标注册驳回', '法律法务'],
-    ['专利申请加快', '法律法务'],
-    ['离婚财产分割', '法律法务'],
-    ['交通事故理赔', '法律法务'],
-    ['遗嘱公证咨询', '法律法务'],
-    ['股权设计', '财务税务'],
-    ['投融资对接', '财务税务'],
-    ['跨境收款合规', '财务税务'],
-    ['亚马逊申诉', '电商运营'],
-    ['TikTok起号', '电商运营'],
-    ['小红书运营', '电商运营'],
-    ['信息流投放', '电商运营'],
-    ['SEO优化', '电商运营'],
-    ['SEM托管', '电商运营'],
-    ['客服外包', '企业服务'],
-    ['仓拣打包', '仓储物流'],
-    ['冷链城配', '仓储物流'],
-    ['报关清关', '仓储物流'],
-    ['研学导师', '教育培训'],
-    ['夏令营带队', '教育培训'],
-    ['围棋象棋陪练', '教育培训'],
-    ['马术体验', '旅游出行'],
-    ['滑雪教练', '旅游出行'],
-    ['潜水考证', '旅游出行'],
-    ['剧本杀主持', '影音娱乐'],
-    ['电竞陪练', '影音娱乐'],
-    ['游戏代练', '影音娱乐'],
-    ['汉服妆造', '婚庆摄影'],
-    ['宝宝百天照', '婚庆摄影'],
-    ['形象照拍摄', '婚庆摄影'],
-    ['企业团险', '咨询服务'],
-    ['个人养老金规划', '咨询服务'],
-    ['港股打新指导', '咨询服务'],
-    ['房贷降息置换', '咨询服务'],
-    ['公积金提取咨询', '咨询服务'],
-    ['落户积分规划', '咨询服务'],
-    ['学区政策解读', '咨询服务'],
-    ['白蚁防治', '家政服务'],
-    ['四害消杀', '家政服务'],
-    ['石材打蜡', '家政服务'],
-    ['泳池水质维护', '家政服务'],
-    ['有机蔬菜配送', '三农服务'],
-    ['大棚温控改造', '三农服务'],
-    ['冷库维保', '维修服务'],
-    ['叉车考证培训', '教育培训'],
-    ['电工证复审', '教育培训'],
-    ['食品安全体系', '咨询服务'],
-    ['人力资源外包', '企业服务'],
-    ['劳务派遣对接', '企业服务'],
-    ['无形资产评估', '财务税务'],
-    ['软著加急办理', '法律法务'],
-    ['ICP备案咨询', '技术开发'],
-    ['等保测评陪同', '技术开发'],
-    ['大模型私有化部署', '技术开发'],
-    ['智能家居场景', '技术开发'],
-    ['家庭影院调校', '设计'],
-    ['钢琴搬运上楼', '家政服务'],
-    ['古董包装运输', '家政服务'],
-    ['艺术品装裱', '设计'],
-    ['老人手机教学', '教育培训'],
-    ['电脑病毒查杀', '维修服务'],
-    ['硬盘开盘恢复', '维修服务'],
-    ['K8s故障排查', '技术开发'],
-    ['CI/CD搭建', '技术开发'],
-    ['APP上架辅导', '技术开发'],
-    ['Flutter维护', '技术开发'],
-    ['钉钉流程配置', '企业服务'],
-    ['飞书审批流', '企业服务'],
-    ['企业微信存档', '企业服务'],
-    ['SQLServer迁移', '技术开发'],
-    ['Oracle调优', '技术开发'],
-    ['MongoDB分片', '技术开发'],
-    ['Redis哨兵', '技术开发'],
-    ['Kafka排查', '技术开发'],
-    ['ES检索优化', '技术开发'],
-    ['BI看板定制', '技术开发'],
-    ['PowerBI培训', '教育培训'],
-    ['SAP顾问驻场', '企业服务'],
-    ['用友实施', '企业服务'],
-    ['WMS上线', '技术开发'],
-    ['TMS对接', '技术开发'],
-    ['餐饮扫码点餐', '技术开发'],
-    ['美业预约系统', '技术开发'],
-    ['洗车会员系统', '技术开发'],
-    ['停车场道闸', '技术开发'],
-    ['光伏清洗', '环保检测'],
-    ['储能电站运维', '维修服务'],
-    ['电梯年检代办', '咨询服务'],
-    ['锅炉工证复审', '教育培训'],
-    ['无损检测UT', '维修服务'],
-    ['3D打印手板', '设计'],
-    ['CNC加工制图', '技术开发'],
-    ['机械装配指导', '维修服务'],
-    ['液压系统检修', '维修服务'],
-    ['空压机维保', '维修服务'],
-    ['冷水机组清洗', '维修服务'],
-    ['中央空调水处理', '维修服务'],
-    ['洁净室检测', '环保检测'],
-    ['实验室搬迁', '家政服务'],
-    ['环评验收陪同', '环保检测'],
-    ['排污许可证', '咨询服务'],
-    ['水土保持方案', '咨询服务'],
-    ['林地使用手续', '咨询服务'],
-    ['渔船检验代办', '咨询服务'],
-    ['游艇驾照培训', '教育培训'],
-    ['潜水OW考证', '教育培训'],
-    ['水肺装备保养', '维修服务'],
-    ['鱼缸造景维护', '家政服务'],
-    ['锦鲤病诊治', '宠物服务'],
-    ['猫疫苗驱虫', '宠物服务'],
-    ['犬行为纠正', '宠物服务'],
-    ['马房清理', '宠物服务'],
-    ['沙漠越野向导', '旅游出行'],
-    ['高原徒步保障', '旅游出行'],
-    ['雪山攀登协作', '旅游出行'],
-    ['攀岩保护员', '健身运动'],
-    ['蹦极地陪', '旅游出行'],
-    ['跳伞教练陪同', '旅游出行'],
-    ['滑翔伞旅飞', '旅游出行'],
-  ];
-
-  const syntheticCatalog = PREFIX.flatMap((p) =>
-    CORE.map(([name, cat]) => ({
-      title: `${p}${name}`,
-      cat,
-      desc: `${name}相关需求；时间与报价可商议。`,
-    })),
-  );
-
-  type DemandSeedRow = {
-    title: string;
-    desc: string;
-    price: number;
-    cat: string;
-  taxonomyLeafId: string;
-    type: 'ONLINE' | 'OFFLINE';
-    lat?: number;
-    lng?: number;
-  };
-
-const CATEGORY_TO_LEAVES: Record<string, readonly string[]> = {
-  '设计': ['on-d-logo', 'on-d-ui', 'on-d-pack', 'on-d-video', 'on-d-3d', 'on-d-photo', 'on-m-voice'],
-  '技术开发': ['on-t-web', 'on-t-mini', 'on-t-app', 'on-t-api', 'on-t-data', 'on-t-cloud', 'on-t-sec', 'off-r-net'],
-  '教育培训': ['on-e-lang', 'on-e-k12', 'on-e-cert', 'on-e-it', 'on-e-art', 'on-e-sport', 'off-b-train', 'off-s-interview'],
-  '咨询服务': ['on-p-strat', 'on-p-comp', 'on-m-copy', 'off-b-iso', 'off-f-org'],
-  '家政服务': ['off-l-daily', 'off-l-deep', 'off-l-acs', 'off-l-move', 'off-l-baby', 'off-he-pest', 'off-w-nail', 'off-w-skin', 'off-p-plant'],
-  '维修服务': ['off-r-phone', 'off-r-pc', 'off-r-appliance', 'off-r-plumb', 'off-r-lock', 'off-f-cold'],
-  '法律法务': ['on-p-law', 'on-p-ip'],
-  '财务税务': ['on-p-tax'],
-  '电商运营': ['on-ec-shop', 'on-ec-live', 'on-ec-seo', 'on-ec-pr', 'on-ec-cross'],
-  '健身运动': ['off-t-climb'],
-  '婚庆摄影': ['off-b-photo', 'off-w-photo', 'off-w-makeup', 'off-w-host', 'off-w-dress'],
-  '宠物服务': ['off-p-board', 'off-p-walk', 'off-p-train', 'off-p-vet', 'off-p-fish'],
-  '汽车服务': ['off-c-wash', 'off-c-beauty', 'off-c-repair', 'off-c-rescue', 'off-c-pile', 'off-c-driver', 'off-t-driver'],
-  '房产相关': ['off-he-check', 'off-he-rent', 'off-he-bnb', 'off-he-law'],
-  '环保检测': ['off-he-air'],
-  '心理咨询': ['off-h-psy'],
-  '留学出国': ['off-s-paper', 'off-s-visa'],
-  '翻译语言': ['off-lang-doc', 'off-lang-escort', 'off-lang-sim'],
-  '企业服务': ['on-p-hr', 'off-b-event', 'off-b-hr'],
-  '仓储物流': ['off-b-logi'],
-  '三农服务': ['off-f-machine', 'off-f-greenhouse'],
-  '茶艺文化': ['off-l-tea', 'off-tea-class', 'off-tea-party'],
-  '旅游出行': ['off-t-guide', 'off-t-ski', 'off-t-dive', 'off-t-camp'],
-  '医疗健康': ['off-h-clinic', 'off-h-massage', 'off-h-tcm', 'off-h-diet'],
-  '美食餐饮': ['off-l-chef', 'off-coffee'],
-};
-
-const ONLINE_LEAF_FALLBACK = ['on-d-logo', 'on-t-web', 'on-e-lang', 'on-p-law', 'on-ec-shop', 'on-m-game'] as const;
-const OFFLINE_LEAF_FALLBACK = ['off-l-daily', 'off-r-phone', 'off-h-clinic', 'off-c-wash', 'off-he-check', 'off-b-event', 'off-w-photo', 'off-p-board'] as const;
-
-function pickTaxonomyLeaf(cat: string, type: 'ONLINE' | 'OFFLINE', salt: number): string {
-  const leaves = CATEGORY_TO_LEAVES[cat];
-  if (leaves && leaves.length > 0) return leaves[salt % leaves.length]!;
-  const fallback = type === 'ONLINE' ? ONLINE_LEAF_FALLBACK : OFFLINE_LEAF_FALLBACK;
-  return fallback[salt % fallback.length]!;
-}
-
-  function demandRowForIndex(i: number): DemandSeedRow {
-    const base = demandTemplates[i % demandTemplates.length];
-    const isCompleted = i < COMPLETED_WITH_ORDER;
-    if (isCompleted) {
-      return {
-        title: base.title,
-        desc: base.desc,
-        price: base.price,
-        cat: base.cat,
-        taxonomyLeafId: pickTaxonomyLeaf(base.cat, base.type, i),
-        type: base.type,
-        lat: base.lat,
-        lng: base.lng,
-      };
-    }
-    const j = i - COMPLETED_WITH_ORDER;
-    const online = j % 2 === 0;
-    const band = pyramidBand(j);
-    const catIdx = (j * 13 + band.tier * 41) % syntheticCatalog.length;
-    const entry = syntheticCatalog[catIdx]!;
-    const price = priceInPyramidSlot(j);
-    const desc = `${entry.desc} 起标价 ¥${price}。`;
-    if (online) {
-      return {
-        title: entry.title,
-        desc,
-        price,
-        cat: entry.cat,
-        taxonomyLeafId: pickTaxonomyLeaf(entry.cat, 'ONLINE', j),
-        type: 'ONLINE',
-      };
-    }
-    const lat = 39.88 + (j % 14) * 0.015;
-    const lng = 116.32 + (j % 14) * 0.018;
-    return {
-      title: entry.title,
-      desc,
-      price,
-      cat: entry.cat,
-      taxonomyLeafId: pickTaxonomyLeaf(entry.cat, 'OFFLINE', j),
-      type: 'OFFLINE',
-      lat,
-      lng,
-    };
-  }
-
-  for (let i = 0; i < COMPLETED_WITH_ORDER; i++) {
-    const t = demandRowForIndex(i);
-    const posterIdx = i % 14;
-    const posterPhone = phoneFromUserIndex(posterIdx);
-    const posterId = users[posterPhone];
-    if (!posterId) continue;
-
-    const d = await prisma.demand.create({
+  // ── 创建需求 ──
+  console.log(`Creating ${demandTemplates.length} demands...`);
+  const userIds = Object.values(userMap);
+  const demandIds: string[] = [];
+  for (let i = 0; i < demandTemplates.length; i++) {
+    const dt = demandTemplates[i];
+    const creator = userIds[i % userIds.length];
+    const city = cityLatLng[creator.cityCode] || cityLatLng['110000'];
+    // 线上需求不一定有坐标
+    const isOnline = dt.type === 'ONLINE';
+    const demand = await prisma.demand.create({
       data: {
-        userId: posterId,
-        title: t.title,
-        description: t.desc,
-        minPrice: t.price,
-        category: t.cat,
-        taxonomyLeafId: t.taxonomyLeafId,
-        serviceType: t.type,
-        locationLat: t.lat ?? null,
-        locationLng: t.lng ?? null,
-        cityCode: testUsers[posterIdx].cityCode,
-        expireAt: future,
-        status: 'COMPLETED',
-        applicantCount: 1,
-      },
-    });
-
-    let providerIdx = (posterIdx + 10) % testUsers.length;
-    if (providerIdx === posterIdx) providerIdx = (providerIdx + 1) % testUsers.length;
-    const providerPhone = phoneFromUserIndex(providerIdx);
-    const providerId = users[providerPhone];
-    if (!providerId) continue;
-
-    await prisma.demandApplication.create({
-      data: {
-        demandId: d.id,
-        userId: providerId,
-        offerPrice: t.price * 0.9,
-        message: `我做过类似的项目，可以高质量完成`,
-        isSnatched: i % 2 === 0,
-        status: 'ACCEPTED',
-      },
-    });
-
-    await prisma.order.create({
-      data: {
-        demandId: d.id,
-        providerId,
-        requesterId: posterId,
-        agreedPrice: t.price * 0.9,
-        status: 'COMPLETED',
-        paidAt: new Date(now.getTime() - 3600000),
-        completedAt: now,
-      },
-    });
-
-    await prisma.message.create({
-      data: {
-        fromUserId: posterId,
-        toUserId: providerId,
-        content: `订单完成：${t.title}，成交价 ¥${t.price * 0.9}`,
-        type: 'SYSTEM',
-      },
-    });
-  }
-
-  const BATCH = 200;
-  for (let start = COMPLETED_WITH_ORDER; start < TOTAL_DEMANDS; start += BATCH) {
-    const end = Math.min(TOTAL_DEMANDS, start + BATCH);
-    const rows: import('@prisma/client').Prisma.DemandCreateManyInput[] = [];
-    for (let i = start; i < end; i++) {
-      const t = demandRowForIndex(i);
-      const posterIdx = i % 14;
-      const posterPhone = phoneFromUserIndex(posterIdx);
-      const posterId = users[posterPhone];
-      if (!posterId) continue;
-      rows.push({
-        userId: posterId,
-        title: t.title,
-        description: t.desc,
-        minPrice: t.price,
-        category: t.cat,
-        taxonomyLeafId: t.taxonomyLeafId,
-        serviceType: t.type,
-        locationLat: t.lat ?? null,
-        locationLng: t.lng ?? null,
-        cityCode: testUsers[posterIdx].cityCode,
-        expireAt: future,
-        status: 'PENDING',
-        applicantCount: 0,
+        userId: creator.id,
+        title: dt.title,
+        description: dt.desc,
+        minPrice: dt.price,
+        category: dt.cat,
+        serviceType: dt.type,
+        cityCode: creator.cityCode,
+        expireAt: new Date(now.getTime() + (7 + Math.floor(Math.random() * 60)) * 24 * 60 * 60 * 1000),
+        status: ['ACTIVE', 'ACTIVE', 'ACTIVE', 'PENDING', 'IN_PROGRESS', 'COMPLETED'][Math.floor(Math.random() * 6)] as any,
+        isExample: false,
         isPublic: true,
-        mediaUrls: [],
+        fuzzyLat: isOnline ? undefined : city.lat + (Math.random() - 0.5) * 0.1,
+        fuzzyLng: isOnline ? undefined : city.lng + (Math.random() - 0.5) * 0.1,
+        tags: [dt.cat],
+        aiTags: [],
+        stage: 'active',
+        lifecycleStage: 'ACTIVE',
+        applicantCount: Math.floor(Math.random() * 8),
+        visibilityWindow: 15,
+        maxApplicants: 10,
+      },
+    });
+    demandIds.push(demand.id);
+  }
+
+  // ── 创建圈子 ──
+  console.log('Creating circles...');
+  const circles = [
+    { name: '北京装修互助圈', cityCode: '110000', type: 'PUBLIC' as const },
+    { name: '上海设计交流圈', cityCode: '310000', type: 'PUBLIC' as const },
+    { name: '广深程序员联盟', cityCode: '440300', type: 'PUBLIC' as const },
+    { name: '成都美食爱好者', cityCode: '510100', type: 'PUBLIC' as const },
+    { name: '杭州电商创业者', cityCode: '330100', type: 'PUBLIC' as const },
+    { name: '武汉家教资源共享', cityCode: '420100', type: 'PUBLIC' as const },
+    { name: '全国摄影交流圈', cityCode: '110000', type: 'PUBLIC' as const },
+    { name: '九木官方公告圈', cityCode: '110000', type: 'PRIVATE' as const },
+    { name: '重庆山城跑腿帮', cityCode: '500000', type: 'PUBLIC' as const },
+    { name: '宁杭独立开发者', cityCode: '320100', type: 'PUBLIC' as const },
+  ];
+  for (const c of circles) {
+    const owner = userIds.find(u => u.cityCode === c.cityCode) || userIds[0];
+    await prisma.circle.create({
+      data: {
+        name: c.name,
+        type: c.type,
+        ownerId: owner.id,
+        cityCode: c.cityCode,
+        memberCount: 1 + Math.floor(Math.random() * 30),
+        activeScore: Math.random() * 100,
+        status: 'ACTIVE',
+      },
+    });
+  }
+
+  // ── 创建认证服务者 ──
+  console.log('Creating certified providers...');
+  const certUsers = userIds.filter(u => u.cert !== 'NONE');
+  for (const cu of certUsers) {
+    const randomTags = tagNames.sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 3));
+    await prisma.certifiedProvider.create({
+      data: {
+        userId: cu.id,
+        tags: randomTags,
+        regionId: undefined,
+        avgRating: 4.0 + Math.random() * 1.0,
+        totalCompleted: 5 + Math.floor(Math.random() * 80),
+      },
+    });
+  }
+
+  // ── 创建订单和评价 ──
+  console.log('Creating sample orders & reviews...');
+  for (let i = 0; i < 60; i++) {
+    const provider = userIds[Math.floor(Math.random() * userIds.length)];
+    const requester = userIds.filter(u => u.id !== provider.id)[Math.floor(Math.random() * (userIds.length - 1))];
+    const demand = demandIds[i % demandIds.length];
+    const statuses: any[] = ['COMPLETED', 'COMPLETED', 'COMPLETED', 'IN_PROGRESS', 'WAITING_REVIEW', 'PENDING'];
+    const status = statuses[i % statuses.length];
+    const price = 50 + Math.floor(Math.random() * 5000);
+
+    const order = await prisma.order.create({
+      data: {
+        demandId: demand,
+        providerId: provider.id,
+        requesterId: requester.id,
+        agreedPrice: price,
+        status,
+        completedAt: status === 'COMPLETED' ? new Date(now.getTime() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000) : null,
+      },
+    });
+
+    if (status === 'COMPLETED') {
+      await prisma.review.create({
+        data: {
+          orderId: order.id,
+          reviewerId: requester.id,
+          revieweeId: provider.id,
+          rating: 3 + Math.floor(Math.random() * 3),
+          content: ['服务很专业，响应及时！', '非常满意，下次还找', '性价比高，沟通顺畅', '技术过硬，按时交付', '态度很好，超出预期'][i % 5],
+        },
       });
     }
-    if (rows.length) await prisma.demand.createMany({ data: rows });
   }
 
-  const pendingAfter = await prisma.demand.count({ where: { status: 'PENDING' } });
-  const completedAfter = await prisma.demand.count({ where: { status: 'COMPLETED' } });
-  if (pendingAfter !== PENDING_TOTAL) {
-    throw new Error(
-      `Seed 校验失败：PENDING 应为 ${PENDING_TOTAL} 条，实际 ${pendingAfter} 条（COMPLETED=${completedAfter}）。请检查数据库连接或 createMany 报错。`,
-    );
+  // ── 创建关注关系 ──
+  console.log('Creating follow relationships...');
+  for (let i = 0; i < 80; i++) {
+    const follower = userIds[Math.floor(Math.random() * userIds.length)];
+    const following = userIds.filter(u => u.id !== follower.id)[Math.floor(Math.random() * (userIds.length - 1))];
+    try {
+      await prisma.follow.create({
+        data: { followerId: follower.id, followingId: following.id },
+      });
+    } catch { /* 重复跳过 */ }
   }
 
-  // Create a sample circle with some users
-  const circle = await prisma.circle.create({
-    data: {
-      name: '北京生活服务圈',
-      type: 'PUBLIC',
-      ownerId: users['13800000001'],
-      cityCode: '110000',
-      memberCount: 4,
-      inviteCode: 'BJLH0001',
-      status: 'ACTIVE',
-      members: {
-        create: [
-          { userId: users['13800000001'], role: 'OWNER' },
-          { userId: users['13800000003'], role: 'MEMBER' },
-          { userId: users['13800000008'], role: 'MEMBER' },
-          { userId: users['13800000013'], role: 'MEMBER' },
-        ],
-      },
-    },
-  });
-
-  // Seed Shorts — casual explore content (no deal data)
-  const shortMedia = [
-    { media: '/uploads/1778316022704-x30azgj0ylr.mp4', cover: null, desc: '周末城市漫步，发现这家隐藏的咖啡馆 ☕', tags: ['城市探索', '咖啡', 'vlog'] },
-    { media: '/uploads/sample_demand_1.jpg', cover: null, desc: '今天的落日太美了，分享给你们 🌇', tags: ['日落', '摄影', '日常'] },
-    { media: '/uploads/sample_demand_2.jpg', cover: null, desc: '新入手的手冲壶，冲一杯云南小粒', tags: ['手冲', '咖啡', '生活'] },
-    { media: '/uploads/sample_demand_3.jpg', cover: null, desc: '胡同里的老北京，每一块砖都是故事', tags: ['北京', '胡同', '人文'] },
-    { media: '/uploads/sample_demand_4.jpg', cover: null, desc: '尝试做了一道新菜，味道还不错 😋', tags: ['美食', '烹饪', '日常'] },
-    { media: '/uploads/sample_demand_5.jpg', cover: null, desc: '书店里泡了一下午，推荐这本好书', tags: ['阅读', '书店', '推荐'] },
-  ];
-  const shortUserIds = Object.values(users);
-  for (let i = 0; i < shortMedia.length; i++) {
-    await prisma.short.create({
+  // ── 创建示例消息 ──
+  console.log('Creating sample messages...');
+  const msgTexts = ['你好，我看到你的需求了，方便聊聊吗？', '请问这个大概什么时间需要？', '我这边可以做，价格可以谈', '好的没问题', '谢谢你，合作愉快！'];
+  for (let i = 0; i < 50; i++) {
+    const from = userIds[Math.floor(Math.random() * userIds.length)];
+    const to = userIds.filter(u => u.id !== from.id)[Math.floor(Math.random() * (userIds.length - 1))];
+    await prisma.message.create({
       data: {
-        userId: shortUserIds[i % shortUserIds.length],
-        mediaUrl: shortMedia[i].media,
-        coverUrl: shortMedia[i].cover,
-        description: shortMedia[i].desc,
-        tags: shortMedia[i].tags,
-        likeCount: Math.floor(Math.random() * 200),
-        viewCount: Math.floor(Math.random() * 5000),
+        fromUserId: from.id,
+        toUserId: to.id,
+        content: msgTexts[i % msgTexts.length],
+        type: 'TEXT',
+        isRead: Math.random() > 0.3,
+        createdAt: new Date(now.getTime() - Math.floor(Math.random() * 14) * 24 * 60 * 60 * 1000),
       },
     });
   }
 
-  console.log('=== Seed Complete ===');
-  console.log(`20 test users (phone 13800000001-13800000020, password 1); 前14位有个人中心 coverUrl`);
-  console.log(
-    `${TOTAL_DEMANDS} demands (${COMPLETED_WITH_ORDER} COMPLETED with orders, ${TOTAL_DEMANDS - COMPLETED_WITH_ORDER} PENDING)；库内复查 PENDING=${pendingAfter}`,
-  );
-  console.log(`1 public circle with 4 members`);
-  console.log(`6 shorts for casual explore feed`);
-  console.log(`SMS code: 123456`);
-  console.log('');
-  console.log('User groups:');
-  console.log('  高级认证(7): 张师傅/赵阿姨/陈老师/郑律师/钱医生/朱会计/何码农');
-  console.log('  中级认证(8): 李设计/刘工头/吴摄影/马翻译/胡教练/郭厨师/罗维修');
-  console.log('  初级认证(5): 王同学/周跑腿/孙司机/林美容/杨花匠');
-  console.log('  无认证(1):   梁新人');
-  console.log('  ADMIN: 张师傅 (phone: 13800000001)');
+  // ── 创建 UserTag ──
+  console.log('Creating user tags...');
+  for (const cu of certUsers) {
+    const tag = tagNames[Math.floor(Math.random() * tagNames.length)];
+    try {
+      await prisma.userTag.create({
+        data: {
+          userId: cu.id,
+          tagName: tag,
+          status: Math.random() > 0.3 ? 'IDLE' : 'BUSY',
+          certified: true,
+          rating: 3.5 + Math.random() * 1.5,
+          orderCount: Math.floor(Math.random() * 30),
+          regionId: undefined,
+        },
+      });
+    } catch { /* 重复跳过 */ }
+  }
+
+  // ── 创建需求申请（应标记录）──
+  console.log('Creating demand applications...');
+  for (let i = 0; i < 40; i++) {
+    const applicant = userIds[Math.floor(Math.random() * userIds.length)];
+    const demandId = demandIds[i % demandIds.length];
+    try {
+      await prisma.demandApplication.create({
+        data: {
+          demandId,
+          userId: applicant.id,
+          offerPrice: 50 + Math.floor(Math.random() * 3000),
+          message: ['我能做这个，有经验', '我对这个很感兴趣', '之前做过类似的', '请联系我详谈', '周一就能开始'][i % 5],
+          status: ['PENDING', 'ACCEPTED', 'REJECTED'][i % 3] as any,
+        },
+      });
+    } catch { /* 跳过重复 */ }
+  }
+
+  // ── 创建一些冻结/死池需求 ──
+  console.log('Creating frozen/dead demands...');
+  const frozenUserIds = userIds.slice(0, 5);
+  for (const fu of frozenUserIds) {
+    await prisma.demand.create({
+      data: {
+        userId: fu.id,
+        title: ['旧空调回收处理', '过期需求清理测试', '历史家教需求', '已完成的设计项目', '往期翻译任务'][Math.floor(Math.random() * 5)],
+        description: '这是一条历史/冻结需求，用于测试死池和归档功能',
+        minPrice: 50 + Math.floor(Math.random() * 500),
+        category: '家政服务',
+        serviceType: 'ONLINE',
+        cityCode: fu.cityCode,
+        expireAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+        status: 'FROZEN',
+        isExample: false,
+        isPublic: true,
+        tags: ['历史需求'],
+        aiTags: [],
+        stage: 'active',
+        lifecycleStage: 'ACTIVE',
+        visibilityWindow: 15,
+        maxApplicants: 10,
+        frozenAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+      },
+    });
+  }
+
+  // ── 刷新标签统计 ──
+  console.log('Refreshing tag stats...');
+  const { refreshTagStats } = await import('../src/services/tag-stats.js');
+  await refreshTagStats();
+
+  console.log('Seed complete!');
+  console.log(`  Users: ${realUsers.length}`);
+  console.log(`  Demands: ${demandTemplates.length}`);
+  console.log(`  Circles: ${circles.length}`);
+  console.log(`  Certified Providers: ${certUsers.length}`);
+  console.log(`  Orders: 60, Reviews, Messages: 50, Follows: 80`);
+  console.log(`  Password for all users: ${DEFAULT_PASSWORD}`);
 }
 
-main().catch(console.error).finally(() => prisma.$disconnect());
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

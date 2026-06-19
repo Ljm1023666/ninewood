@@ -51,7 +51,15 @@ export const demandApi = {
   withdrawDemand(id: string) {
     return api.post(`/demands/${id}/withdraw`)
   },
-  searchProviders(params: { tagName?: string; regionId?: number; page?: number }) {
+  // AI 2.8: 结算明细
+  getSettlement(id: string) {
+    return api.get(`/transactions/${id}/breakdown`)
+  },
+  searchProviders(params: {
+    tagName?: string
+    regionId?: number
+    page?: number
+  }) {
     return api.get('/providers/search', { params })
   },
 }

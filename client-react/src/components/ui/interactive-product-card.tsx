@@ -86,7 +86,6 @@ export function InteractiveProductCard({
   const [flipped, setFlipped] = useState(false)
   const flippedRef = useRef(false)
   flippedRef.current = flipped
-  const flipAtMs = useRef(0)
 
   const sheenX = useMotionValue(0)
   const sheenY = useMotionValue(0)
@@ -146,8 +145,6 @@ export function InteractiveProductCard({
 
   const safeToggleFlip = () => {
     if (!flipDescription || !description.trim()) return
-    if (flipAtMs.current && Date.now() - flipAtMs.current < 650) return
-    flipAtMs.current = Date.now()
     setFlipped((v) => !v)
   }
 

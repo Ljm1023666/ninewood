@@ -142,6 +142,18 @@ export const demandService = {
       },
     });
 
+    // AI 2.8: 押金 > 0 时创建 Deposit 记录
+    if (deposit > 0) {
+      await prisma.deposit.create({
+        data: {
+          userId: params.userId,
+          amount: deposit,
+          status: 'PENDING',
+          demandRelations: { create: { demandId: demand.id } },
+        },
+      });
+    }
+
     return demand;
   },
 
@@ -476,7 +488,7 @@ export const demandService = {
     const demand = await prisma.demand.findUnique({
       where: { id: demandId },
       include: {
-        user: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, certificationLevel: true, creditScore: true } },
+        user: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, certificationLevel: true, creditScore: true, ipRegion: true } },
         applications: {
           include: { user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } } },
           orderBy: { createdAt: 'desc' },
@@ -639,8 +651,20 @@ export const demandService = {
     if (demand.userId !== userId) throw { status: 403, message: '无权删除' };
     if (demand.status !== 'FROZEN') throw { status: 400, message: '只能删除冻结的需求' };
 
+    // 退回全部押金
+    if (demand.deposit > 0) {
+      await prisma.deposit.updateMany({
+        where: {
+          userId,
+          status: 'PENDING',
+          demandRelations: { some: { demandId } },
+        },
+        data: { status: 'REFUNDED' },
+      });
+    }
+
     await prisma.demand.delete({ where: { id: demandId } });
-    return { message: '已删除' };
+    return { message: '已删除，押金已退回' };
   },
 
   async getMyDemands(userId: string, page = 1) {
@@ -824,6 +848,18 @@ export const demandService = {
         },
         data: { status: 'WITHDRAWN' },
       }),
+      ...(demand.deposit > 0
+        ? [
+            prisma.deposit.updateMany({
+              where: {
+                userId,
+                status: 'PENDING',
+                demandRelations: { some: { demandId } },
+              },
+              data: { status: 'REFUNDED' },
+            }),
+          ]
+        : []),
     ]);
 
     return { ok: true, refund };
