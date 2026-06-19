@@ -99,11 +99,12 @@ circleRouter.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/circles/:id/demands
-circleRouter.get('/:id/demands', authMiddleware, async (req: Request, res: Response) => {
+// GET /api/circles/:id/demands — anyone can view, members get full access
+circleRouter.get('/:id/demands', async (req: Request, res: Response) => {
   try {
     const page = parseInt(q(req.query.page) || '1');
-    const demands = await circleService.getCircleDemands(req.params.id as string, req.user!.userId, page);
+    const userId = (req as any).user?.userId || null;
+    const demands = await circleService.getCircleDemands(req.params.id as string, userId, page);
     success(res, demands);
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);

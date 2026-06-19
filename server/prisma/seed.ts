@@ -5,26 +5,26 @@ const prisma = new PrismaClient();
 const DEFAULT_PASSWORD = '1';
 
 const testUsers = [
-  { phone: '1', nickname: '张师傅', bio: '20年水电维修经验，持电工证，北京朝阳区随叫随到', cityCode: '110000', cert: 'ADVANCED' as const, credit: 92, orders: 68, role: 'ADMIN' as const },
-  { phone: '2', nickname: '李设计', bio: 'UI/UX设计师，擅长品牌视觉和移动端界面', cityCode: '310000', cert: 'INTERMEDIATE' as const, credit: 78, orders: 25 },
-  { phone: '3', nickname: '王同学', bio: '计算机大三学生，课余接单，熟悉前端和Python', cityCode: '110000', cert: 'BASIC' as const, credit: 62, orders: 6 },
-  { phone: '4', nickname: '赵阿姨', bio: '10年家政经验，擅长深度保洁和收纳整理', cityCode: '440100', cert: 'ADVANCED' as const, credit: 95, orders: 82 },
-  { phone: '5', nickname: '刘工头', bio: '装修队长，带领5人团队，擅长旧房翻新和水电改造', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 74, orders: 31 },
-  { phone: '6', nickname: '陈老师', bio: '重点中学数学教师，辅导中高考数学10年', cityCode: '330100', cert: 'ADVANCED' as const, credit: 88, orders: 45 },
-  { phone: '7', nickname: '周跑腿', bio: '成都同城跑腿，电动车全城可达，代买代送代排队', cityCode: '510100', cert: 'BASIC' as const, credit: 66, orders: 11 },
-  { phone: '8', nickname: '吴摄影', bio: '自由摄影师，擅长人像和活动跟拍，设备Sony A7M4', cityCode: '110000', cert: 'INTERMEDIATE' as const, credit: 80, orders: 19 },
-  { phone: '9', nickname: '郑律师', bio: '执业律师，擅长合同纠纷和劳动仲裁', cityCode: '310000', cert: 'ADVANCED' as const, credit: 90, orders: 55 },
-  { phone: '10', nickname: '钱医生', bio: '三甲医院内科主治医师，提供健康咨询', cityCode: '320100', cert: 'ADVANCED' as const, credit: 86, orders: 41 },
-  { phone: '11', nickname: '孙司机', bio: '搬家货运司机，4.2米厢式货车，广州佛山全境', cityCode: '440100', cert: 'BASIC' as const, credit: 58, orders: 14 },
-  { phone: '12', nickname: '马翻译', bio: '英日双语翻译，CATTI二级，曾为多家外企提供同传', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 76, orders: 22 },
-  { phone: '13', nickname: '朱会计', bio: '注册会计师，代账报税、财务顾问，服务中小企业50+', cityCode: '110000', cert: 'ADVANCED' as const, credit: 93, orders: 60 },
-  { phone: '14', nickname: '胡教练', bio: '健身教练，ACE认证，擅长减脂增肌和体态矫正', cityCode: '510100', cert: 'INTERMEDIATE' as const, credit: 72, orders: 28 },
-  { phone: '15', nickname: '林美容', bio: '美容师，擅长韩式半永久和皮肤管理', cityCode: '500000', cert: 'BASIC' as const, credit: 64, orders: 8 },
-  { phone: '16', nickname: '何码农', bio: '全栈开发10年，Go/React/Python技术栈', cityCode: '330100', cert: 'ADVANCED' as const, credit: 91, orders: 48 },
-  { phone: '17', nickname: '郭厨师', bio: '持证厨师，擅长川菜和粤菜，可上门做家宴', cityCode: '610100', cert: 'INTERMEDIATE' as const, credit: 82, orders: 35 },
-  { phone: '18', nickname: '杨花匠', bio: '园艺师，擅长庭院设计、绿植养护和盆栽造型', cityCode: '530100', cert: 'BASIC' as const, credit: 60, orders: 9 },
-  { phone: '19', nickname: '罗维修', bio: '手机电脑维修，屏幕更换电池更换主板维修', cityCode: '420100', cert: 'INTERMEDIATE' as const, credit: 77, orders: 24 },
-  { phone: '20', nickname: '梁新人', bio: '刚来这个平台，什么都想试试，请大家多多关照', cityCode: '120000', cert: 'NONE' as const, credit: 60, orders: 0 },
+  { phone: '13800000001', nickname: '张师傅', bio: '20年水电维修经验，持电工证，北京朝阳区随叫随到', cityCode: '110000', cert: 'ADVANCED' as const, credit: 92, orders: 68, role: 'ADMIN' as const },
+  { phone: '13800000002', nickname: '李设计', bio: 'UI/UX设计师，擅长品牌视觉和移动端界面', cityCode: '310000', cert: 'INTERMEDIATE' as const, credit: 78, orders: 25 },
+  { phone: '13800000003', nickname: '王同学', bio: '计算机大三学生，课余接单，熟悉前端和Python', cityCode: '110000', cert: 'BASIC' as const, credit: 62, orders: 6 },
+  { phone: '13800000004', nickname: '赵阿姨', bio: '10年家政经验，擅长深度保洁和收纳整理', cityCode: '440100', cert: 'ADVANCED' as const, credit: 95, orders: 82 },
+  { phone: '13800000005', nickname: '刘工头', bio: '装修队长，带领5人团队，擅长旧房翻新和水电改造', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 74, orders: 31 },
+  { phone: '13800000006', nickname: '陈老师', bio: '重点中学数学教师，辅导中高考数学10年', cityCode: '330100', cert: 'ADVANCED' as const, credit: 88, orders: 45 },
+  { phone: '13800000007', nickname: '周跑腿', bio: '成都同城跑腿，电动车全城可达，代买代送代排队', cityCode: '510100', cert: 'BASIC' as const, credit: 66, orders: 11 },
+  { phone: '13800000008', nickname: '吴摄影', bio: '自由摄影师，擅长人像和活动跟拍，设备Sony A7M4', cityCode: '110000', cert: 'INTERMEDIATE' as const, credit: 80, orders: 19 },
+  { phone: '13800000009', nickname: '郑律师', bio: '执业律师，擅长合同纠纷和劳动仲裁', cityCode: '310000', cert: 'ADVANCED' as const, credit: 90, orders: 55 },
+  { phone: '13800000010', nickname: '钱医生', bio: '三甲医院内科主治医师，提供健康咨询', cityCode: '320100', cert: 'ADVANCED' as const, credit: 86, orders: 41 },
+  { phone: '13800000011', nickname: '孙司机', bio: '搬家货运司机，4.2米厢式货车，广州佛山全境', cityCode: '440100', cert: 'BASIC' as const, credit: 58, orders: 14 },
+  { phone: '13800000012', nickname: '马翻译', bio: '英日双语翻译，CATTI二级，曾为多家外企提供同传', cityCode: '440300', cert: 'INTERMEDIATE' as const, credit: 76, orders: 22 },
+  { phone: '13800000013', nickname: '朱会计', bio: '注册会计师，代账报税、财务顾问，服务中小企业50+', cityCode: '110000', cert: 'ADVANCED' as const, credit: 93, orders: 60 },
+  { phone: '13800000014', nickname: '胡教练', bio: '健身教练，ACE认证，擅长减脂增肌和体态矫正', cityCode: '510100', cert: 'INTERMEDIATE' as const, credit: 72, orders: 28 },
+  { phone: '13800000015', nickname: '林美容', bio: '美容师，擅长韩式半永久和皮肤管理', cityCode: '500000', cert: 'BASIC' as const, credit: 64, orders: 8 },
+  { phone: '13800000016', nickname: '何码农', bio: '全栈开发10年，Go/React/Python技术栈', cityCode: '330100', cert: 'ADVANCED' as const, credit: 91, orders: 48 },
+  { phone: '13800000017', nickname: '郭厨师', bio: '持证厨师，擅长川菜和粤菜，可上门做家宴', cityCode: '610100', cert: 'INTERMEDIATE' as const, credit: 82, orders: 35 },
+  { phone: '13800000018', nickname: '杨花匠', bio: '园艺师，擅长庭院设计、绿植养护和盆栽造型', cityCode: '530100', cert: 'BASIC' as const, credit: 60, orders: 9 },
+  { phone: '13800000019', nickname: '罗维修', bio: '手机电脑维修，屏幕更换电池更换主板维修', cityCode: '420100', cert: 'INTERMEDIATE' as const, credit: 77, orders: 24 },
+  { phone: '13800000020', nickname: '梁新人', bio: '刚来这个平台，什么都想试试，请大家多多关照', cityCode: '120000', cert: 'NONE' as const, credit: 60, orders: 0 },
 ];
 
 const demandTemplates = [
@@ -85,7 +85,7 @@ async function main() {
   const demandIds: string[] = [];
   for (let i = 0; i < 10; i++) {
     const t = demandTemplates[i];
-    const posterPhone = `${(i % 10) + 1}`;
+    const posterPhone = `138000000${String((i % 10) + 1).padStart(2, '0')}`;
     const posterId = users[posterPhone];
     if (!posterId) continue;
 
@@ -109,7 +109,7 @@ async function main() {
 
     // For completed demands (i < 5), create order with another user as provider
     if (i < 5) {
-      const providerPhone = `${((i + 5) % 10) + 11}`;
+      const providerPhone = `138000000${String(((i + 5) % 10) + 11).padStart(2, '0')}`;
       const providerId = users[providerPhone];
       if (!providerId) continue;
 
@@ -155,17 +155,17 @@ async function main() {
     data: {
       name: '北京生活服务圈',
       type: 'PUBLIC',
-      ownerId: users['1'],
+      ownerId: users['13800000001'],
       cityCode: '110000',
       memberCount: 4,
       inviteCode: 'BJLH0001',
       status: 'ACTIVE',
       members: {
         create: [
-          { userId: users['1'], role: 'OWNER' },
-          { userId: users['3'], role: 'MEMBER' },
-          { userId: users['8'], role: 'MEMBER' },
-          { userId: users['13'], role: 'MEMBER' },
+          { userId: users['13800000001'], role: 'OWNER' },
+          { userId: users['13800000003'], role: 'MEMBER' },
+          { userId: users['13800000008'], role: 'MEMBER' },
+          { userId: users['13800000013'], role: 'MEMBER' },
         ],
       },
     },
@@ -196,7 +196,7 @@ async function main() {
   }
 
   console.log('=== Seed Complete ===');
-  console.log(`20 test users created (phone 1-20, password 1)`);
+  console.log(`20 test users created (phone 13800000001-13800000020, password 1)`);
   console.log(`10 demands (5 COMPLETED with orders, 5 PENDING)`);
   console.log(`1 public circle with 4 members`);
   console.log(`6 shorts for casual explore feed`);
@@ -207,7 +207,7 @@ async function main() {
   console.log('  中级认证(8): 李设计/刘工头/吴摄影/马翻译/胡教练/郭厨师/罗维修');
   console.log('  初级认证(5): 王同学/周跑腿/孙司机/林美容/杨花匠');
   console.log('  无认证(1):   梁新人');
-  console.log('  ADMIN: 张师傅 (phone: 1)');
+  console.log('  ADMIN: 张师傅 (phone: 13800000001)');
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());

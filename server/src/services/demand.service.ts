@@ -100,10 +100,19 @@ export const demandService = {
     limit?: number;
     excludeExample?: boolean;
     userId?: string;
+    /** 只看待发布者的需求（发现页 ?publisher=uuid） */
+    publisherId?: string;
   }) {
     const page = params.page || 1;
     const limit = params.limit || 20;
     const where: any = { status: 'PENDING' };
+
+    const publisherFilter =
+      params.publisherId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(params.publisherId)
+        ? params.publisherId
+        : undefined;
+    if (publisherFilter) where.userId = publisherFilter;
 
     if (params.serviceType) where.serviceType = params.serviceType;
     if (params.category) where.category = params.category;
@@ -135,6 +144,7 @@ export const demandService = {
     }
 
     const hasGeo = !!(params.lat && params.lng && params.distance);
+    const publisherSql = publisherFilter ? `AND d."userId" = '${publisherFilter}'` : '';
 
     if (hasGeo) {
       // PostgreSQL-level haversine: push distance calc + filter to DB
@@ -150,6 +160,7 @@ export const demandService = {
         FROM "Demand" d
         JOIN "User" u ON u.id = d."userId"
         WHERE d.status = 'PENDING'
+          ${publisherSql}
           ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
           ${params.category ? `AND d."category" = '${params.category}'` : ''}
           ${params.keyword ? `AND (d."title" ILIKE '%${params.keyword}%' OR d."description" ILIKE '%${params.keyword}%')` : ''}
@@ -174,6 +185,7 @@ export const demandService = {
       const countRaw = await prisma.$queryRawUnsafe<any[]>(`
         SELECT COUNT(*)::int AS total FROM "Demand" d
         WHERE d.status = 'PENDING'
+          ${publisherSql}
           ${params.cityCode ? `AND d."cityCode" = '${params.cityCode}'` : ''}
           ${params.category ? `AND d."category" = '${params.category}'` : ''}
           AND (
@@ -249,7 +261,7 @@ export const demandService = {
     const demand = await prisma.demand.findUnique({
       where: { id: demandId },
       include: {
-        user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true, creditScore: true } },
+        user: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true, certificationLevel: true, creditScore: true } },
         applications: {
           include: { user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } } },
           orderBy: { createdAt: 'desc' },

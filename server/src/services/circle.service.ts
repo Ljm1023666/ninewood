@@ -158,11 +158,13 @@ export const circleService = {
     });
   },
 
-  async getCircleDemands(circleId: string, userId: string, page = 1) {
-    const member = await prisma.circleMember.findUnique({
-      where: { circleId_userId: { circleId, userId } },
-    });
-    if (!member) throw { status: 403, message: '请先加入圈子' };
+  async getCircleDemands(circleId: string, userId: string | null, page = 1) {
+    if (userId) {
+      const member = await prisma.circleMember.findUnique({
+        where: { circleId_userId: { circleId, userId } },
+      });
+      if (!member) throw { status: 403, message: '请先加入圈子' };
+    }
 
     const limit = 20;
     const [demands, total] = await Promise.all([
