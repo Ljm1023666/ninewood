@@ -12,6 +12,8 @@ interface PushTarget {
   tags?: string[]
   regions?: number[]
   excludeKeywords?: string[]
+  /** Stage 1.1: 仅当为 true 时才在 where 中加 autoReceive 筛透。手动推送路由不传此参。 */
+  autoReceiveOnly?: boolean
 }
 
 interface PushResult {
@@ -72,8 +74,9 @@ export async function matchAndPush(
     select: { title: true, tagName: true, regionId: true },
   })
 
-  // 查找匹配的服务者 (IDLE 状态 + 目标标签)
+  // 查找匹配的服务者 (IDLE 状态 + 目标标签、可选 autoReceive)
   const where: any = { status: 'IDLE' }
+  if (target.autoReceiveOnly) where.autoReceive = true
   if (target.tags && target.tags.length > 0) {
     where.tagName = { in: target.tags }
   }
@@ -123,4 +126,38 @@ export async function matchAndPush(
   }
 
   return result
+}
+
+/**
+ * Stage 1.1: 需求发布后自动触发一次推送，仅命中 autoReceive=true 的服务者
+ * 错误不会反向影响 demand 创布（由调用方 catch 吃掉）
+ */
+export async function triggerAutoReceivePush(
+  demandId: string,
+  io?: SocketIOServer,
+): Promise<PushResult> {
+  const demand = await prisma.demand.findUnique({
+    where: { id: demandId },
+    select: { tagName: true, regionId: true, tags: true },
+  })
+  if (!demand) {
+    return { totalMatched: 0, totalRejected: 0, totalSent: 0, rejectReasons: {} }
+  }
+  // 优先用 demand.tags（AI 标签数组），为空时回退到 tagName（单值）
+  const tags =
+    demand.tags && demand.tags.length > 0
+      ? demand.tags
+      : demand.tagName
+        ? [demand.tagName]
+        : undefined
+  const regions = demand.regionId ? [demand.regionId] : undefined
+  return matchAndPush(
+    demandId,
+    {
+      tags,
+      regions,
+      autoReceiveOnly: true,
+    },
+    io,
+  )
 }

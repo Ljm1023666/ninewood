@@ -1,4 +1,16 @@
 import { prisma } from '../lib/prisma.js';
+import { walletService } from './wallet.service.js';
+import { checkFrozenBeforePublish } from './deposit-new.js'
+import type { Server as SocketIOServer } from 'socket.io'
+import { triggerAutoReceivePush } from './push-engine.js';
+import {
+  closeAllCommForDemand,
+  canViewDemand,
+  extendComm,
+} from './comm.service.js';
+import { isVisibleInMarketplace } from '../utils/demand-search-visibility.js';
+
+export { extendComm };
 import { ServiceType, DemandStatus, DemandStage, Prisma } from '@prisma/client';
 
 const CERT_ORDER: Record<string, number> = { MASTER: 4, ADVANCED: 3, INTERMEDIATE: 2, BASIC: 1, NONE: 0 };
@@ -27,7 +39,8 @@ function formatCreatedAgo(createdAt: Date): string {
 }
 
 export const demandService = {
-  async create(params: {
+  async create(
+    params: {
     userId: string;
     title: string;
     description: string;
@@ -55,12 +68,14 @@ export const demandService = {
     tagsConfirmed?: boolean;
     lat?: number;
     lng?: number;
-  }) {
-    // Check frozen demands
-    const frozenCount = await prisma.demand.count({
-      where: { userId: params.userId, status: 'FROZEN' },
-    });
-    if (frozenCount > 0) throw { status: 400, message: '你有冻结中的需求，请先删除后再发布新需求' };
+    },
+    io?: SocketIOServer,
+  ) {
+    // 冻结需求拦截
+    await checkFrozenBeforePublish(params.userId);
+
+    // 押金 = 全额最低报价（点数托管）
+    const deposit = walletService.calculateDeposit(Number(params.minPrice));
 
     // Circle membership check
     if (params.circleId) {
@@ -68,18 +83,6 @@ export const demandService = {
         where: { circleId_userId: { circleId: params.circleId, userId: params.userId } },
       });
       if (!member) throw { status: 403, message: '请先加入该需求圈' };
-    }
-
-    // AI 2.5: 押金计算
-    const activeCount = await prisma.demand.count({
-      where: {
-        userId: params.userId,
-        status: { in: ['PENDING', 'ACTIVE', 'IN_PROGRESS'] },
-      },
-    });
-    let deposit = 0;
-    if (activeCount >= 1) {
-      deposit = Math.round(Number(params.minPrice) * 0.01 * 100) / 100;
     }
 
     // AI 2.5: 位置模糊
@@ -99,59 +102,59 @@ export const demandService = {
     const { initLifecycle } = await import('../services/card-lifecycle.js');
     const lifecycle = initLifecycle(win / (24 * 60)); // 转换分钟为天
 
-    const demand = await prisma.demand.create({
-      data: {
-        userId: params.userId,
-        title: params.title,
-        description: params.description,
-        minPrice: params.minPrice,
-        category: params.category,
-        taxonomyLeafId: params.taxonomyLeafId || null,
-        serviceType: params.serviceType,
-        cityCode: params.cityCode || null,
-        regionId: params.regionId || null,
-        tagName: params.tagName || null,
-        isCertifiedOnly: params.isCertifiedOnly || false,
-        pushConfig: params.pushConfig || null,
-        coverImage: params.coverImage || null,
-        amountEstimate: params.amountEstimate ?? null,
-        stage: params.stage || 'active',
-        expireAt: new Date(params.expireAt),
-        circleId: params.circleId || null,
-        isPublic: params.circleId ? false : true,
-        mediaUrls: params.mediaUrls || [],
-        // AI 2.5
-        expectedOutcome: params.expectedOutcome || null,
-        visibilityWindow: win,
-        visibleUntil,
-        maxApplicants: params.maxApplicants || 10,
-        tags: params.tags || [],
-        aiTags: params.aiTags || [],
-        tagsConfirmed: params.tagsConfirmed || false,
-        fuzzyLat,
-        fuzzyLng,
-        deposit,
-        status: 'ACTIVE',
-        coverDeletedAt: lifecycle.coverDeletedAt,
-        detailDeletedAt: lifecycle.detailDeletedAt,
-        fullDeletedAt: lifecycle.fullDeletedAt,
-      },
-      include: {
-        user: { select: { id: true, nickname: true, avatarUrl: true, demandCardCoverUrl: true, certificationLevel: true } },
-        _count: { select: { applications: true } },
-      },
-    });
-
-    // AI 2.8: 押金 > 0 时创建 Deposit 记录
-    if (deposit > 0) {
-      await prisma.deposit.create({
+    const demand = await prisma.$transaction(async (tx) => {
+      const created = await tx.demand.create({
         data: {
           userId: params.userId,
-          amount: deposit,
-          status: 'PENDING',
-          demandRelations: { create: { demandId: demand.id } },
+          title: params.title,
+          description: params.description,
+          minPrice: params.minPrice,
+          category: params.category,
+          taxonomyLeafId: params.taxonomyLeafId || null,
+          serviceType: params.serviceType,
+          cityCode: params.cityCode || null,
+          regionId: params.regionId || null,
+          tagName: params.tagName || null,
+          isCertifiedOnly: params.isCertifiedOnly || false,
+          pushConfig: params.pushConfig || null,
+          coverImage: params.coverImage || null,
+          amountEstimate: params.amountEstimate ?? null,
+          stage: params.stage || 'active',
+          expireAt: new Date(params.expireAt),
+          circleId: params.circleId || null,
+          isPublic: params.circleId ? false : true,
+          mediaUrls: params.mediaUrls || [],
+          expectedOutcome: params.expectedOutcome || null,
+          visibilityWindow: win,
+          visibleUntil,
+          maxApplicants: params.maxApplicants || 10,
+          tags: params.tags || [],
+          aiTags: params.aiTags || [],
+          tagsConfirmed: params.tagsConfirmed || false,
+          fuzzyLat,
+          fuzzyLng,
+          deposit,
+          status: 'ACTIVE',
+          coverDeletedAt: lifecycle.coverDeletedAt,
+          detailDeletedAt: lifecycle.detailDeletedAt,
+          fullDeletedAt: lifecycle.fullDeletedAt,
+        },
+        include: {
+          user: { select: { id: true, nickname: true, avatarUrl: true, demandCardCoverUrl: true, certificationLevel: true } },
+          _count: { select: { applications: true } },
         },
       });
+
+      await walletService.holdForDemand(params.userId, created.id, deposit, tx);
+      return created;
+    });
+
+    // Stage 1.1: 需求发布后自动触发一次 autoReceive 推送
+    // 错误不会反向影响 demand 创布
+    if (io) {
+      await triggerAutoReceivePush(demand.id, io).catch((err) => {
+        console.error('[auto-receive] failed for demand', demand.id, err)
+      })
     }
 
     return demand;
@@ -241,6 +244,8 @@ export const demandService = {
     if (Object.keys(minPriceRange).length) and.push({ minPrice: minPriceRange });
 
     if (params.excludeExample) and.push({ isExample: false });
+    // M1：公开搜索排除冻结、进行中（仅当事方可看详情）
+    and.push({ status: { notIn: ['FROZEN', 'IN_PROGRESS'] } });
     if (keywordTrimmed) {
       if (params.exact) {
         // 精确：标题或描述等于关键词
@@ -301,7 +306,7 @@ export const demandService = {
           // 用 Prisma.sql 片段构建 WHERE 条件，参数绑定由 Prisma 负责
           const whereFragments: Prisma.Sql[] = params.stage === 'completed'
             ? [Prisma.sql`d.stage = 'completed' AND d.status = 'COMPLETED'`]
-            : [Prisma.sql`d.stage = 'active' AND d.status != 'CLOSED'`];
+            : [Prisma.sql`d.stage = 'active' AND d.status NOT IN ('CLOSED', 'FROZEN', 'IN_PROGRESS')`];
 
           if (publisherFilter) whereFragments.push(Prisma.sql`d."userId" = ${publisherFilter}::uuid`);
           if (params.cityCode) whereFragments.push(Prisma.sql`d."cityCode" = ${params.cityCode}`);
@@ -338,21 +343,21 @@ export const demandService = {
             d."serviceType" = 'ONLINE'
             OR (
               d."serviceType" = 'OFFLINE'
-              AND d."locationLat" IS NOT NULL
-              AND d."locationLng" IS NOT NULL
+              AND d."fuzzyLat" IS NOT NULL
+              AND d."fuzzyLng" IS NOT NULL
               AND 6371 * 2 * ASIN(SQRT(
-                POWER(SIN((${lat} - d."locationLat") * PI() / 180 / 2), 2) +
-                COS(${lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
-                POWER(SIN((${lng} - d."locationLng") * PI() / 180 / 2), 2)
+                POWER(SIN((${lat} - d."fuzzyLat") * PI() / 180 / 2), 2) +
+                COS(${lat} * PI() / 180) * COS(d."fuzzyLat" * PI() / 180) *
+                POWER(SIN((${lng} - d."fuzzyLng") * PI() / 180 / 2), 2)
               )) <= ${distance}
             )
           `;
 
           const haversineExpr = Prisma.sql`
             6371 * 2 * ASIN(SQRT(
-              POWER(SIN((${lat} - d."locationLat") * PI() / 180 / 2), 2) +
-              COS(${lat} * PI() / 180) * COS(d."locationLat" * PI() / 180) *
-              POWER(SIN((${lng} - d."locationLng") * PI() / 180 / 2), 2)
+              POWER(SIN((${lat} - d."fuzzyLat") * PI() / 180 / 2), 2) +
+              COS(${lat} * PI() / 180) * COS(d."fuzzyLat" * PI() / 180) *
+              POWER(SIN((${lng} - d."fuzzyLng") * PI() / 180 / 2), 2)
             ))
           `;
 
@@ -361,12 +366,13 @@ export const demandService = {
           const raw = await prisma.$queryRaw<any[]>`
             SELECT d.*,
               u."nickname", u."avatarUrl", u."coverUrl", u."demandCardCoverUrl", u."certificationLevel",
-              COALESCE((SELECT COUNT(*) FROM "DemandApplication" WHERE "demandId" = d.id), 0)::int AS "applicantCount",
+              COALESCE(d."applicantCount", 0)::int AS "applicantCount",
               ${haversineExpr} AS "distanceKm"
             FROM "Demand" d
             JOIN "User" u ON u.id = d."userId"
             WHERE ${whereClause}
               AND (${geoCondition})
+              AND (d.status NOT IN ('PENDING', 'ACTIVE') OR d."applicantCount" < COALESCE(d."maxApplicants", 10))
             ORDER BY d."createdAt" DESC, d."id" DESC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -375,6 +381,7 @@ export const demandService = {
             SELECT COUNT(*)::int AS total FROM "Demand" d
             WHERE ${whereClause}
               AND (${geoCondition})
+              AND (d.status NOT IN ('PENDING', 'ACTIVE') OR d."applicantCount" < COALESCE(d."maxApplicants", 10))
           `;
 
       const total = countRaw[0]?.total || 0;
@@ -442,7 +449,15 @@ export const demandService = {
       take: limit,
     });
 
-    const paged = demands.map((d: any) => ({
+    const paged = demands
+      .filter((d: any) =>
+        isVisibleInMarketplace({
+          status: d.status,
+          applicantCount: d.applicantCount,
+          maxApplicants: d.maxApplicants,
+        }),
+      )
+      .map((d: any) => ({
       id: d.id,
       title: d.title,
       tagName: d.tagName,
@@ -495,13 +510,22 @@ export const demandService = {
           include: { user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } } },
           orderBy: { createdAt: 'desc' },
         },
+        applicantsV2: {
+          include: { user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
         circle: { select: { id: true, name: true, type: true } },
       },
     });
     if (!demand) throw { status: 404, message: '需求不存在' };
 
+    if (!canViewDemand(demand, userId)) {
+      throw { status: 404, message: '需求不存在' };
+    }
+
     const isOwner = userId === demand.userId;
-    const hasOrder = demand.applications.some((a: any) => a.status === 'ACCEPTED');
+    const hasOrder = demand.applications.some((a: any) => a.status === 'ACCEPTED')
+      || demand.applicantsV2.some((a: any) => a.status === 'ACCEPTED');
 
     return {
       ...demand,
@@ -510,6 +534,9 @@ export const demandService = {
         ...a,
         offerPrice: a.offerPrice ? Number(a.offerPrice) : null,
       })) : [],
+      applicantsV2: isOwner ? demand.applicantsV2 : demand.applicantsV2.filter(
+        (a: any) => a.userId === userId,
+      ),
       hasOrder,
       isOwner,
     };
@@ -653,20 +680,13 @@ export const demandService = {
     if (demand.userId !== userId) throw { status: 403, message: '无权删除' };
     if (demand.status !== 'FROZEN') throw { status: 400, message: '只能删除冻结的需求' };
 
-    // 退回全部押金
-    if (demand.deposit > 0) {
-      await prisma.deposit.updateMany({
-        where: {
-          userId,
-          status: 'PENDING',
-          demandRelations: { some: { demandId } },
-        },
-        data: { status: 'REFUNDED' },
-      });
-    }
+    const { released } = await prisma.$transaction(async (tx) => {
+      const result = await walletService.releaseHold(demandId, 'DELETE_FROZEN', tx);
+      await tx.demand.delete({ where: { id: demandId } });
+      return result;
+    });
 
-    await prisma.demand.delete({ where: { id: demandId } });
-    return { message: '已删除，押金已退回' };
+    return { message: '已删除，押金已退回', refund: released };
   },
 
   async getMyDemands(userId: string, page = 1) {
@@ -768,30 +788,21 @@ export const demandService = {
       throw Object.assign(new Error('申请不存在'), { status: 404 });
 
     // 原子操作
-    await prisma.$transaction([
-      // 标记正式接单
-      prisma.demand.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.demand.update({
         where: { id: demandId },
         data: {
           acceptedProviderId: applicant.userId,
           status: 'IN_PROGRESS',
+          isPublic: false,
         },
-      }),
-      // 接受该申请
-      prisma.demandApplicantV2.update({
+      });
+      await tx.demandApplicantV2.update({
         where: { id: applicantId },
         data: { status: 'ACCEPTED' },
-      }),
-      // 拒绝其他所有申请
-      prisma.demandApplicantV2.updateMany({
-        where: {
-          demandId,
-          id: { not: applicantId },
-          status: { in: ['PENDING', 'COMMUNICATING'] },
-        },
-        data: { status: 'REJECTED' },
-      }),
-    ]);
+      });
+      await closeAllCommForDemand(demandId, 'REJECTED', tx);
+    });
 
     return { ok: true, acceptedUserId: applicant.userId };
   },
@@ -802,9 +813,15 @@ export const demandService = {
     if (demand.userId !== userId)
       throw Object.assign(new Error('无权操作'), { status: 403 });
 
-    await prisma.demandApplicantV2.update({
-      where: { id: applicantId },
-      data: { status: 'REJECTED' },
+    await prisma.$transaction(async (tx) => {
+      await tx.demandApplicantV2.update({
+        where: { id: applicantId },
+        data: { status: 'REJECTED' },
+      });
+      await tx.demand.update({
+        where: { id: demandId },
+        data: { applicantCount: { decrement: 1 } },
+      });
     });
 
     return { ok: true };
@@ -834,35 +851,21 @@ export const demandService = {
     if (demand.status === 'COMPLETED')
       throw Object.assign(new Error('已完成的需求无法撤回'), { status: 400 });
 
-    // 退回押金（99.99%）
-    const refund = demand.deposit > 0 ? Math.round(demand.deposit * 0.9999 * 100) / 100 : 0;
-
-    await prisma.$transaction([
-      prisma.demand.update({
+    const { released: refund } = await prisma.$transaction(async (tx) => {
+      const result = await walletService.releaseHold(demandId, 'WITHDRAWN', tx);
+      await tx.demand.update({
         where: { id: demandId },
         data: { status: 'WITHDRAWN' },
-      }),
-      // 关闭所有申请
-      prisma.demandApplicantV2.updateMany({
+      });
+      await tx.demandApplicantV2.updateMany({
         where: {
           demandId,
           status: { in: ['PENDING', 'COMMUNICATING'] },
         },
         data: { status: 'WITHDRAWN' },
-      }),
-      ...(demand.deposit > 0
-        ? [
-            prisma.deposit.updateMany({
-              where: {
-                userId,
-                status: 'PENDING',
-                demandRelations: { some: { demandId } },
-              },
-              data: { status: 'REFUNDED' },
-            }),
-          ]
-        : []),
-    ]);
+      });
+      return result;
+    });
 
     return { ok: true, refund };
   },
