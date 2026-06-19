@@ -26,6 +26,7 @@ import {
   AlertTriangle,
   Info,
   CheckCircle2,
+  Activity,
 } from 'lucide-react'
 import {
   PixelCanvas,
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/pixel-logo-grid'
 import { LimelightNav, type NavItem } from '@/components/ui/limelight-nav'
 import { AnimatedSearchBar } from '@/components/ui/animated-search-bar'
+import { BackButton } from '@/components/ui/back-button'
 import { DynamicIslandTOC } from '@/components/ui/dynamic-island-toc'
 import { cn } from '@/lib/utils'
 
@@ -402,6 +404,26 @@ const PAGE_MAP: PageEntry[] = [
     keywords: ['帮助', '帮助中心', '使用指南', '教程'],
   },
   {
+    id: 'licenses',
+    path: '/licenses',
+    icon: FileText,
+    title: '开源许可',
+    desc: '查看第三方开源组件的许可证信息',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['许可', 'license', '开源', 'MIT', '依赖', '第三方', '版权'],
+  },
+  {
+    id: 'monitor',
+    path: '/monitor',
+    icon: Activity,
+    title: '监控',
+    desc: '服务器运行状态与性能监控面板',
+    accepts: [],
+    acceptsEntities: [],
+    keywords: ['监控', '服务器', '状态', '性能', '运行'],
+  },
+  {
     id: 'home',
     path: '/',
     icon: Compass,
@@ -431,7 +453,9 @@ const PAGE_PALETTES: Record<string, string[]> = {
   search: ['#a855f7', '#9333ea', '#c084fc', '#d8b4fe', '#e9d5ff'],
   help: ['#64748b', '#475569', '#94a3b8', '#cbd5e1', '#e2e8f0'],
   home: ['#6366f1', '#4f46e5', '#818cf8', '#a5b4fc', '#c7d2fe'],
+  licenses: ['#22c55e', '#16a34a', '#4ade80', '#86efac', '#bbf7d0'],
   agent: ['#a855f7', '#9333ea', '#c084fc', '#d8b4fe', '#e9d5ff'],
+  monitor: ['#14b8a6', '#0d9488', '#2dd4bf', '#5eead4', '#99f6e4'],
 }
 
 const PAGE_BRANDS: Record<string, string> = {
@@ -452,7 +476,9 @@ const PAGE_BRANDS: Record<string, string> = {
   search: '#a855f7',
   help: '#64748b',
   home: '#6366f1',
+  licenses: '#22c55e',
   agent: '#a855f7',
+  monitor: '#14b8a6',
 }
 
 const helpNavItems: NavItem[] = [
@@ -585,7 +611,7 @@ const FAQ_CATEGORIES = [
     id: 'discover',
     title: '发现与匹配',
     icon: Compass,
-    desc: '智能推荐与需求搜索',
+    desc: '星空发现页、AI 匹配与标签筛选',
   },
   {
     id: 'order',
@@ -610,7 +636,7 @@ const FAQ_CATEGORIES = [
     id: 'settings',
     title: '个人与偏好',
     icon: Settings,
-    desc: '资料编辑与主题设置',
+    desc: '资料编辑、主题设置与开源许可',
   },
 ] as const
 
@@ -802,25 +828,26 @@ const FAQ: FaqEntry[] = [
     id: 'how-to-find',
     q: '如何找到适合自己的需求？',
     intro:
-      '九木提供多种方式帮助您发现和匹配需求，包括分类浏览、关键词搜索和智能推荐。',
+      '发现页是九木的核心功能入口，采用沉浸式星空背景，提供搜索和标签两种方式帮助您快速定位需求。',
     steps: [
       {
         title: '进入发现页',
-        content: '点击左侧导航栏的「发现」图标进入需求广场。',
+        content: '点击左侧导航栏的「发现」图标，进入星空主题的发现页面。',
       },
       {
-        title: '分类筛选',
-        content: '使用页面上的分类标签筛选特定类型的需求，减少无关信息干扰。',
+        title: '关键词搜索（遇见）',
+        content:
+          '在首屏"遇见"区域的搜索框中输入关键词（如"王者荣耀 陪玩"），AI 会自动分析意图并匹配需求。搜索结果以半透明玻璃卡片形式展现，直接滑动浏览。',
+      },
+      {
+        title: '标签筛选（寻觅）',
+        content:
+          '向下滚动到"寻觅"区域，在标签输入框中输入关键词后按回车添加标签。系统会根据标签精准筛选需求列表。支持多标签组合筛选。',
       },
       {
         title: '使用卡池',
         content:
           '进入「卡池」页面，将服务分类卡片拖入手牌区，下方桌面区会实时展示匹配的需求。适合需要同时监控多个分类的用户。',
-      },
-      {
-        title: 'AI 智能匹配',
-        content:
-          '点击页面右下角的悬浮球，输入您的能力描述（如"我会王者荣耀代打"），AI 会自动匹配适合您的需求。',
       },
     ],
     tips: [
@@ -829,13 +856,19 @@ const FAQ: FaqEntry[] = [
         content:
           '在帮助页搜索框输入"找王者荣耀代打"，系统可直接跳转到需求搜索页并自动填入关键词。',
       },
+      {
+        type: 'info',
+        content:
+          '需求卡片采用高透明玻璃设计，可以隐约看到背后的星空背景，增强沉浸感。',
+      },
     ],
     relatedLinks: [
+      { text: '如何使用标签筛选？', faqId: 'how-to-tags' },
       { text: '什么是卡池？如何使用？', faqId: 'what-is-cardpool' },
       { text: '如何申请接单？', faqId: 'how-to-apply' },
     ],
     category: 'discover',
-    keywords: ['找需求', '接单', '匹配', '发现', '搜索需求', '接活', '浏览'],
+    keywords: ['找需求', '接单', '匹配', '发现', '搜索需求', '接活', '浏览', '寻觅', '遇见', '星空'],
   },
   {
     id: 'how-to-apply',
@@ -879,7 +912,51 @@ const FAQ: FaqEntry[] = [
     category: 'discover',
     keywords: ['申请', '接单', '抢单', '承接', '报名'],
   },
-
+  {
+    id: 'how-to-tags',
+    q: '如何使用标签筛选需求？',
+    intro:
+      '标签筛选是发现页"寻觅"区域的核心功能，通过输入关键词标签精准筛选需求列表。',
+    steps: [
+      {
+        title: '进入寻觅区域',
+        content:
+          '在发现页向下滚动，进入"寻觅 — 探索创意的边界，发现无限可能"区域。',
+      },
+      {
+        title: '添加标签',
+        content:
+          '在输入框中输入关键词（如"设计"、"编程"、"王者荣耀"），按 Enter 键添加为标签。标签会以胶囊形式显示在输入框下方。',
+      },
+      {
+        title: '多标签筛选',
+        content:
+          '可以添加多个标签，系统会按最后一个标签进行筛选匹配。点击标签右侧的 × 可删除单个标签。',
+      },
+      {
+        title: '查看结果',
+        content:
+          '添加标签后，下方的需求列表会实时更新，展示与该标签匹配的需求。每页显示 12 条，支持翻页浏览。',
+      },
+    ],
+    tips: [
+      {
+        type: 'tip',
+        content:
+          '标签支持模糊匹配，输入"王者"即可匹配"王者荣耀"相关需求。标签数量上限为 10 个。',
+      },
+      {
+        type: 'info',
+        content:
+          'Ask AI 搜索也会自动生成标签并同步到寻觅区域，两者可以协同使用。',
+      },
+    ],
+    relatedLinks: [
+      { text: '如何找到适合自己的需求？', faqId: 'how-to-find' },
+    ],
+    category: 'discover',
+    keywords: ['标签', '筛选', '寻觅', '关键词', 'tag', '分类', '精确查找'],
+  },
   // ========== 订单与支付 ==========
   {
     id: 'order-lifecycle',
@@ -2285,6 +2362,9 @@ export default function Help() {
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground">
       {/* ====== 共享顶部工具栏 ====== */}
       <div className="shrink-0 border-b border-border/40">
+        <div className="px-5 pt-3">
+          <BackButton />
+        </div>
         <div className="flex justify-center px-5 pt-5">
           <LimelightNav
             items={helpNavItems}
