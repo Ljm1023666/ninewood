@@ -81,7 +81,16 @@ function extractFromCache(distPath) {
   }
 
   console.log(`[electron-dev] 从缓存解压: ${zipPath}`)
-  execSync(`unzip -o "${zipPath}" -d "${distPath}"`, { stdio: 'inherit' })
+  if (process.platform === 'win32') {
+    const psZip = zipPath.replace(/'/g, "''")
+    const psDist = distPath.replace(/'/g, "''")
+    execSync(
+      `powershell -NoProfile -Command "Expand-Archive -LiteralPath '${psZip}' -DestinationPath '${psDist}' -Force"`,
+      { stdio: 'inherit' },
+    )
+  } else {
+    execSync(`unzip -o "${zipPath}" -d "${distPath}"`, { stdio: 'inherit' })
+  }
 
   const exeName = process.platform === 'win32' ? 'electron.exe' : 'electron'
   if (!fs.existsSync(path.join(distPath, exeName))) {
