@@ -1,3 +1,5 @@
+import { Image, Video } from 'lucide-react'
+
 interface ActionSheetProps {
   visible: boolean
   onClose: () => void
@@ -5,8 +7,8 @@ interface ActionSheetProps {
 }
 
 const actions = [
-  { key: 'image', label: '图片', icon: '🖼' },
-  { key: 'video', label: '视频', icon: '🎬' },
+  { key: 'image', label: '图片', icon: Image },
+  { key: 'video', label: '视频', icon: Video },
 ]
 
 export function ActionSheet({ visible, onClose, onSelect }: ActionSheetProps) {
@@ -21,14 +23,14 @@ export function ActionSheet({ visible, onClose, onSelect }: ActionSheetProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid grid-cols-2 gap-4">
-          {actions.map((a) => (
+          {actions.map(({ key, label, icon: Icon }) => (
             <button
-              key={a.key}
-              onClick={() => onSelect(a.key)}
+              key={key}
+              onClick={() => onSelect(key)}
               className="flex flex-col items-center gap-2 bg-transparent border-none text-text-primary cursor-pointer py-3 px-2 rounded-xl hover:bg-bg-tertiary"
             >
-              <span className="text-[32px]">{a.icon}</span>
-              <span className="text-sm text-text-secondary">{a.label}</span>
+              <Icon className="size-8" />
+              <span className="text-sm text-text-secondary">{label}</span>
             </button>
           ))}
         </div>

@@ -4,6 +4,7 @@ import { MapPin } from 'lucide-react'
 import { demandApi } from '@/api/demand'
 import { usePagination } from '@/hooks/usePagination'
 import { ListItemCard } from '@/components/ui/list-item-card'
+import { Timeline } from '@/components/ui/modern-timeline'
 import { Button } from '@/components/ui/button'
 import { AcetInvertButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -121,6 +122,7 @@ export function DemandDiscoveryList({
   exact,
   paginationMode = 'infinite',
   pageSize = DEFAULT_PAGE_SIZE,
+  renderMode = 'list' as 'list' | 'timeline',
 }: {
   listScope?: Record<string, string>
   keyword: string
@@ -137,12 +139,14 @@ export function DemandDiscoveryList({
   exact?: boolean
   paginationMode?: 'infinite' | 'paged'
   pageSize?: number
+  renderMode?: 'list' | 'timeline'
 }) {
   void interactionMode
   void layoutVariant
   void desktopGridRowCount
   void onDesktopGridRowCountChange
   void onDemandRowRecurse
+  const timelineMode = renderMode === 'timeline'
   const navigate = useNavigate()
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -282,22 +286,45 @@ export function DemandDiscoveryList({
       ) : null}
 
       <div className="flex w-full flex-col gap-3">
-        {items.map((d) => (
-          <ListItemCard
-            key={d.id}
-            onClick={() => {
-              const params = new URLSearchParams()
-              const kw = keyword.trim()
-              if (kw) params.set('q', kw)
-              if (serviceType !== 'ALL') params.set('type', serviceType)
-              const qs = params.toString()
-              navigate(`/demands/${d.id}${qs ? '?' + qs : ''}`)
-            }}
-            className="p-4"
-          >
-            <DemandCardInner d={d} />
-          </ListItemCard>
-        ))}
+        {timelineMode ? (
+          <Timeline
+            items={items.map((d) => ({
+              title: d.title,
+              description: `${d.serviceType === 'ONLINE' ? '线上服务' : '线下服务'} · ¥${d.minPrice} · ${d.applicantCount} 人申请`,
+              date: d.createdAgo ? `${d.createdAgo}前` : undefined,
+              status: 'current' as const,
+              image: d.user?.avatarUrl || undefined,
+              onClick: () => {
+                const params = new URLSearchParams()
+                const kw = keyword.trim()
+                if (kw) params.set('q', kw)
+                if (serviceType !== 'ALL') params.set('type', serviceType)
+                const qs = params.toString()
+                navigate(`/demands/${d.id}${qs ? '?' + qs : ''}`)
+              },
+              onAvatarClick: d.user?.id
+                ? () => navigate(`/profile/${d.user!.id}`)
+                : undefined,
+            }))}
+          />
+        ) : (
+          items.map((d) => (
+            <ListItemCard
+              key={d.id}
+              onClick={() => {
+                const params = new URLSearchParams()
+                const kw = keyword.trim()
+                if (kw) params.set('q', kw)
+                if (serviceType !== 'ALL') params.set('type', serviceType)
+                const qs = params.toString()
+                navigate(`/demands/${d.id}${qs ? '?' + qs : ''}`)
+              }}
+              className="p-4"
+            >
+              <DemandCardInner d={d} />
+            </ListItemCard>
+          ))
+        )}
       </div>
 
       {loading && items.length === 0 ? (

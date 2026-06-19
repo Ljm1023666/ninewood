@@ -20,3 +20,5 @@ server/prisma/seed.d.ts.map
 .pnpm-home/
 .pnpm-store/
 __pycache__/
+%SystemDrive%/
+.deepseek/

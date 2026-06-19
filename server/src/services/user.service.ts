@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { CertLevel } from '@prisma/client';
+import { getCache, setCache, delCache } from '../lib/redis.js';
 
 const CERT_UPGRADE_REQUIREMENTS: Record<string, { next: CertLevel; needed: number }> = {
   NONE: { next: 'BASIC', needed: 5 },
@@ -9,6 +10,10 @@ const CERT_UPGRADE_REQUIREMENTS: Record<string, { next: CertLevel; needed: numbe
 
 export const userService = {
   async getProfile(userId: string) {
+    const cacheKey = `user:profile:${userId}`;
+    const cached = await getCache<any>(cacheKey);
+    if (cached) return cached;
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -17,13 +22,15 @@ export const userService = {
       },
     });
     if (!user) throw { status: 404, message: '用户不存在' };
+
+    await setCache(cacheKey, user, 300);
     return user;
   },
 
   async updateProfile(userId: string, data: { nickname?: string; avatarUrl?: string; coverUrl?: string; demandCardCoverUrl?: string | null; cityCode?: string; bio?: string }) {
     const patch: typeof data = { ...data };
     if (patch.demandCardCoverUrl === '') patch.demandCardCoverUrl = null;
-    return prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: userId },
       data: patch,
       select: {
@@ -31,9 +38,15 @@ export const userService = {
         certificationLevel: true, snatchCredits: true, creditScore: true, bio: true, completedOrders: true,
       },
     });
+    await delCache(`user:profile:${userId}`);
+    return user;
   },
 
   async getCertStatus(userId: string) {
+    const cacheKey = `user:cert:${userId}`;
+    const cached = await getCache<any>(cacheKey);
+    if (cached) return cached;
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { certificationLevel: true, completedOrders: true, snatchCredits: true, creditScore: true },
@@ -50,13 +63,16 @@ export const userService = {
       progress: Math.min(1, user.completedOrders / req.needed),
     } : null;
 
-    return {
+    const result = {
       certificationLevel: user.certificationLevel,
       completedOrders: user.completedOrders,
       snatchCredits: user.snatchCredits,
       creditScore: user.creditScore,
       promotion,
     };
+
+    await setCache(cacheKey, result, 300);
+    return result;
   },
 
   async upgradeCert(userId: string) {
@@ -77,7 +93,7 @@ export const userService = {
       throw { status: 400, message: `升级到${req.next}需要完成至少${req.needed}次成功服务，当前已完成${user.completedOrders}次` };
     }
 
-    return prisma.user.update({
+    const result = await prisma.user.update({
       where: { id: userId },
       data: { certificationLevel: req.next },
       select: {
@@ -85,6 +101,9 @@ export const userService = {
         snatchCredits: true, creditScore: true,
       },
     });
+    await delCache(`user:cert:${userId}`);
+    await delCache(`user:profile:${userId}`);
+    return result;
   },
 
   // ── Follow ──

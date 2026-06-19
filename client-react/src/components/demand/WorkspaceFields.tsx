@@ -27,7 +27,7 @@ export function WorkspaceFields() {
 
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-white/30 uppercase tracking-wider">
+      <label className="text-sm font-medium text-text-muted uppercase tracking-wider">
         结构化信息
       </label>
 
@@ -40,7 +40,7 @@ export function WorkspaceFields() {
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
               fields.serviceType === 'ONLINE'
                 ? 'border-blue-500/40 bg-blue-500/10 text-blue-300'
-                : 'border-white/[0.06] bg-white/[0.02] text-white/30 hover:border-white/15'
+                : 'border-border bg-bg-card text-text-muted hover:border-border'
             }`}
           >
             <Monitor className="size-4" />
@@ -52,7 +52,7 @@ export function WorkspaceFields() {
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
               fields.serviceType === 'OFFLINE'
                 ? 'border-orange-500/40 bg-orange-500/10 text-orange-300'
-                : 'border-white/[0.06] bg-white/[0.02] text-white/30 hover:border-white/15'
+                : 'border-border bg-bg-card text-text-muted hover:border-border'
             }`}
           >
             <MapPin className="size-4" />
@@ -66,7 +66,7 @@ export function WorkspaceFields() {
       <div className="grid grid-cols-2 gap-2">
         <div>
           <div className="flex items-center gap-1 mb-1">
-            <label className="block text-sm text-white/25">预算</label>
+            <label className="block text-sm text-text-muted">预算</label>
             {!speedMode && <LockToggle fieldKey="budget" />}
           </div>
           <input
@@ -74,12 +74,12 @@ export function WorkspaceFields() {
             value={fields.budget}
             onChange={(e) => updateField('budget', e.target.value)}
             placeholder="如 30-50元/局"
-            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-sm text-white/80 placeholder:text-white/20 focus:border-white/20 focus:outline-none transition-colors"
+            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
           />
         </div>
         <div>
           <div className="flex items-center gap-1 mb-1">
-            <label className="block text-sm text-white/25">时间</label>
+            <label className="block text-sm text-text-muted">时间</label>
             {!speedMode && <LockToggle fieldKey="schedule" />}
           </div>
           <input
@@ -87,7 +87,7 @@ export function WorkspaceFields() {
             value={fields.schedule}
             onChange={(e) => updateField('schedule', e.target.value)}
             placeholder="如 今晚"
-            className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-sm text-white/80 placeholder:text-white/20 focus:border-white/20 focus:outline-none transition-colors"
+            className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
           />
         </div>
       </div>
@@ -95,7 +95,7 @@ export function WorkspaceFields() {
       {/* 分类路径 */}
       <div>
         <div className="flex items-center gap-1 mb-1">
-          <label className="block text-sm text-white/25">分类</label>
+          <label className="block text-sm text-text-muted">分类</label>
           {!speedMode && <LockToggle fieldKey="category" />}
         </div>
         <input
@@ -103,14 +103,14 @@ export function WorkspaceFields() {
           value={fields.category}
           onChange={(e) => updateField('category', e.target.value)}
           placeholder="如 游戏/陪玩/代打"
-          className="w-full rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-sm text-white/80 placeholder:text-white/20 focus:border-white/20 focus:outline-none transition-colors"
+          className="w-full rounded-xl border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-border focus:outline-none transition-colors"
         />
         {fields.scopeLabels.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {fields.scopeLabels.map((label) => (
               <span
                 key={label}
-                className="rounded-md bg-white/[0.04] px-2 py-0.5 text-sm text-white/35"
+                className="rounded-md bg-bg-secondary px-2 py-0.5 text-sm text-text-muted/80"
               >
                 {label}
               </span>
@@ -133,7 +133,7 @@ function KeywordTags() {
 
   return (
     <div>
-      <label className="block text-sm text-white/25 mb-1">
+      <label className="block text-sm text-text-muted mb-1">
         关键词{speedMode ? '（点击解锁）' : '（点击锁定）'}
       </label>
       <div className="flex flex-wrap gap-1">
@@ -147,7 +147,7 @@ function KeywordTags() {
               className={`rounded-full border px-2.5 py-0.5 text-sm transition-all ${
                 locked
                   ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
-                  : 'border-white/[0.06] bg-white/[0.03] text-white/50 hover:border-white/20 hover:text-white/70'
+                  : 'border-border bg-bg-card text-text-muted hover:border-border hover:text-text-secondary'
               }`}
             >
               {kw}
