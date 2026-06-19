@@ -100,6 +100,34 @@ export function usePersistedGlobalHand() {
     return added
   }, [])
 
+  /** 将单条需求加入「单张需求」黑卡（自动创建/追加到 __singles__ 手牌） */
+  const addDemandToSingles = useCallback((demandId: string) => {
+    const singlesPath = ['root', '__singles__']
+    setHand((prev) => {
+      // 按 path 匹配（忽略 leafFilter），避免每次 key 不同
+      const existing = prev.find((h) => {
+        const p = h.scope.path
+        return p.length === singlesPath.length && p.every((seg, i) => seg === singlesPath[i])
+      })
+      if (existing) {
+        const leafFilter = existing.scope.leafFilter ?? []
+        // 去重
+        if (leafFilter.includes(demandId)) return prev
+        return prev.map((h) =>
+          h.id === existing.id
+            ? { ...h, scope: { ...h.scope, leafFilter: [...leafFilter, demandId] } }
+            : h,
+        )
+      }
+      return [...prev, { id: newHandId(), scope: { path: singlesPath, leafFilter: [demandId] } }]
+    })
+  }, [])
+
+  const clearHand = useCallback(() => {
+    setHand([])
+    setDiscard([])
+  }, [])
+
   return {
     hand,
     discard,
@@ -108,5 +136,7 @@ export function usePersistedGlobalHand() {
     pinToFront,
     discardHandEntryById,
     restoreCard,
+    addDemandToSingles,
+    clearHand,
   }
 }

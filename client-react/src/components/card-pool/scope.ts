@@ -32,6 +32,7 @@ export function nextBlackScopes(parent: BlackScope): BlackScope[] {
  */
 export function scopeCurrentClassificationBasis(scope: BlackScope): string {
   const last = scope.path[scope.path.length - 1]!
+  if (last === '__singles__') return '?'
   const base = TAXONOMY[last]?.label ?? last
   if (scope.leafFilter === null) return base
   if (scope.leafFilter.length === 0) return base
