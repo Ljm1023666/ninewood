@@ -8,6 +8,7 @@ export interface PackCardData {
   imageUrl: string
   title: string
   price: string
+  description: string
 }
 
 /** GET /demands/search 的扁平参数（不含 page/limit） */
@@ -88,6 +89,7 @@ export async function fetchPackContents(
     demands?: {
       id: string
       title: string
+      descriptionPreview?: string
       minPrice: number
       mediaUrls?: string[] | null
       user?: {
@@ -105,5 +107,6 @@ export async function fetchPackContents(
       '',
     title: item.title || '未命名需求',
     price: item.minPrice ? `¥${item.minPrice}` : '',
+    description: item.descriptionPreview || '',
   }))
 }

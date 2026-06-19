@@ -13,6 +13,7 @@ import {
   User,
   LogOut,
   HelpCircle,
+  Activity,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
@@ -25,6 +26,7 @@ const NAV_TOP = [
   { path: '/card-pool', icon: Layers, label: '卡池' },
   { path: '/demands/create', icon: FileText, label: '发布' },
   { path: '/circles', icon: Users, label: '圈子' },
+  { path: '/dashboard', icon: Activity, label: '监控' },
   { path: '/help', icon: HelpCircle, label: '帮助' },
 ]
 
@@ -68,7 +70,7 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="mb-6 flex size-14 items-center justify-center rounded-xl bg-[var(--accent-ghost)] transition-colors hover:bg-[var(--accent-muted)]"
+          className="mb-6 flex size-14 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-ghost)] transition-colors hover:bg-[var(--accent-muted)]"
           aria-label="九木首页"
         >
           <span className="text-[34px] font-black tracking-tight text-[var(--accent-color)]">
@@ -76,39 +78,40 @@ export default function Sidebar() {
           </span>
         </button>
 
-        {/* 主导航上组 */}
-        <nav
-          className="flex w-full flex-col items-center gap-2"
-          aria-label="主导航"
-        >
-          {NAV_TOP.map((item) => (
-            <NavItem
-              key={item.path}
-              {...item}
-              unreadCount={item.path === '/messages' ? unreadCount : undefined}
-            />
-          ))}
-        </nav>
+        {/* 导航区（可滚动） */}
+        <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden">
+          <nav
+            className="flex w-full flex-col items-center gap-2"
+            aria-label="主导航"
+          >
+            {NAV_TOP.map((item) => (
+              <NavItem
+                key={item.path}
+                {...item}
+                unreadCount={item.path === '/messages' ? unreadCount : undefined}
+              />
+            ))}
+          </nav>
 
-        {/* 分隔 */}
-        <div className="my-3 h-px w-10 bg-[var(--bg-tertiary)]" />
+          {/* 分隔 */}
+          <div className="my-3 h-px w-10 bg-[var(--bg-tertiary)] mx-auto" />
 
-        {/* 主导航下组 */}
-        <nav
-          className="flex w-full flex-col items-center gap-2"
-          aria-label="次级导航"
-        >
-          {NAV_BOTTOM.map((item) => (
-            <NavItem
-              key={item.path}
-              {...item}
-              unreadCount={item.path === '/messages' ? unreadCount : undefined}
-            />
-          ))}
-        </nav>
+          <nav
+            className="flex w-full flex-col items-center gap-2"
+            aria-label="次级导航"
+          >
+            {NAV_BOTTOM.map((item) => (
+              <NavItem
+                key={item.path}
+                {...item}
+                unreadCount={item.path === '/messages' ? unreadCount : undefined}
+              />
+            ))}
+          </nav>
+        </div>
 
         {/* 底部操作 */}
-        <div className="mt-auto flex flex-col items-center gap-2">
+        <div className="shrink-0 flex flex-col items-center gap-2 pt-2">
           <div className="flex flex-col items-center gap-1">
             <AnimatedThemeToggle isDark={isDark} onToggle={handleThemeToggle} />
             <span className="text-sm font-medium text-[var(--text-muted)]">

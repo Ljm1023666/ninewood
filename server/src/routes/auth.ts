@@ -4,6 +4,7 @@ import { authService } from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rate-limit.js';
 import { success, fail } from '../utils/response.js';
+import { getClientIp, ipToCity } from '../services/ipgeo.service.js';
 
 export const authRouter = Router();
 
@@ -124,7 +125,8 @@ authRouter.post('/send-code', async (req: Request, res: Response) => {
 authRouter.post('/register', async (req: Request, res: Response) => {
   try {
     const { phone, code } = registerSchema.parse(req.body);
-    const result = await authService.register(phone, code);
+    const ip = getClientIp(req);
+    const result = await authService.register(phone, code, ip);
     success(res, result, '注册成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);

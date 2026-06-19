@@ -20,12 +20,20 @@ interface ClassifyResult {
 }
 
 let _index: IndexEntry[] | null = null
+let _taxonomy: Record<string, { label: string; parent: string | null; childIds: string[] }> | null = null
+
+function loadTaxonomy() {
+  if (!_taxonomy) {
+    _taxonomy = JSON.parse(
+      fs.readFileSync(path.join(__dirname, 'taxonomy-data.json'), 'utf-8'),
+    ) as Record<string, { label: string; parent: string | null; childIds: string[] }>
+  }
+  return _taxonomy
+}
 
 /** 从 taxonomy-data.json 构建关键词索引 */
 function buildIndex(): IndexEntry[] {
-  const raw = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'taxonomy-data.json'), 'utf-8'),
-  ) as Record<string, { label: string; parent: string | null; childIds: string[] }>
+  const raw = loadTaxonomy()
 
   const entries: IndexEntry[] = []
   const leafSet = new Set<string>()
@@ -113,9 +121,7 @@ function getAliases(label: string, parentLabel?: string): string[] {
 
 /** 获取节点从根开始的路径标签 */
 function getNodePath(nodeId: string): string[] {
-  const raw = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'taxonomy-data.json'), 'utf-8'),
-  ) as Record<string, { label: string; parent: string | null }>
+  const raw = loadTaxonomy() as Record<string, { label: string; parent: string | null }>
 
   const labels: string[] = []
   let current: string | null = nodeId
@@ -135,9 +141,7 @@ export function classifyKeywords(keywords: string[]): ClassifyResult[] {
   if (!_index) _index = buildIndex()
   if (!keywords || keywords.length === 0) return []
 
-  const raw = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'taxonomy-data.json'), 'utf-8'),
-  ) as Record<string, { label: string }>
+  const raw = loadTaxonomy() as Record<string, { label: string }>
 
   const scoreMap = new Map<string, { score: number; matchedWords: string[] }>()
 
@@ -145,8 +149,10 @@ export function classifyKeywords(keywords: string[]): ClassifyResult[] {
     const lowerKw = kw.toLowerCase()
     for (const entry of _index) {
       for (const word of entry.words) {
-        // 触发词包含关键词 或 关键词包含触发词
-        if (word.includes(lowerKw) || lowerKw.includes(word)) {
+        // 触发词包含关键词 或 关键词包含触发词；精确匹配不限长度，否则双方都 ≥ 3 字
+        const exact = word === lowerKw
+        const minLen = Math.min(word.length, lowerKw.length)
+        if ((exact || minLen >= 3) && (word.includes(lowerKw) || lowerKw.includes(word))) {
           const existing = scoreMap.get(entry.nodeId)
           const bonus = word === lowerKw ? 3 : 1 // 完全匹配加分
           if (existing) {
@@ -189,9 +195,7 @@ export function classifyForSearch(keywords: string[]): {
   const results = classifyKeywords(keywords)
   if (results.length === 0) return { nodeIds: [], labels: [], matchCount: 0 }
 
-  const raw = JSON.parse(
-    fs.readFileSync(path.join(__dirname, 'taxonomy-data.json'), 'utf-8'),
-  ) as Record<string, { label: string; parent: string | null; childIds: string[] }>
+  const raw = loadTaxonomy()
 
   // 将分数向上传播：叶子节点分数加到父节点上
   const parentScores = new Map<string, { score: number; label: string }>()

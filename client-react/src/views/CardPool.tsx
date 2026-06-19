@@ -501,8 +501,8 @@ export default function CardPool() {
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="返回首页"
-          onClick={() => navigate('/')}
+          aria-label="返回上一页"
+          onClick={() => navigate(-1)}
         >
           <ChevronLeft className="size-5" />
         </Button>

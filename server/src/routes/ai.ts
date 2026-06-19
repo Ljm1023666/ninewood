@@ -223,177 +223,58 @@ aiRouter.post('/discover-classify-stream', async (req: Request, res: Response) =
       return res.status(400).json({ error: '请输入描述' })
     }
 
-    const thinkModeEnabled = thinkMode === true
+    const t0 = Date.now()
+    // ── 快速通道：本地分类器先行匹配，命中则跳过 AI 和远程分类 ──
+    try {
+      const { classifyForSearch } = await import('../classifier.js')
+      const localMatch = classifyForSearch([message])
+      if (localMatch.matchCount > 0 && localMatch.nodeIds.length > 0) {
+        res.setHeader('Content-Type', 'text/event-stream')
+        res.setHeader('Cache-Control', 'no-cache')
+        res.setHeader('Connection', 'keep-alive')
+        res.flushHeaders()
 
-    const model = thinkModeEnabled
-      ? (config.aiThinkModel || config.aiModel)
-      : (config.aiFastModel || config.aiModel)
-
-    const system = `你只做一件事：判断用户输入类型，输出 JSON。
-
-用户是服务者（想接单赚钱），描述自己的服务能力。
-
-【两种输出格式——选其一，不要混用】
-
-类型 A — 通用问答：
-{
-  "queryType": "general",
-  "answer": "完整回答"
-}
-
-类型 B — 找需求：
-{
-  "queryType": "service",
-  "keywords": ["王者荣耀", "陪玩"],
-  "hint": "试试加上段位（选填）"
-}
-
-【规则】
-- 如果用户问天气、知识、教程等 → 类型 A
-- 如果用户描述自己有什么技能、能接什么活 → 类型 B
-- 类型 B 时：keywords 只从用户输入提取 1-3 个词，不脑补
-- 类型 B 时：hint 选填，只在可能匹配很多时给建议
-- 输出纯 JSON，不要 markdown，不要多余文字
-${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中' : ''}`;
-
-    const messages: { role: string; content: string }[] = [
-      { role: 'system', content: system },
-    ]
-    if (history && history.length > 0) {
-      for (const h of history) {
-        messages.push({ role: h.role, content: h.content })
-      }
-    }
-    messages.push({ role: 'user', content: message })
-
-    res.setHeader('Content-Type', 'text/event-stream')
-    res.setHeader('Cache-Control', 'no-cache')
-    res.setHeader('Connection', 'keep-alive')
-    res.flushHeaders()
-
-    const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey}` },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        temperature: 0.1,
-        stream: true,
-        messages,
-        ...(thinkModeEnabled ? { thinking: { type: 'enabled' } } : {}),
-      }),
-    })
-
-    if (!aiRes.ok) {
-      const errText = await aiRes.text().catch(() => '')
-      sseError(res, `AI API ${aiRes.status}: ${errText}`)
-      return
-    }
-
-    const reader = aiRes.body?.getReader()
-    if (!reader) {
-      sseError(res, '无法读取 AI 流')
-      return
-    }
-
-    // 用 readSSEStream 直接处理——需要同时发送 text 和 think 事件
-    let fullContent = ''
-    let thinkLinesSent = 0
-    // 非 think 模式：剥离 <think> 标签后发送文本
-    let cleanSentLen = 0
-    const stripThink = (raw: string): string => {
-      let c = raw
-      c = c.replace(/<think>[\s\S]*?<\/think>/g, '')
-      const openIdx = c.indexOf('<think>')
-      if (openIdx !== -1) c = c.slice(0, openIdx)
-      return c
-    }
-
-    await readSSEStream(reader, {
-      onTextDelta: (delta) => {
-        fullContent += delta
-        if (thinkModeEnabled) {
-          res.write(`event: text\ndata: ${JSON.stringify({ delta })}\n\n`)
-        } else {
-          const clean = stripThink(fullContent)
-          if (clean.length > cleanSentLen) {
-            const newPart = clean.slice(cleanSentLen)
-            cleanSentLen = clean.length
-            res.write(`event: text\ndata: ${JSON.stringify({ delta: newPart })}\n\n`)
-          }
+        const result = {
+          keywords: localMatch.labels,
+          hint: '',
+          matchCount: localMatch.matchCount,
+          classifiedLabels: localMatch.labels,
+          classifyMethod: 'local' as const,
+          classifiedNodeIds: localMatch.nodeIds,
         }
-      },
-      onThinkLine: (line) => {
-        thinkLinesSent++
-        res.write(`event: think\ndata: ${JSON.stringify({ line })}\n\n`)
-      },
-      onReasoningLine: (line) => {
-        thinkLinesSent++
-        res.write(`event: think\ndata: ${JSON.stringify({ line })}\n\n`)
-      },
-    })
 
-    if (thinkLinesSent > 0) {
-      res.write(`event: think-end\ndata: ok\n\n`)
-    }
-
-    const cleanContent = extractThink(fullContent).content
-    const aiData = parseJSON(cleanContent)
-
-    if (!aiData) {
-      const fallbackAnswer = cleanContent.trim() || '未能理解，请换个方式描述'
-      res.write(`event: result\ndata: ${JSON.stringify({ queryType: 'general', answer: fallbackAnswer })}\n\n`)
-      res.write(`event: done\ndata: ok\n\n`)
-      res.end()
-      return
-    }
-
-    if (aiData.queryType === 'general') {
-      res.write(`event: result\ndata: ${JSON.stringify({ queryType: 'general', answer: aiData.answer || '未能获取信息' })}\n\n`)
-      res.write(`event: done\ndata: ok\n\n`)
-      res.end()
-      return
-    }
-
-    // 分类搜索
-    const keywords: string[] = aiData.keywords || []
-    const keyword = keywords[0] || message
-
-    const { routeClassify } = await import('../services/semantic-classifier.js')
-    const { demandService } = await import('../services/demand.service.js')
-    const classified = await routeClassify(keywords)
-
-    let searchResult
-    if (classified.method === 'fuzzy') {
-      const tags = keywords.slice(1).join(',')
-      const params: Record<string, unknown> = {
-        keyword,
-        searchMode: 'fuzzy' as const,
-        limit: 10,
+        res.write(`event: result\ndata: ${JSON.stringify(result)}\n\n`)
+        res.write('event: done\ndata: ok\n\n')
+        res.end()
+        console.log(`[discover] 快速通道命中 → "${message}" → ${localMatch.labels.join(',')} (${Date.now() - t0}ms)`)
+        return
       }
-      if (tags) params.tags = tags
-      searchResult = await demandService.search(params)
-    } else {
-      searchResult = await demandService.search({
-        taxonomyLeafIds: classified.nodeIds.join(','),
-        searchMode: 'fuzzy' as const,
-        limit: 10,
-      })
+      console.log(`[discover] 快速通道未命中 → "${message}" → 直接关键词搜索 (${Date.now() - t0}ms)`)
+    } catch (e: any) {
+      console.warn('[discover] 快速通道异常:', e.message || e)
     }
 
-    const result = {
-      keywords,
-      hint: aiData.hint || '',
-      demands: searchResult.demands || [],
-      total: searchResult.total || 0,
-      classifiedLabels: classified.labels,
-      classifyMethod: classified.method,
-      classifiedNodeIds: classified.nodeIds,
-    }
+    // 快速通道未命中 → 直接用原始输入当关键词，不走 AI
+    {
+      res.setHeader('Content-Type', 'text/event-stream')
+      res.setHeader('Cache-Control', 'no-cache')
+      res.setHeader('Connection', 'keep-alive')
+      res.flushHeaders()
 
-    res.write(`event: result\ndata: ${JSON.stringify(result)}\n\n`)
-    res.write(`event: done\ndata: ok\n\n`)
-    res.end()
+      const result = {
+        keywords: [message],
+        hint: '',
+        classifiedLabels: [],
+        classifyMethod: 'direct' as const,
+        classifiedNodeIds: [],
+      }
+
+      res.write(`event: result\ndata: ${JSON.stringify(result)}\n\n`)
+      res.write('event: done\ndata: ok\n\n')
+      res.end()
+      console.log(`[discover] 直接搜索完成 → "${message}" (总耗时 ${Date.now() - t0}ms)`)
+      return
+    }
   } catch (e: any) {
     console.error('[AI] discover-classify-stream error:', e.message)
     if (!res.headersSent) {
@@ -403,8 +284,12 @@ ${thinkModeEnabled ? '- 推理分析放在 <think>...</think> 标签中' : ''}`;
   }
 });
 
+let _analyzeCount = 0
+
 // POST /api/ai/analyze-demand-stream — 多轮需求分析 + Think 模式流式
 aiRouter.post('/analyze-demand-stream', async (req: Request, res: Response) => {
+  const reqId = ++_analyzeCount
+  console.log(`[analyze-demand-stream #${reqId}] 收到请求`, new Date().toISOString())
   try {
     const { message, requirementState, thinkMode } = req.body as {
       message?: string
@@ -437,10 +322,13 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
 
 你必须返回一个 JSON 对象（纯 JSON，不要 markdown 包裹）：
 {
+"title": "5-10字的简短标题，提炼需求的核心动作",
   "summary": "一句完整的需求摘要，融合已确认信息+本轮新增信息",
   "scopeLabels": ["线上服务", "游戏", "陪玩教学"],
   "serviceType": "ONLINE",
   "confidence": "high",
+	"budget": "50",
+	"category": "跑腿/代买",
   "missingInfo": ["追问1", "追问2"],
   "suggestedKeywords": ["关键词1", "关键词2"],
   "readyToPublish": false,
@@ -458,6 +346,7 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
 
 【规则】
 - summary 必须包含所有已确认的关键信息，是一句完整的、可独立理解的描述
+- title 必须是5-10字以内的极短标题，仅包含需求的核心动作（如"代买酒""王者代打""修水管"），不要包含预算、时间、地址等细节
 - scopeLabels 从分类树中选路径，从"线上服务"或"线下到场"开始
 - serviceType 为 "ONLINE" 或 "OFFLINE"
 - confidence 为 "high"（大部分信息已确认）/ "medium"（中等）/ "low"（信息很少）
@@ -566,6 +455,7 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
       }
     }
 
+    console.log(`[analyze-demand-stream #${reqId}] 返回结果, title:`, aiData.title)
     res.write(`event: result\ndata: ${JSON.stringify(aiData)}\n\n`)
     res.write(`event: done\ndata: ok\n\n`)
     res.end()
@@ -594,21 +484,23 @@ aiRouter.post('/agent-demand-stream', async (req: Request, res: Response) => {
       ? (config.aiThinkModel || config.aiModel)
       : (config.aiFastModel || config.aiModel)
 
-    const SYSTEM_PROMPT = `你是九木平台的需求收集助手。通过自然对话帮助用户清晰、完整地表达服务需求。
+    const SYSTEM_PROMPT = `你是九木平台的智能助手。用户可能在闲聊，也可能在描述服务需求，你需要灵活应对。
 
 工作方式：
-1. 理解用户的自然语言输入，提取关键信息
-2. 如果信息不足，友好地追问缺失信息。一次只问 1-2 个问题
-3. 当所有必要信息都已收集齐全时，调用 publish_requirement 函数发布需求
-4. 保持对话自然流畅，像一个有经验的客服专员
+1. 如果用户只是在聊天（闲聊、问问题、分享心情等），就自然地陪聊，不要强行把话题转到需求上。但心里要记住用户说的信息（兴趣、偏好、状态等），这些是宝贵的上下文。
+2. 如果用户聊着聊着开始提自己的需求（哪怕是从闲聊中转过来的），要结合之前的聊天内容来理解 TA。比如用户之前说困了、无聊、想玩游戏，这些信息都有助于分析 TA 真正想要什么服务。
+3. 只有当用户主动提到想发布需求、且信息确实完整时，才调用 publish_requirement 函数
+4. 保持对话自然友好，不要像客服机器人一样机械追问
 
 关键原则：
 - 始终使用简体中文回复，禁止使用繁体字
+- 回答要简短直接，不要绕弯子，不要废话
+- 用户聊什么你就回什么，不要每条回复都试图推销需求发布功能
+- 聊天中的信息是有价值的：用户的情绪、兴趣、时间、预算暗示等，都可以作为理解需求的线索
 - 必要信息包括：服务类型（线上/线下）、具体内容、预算范围、时间要求
 - 永远不要在信息不完整时调用发布函数
-- 用户简短回复（数字、短词组）要结合对话历史来理解
-- 忠实保留用户说的数值和单位（元/小时、元/局、元/次等），不要自行换算或改写
-- 如果用户前后矛盾，主动要求澄清
+- 用户简短回复要结合对话历史来理解
+- 忠实保留用户说的数值和单位
 ${thinkModeEnabled ? '\n【要求】将你的推理分析过程放在 <think>...</think> 标签中。' : ''}`
 
     const PUBLISH_TOOL = {

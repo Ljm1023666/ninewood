@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { Server } from 'socket.io';
 import * as Sentry from '@sentry/node';
 import { config } from './config.js';
@@ -28,6 +30,8 @@ import { captchaRouter } from './routes/captcha.js';
 import { regionRouter } from './routes/region.js';
 import { tagRouter } from './routes/tag.js';
 import { certificationRouter } from './routes/certification.js';
+import { healthRouter } from './routes/health.js';
+import { healthActionsRouter } from './routes/health-actions.js';
 import { registerNinewoodTools } from './services/agent/tools.js';
 
 Sentry.init({
@@ -88,9 +92,12 @@ app.use('/api/captcha', captchaRouter);
 registerNinewoodTools();
 
 // Health
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
-});
+app.use('/api', healthRouter);
+app.use('/api', healthActionsRouter);
+
+// 独立监控页 — 前端挂了也能用
+const __public = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'public');
+app.get('/monitor', (_req, res) => res.sendFile(path.join(__public, 'monitor.html')));
 
 // Sentry error handler (must be before generic error handler)
 Sentry.setupExpressErrorHandler(app);

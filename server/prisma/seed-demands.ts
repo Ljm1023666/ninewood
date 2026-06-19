@@ -159,7 +159,7 @@ async function main() {
           category: tpl.c,
           taxonomyLeafId: null,
           serviceType: isOnline ? 'ONLINE' : 'OFFLINE',
-          tags: tpl.tags,
+          tagName: tpl.tags[0],
           stage: isActive ? 'active' : 'completed',
           status: isActive ? 'PENDING' : 'COMPLETED',
           regionId: null,

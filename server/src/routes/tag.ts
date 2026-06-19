@@ -19,9 +19,15 @@ const searchSchema = z.object({
   q: z.string().min(1).max(100).optional(),
 });
 
-// GET /api/tags — 标签列表（支持 ?q=xxx 搜索）
+// GET /api/tags — 标签列表（支持 ?q=xxx 搜索 / ?withCounts=true&regionId=xxx）
 tagRouter.get('/', async (req: Request, res: Response) => {
   try {
+    if (req.query.withCounts === 'true') {
+      const regionId = req.query.regionId ? Number(req.query.regionId) : undefined;
+      const stage = req.query.stage as string | undefined
+      const result = await tagService.listWithCounts(regionId, stage);
+      return success(res, result);
+    }
     const { q } = searchSchema.parse(req.query);
     if (q) {
       const tags = await tagService.search(q);

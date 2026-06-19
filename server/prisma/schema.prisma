@@ -109,6 +109,7 @@ model User {
   role               String    @default("USER")
   passwordHash       String?
   bio                String?
+  birthday           DateTime?
   pushBlocklist      Json      @default("{\"tags\":[],\"keywords\":[],\"ageRanges\":[]}")
   hasVisitedCompletedList Boolean   @default(false)
   serviceTags            String[]  @default([])
@@ -447,6 +448,8 @@ model Region {
   name     String   @db.VarChar(100)
   level    Int      // 1=国家 2=省 3=市 4=区县
   parentId Int      @default(0)
+  lat      Float?
+  lng      Float?
 
   demands          Demand[]
   certifiedProviders CertifiedProvider[]

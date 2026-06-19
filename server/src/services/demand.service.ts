@@ -95,6 +95,8 @@ export const demandService = {
   async search(params: {
     keyword?: string;
     tagName?: string;
+    /** 逗号分隔多标签，对应 IN 查询 */
+    tagNames?: string;
     category?: string;
     /** 逗号分隔；与 category 二选一，多类目 IN */
     categories?: string;
@@ -194,13 +196,17 @@ export const demandService = {
       }
     }
 
-    // 标签卡包筛选（单标签关联）
-    if (params.tagName) {
-      and.push({ tagName: params.tagName });
-    }
-    // 未分类需求筛选
-    if (params.tagName === '__untagged__') {
+    // 标签卡包筛选
+    const tagNamesList = params.tagNames
+      ?.split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+    if (tagNamesList && tagNamesList.length > 0) {
+      and.push({ tagName: { in: tagNamesList } });
+    } else if (params.tagName === '__untagged__') {
       and.push({ tagName: null });
+    } else if (params.tagName) {
+      and.push({ tagName: params.tagName });
     }
 
     if (params.userId) {
@@ -252,7 +258,11 @@ export const demandService = {
             const kw = `%${keywordTrimmed}%`;
             whereFragments.push(Prisma.sql`(d."title" ILIKE ${kw} OR d."description" ILIKE ${kw})`);
           }
-          if (params.tagName) {
+          if (tagNamesList && tagNamesList.length > 0) {
+            whereFragments.push(Prisma.sql`d."tagName" IN (${Prisma.join(tagNamesList)})`);
+          } else if (params.tagName === '__untagged__') {
+            whereFragments.push(Prisma.sql`d."tagName" IS NULL`);
+          } else if (params.tagName) {
             whereFragments.push(Prisma.sql`d."tagName" = ${params.tagName}`);
           }
 
@@ -306,6 +316,7 @@ export const demandService = {
       const result = raw.map((d: any) => ({
         id: d.id,
         title: d.title,
+        tagName: d.tagName,
         minPrice: Number(d.minPrice),
         category: d.category,
         taxonomyLeafId: d.taxonomyLeafId,
@@ -368,6 +379,7 @@ export const demandService = {
     const paged = demands.map((d: any) => ({
       id: d.id,
       title: d.title,
+      tagName: d.tagName,
       minPrice: Number(d.minPrice),
       category: d.category,
       taxonomyLeafId: d.taxonomyLeafId,
