@@ -63,7 +63,7 @@ function HeroContent() {
       </p>
       <div className="flex pointer-events-auto flex-col sm:flex-row items-start space-y-3 sm:space-y-0 sm:space-x-4">
         <button
-          onClick={() => navigate('/discover')}
+          onClick={() => navigate('/')}
           className="bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-8 rounded-full transition duration-300 border border-white/10"
           style={{ backdropFilter: 'blur(8px)' }}
         >

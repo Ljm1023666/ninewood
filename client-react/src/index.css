@@ -838,3 +838,19 @@ html[data-appearance="dark"] {
     radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.04) 1px, transparent 0);
   background-size: 24px 24px;
 }
+
+/* ── Agent 聊天动画 ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+
+/* ── 分析中流光动效 ── */
+@keyframes flowing-light {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.animate-flowing-light {
+  animation: flowing-light 2.5s linear infinite;
+}

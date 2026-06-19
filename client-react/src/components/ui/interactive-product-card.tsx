@@ -86,6 +86,11 @@ export function InteractiveProductCard({
   const [flipped, setFlipped] = useState(false)
   const flippedRef = useRef(false)
   flippedRef.current = flipped
+  const [imageSrc, setImageSrc] = useState(imageUrl)
+  const fallbackCover = publisherUserCoverPreset(publisherUserId ?? undefined)
+  useEffect(() => {
+    setImageSrc(imageUrl)
+  }, [imageUrl])
 
   const sheenX = useMotionValue(0)
   const sheenY = useMotionValue(0)
@@ -333,10 +338,11 @@ export function InteractiveProductCard({
               style={{ transform: 'rotateY(0deg) translateZ(0)' }}
             >
               <img
-                src={imageUrl}
+                src={imageSrc}
                 alt={title}
                 decoding="async"
                 fetchPriority="high"
+                onError={() => setImageSrc(fallbackCover)}
                 className="absolute inset-0 h-full w-full rounded-3xl object-cover [backface-visibility:hidden]"
                 style={{ transform: 'translateZ(0) scale(1)' }}
               />
@@ -500,10 +506,11 @@ export function InteractiveProductCard({
       ) : (
         <>
           <img
-            src={imageUrl}
+            src={imageSrc}
             alt={title}
             decoding="async"
             fetchPriority="high"
+            onError={() => setImageSrc(fallbackCover)}
             className="absolute inset-0 h-full w-full object-cover [backface-visibility:hidden]"
             style={{ transform: 'translateZ(0) scale(1)' }}
           />

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Folder, FileType2 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Folder, FileType2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
@@ -254,7 +253,6 @@ function ExplorerDetailsShell({
 
 /** 浏览树与卡池牌桌的焦点分离；手牌与弃牌与主卡池共用 IndexedDB 持久化 */
 export default function CardPoolResourceExplorer() {
-  const navigate = useNavigate()
   const scrollRef = useRef<HTMLDivElement>(null)
   const handDropZoneRef = useRef<HTMLDivElement>(null)
   const {
@@ -414,17 +412,8 @@ export default function CardPoolResourceExplorer() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-background text-foreground">
-      <BackButton />
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="返回卡池"
-          onClick={() => navigate('/card-pool')}
-        >
-          <ChevronLeft className="size-5" />
-        </Button>
+        <BackButton />
         <div>
           <h1 className="text-lg font-bold text-text-primary">资源管理器</h1>
           <p className="text-sm text-text-muted">

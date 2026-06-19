@@ -1,6 +1,5 @@
 import { PortfolioPage } from '@/components/ui/starfall-portfolio-landing'
 import type { PortfolioPageProps } from '@/components/ui/starfall-portfolio-landing'
-import { Footer } from '@/components/ui/footer-section'
 import { useNavigate } from 'react-router-dom'
 
 export default function Home() {
@@ -61,7 +60,6 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-full">
       <PortfolioPage {...portfolioData} />
-      <Footer />
     </div>
   )
 }
