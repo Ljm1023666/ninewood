@@ -7,16 +7,14 @@
    遵循 DESIGN.md: 纯黑 #000 打底，纯白 #FFF 强调，灰度桥接层次
    WCAG 2.1 AA 对比度 — 主体文字 #FFF on #000 = 21:1 */
 :root {
-  --sidebar-w: 100px;
-
-  /* ── 强调色：#3388FF 蓝（品牌主强调）── */
-  --accent-color: #3388FF;
-  --accent-hover: #5599FF;
-  --accent-muted: rgba(51, 136, 255, 0.12);
-  --accent-ghost: rgba(51, 136, 255, 0.06);
-  --accent-gradient: linear-gradient(135deg, #3388FF, #5599FF);
-  --primary-start: #3388FF;
-  --primary-end: #5599FF;
+  /* ── 强调色：纯白（黑白主题）── */
+  --accent-color: #FFFFFF;
+  --accent-hover: #CCCCCC;
+  --accent-muted: rgba(255, 255, 255, 0.08);
+  --accent-ghost: rgba(255, 255, 255, 0.04);
+  --accent-gradient: linear-gradient(135deg, #FFFFFF, #CCCCCC);
+  --primary-start: #FFFFFF;
+  --primary-end: #CCCCCC;
   --primary-gradient: var(--accent-gradient);
 
   /* ── 背景层级：纯黑白灰度阶 ── */
@@ -111,12 +109,16 @@
   --color-muted-foreground: var(--text-muted);
   /* shadcn 风格登录等组件用 */
   --color-primary: var(--primary-start);
-  --color-primary-foreground: #fafafa;
+  --color-primary-foreground: #000000;
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
   --color-input: var(--border-color);
   --color-ring: var(--accent-color);
   --color-muted: var(--bg-secondary);
+  /* shadcn popover / dropdown 弹出层 */
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--bg-primary);
+  --color-accent-foreground: var(--text-primary);
   /* shadcn sidebar / chat-template 依赖 */
   --color-secondary: var(--bg-card);
   --color-secondary-foreground: var(--text-secondary);
@@ -598,8 +600,8 @@ html[data-appearance="dark"] {
     90deg,
     var(--accent-color) 0px,
     var(--accent-color) 3px,
-    #ffffff 3px,
-    #ffffff 100%
+    rgba(255, 255, 255, 0.01) 3px,
+    rgba(255, 255, 255, 0.01) 100%
   );
 }
 

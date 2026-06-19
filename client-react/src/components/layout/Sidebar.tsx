@@ -51,7 +51,7 @@ export default function Sidebar() {
     const destBg = isDark
       ? presets.light.bgPrimary
       : presets[lastDarkPreset]?.bgPrimary ||
-        presets['amber-stream']?.bgPrimary ||
+        presets['morning-mist']?.bgPrimary ||
         '#0a0a1a'
     triggerCurtain(destBg, toggleDarkMode)
   }

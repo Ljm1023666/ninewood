@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { BackButton } from '@/components/ui/back-button'
 
 interface PageHeaderProps {
   title: string
@@ -45,16 +45,11 @@ export function PageHeader({
         className,
       )}
     >
-      {/* 左侧：返回按钮（绝对定位） */}
+      {/* 左侧：返回按钮 */}
       {handleBack && (
-        <button
-          type="button"
-          onClick={handleBack}
-          aria-label="返回"
-          className="absolute left-0 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-lg border border-border bg-card/60 text-text-secondary transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
+        <div className="absolute left-0 top-1/2 -translate-y-1/2">
+          <BackButton onBack={handleBack} />
+        </div>
       )}
 
       {/* 标题区：居中，左右由按钮/操作槽宽度撑开间距 */}

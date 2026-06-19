@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, Layers } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
+import { ComboboxDemo } from '@/components/ui/filters-demo'
 import { useTableState } from '@/components/card-pool/useTableState'
 import { TableDiscard } from '@/components/card-pool/TableDiscard'
 import { TableBreadcrumb } from '@/components/card-pool/TableBreadcrumb'
@@ -497,15 +499,7 @@ export default function CardPool() {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground">
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label="返回上一页"
-          onClick={() => navigate(-1)}
-        >
-          <ChevronLeft className="size-5" />
-        </Button>
+        <BackButton />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Layers className="size-5 shrink-0 text-accent" />
@@ -564,6 +558,10 @@ export default function CardPool() {
           {discard.length > 0 ? (
             <span className="text-text-muted">弃牌区 {discard.length}</span>
           ) : null}
+        </div>
+
+        <div className="flex shrink-0 items-center border-b border-border px-4 py-2">
+          <ComboboxDemo disabled />
         </div>
 
         <div

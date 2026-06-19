@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
 import { messageApi } from '@/api/message'
 import { toast } from '@/components/ui/confirm-dialog'
+import { BackButton } from '@/components/ui/back-button'
 interface Contact {
   id: string
   nickname: string
@@ -83,6 +84,7 @@ export default function NewGroupChat() {
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-bg-primary text-text-primary">
+      <BackButton />
       {/* 顶栏 */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
         <button

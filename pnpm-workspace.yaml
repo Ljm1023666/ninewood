@@ -8,4 +8,5 @@ allowBuilds:
   '@tsparticles/engine': true
   electron-winstaller: true
   esbuild: true
+  msw: true
   prisma: true

@@ -1,6 +1,9 @@
+import { BackButton } from '@/components/ui/back-button'
+
 export default function Terms() {
   return (
     <div className="relative z-base flex h-full min-h-0 w-full min-w-0 flex-col overflow-y-auto bg-bg-primary px-6 py-8">
+      <BackButton />
       <div className="mx-auto w-full max-w-3xl">
         <h1 className="text-2xl font-extrabold text-text-primary mb-6">
           服务条款

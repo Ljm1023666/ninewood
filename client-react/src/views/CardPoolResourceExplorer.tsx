@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, Folder, FileType2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
 import { TAXONOMY } from '@/components/card-pool/taxonomy'
@@ -413,6 +414,7 @@ export default function CardPoolResourceExplorer() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-background text-foreground">
+      <BackButton />
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <Button
           type="button"
