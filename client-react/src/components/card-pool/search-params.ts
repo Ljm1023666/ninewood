@@ -6,6 +6,15 @@ import { subtreeLeafIds } from '@/components/card-pool/taxonomy'
 export function scopeToApiParams(scope: BlackScope): Record<string, string> {
   const out: Record<string, string> = {}
   const p = scope.path
+
+  // __singles__ 特殊处理：用 ids 参数传递需求 ID 列表
+  if (p.length >= 2 && p[1] === '__singles__') {
+    if (scope.leafFilter && scope.leafFilter.length > 0) {
+      out.ids = scope.leafFilter.join(',')
+    }
+    return out
+  }
+
   if (p.length < 2) return out
 
   if (p[1] === 'online') out.serviceType = 'ONLINE'
@@ -41,6 +50,7 @@ export function searchParamsToQueryString(
   if (params.categories) sp.set('categories', params.categories)
   if (params.taxonomyLeafId) sp.set('taxonomyLeafId', params.taxonomyLeafId)
   if (params.taxonomyLeafIds) sp.set('taxonomyLeafIds', params.taxonomyLeafIds)
+  if (params.ids) sp.set('ids', params.ids)
   return sp.toString()
 }
 

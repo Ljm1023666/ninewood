@@ -1,4 +1,12 @@
-/** 卡池分类树：多级细分；叶子 id 在 NODE_SEARCH_CATEGORY 中映射到 Prisma Demand.category（与 seed / 发布一致） */
+/** 卡池分类树 V2 — 9 层深度
+ *  层级规则:
+ *  1-2: 线上/线下
+ *  3-4: 行业大类
+ *  5-6: 细分领域
+ *  7:  平台/工具/时段
+ *  8:  级别/规格
+ *  9:  具体任务/技能
+ */
 
 export type TaxonomyMeta = {
   label: string
@@ -9,882 +17,1058 @@ export type TaxonomyMeta = {
 export const TAXONOMY: Record<string, TaxonomyMeta> = {
   root: { label: '全部', parent: null, childIds: ['online', 'offline'] },
 
+  // ============================================================
+  // L2: 线上服务
+  // ============================================================
   online: {
     label: '线上服务',
     parent: 'root',
-    childIds: [
-      'on-design',
-      'on-tech',
-      'on-edu',
-      'on-pro',
-      'on-ecom',
-      'on-media',
-    ],
+    childIds: ['ol-game', 'ol-design', 'ol-dev', 'ol-edu', 'ol-content', 'ol-ecom', 'ol-pro', 'ol-voice', 'ol-write', 'ol-data', 'ol-music', 'ol-misc'],
   },
+
+  // ============================================================
+  // L2: 线下到场
+  // ============================================================
   offline: {
     label: '线下到场',
     parent: 'root',
-    childIds: [
-      'off-life',
-      'off-repair',
-      'off-health',
-      'off-auto',
-      'off-estate',
-      'off-biz',
-      'off-wed',
-      'off-pet',
-      'off-farm',
-      'off-travel',
-      'off-lang',
-      'off-study',
-      'off-tea',
-    ],
+    childIds: ['of-home', 'of-repair', 'of-health', 'of-auto', 'of-estate', 'of-event', 'of-pet', 'of-travel', 'of-study', 'of-farm', 'of-beauty', 'of-move', 'of-cook'],
   },
 
-  /* ── 线上：视觉与内容 ── */
-  'on-design': {
-    label: '视觉与品牌',
-    parent: 'online',
-    childIds: [
-      'on-d-logo',
-      'on-d-ui',
-      'on-d-pack',
-      'on-d-video',
-      'on-d-3d',
-      'on-d-photo',
-    ],
-  },
-  'on-d-logo': { label: 'Logo / VI / 画册', parent: 'on-design', childIds: [] },
-  'on-d-ui': {
-    label: 'UI · 交互 · 小程序界面',
-    parent: 'on-design',
-    childIds: [],
-  },
-  'on-d-pack': {
-    label: '包装 · 主图 · 物料',
-    parent: 'on-design',
-    childIds: [],
-  },
-  'on-d-video': {
-    label: '短视频 · 剪辑 · 调色',
-    parent: 'on-design',
-    childIds: [],
-  },
-  'on-d-3d': {
-    label: '三维 · 效果图 · 动画',
-    parent: 'on-design',
-    childIds: [],
-  },
-  'on-d-photo': { label: '产品摄影 · 精修', parent: 'on-design', childIds: [] },
+  // ========================================================================
+  // 线上 — 游戏服务 (ol-game)
+  // ========================================================================
+  'ol-game': { label: '游戏', parent: 'online', childIds: ['olg-boost', 'olg-coach', 'olg-acc', 'olg-item', 'olg-live', 'olg-test'] },
+  'olg-boost': { label: '代练上分', parent: 'ol-game', childIds: ['olgb-lol', 'olgb-wzry', 'olgb-pubg', 'olgb-hyxd', 'olgb-apex', 'olgb-dota', 'olgb-ow', 'olgb-wow', 'olgb-ff14', 'olgb-other'] },
+  'olg-coach': { label: '陪玩教学', parent: 'ol-game', childIds: ['olgc-lol', 'olgc-wzry', 'olgc-pubg', 'olgc-valorant', 'olgc-csgo', 'olgc-fortnite', 'olgc-mc', 'olgc-other'] },
+  'olg-acc': { label: '账号交易', parent: 'ol-game', childIds: ['olga-buy', 'olga-sell', 'olga-rent', 'olga-recover'] },
+  'olg-item': { label: '道具代币', parent: 'ol-game', childIds: ['olgi-gold', 'olgi-skin', 'olgi-card', 'olgi-gacha', 'olgi-pass'] },
+  'olg-live': { label: '游戏直播', parent: 'ol-game', childIds: ['olgl-observer', 'olgl-host', 'olgl-edit', 'olgl-cover'] },
+  'olg-test': { label: '游戏测试', parent: 'ol-game', childIds: ['olgt-qa', 'olgt-localize', 'olgt-balance', 'olgt-bug'] },
 
-  /* ── 线上：技术开发 ── */
-  'on-tech': {
-    label: '技术开发',
-    parent: 'online',
-    childIds: [
-      'on-t-web',
-      'on-t-mini',
-      'on-t-app',
-      'on-t-api',
-      'on-t-data',
-      'on-t-cloud',
-      'on-t-sec',
-    ],
-  },
-  'on-t-web': { label: '官网 · H5 · 活动页', parent: 'on-tech', childIds: [] },
-  'on-t-mini': {
-    label: '微信小程序 · 公众号',
-    parent: 'on-tech',
-    childIds: [],
-  },
-  'on-t-app': {
-    label: 'App · 跨端 · Flutter',
-    parent: 'on-tech',
-    childIds: [],
-  },
-  'on-t-api': {
-    label: '接口 · 后台 · 中间件',
-    parent: 'on-tech',
-    childIds: [],
-  },
-  'on-t-data': { label: '数据 · BI · 报表', parent: 'on-tech', childIds: [] },
-  'on-t-cloud': {
-    label: '云运维 · DevOps · 上架',
-    parent: 'on-tech',
-    childIds: [],
-  },
-  'on-t-sec': {
-    label: '等保 · 渗透 · 安全加固',
-    parent: 'on-tech',
-    childIds: [],
-  },
+  // 线上游戏 — 第 4-9 层示例（王者荣耀分支）
+  'olgb-wzry': { label: '王者荣耀', parent: 'olg-boost', childIds: ['olgbw-rank', 'olgbw-achieve', 'olgbw-hero', 'olgbw-tm'] },
+  'olgbw-rank': { label: '排位赛', parent: 'olgb-wzry', childIds: ['olgbwr-bronze', 'olgbwr-silver', 'olgbwr-gold', 'olgbwr-plat', 'olgbwr-diamond', 'olgbwr-star', 'olgbwr-king', 'olgbwr-myth'] },
+  'olgbwr-bronze': { label: '青铜→白银', parent: 'olgbw-rank', childIds: [] },
+  'olgbwr-silver': { label: '白银→黄金', parent: 'olgbw-rank', childIds: [] },
+  'olgbwr-gold': { label: '黄金→铂金', parent: 'olgbw-rank', childIds: [] },
+  'olgbwr-plat': { label: '铂金→钻石', parent: 'olgbw-rank', childIds: [] },
+  'olgbwr-diamond': { label: '钻石→星耀', parent: 'olgbw-rank', childIds: [] },
+  'olgbwr-star': { label: '星耀→王者', parent: 'olgbw-rank', childIds: ['olgbwrs-25', 'olgbwrs-50', 'olgbwrs-100'] },
+  'olgbwrs-25': { label: '25星以内', parent: 'olgbwr-star', childIds: ['olgbwrs25-mid', 'olgbwrs25-jungle', 'olgbwrs25-top', 'olgbwrs25-adc', 'olgbwrs25-support'] },
+  'olgbwrs-50': { label: '25-50星', parent: 'olgbwr-star', childIds: ['olgbwrs50-mid', 'olgbwrs50-jungle', 'olgbwrs50-top', 'olgbwrs50-adc', 'olgbwrs50-support'] },
+  'olgbwrs-100': { label: '50-100星', parent: 'olgbwr-star', childIds: ['olgbwrs100-mid', 'olgbwrs100-jungle', 'olgbwrs100-top', 'olgbwrs100-adc', 'olgbwrs100-support'] },
 
-  /* ── 线上：教育培训 ── */
-  'on-edu': {
-    label: '在线教育',
-    parent: 'online',
-    childIds: [
-      'on-e-lang',
-      'on-e-k12',
-      'on-e-cert',
-      'on-e-it',
-      'on-e-art',
-      'on-e-sport',
-    ],
-  },
-  'on-e-lang': { label: '外语 · 雅思托福口语', parent: 'on-edu', childIds: [] },
-  'on-e-k12': { label: 'K12 · 考研公考', parent: 'on-edu', childIds: [] },
-  'on-e-cert': { label: '职业考证 · 资格辅导', parent: 'on-edu', childIds: [] },
-  'on-e-it': { label: 'IT 编程 · 运维入门', parent: 'on-edu', childIds: [] },
-  'on-e-art': { label: '乐器 · 美术 · 艺考', parent: 'on-edu', childIds: [] },
-  'on-e-sport': {
-    label: '健身理论 · 线上私教计划',
-    parent: 'on-edu',
-    childIds: [],
-  },
+  // 9层：指定位置代练
+  'olgbwrs25-mid': { label: '中路', parent: 'olgbwrs-25', childIds: [] },
+  'olgbwrs25-jungle': { label: '打野', parent: 'olgbwrs-25', childIds: [] },
+  'olgbwrs25-top': { label: '对抗路', parent: 'olgbwrs-25', childIds: [] },
+  'olgbwrs25-adc': { label: '发育路', parent: 'olgbwrs-25', childIds: [] },
+  'olgbwrs25-support': { label: '游走', parent: 'olgbwrs-25', childIds: [] },
+  'olgbwrs50-mid': { label: '中路', parent: 'olgbwrs-50', childIds: [] },
+  'olgbwrs50-jungle': { label: '打野', parent: 'olgbwrs-50', childIds: [] },
+  'olgbwrs50-top': { label: '对抗路', parent: 'olgbwrs-50', childIds: [] },
+  'olgbwrs50-adc': { label: '发育路', parent: 'olgbwrs-50', childIds: [] },
+  'olgbwrs50-support': { label: '游走', parent: 'olgbwrs-50', childIds: [] },
+  'olgbwrs100-mid': { label: '中路', parent: 'olgbwrs-100', childIds: [] },
+  'olgbwrs100-jungle': { label: '打野', parent: 'olgbwrs-100', childIds: [] },
+  'olgbwrs100-top': { label: '对抗路', parent: 'olgbwrs-100', childIds: [] },
+  'olgbwrs100-adc': { label: '发育路', parent: 'olgbwrs-100', childIds: [] },
+  'olgbwrs100-support': { label: '游走', parent: 'olgbwrs-100', childIds: [] },
+  'olgbwr-king': { label: '王者→荣耀', parent: 'olgbw-rank', childIds: [] },
+  'olgbwr-myth': { label: '传奇百星', parent: 'olgbw-rank', childIds: [] },
+  'olgbw-achieve': { label: '成就任务', parent: 'olgb-wzry', childIds: ['olgbwa-avatar', 'olgbwa-title', 'olgbwa-medal', 'olgbwa-ranking'] },
+  'olgbwa-avatar': { label: '荣耀播报', parent: 'olgbw-achieve', childIds: [] },
+  'olgbwa-title': { label: '称号代打', parent: 'olgbw-achieve', childIds: [] },
+  'olgbwa-medal': { label: '成就徽章', parent: 'olgbw-achieve', childIds: [] },
+  'olgbwa-ranking': { label: '战区排名', parent: 'olgbw-achieve', childIds: [] },
+  'olgbw-hero': { label: '英雄战力', parent: 'olgb-wzry', childIds: ['olgbwh-shan', 'olgbwh-libai', 'olgbwh-hanxin', 'olgbwh-luna', 'olgbwh-jing', 'olgbwh-mengqi', 'olgbwh-other'] },
+  'olgbwh-shan': { label: '上官婉儿', parent: 'olgbw-hero', childIds: [] },
+  'olgbwh-libai': { label: '李白', parent: 'olgbw-hero', childIds: [] },
+  'olgbwh-hanxin': { label: '韩信', parent: 'olgbw-hero', childIds: [] },
+  'olgbwh-luna': { label: '露娜', parent: 'olgbw-hero', childIds: [] },
+  'olgbwh-jing': { label: '镜', parent: 'olgbw-hero', childIds: [] },
+  'olgbwh-mengqi': { label: '梦奇', parent: 'olgbw-hero', childIds: [] },
+  'olgbwh-other': { label: '其他英雄', parent: 'olgbw-hero', childIds: ['olgbwho-mid', 'olgbwho-jungle', 'olgbwho-top', 'olgbwho-adc', 'olgbwho-support'] },
+  'olgbwho-mid': { label: '中路', parent: 'olgbwh-other', childIds: [] },
+  'olgbwho-jungle': { label: '打野', parent: 'olgbwh-other', childIds: [] },
+  'olgbwho-top': { label: '对抗路', parent: 'olgbwh-other', childIds: [] },
+  'olgbwho-adc': { label: '发育路', parent: 'olgbwh-other', childIds: [] },
+  'olgbwho-support': { label: '游走', parent: 'olgbwh-other', childIds: [] },
+  'olgbw-tm': { label: '战队赛', parent: 'olgb-wzry', childIds: ['olgbwt-team', 'olgbwt-tournament'] },
+  'olgbwt-team': { label: '战队上分', parent: 'olgbw-tm', childIds: [] },
+  'olgbwt-tournament': { label: '赛事代打', parent: 'olgbw-tm', childIds: [] },
 
-  /* ── 线上：专业顾问 ── */
-  'on-pro': {
-    label: '法务 · 财税 · 管理顾问',
-    parent: 'online',
-    childIds: [
-      'on-p-law',
-      'on-p-tax',
-      'on-p-hr',
-      'on-p-strat',
-      'on-p-ip',
-      'on-p-comp',
-    ],
-  },
-  'on-p-law': { label: '合同 · 劳动 · 股权', parent: 'on-pro', childIds: [] },
-  'on-p-tax': {
-    label: '代理记账 · 税筹 · 审计',
-    parent: 'on-pro',
-    childIds: [],
-  },
-  'on-p-hr': {
-    label: '制度 · 用工 · 社保筹划',
-    parent: 'on-pro',
-    childIds: [],
-  },
-  'on-p-strat': { label: '战略 · 商业计划书', parent: 'on-pro', childIds: [] },
-  'on-p-ip': { label: '商标 · 专利 · 软著', parent: 'on-pro', childIds: [] },
-  'on-p-comp': { label: '合规 · ISO · 高企', parent: 'on-pro', childIds: [] },
+  // LOL 分支 (第4层)
+  'olgb-lol': { label: '英雄联盟', parent: 'olg-boost', childIds: ['olgbl-rank', 'olgbl-placement', 'olgbl-role', 'olgbl-acc'] },
+  'olgbl-rank': { label: '排位赛', parent: 'olgb-lol', childIds: ['olgblr-iron', 'olgblr-bronze', 'olgblr-silver', 'olgblr-gold', 'olgblr-plat', 'olgblr-emerald', 'olgblr-diamond', 'olgblr-master', 'olgblr-gm', 'olgblr-challenger'] },
+  'olgblr-iron': { label: '黑铁→青铜', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-bronze': { label: '青铜→白银', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-silver': { label: '白银→黄金', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-gold': { label: '黄金→铂金', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-plat': { label: '铂金→翡翠', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-emerald': { label: '翡翠→钻石', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-diamond': { label: '钻石→大师', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-master': { label: '大师→宗师', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-gm': { label: '宗师→王者', parent: 'olgbl-rank', childIds: [] },
+  'olgblr-challenger': { label: '最强王者', parent: 'olgbl-rank', childIds: [] },
+  'olgbl-placement': { label: '定级赛', parent: 'olgb-lol', childIds: ['olgblp-win5', 'olgblp-win7', 'olgblp-win10'] },
+  'olgblp-win5': { label: '5胜保底', parent: 'olgbl-placement', childIds: [] },
+  'olgblp-win7': { label: '7胜黄金', parent: 'olgbl-placement', childIds: [] },
+  'olgblp-win10': { label: '10胜全满', parent: 'olgbl-placement', childIds: [] },
+  'olgbl-role': { label: '分路段位', parent: 'olgb-lol', childIds: ['olgblr-top', 'olgblr-jungle', 'olgblr-mid', 'olgblr-adc', 'olgblr-support'] },
+  'olgblr-top': { label: '上单', parent: 'olgbl-role', childIds: [] },
+  'olgblr-jungle': { label: '打野', parent: 'olgbl-role', childIds: [] },
+  'olgblr-mid': { label: '中单', parent: 'olgbl-role', childIds: [] },
+  'olgblr-adc': { label: '射手', parent: 'olgbl-role', childIds: [] },
+  'olgblr-support': { label: '辅助', parent: 'olgbl-role', childIds: [] },
+  'olgbl-acc': { label: '账号提升', parent: 'olgb-lol', childIds: ['olgbla-lv', 'olgbla-skin', 'olgbla-blue'] },
+  'olgbla-lv': { label: '等级代练', parent: 'olgbl-acc', childIds: [] },
+  'olgbla-skin': { label: '皮肤代刷', parent: 'olgbl-acc', childIds: [] },
+  'olgbla-blue': { label: '蓝色精粹', parent: 'olgbl-acc', childIds: [] },
 
-  /* ── 线上：电商与增长 ── */
-  'on-ecom': {
-    label: '电商与运营',
-    parent: 'online',
-    childIds: [
-      'on-ec-shop',
-      'on-ec-live',
-      'on-ec-seo',
-      'on-ec-pr',
-      'on-ec-cross',
-    ],
-  },
-  'on-ec-shop': { label: '店铺装修 · 详情页', parent: 'on-ecom', childIds: [] },
-  'on-ec-live': { label: '直播代运营 · 脚本', parent: 'on-ecom', childIds: [] },
-  'on-ec-seo': { label: 'SEO · SEM · 信息流', parent: 'on-ecom', childIds: [] },
-  'on-ec-pr': { label: '私域 · 社群 · CRM', parent: 'on-ecom', childIds: [] },
-  'on-ec-cross': {
-    label: '跨境 · 独立站 · 申诉',
-    parent: 'on-ecom',
-    childIds: [],
-  },
+  // 陪玩教学
+  'olgc-wzry': { label: '王者陪玩', parent: 'olg-coach', childIds: ['olgcw-rank', 'olgcw-fun', 'olgcw-teach', 'olgcw-girl'] },
+  'olgcw-rank': { label: '排位陪玩', parent: 'olgc-wzry', childIds: ['olgcwr-low', 'olgcwr-mid', 'olgcwr-high', 'olgcwr-top'] },
+  'olgcwr-low': { label: '低段位陪玩', parent: 'olgcw-rank', childIds: [] },
+  'olgcwr-mid': { label: '中段位陪玩', parent: 'olgcw-rank', childIds: [] },
+  'olgcwr-high': { label: '高段位陪玩', parent: 'olgcw-rank', childIds: [] },
+  'olgcwr-top': { label: '顶端局陪玩', parent: 'olgcw-rank', childIds: [] },
+  'olgcw-fun': { label: '娱乐陪玩', parent: 'olgc-wzry', childIds: ['olgcwf-sound', 'olgcwf-duo', 'olgcwf-five'] },
+  'olgcwf-sound': { label: '语音陪玩', parent: 'olgcw-fun', childIds: [] },
+  'olgcwf-duo': { label: '双排娱乐', parent: 'olgcw-fun', childIds: [] },
+  'olgcwf-five': { label: '五排车队', parent: 'olgcw-fun', childIds: [] },
+  'olgcw-teach': { label: '教学指导', parent: 'olgc-wzry', childIds: ['olgcwt-hero', 'olgcwt-macro', 'olgcwt-micro'] },
+  'olgcwt-hero': { label: '英雄专精', parent: 'olgcw-teach', childIds: [] },
+  'olgcwt-macro': { label: '意识大局', parent: 'olgcw-teach', childIds: [] },
+  'olgcwt-micro': { label: '操作细节', parent: 'olgcw-teach', childIds: [] },
+  'olgcw-girl': { label: '女陪玩', parent: 'olgc-wzry', childIds: ['olgcwg-chat', 'olgcwg-game'] },
+  'olgcwg-chat': { label: '聊天陪伴', parent: 'olgcw-girl', childIds: [] },
+  'olgcwg-game': { label: '游戏陪伴', parent: 'olgcw-girl', childIds: [] },
 
-  /* ── 线上：文娱 ── */
-  'on-media': {
-    label: '文娱与陪练',
-    parent: 'online',
-    childIds: ['on-m-game', 'on-m-voice', 'on-m-copy'],
-  },
-  'on-m-game': { label: '游戏陪练 · 代练', parent: 'on-media', childIds: [] },
-  'on-m-voice': {
-    label: '配音 · 配乐 · 播客剪辑',
-    parent: 'on-media',
-    childIds: [],
-  },
-  'on-m-copy': {
-    label: '剧本 · 文案 · 主持稿',
-    parent: 'on-media',
-    childIds: [],
-  },
+  // 吃鸡/PUBG
+  'olgb-pubg': { label: 'PUBG/和平精英', parent: 'olg-boost', childIds: ['olgbp-rank', 'olgbp-rp', 'olgbp-kill', 'olgbp-gun'] },
+  'olgbp-rank': { label: '段位上分', parent: 'olgb-pubg', childIds: ['olgbpr-bronze', 'olgbpr-silver', 'olgbpr-gold', 'olgbpr-plat', 'olgbpr-diamond', 'olgbpr-crown', 'olgbpr-ace'] },
+  'olgbpr-bronze': { label: '青铜→白银', parent: 'olgbp-rank', childIds: [] },
+  'olgbpr-silver': { label: '白银→黄金', parent: 'olgbp-rank', childIds: [] },
+  'olgbpr-gold': { label: '黄金→铂金', parent: 'olgbp-rank', childIds: [] },
+  'olgbpr-plat': { label: '铂金→钻石', parent: 'olgbp-rank', childIds: [] },
+  'olgbpr-diamond': { label: '钻石→皇冠', parent: 'olgbp-rank', childIds: [] },
+  'olgbpr-crown': { label: '皇冠→王牌', parent: 'olgbp-rank', childIds: [] },
+  'olgbpr-ace': { label: '王牌→战神', parent: 'olgbp-rank', childIds: [] },
+  'olgbp-rp': { label: '赛季手册', parent: 'olgb-pubg', childIds: [] },
+  'olgbp-kill': { label: '击杀/KD', parent: 'olgb-pubg', childIds: ['olgbpk-100', 'olgbpk-300', 'olgbpk-500'] },
+  'olgbpk-100': { label: '100击杀', parent: 'olgbp-kill', childIds: [] },
+  'olgbpk-300': { label: '300击杀', parent: 'olgbp-kill', childIds: [] },
+  'olgbpk-500': { label: '500击杀', parent: 'olgbp-kill', childIds: [] },
+  'olgbp-gun': { label: '枪械皮肤', parent: 'olgb-pubg', childIds: [] },
 
-  /* ── 线下：居住与生活 ── */
-  'off-life': {
-    label: '家政与生活',
-    parent: 'offline',
-    childIds: [
-      'off-l-daily',
-      'off-l-deep',
-      'off-l-acs',
-      'off-l-move',
-      'off-l-baby',
-      'off-l-chef',
-      'off-l-tea',
-    ],
-  },
-  'off-l-daily': { label: '日常保洁 · 钟点', parent: 'off-life', childIds: [] },
-  'off-l-deep': { label: '开荒 · 深度保洁', parent: 'off-life', childIds: [] },
-  'off-l-acs': {
-    label: '空调 · 油烟机 · 洗衣机清洗',
-    parent: 'off-life',
-    childIds: [],
-  },
-  'off-l-move': {
-    label: '搬家 · 收纳 · 钢琴搬运',
-    parent: 'off-life',
-    childIds: [],
-  },
-  'off-l-baby': {
-    label: '月嫂 · 育儿嫂 · 陪护',
-    parent: 'off-life',
-    childIds: [],
-  },
-  'off-l-chef': {
-    label: '私厨 · 家宴 · 团餐上门',
-    parent: 'off-life',
-    childIds: [],
-  },
-  'off-l-tea': { label: '茶艺师上门 · 茶席', parent: 'off-life', childIds: [] },
+  // 荒野行动 / 明日之后 / Apex / Dota2 / 其他游戏（简写）
+  'olgb-hyxd': { label: '荒野行动', parent: 'olg-boost', childIds: [] },
+  'olgb-apex': { label: 'Apex英雄', parent: 'olg-boost', childIds: ['olgba-rank', 'olgba-bp'] },
+  'olgba-rank': { label: '排位上分', parent: 'olgb-apex', childIds: [] },
+  'olgba-bp': { label: '战斗通行证', parent: 'olgb-apex', childIds: [] },
+  'olgb-dota': { label: 'Dota2', parent: 'olg-boost', childIds: ['olgbd-mm', 'olgbd-calibration'] },
+  'olgbd-mm': { label: '天梯分', parent: 'olgb-dota', childIds: [] },
+  'olgbd-calibration': { label: '定级赛', parent: 'olgb-dota', childIds: [] },
+  'olgb-ow': { label: '守望先锋', parent: 'olg-boost', childIds: ['olgbo-rank'] },
+  'olgbo-rank': { label: '竞技段位', parent: 'olgb-ow', childIds: [] },
+  'olgb-wow': { label: '魔兽世界', parent: 'olg-boost', childIds: ['olgbw-rating', 'olgbw-mythic', 'olgbw-gold', 'olgbw-level'] },
+  'olgbw-rating': { label: '评级战场', parent: 'olgb-wow', childIds: [] },
+  'olgbw-mythic': { label: '大秘境', parent: 'olgb-wow', childIds: [] },
+  'olgbw-gold': { label: '金币代刷', parent: 'olgb-wow', childIds: [] },
+  'olgbw-level': { label: '等级代练', parent: 'olgb-wow', childIds: [] },
+  'olgb-ff14': { label: '最终幻想14', parent: 'olg-boost', childIds: ['olgbf-level', 'olgbf-raid'] },
+  'olgbf-level': { label: '等级代练', parent: 'olgb-ff14', childIds: [] },
+  'olgbf-raid': { label: '零式/绝本', parent: 'olgb-ff14', childIds: [] },
+  'olgb-other': { label: '其他游戏代练', parent: 'olg-boost', childIds: [] },
 
-  /* ── 线下：维修与弱电 ── */
-  'off-repair': {
-    label: '维修与弱电',
-    parent: 'offline',
-    childIds: [
-      'off-r-phone',
-      'off-r-pc',
-      'off-r-appliance',
-      'off-r-plumb',
-      'off-r-lock',
-      'off-r-net',
-    ],
-  },
-  'off-r-phone': {
-    label: '手机 · 平板换屏维修',
-    parent: 'off-repair',
-    childIds: [],
-  },
-  'off-r-pc': {
-    label: '电脑 · 数据恢复 · 病毒',
-    parent: 'off-repair',
-    childIds: [],
-  },
-  'off-r-appliance': {
-    label: '家电维修 · 净水地暖',
-    parent: 'off-repair',
-    childIds: [],
-  },
-  'off-r-plumb': {
-    label: '管道 · 防水 · 疏通',
-    parent: 'off-repair',
-    childIds: [],
-  },
-  'off-r-lock': {
-    label: '开锁换锁 · 智能门锁',
-    parent: 'off-repair',
-    childIds: [],
-  },
-  'off-r-net': {
-    label: '监控 · 布线 · NAS 组网',
-    parent: 'off-repair',
-    childIds: [],
-  },
+  // 陪玩教学 — 其他游戏
+  'olgc-lol': { label: 'LOL陪玩', parent: 'olg-coach', childIds: ['olgcl-rank', 'olgcl-fun', 'olgcl-teach'] },
+  'olgcl-rank': { label: '排位陪玩', parent: 'olgc-lol', childIds: [] },
+  'olgcl-fun': { label: '娱乐陪玩', parent: 'olgc-lol', childIds: [] },
+  'olgcl-teach': { label: '教学陪玩', parent: 'olgc-lol', childIds: [] },
+  'olgc-pubg': { label: 'PUBG陪玩', parent: 'olg-coach', childIds: [] },
+  'olgc-valorant': { label: '瓦罗兰特陪玩', parent: 'olg-coach', childIds: [] },
+  'olgc-csgo': { label: 'CS2陪玩', parent: 'olg-coach', childIds: [] },
+  'olgc-fortnite': { label: '堡垒之夜陪玩', parent: 'olg-coach', childIds: [] },
+  'olgc-mc': { label: '我的世界陪玩', parent: 'olg-coach', childIds: [] },
+  'olgc-other': { label: '其他陪玩', parent: 'olg-coach', childIds: [] },
 
-  /* ── 线下：健康 ── */
-  'off-health': {
-    label: '健康与心理',
-    parent: 'offline',
-    childIds: [
-      'off-h-clinic',
-      'off-h-massage',
-      'off-h-tcm',
-      'off-h-psy',
-      'off-h-diet',
-    ],
-  },
-  'off-h-clinic': {
-    label: '陪诊 · 取药 · 体检解读',
-    parent: 'off-health',
-    childIds: [],
-  },
-  'off-h-massage': {
-    label: '推拿 · 艾灸 · 康复',
-    parent: 'off-health',
-    childIds: [],
-  },
-  'off-h-tcm': { label: '针灸 · 小儿推拿', parent: 'off-health', childIds: [] },
-  'off-h-psy': { label: '心理咨询 · 沙盘', parent: 'off-health', childIds: [] },
-  'off-h-diet': { label: '慢病饮食指导', parent: 'off-health', childIds: [] },
+  // 账号交易
+  'olga-buy': { label: '买号', parent: 'olg-acc', childIds: ['olgab-wzry', 'olgab-lol', 'olgab-steam', 'olgab-psn', 'olgab-xbox', 'olgab-nintendo'] },
+  'olgab-wzry': { label: '王者账号', parent: 'olga-buy', childIds: ['olgabw-v8', 'olgabw-v9', 'olgabw-v10', 'olgabw-limited'] },
+  'olgabw-v8': { label: 'V8贵族', parent: 'olgab-wzry', childIds: [] },
+  'olgabw-v9': { label: 'V9贵族', parent: 'olgab-wzry', childIds: [] },
+  'olgabw-v10': { label: 'V10贵族', parent: 'olgab-wzry', childIds: [] },
+  'olgabw-limited': { label: '限定皮肤号', parent: 'olgab-wzry', childIds: [] },
+  'olgab-lol': { label: 'LOL账号', parent: 'olga-buy', childIds: ['olgabl-skin', 'olgabl-rank'] },
+  'olgabl-skin': { label: '皮肤号', parent: 'olgab-lol', childIds: [] },
+  'olgabl-rank': { label: '段位号', parent: 'olgab-lol', childIds: [] },
+  'olgab-steam': { label: 'Steam账号', parent: 'olga-buy', childIds: [] },
+  'olgab-psn': { label: 'PSN账号', parent: 'olga-buy', childIds: [] },
+  'olgab-xbox': { label: 'Xbox账号', parent: 'olga-buy', childIds: [] },
+  'olgab-nintendo': { label: '任天堂账号', parent: 'olga-buy', childIds: [] },
+  'olga-sell': { label: '卖号', parent: 'olg-acc', childIds: [] },
+  'olga-rent': { label: '租号', parent: 'olg-acc', childIds: ['olgar-hour', 'olgar-day', 'olgar-week'] },
+  'olgar-hour': { label: '按小时', parent: 'olga-rent', childIds: [] },
+  'olgar-day': { label: '按天', parent: 'olga-rent', childIds: [] },
+  'olgar-week': { label: '按周', parent: 'olga-rent', childIds: [] },
+  'olga-recover': { label: '账号找回', parent: 'olg-acc', childIds: [] },
 
-  /* ── 线下：车辆 ── */
-  'off-auto': {
-    label: '车辆与出行',
-    parent: 'offline',
-    childIds: [
-      'off-c-wash',
-      'off-c-beauty',
-      'off-c-repair',
-      'off-c-rescue',
-      'off-c-pile',
-      'off-c-driver',
-    ],
-  },
-  'off-c-wash': {
-    label: '洗车 · 打蜡 · 内饰',
-    parent: 'off-auto',
-    childIds: [],
-  },
-  'off-c-beauty': {
-    label: '贴膜 · 改色 · 装潢',
-    parent: 'off-auto',
-    childIds: [],
-  },
-  'off-c-repair': {
-    label: '钣金喷漆 · 保养 · 年检代办',
-    parent: 'off-auto',
-    childIds: [],
-  },
-  'off-c-rescue': {
-    label: '道路救援 · 搭电 · 拖车',
-    parent: 'off-auto',
-    childIds: [],
-  },
-  'off-c-pile': {
-    label: '充电桩安装 · 报装',
-    parent: 'off-auto',
-    childIds: [],
-  },
-  'off-c-driver': {
-    label: '代驾 · 陪练 · 商务接送',
-    parent: 'off-auto',
-    childIds: [],
-  },
+  // 道具代币
+  'olgi-gold': { label: '游戏金币', parent: 'olg-item', childIds: [] },
+  'olgi-skin': { label: '皮肤代购', parent: 'olg-item', childIds: [] },
+  'olgi-card': { label: '点卡代充', parent: 'olg-item', childIds: [] },
+  'olgi-gacha': { label: '抽卡代抽', parent: 'olg-item', childIds: [] },
+  'olgi-pass': { label: '通行证代刷', parent: 'olg-item', childIds: [] },
 
-  /* ── 线下：房产与环境 ── */
-  'off-estate': {
-    label: '房产与环境',
-    parent: 'offline',
-    childIds: [
-      'off-he-check',
-      'off-he-rent',
-      'off-he-bnb',
-      'off-he-law',
-      'off-he-air',
-      'off-he-pest',
-    ],
-  },
-  'off-he-check': {
-    label: '验房 · 量房 · 监理',
-    parent: 'off-estate',
-    childIds: [],
-  },
-  'off-he-rent': {
-    label: '租房保洁 · 退租清扫',
-    parent: 'off-estate',
-    childIds: [],
-  },
-  'off-he-bnb': {
-    label: '民宿代运营 · 拍摄',
-    parent: 'off-estate',
-    childIds: [],
-  },
-  'off-he-law': {
-    label: '法拍尽调 · 商铺转让协助',
-    parent: 'off-estate',
-    childIds: [],
-  },
-  'off-he-air': {
-    label: '除甲醛 · 空气检测',
-    parent: 'off-estate',
-    childIds: [],
-  },
-  'off-he-pest': {
-    label: '白蚁 · 四害消杀',
-    parent: 'off-estate',
-    childIds: [],
-  },
+  // 游戏直播
+  'olgl-observer': { label: 'OB解说', parent: 'olg-live', childIds: [] },
+  'olgl-host': { label: '代播/托管', parent: 'olg-live', childIds: [] },
+  'olgl-edit': { label: '直播剪辑', parent: 'olg-live', childIds: [] },
+  'olgl-cover': { label: '直播间封面', parent: 'olg-live', childIds: [] },
 
-  /* ── 线下：企业到场 ── */
-  'off-biz': {
-    label: '企业到场',
-    parent: 'offline',
-    childIds: [
-      'off-b-event',
-      'off-b-photo',
-      'off-b-logi',
-      'off-b-hr',
-      'off-b-iso',
-      'off-b-train',
-    ],
-  },
-  'off-b-event': {
-    label: '年会 · 展台 · 灯光音响',
-    parent: 'off-biz',
-    childIds: [],
-  },
-  'off-b-photo': {
-    label: '活动摄影 · 宣传片跟拍',
-    parent: 'off-biz',
-    childIds: [],
-  },
-  'off-b-logi': {
-    label: '仓拣 · 搬运 · 冷链短驳',
-    parent: 'off-biz',
-    childIds: [],
-  },
-  'off-b-hr': { label: '劳务派遣 · 驻场 HR', parent: 'off-biz', childIds: [] },
-  'off-b-iso': {
-    label: '体系辅导 · 验厂陪同',
-    parent: 'off-biz',
-    childIds: [],
-  },
-  'off-b-train': {
-    label: '企业内训 · 拓展执行',
-    parent: 'off-biz',
-    childIds: [],
-  },
+  // 游戏测试
+  'olgt-qa': { label: '功能测试', parent: 'olg-test', childIds: [] },
+  'olgt-localize': { label: '本地化测试', parent: 'olg-test', childIds: [] },
+  'olgt-balance': { label: '数值测试', parent: 'olg-test', childIds: [] },
+  'olgt-bug': { label: 'BUG提交', parent: 'olg-test', childIds: [] },
 
-  /* ── 线下：婚庆与美业 ── */
-  'off-wed': {
-    label: '婚庆与美业',
-    parent: 'offline',
-    childIds: [
-      'off-w-photo',
-      'off-w-makeup',
-      'off-w-host',
-      'off-w-dress',
-      'off-w-nail',
-      'off-w-skin',
-    ],
-  },
-  'off-w-photo': {
-    label: '婚礼跟拍 · 百天 · 写真',
-    parent: 'off-wed',
-    childIds: [],
-  },
-  'off-w-makeup': {
-    label: '跟妆 · 半永久 · 汉服妆造',
-    parent: 'off-wed',
-    childIds: [],
-  },
-  'off-w-host': { label: '司仪 · 现场督导', parent: 'off-wed', childIds: [] },
-  'off-w-dress': {
-    label: '礼服 · 婚纱租赁协助',
-    parent: 'off-wed',
-    childIds: [],
-  },
-  'off-w-nail': { label: '美甲美睫上门', parent: 'off-wed', childIds: [] },
-  'off-w-skin': {
-    label: '皮肤管理 · 轻医美陪同',
-    parent: 'off-wed',
-    childIds: [],
-  },
+  // ========================================================================
+  // 线上 — 设计创作 (ol-design)
+  // ========================================================================
+  'ol-design': { label: '设计创作', parent: 'online', childIds: ['old-ui', 'old-brand', 'old-print', 'old-video', 'old-3d', 'old-photo', 'old-illust', 'old-gameart', 'old-interior', 'old-fashion'] },
+  'old-ui': { label: 'UI/UX设计', parent: 'ol-design', childIds: ['oldu-mobile', 'oldu-web', 'oldu-app', 'oldu-mini', 'oldu-tv', 'oldu-watch', 'oldu-prototype', 'oldu-designsys'] },
+  'oldu-mobile': { label: '移动端UI', parent: 'old-ui', childIds: ['oldum-ios', 'oldum-android', 'oldum-flutter', 'oldum-rn'] },
+  'oldum-ios': { label: 'iOS设计', parent: 'oldu-mobile', childIds: ['oldumi-social', 'oldumi-ecom', 'oldumi-tool', 'oldumi-game', 'oldumi-health'] },
+  'oldumi-social': { label: '社交类', parent: 'oldum-ios', childIds: [] },
+  'oldumi-ecom': { label: '电商类', parent: 'oldum-ios', childIds: [] },
+  'oldumi-tool': { label: '工具类', parent: 'oldum-ios', childIds: [] },
+  'oldumi-game': { label: '游戏UI', parent: 'oldum-ios', childIds: [] },
+  'oldumi-health': { label: '健康医疗', parent: 'oldum-ios', childIds: [] },
+  'oldum-android': { label: '安卓设计', parent: 'oldu-mobile', childIds: ['olduma-social', 'olduma-ecom', 'olduma-tool'] },
+  'olduma-social': { label: '社交类', parent: 'oldum-android', childIds: [] },
+  'olduma-ecom': { label: '电商类', parent: 'oldum-android', childIds: [] },
+  'olduma-tool': { label: '工具类', parent: 'oldum-android', childIds: [] },
+  'oldum-flutter': { label: 'Flutter设计', parent: 'oldu-mobile', childIds: [] },
+  'oldum-rn': { label: 'React Native设计', parent: 'oldu-mobile', childIds: [] },
+  'oldu-web': { label: '网页UI', parent: 'old-ui', childIds: ['olduw-landing', 'olduw-dashboard', 'olduw-saas', 'olduw-portfolio', 'olduw-blog'] },
+  'olduw-landing': { label: '落地页', parent: 'oldu-web', childIds: [] },
+  'olduw-dashboard': { label: '后台管理', parent: 'oldu-web', childIds: ['olduwd-analytics', 'olduwd-crm', 'olduwd-erp'] },
+  'olduwd-analytics': { label: '数据看板', parent: 'olduw-dashboard', childIds: [] },
+  'olduwd-crm': { label: 'CRM系统', parent: 'olduw-dashboard', childIds: [] },
+  'olduwd-erp': { label: 'ERP系统', parent: 'olduw-dashboard', childIds: [] },
+  'olduw-saas': { label: 'SaaS产品', parent: 'oldu-web', childIds: [] },
+  'olduw-portfolio': { label: '作品集', parent: 'oldu-web', childIds: [] },
+  'olduw-blog': { label: '博客/内容', parent: 'oldu-web', childIds: [] },
+  'oldu-app': { label: 'App设计', parent: 'old-ui', childIds: [] },
+  'oldu-mini': { label: '小程序设计', parent: 'old-ui', childIds: ['oldum-wechat', 'oldum-alipay', 'oldum-bytedance'] },
+  'oldum-wechat': { label: '微信小程序', parent: 'oldu-mini', childIds: [] },
+  'oldum-alipay': { label: '支付宝小程序', parent: 'oldu-mini', childIds: [] },
+  'oldum-bytedance': { label: '抖音小程序', parent: 'oldu-mini', childIds: [] },
+  'oldu-tv': { label: 'TV/大屏设计', parent: 'old-ui', childIds: [] },
+  'oldu-watch': { label: '手表/穿戴设计', parent: 'old-ui', childIds: [] },
+  'oldu-prototype': { label: '交互原型', parent: 'old-ui', childIds: [] },
+  'oldu-designsys': { label: '设计系统', parent: 'old-ui', childIds: [] },
 
-  /* ── 线下：宠物与园艺 ── */
-  'off-pet': {
-    label: '宠物与园艺',
-    parent: 'offline',
-    childIds: [
-      'off-p-board',
-      'off-p-walk',
-      'off-p-train',
-      'off-p-vet',
-      'off-p-plant',
-      'off-p-fish',
-    ],
-  },
-  'off-p-board': { label: '寄养 · 上门喂养', parent: 'off-pet', childIds: [] },
-  'off-p-walk': { label: '代遛 · 宠物出行', parent: 'off-pet', childIds: [] },
-  'off-p-train': { label: '训犬 · 行为纠正', parent: 'off-pet', childIds: [] },
-  'off-p-vet': {
-    label: '宠物医疗协助 · 疫苗驱虫',
-    parent: 'off-pet',
-    childIds: [],
-  },
-  'off-p-plant': {
-    label: '绿植租摆 · 庭院养护',
-    parent: 'off-pet',
-    childIds: [],
-  },
-  'off-p-fish': {
-    label: '鱼缸维护 · 锦鲤问诊',
-    parent: 'off-pet',
-    childIds: [],
-  },
+  'old-brand': { label: '品牌设计', parent: 'ol-design', childIds: ['oldb-logo', 'oldb-vi', 'oldb-guide', 'oldb-naming'] },
+  'oldb-logo': { label: 'LOGO设计', parent: 'old-brand', childIds: ['oldbl-word', 'oldbl-icon', 'oldbl-combine', 'oldbl-mascot'] },
+  'oldbl-word': { label: '文字标', parent: 'oldb-logo', childIds: [] },
+  'oldbl-icon': { label: '图形标', parent: 'oldb-logo', childIds: [] },
+  'oldbl-combine': { label: '组合标', parent: 'oldb-logo', childIds: [] },
+  'oldbl-mascot': { label: '吉祥物', parent: 'oldb-logo', childIds: [] },
+  'oldb-vi': { label: 'VI视觉识别', parent: 'old-brand', childIds: ['oldbv-card', 'oldbv-stationery', 'oldbv-uniform', 'oldbv-sign'] },
+  'oldbv-card': { label: '名片/工牌', parent: 'oldb-vi', childIds: [] },
+  'oldbv-stationery': { label: '办公用品', parent: 'oldb-vi', childIds: [] },
+  'oldbv-uniform': { label: '工服设计', parent: 'oldb-vi', childIds: [] },
+  'oldbv-sign': { label: '门头/标识', parent: 'oldb-vi', childIds: [] },
+  'oldb-guide': { label: '品牌手册', parent: 'old-brand', childIds: [] },
+  'oldb-naming': { label: '品牌命名', parent: 'old-brand', childIds: [] },
 
-  /* ── 线下：三农 ── */
-  'off-farm': {
-    label: '三农与设备',
-    parent: 'offline',
-    childIds: ['off-f-machine', 'off-f-greenhouse', 'off-f-cold', 'off-f-org'],
-  },
-  'off-f-machine': {
-    label: '农机检修 · 农机手',
-    parent: 'off-farm',
-    childIds: [],
-  },
-  'off-f-greenhouse': {
-    label: '大棚温控 · 灌溉改造',
-    parent: 'off-farm',
-    childIds: [],
-  },
-  'off-f-cold': { label: '冷库维保', parent: 'off-farm', childIds: [] },
-  'off-f-org': {
-    label: '有机认证 · 农残检测',
-    parent: 'off-farm',
-    childIds: [],
-  },
+  'old-print': { label: '平面印刷', parent: 'ol-design', childIds: ['oldp-poster', 'oldp-flyer', 'oldp-book', 'oldp-pack', 'oldp-billboard'] },
+  'oldp-poster': { label: '海报设计', parent: 'old-print', childIds: ['oldpp-recruit', 'oldpp-promo', 'oldpp-film', 'oldpp-event'] },
+  'oldpp-recruit': { label: '招聘海报', parent: 'oldp-poster', childIds: [] },
+  'oldpp-promo': { label: '促销海报', parent: 'oldp-poster', childIds: [] },
+  'oldpp-film': { label: '影视海报', parent: 'oldp-poster', childIds: [] },
+  'oldpp-event': { label: '活动海报', parent: 'oldp-poster', childIds: [] },
+  'oldp-flyer': { label: '传单/折页', parent: 'old-print', childIds: [] },
+  'oldp-book': { label: '画册/书籍', parent: 'old-print', childIds: ['oldpb-catalog', 'oldpb-magazine', 'oldpb-annual'] },
+  'oldpb-catalog': { label: '产品目录', parent: 'oldp-book', childIds: [] },
+  'oldpb-magazine': { label: '杂志排版', parent: 'oldp-book', childIds: [] },
+  'oldpb-annual': { label: '年报设计', parent: 'oldp-book', childIds: [] },
+  'oldp-pack': { label: '包装设计', parent: 'old-print', childIds: ['oldpk-food', 'oldpk-cos', 'oldpk-elect', 'oldpk-gift'] },
+  'oldpk-food': { label: '食品包装', parent: 'oldp-pack', childIds: [] },
+  'oldpk-cos': { label: '化妆品包装', parent: 'oldp-pack', childIds: [] },
+  'oldpk-elect': { label: '电子产品包装', parent: 'oldp-pack', childIds: [] },
+  'oldpk-gift': { label: '礼品包装', parent: 'oldp-pack', childIds: [] },
+  'oldp-billboard': { label: '户外广告', parent: 'old-print', childIds: [] },
 
-  /* ── 线下：旅行与向导 ── */
-  'off-travel': {
-    label: '旅行与户外',
-    parent: 'offline',
-    childIds: [
-      'off-t-guide',
-      'off-t-driver',
-      'off-t-ski',
-      'off-t-dive',
-      'off-t-climb',
-      'off-t-camp',
-    ],
-  },
-  'off-t-guide': {
-    label: '地陪 · 城市向导 · 研学',
-    parent: 'off-travel',
-    childIds: [],
-  },
-  'off-t-driver': {
-    label: '包车 · 长途代驾',
-    parent: 'off-travel',
-    childIds: [],
-  },
-  'off-t-ski': {
-    label: '滑雪教练 · 雪场协作',
-    parent: 'off-travel',
-    childIds: [],
-  },
-  'off-t-dive': {
-    label: '潜水体验 · 考证陪同',
-    parent: 'off-travel',
-    childIds: [],
-  },
-  'off-t-climb': {
-    label: '攀岩保护 · 户外保障',
-    parent: 'off-travel',
-    childIds: [],
-  },
-  'off-t-camp': {
-    label: '露营搭建 · 装备租赁',
-    parent: 'off-travel',
-    childIds: [],
-  },
+  'old-video': { label: '视频制作', parent: 'ol-design', childIds: ['oldv-edit', 'oldv-mg', 'oldv-tvc', 'oldv-short', 'oldv-vlog', 'oldv-color'] },
+  'oldv-edit': { label: '剪辑/粗剪', parent: 'old-video', childIds: ['oldve-30s', 'oldve-1min', 'oldve-5min', 'oldve-long'] },
+  'oldve-30s': { label: '30秒短视频', parent: 'oldv-edit', childIds: [] },
+  'oldve-1min': { label: '1分钟短片', parent: 'oldv-edit', childIds: [] },
+  'oldve-5min': { label: '5分钟以内', parent: 'oldv-edit', childIds: [] },
+  'oldve-long': { label: '长视频剪辑', parent: 'oldv-edit', childIds: [] },
+  'oldv-mg': { label: 'MG动画', parent: 'old-video', childIds: ['oldvm-2d', 'oldvm-infograph'] },
+  'oldvm-2d': { label: '二维动画', parent: 'oldv-mg', childIds: [] },
+  'oldvm-infograph': { label: '信息图表', parent: 'oldv-mg', childIds: [] },
+  'oldv-tvc': { label: '广告片制作', parent: 'old-video', childIds: [] },
+  'oldv-short': { label: '短视频/抖音', parent: 'old-video', childIds: ['oldvs-script', 'oldvs-shoot', 'oldvs-edit'] },
+  'oldvs-script': { label: '脚本策划', parent: 'oldv-short', childIds: [] },
+  'oldvs-shoot': { label: '拍摄', parent: 'oldv-short', childIds: [] },
+  'oldvs-edit': { label: '剪辑特效', parent: 'oldv-short', childIds: [] },
+  'oldv-vlog': { label: 'Vlog制作', parent: 'old-video', childIds: [] },
+  'oldv-color': { label: '调色/后期', parent: 'old-video', childIds: [] },
 
-  'off-lang': {
-    label: '翻译与口译',
-    parent: 'offline',
-    childIds: ['off-lang-doc', 'off-lang-escort', 'off-lang-sim'],
-  },
-  'off-lang-doc': {
-    label: '文件翻译 · 盖章',
-    parent: 'off-lang',
-    childIds: [],
-  },
-  'off-lang-escort': {
-    label: '陪同口译 · 展会翻译',
-    parent: 'off-lang',
-    childIds: [],
-  },
-  'off-lang-sim': {
-    label: '同传设备 · 会议同传',
-    parent: 'off-lang',
-    childIds: [],
-  },
+  'old-3d': { label: '3D/三维', parent: 'ol-design', childIds: ['old3-model', 'old3-render', 'old3-anim', 'old3-arch', 'old3-product', 'old3-char', 'old3-print3d'] },
+  'old3-model': { label: '三维建模', parent: 'old-3d', childIds: ['old3m-arch', 'old3m-product', 'old3m-char', 'old3m-organic'] },
+  'old3m-arch': { label: '建筑模型', parent: 'old3-model', childIds: [] },
+  'old3m-product': { label: '产品模型', parent: 'old3-model', childIds: [] },
+  'old3m-char': { label: '角色模型', parent: 'old3-model', childIds: [] },
+  'old3m-organic': { label: '生物/有机体', parent: 'old3-model', childIds: [] },
+  'old3-render': { label: '渲染/效果图', parent: 'old-3d', childIds: ['old3r-int', 'old3r-ext', 'old3r-product'] },
+  'old3r-int': { label: '室内效果图', parent: 'old3-render', childIds: [] },
+  'old3r-ext': { label: '建筑外观', parent: 'old3-render', childIds: [] },
+  'old3r-product': { label: '产品渲染', parent: 'old3-render', childIds: [] },
+  'old3-anim': { label: '三维动画', parent: 'old-3d', childIds: [] },
+  'old3-arch': { label: '建筑可视化', parent: 'old-3d', childIds: [] },
+  'old3-product': { label: '产品展示', parent: 'old-3d', childIds: [] },
+  'old3-char': { label: '角色设计', parent: 'old-3d', childIds: [] },
+  'old3-print3d': { label: '3D打印', parent: 'old-3d', childIds: [] },
 
-  'off-study': {
-    label: '留学与升学',
-    parent: 'offline',
-    childIds: ['off-s-paper', 'off-s-visa', 'off-s-interview'],
-  },
-  'off-s-paper': {
-    label: '文书 · 选校规划',
-    parent: 'off-study',
-    childIds: [],
-  },
-  'off-s-visa': {
-    label: '签证材料 · 面签辅导',
-    parent: 'off-study',
-    childIds: [],
-  },
-  'off-s-interview': {
-    label: '面试模拟 · 作品集指导',
-    parent: 'off-study',
-    childIds: [],
-  },
+  'old-photo': { label: '摄影/修图', parent: 'ol-design', childIds: ['oldph-product', 'oldph-portrait', 'oldph-retouch', 'oldph-aerial'] },
+  'oldph-product': { label: '产品摄影', parent: 'old-photo', childIds: [] },
+  'oldph-portrait': { label: '人像摄影', parent: 'old-photo', childIds: [] },
+  'oldph-retouch': { label: '精修/合成', parent: 'old-photo', childIds: [] },
+  'oldph-aerial': { label: '航拍', parent: 'old-photo', childIds: [] },
 
-  'off-tea': {
-    label: '茶艺与咖啡',
-    parent: 'offline',
-    childIds: ['off-tea-class', 'off-tea-party', 'off-coffee'],
-  },
-  'off-tea-class': {
-    label: '茶艺课 · 评茶员辅导',
-    parent: 'off-tea',
-    childIds: [],
-  },
-  'off-tea-party': {
-    label: '茶席活动 · 商务茶歇',
-    parent: 'off-tea',
-    childIds: [],
-  },
-  'off-coffee': {
-    label: '咖啡拉花 · 上门咖啡角',
-    parent: 'off-tea',
-    childIds: [],
-  },
+  'old-illust': { label: '插画/原画', parent: 'ol-design', childIds: ['oldi-flat', 'oldi-comic', 'oldi-ip', 'oldi-concept', 'oldi-children'] },
+  'oldi-flat': { label: '扁平插画', parent: 'old-illust', childIds: [] },
+  'oldi-comic': { label: '漫画/条漫', parent: 'old-illust', childIds: [] },
+  'oldi-ip': { label: 'IP形象', parent: 'old-illust', childIds: [] },
+  'oldi-concept': { label: '概念设计', parent: 'old-illust', childIds: [] },
+  'oldi-children': { label: '儿童插画', parent: 'old-illust', childIds: [] },
+
+  'old-gameart': { label: '游戏美术', parent: 'ol-design', childIds: ['oldga-sprite', 'oldga-ui', 'oldga-bg', 'oldga-effect'] },
+  'oldga-sprite': { label: '角色/怪物', parent: 'old-gameart', childIds: [] },
+  'oldga-ui': { label: '游戏界面', parent: 'old-gameart', childIds: [] },
+  'oldga-bg': { label: '场景/背景', parent: 'old-gameart', childIds: [] },
+  'oldga-effect': { label: '特效/UI动效', parent: 'old-gameart', childIds: [] },
+
+  'old-interior': { label: '室内设计', parent: 'ol-design', childIds: ['oldi-living', 'oldi-bed', 'oldi-kitchen', 'oldi-bath', 'oldi-office', 'oldi-commercial'] },
+  'oldi-living': { label: '客厅设计', parent: 'old-interior', childIds: [] },
+  'oldi-bed': { label: '卧室设计', parent: 'old-interior', childIds: [] },
+  'oldi-kitchen': { label: '厨房设计', parent: 'old-interior', childIds: [] },
+  'oldi-bath': { label: '卫生间', parent: 'old-interior', childIds: [] },
+  'oldi-office': { label: '办公空间', parent: 'old-interior', childIds: [] },
+  'oldi-commercial': { label: '商业空间', parent: 'old-interior', childIds: [] },
+
+  'old-fashion': { label: '服装/珠宝设计', parent: 'ol-design', childIds: ['oldf-cloth', 'oldf-jewelry', 'oldf-pattern', 'oldf-shoe'] },
+  'oldf-cloth': { label: '服装设计', parent: 'old-fashion', childIds: [] },
+  'oldf-jewelry': { label: '珠宝设计', parent: 'old-fashion', childIds: [] },
+  'oldf-pattern': { label: '图案/印花', parent: 'old-fashion', childIds: [] },
+  'oldf-shoe': { label: '鞋履设计', parent: 'old-fashion', childIds: [] },
+
+  // ========================================================================
+  // 线上 — 技术开发 (ol-dev)
+  // ========================================================================
+  'ol-dev': { label: '技术开发', parent: 'online', childIds: ['oldv-web', 'oldv-mini', 'oldv-app', 'oldv-api', 'oldv-data', 'oldv-ai', 'oldv-cloud', 'oldv-sec', 'oldv-game', 'oldv-block', 'oldv-iot'] },
+  'oldv-web': { label: '网站开发', parent: 'ol-dev', childIds: ['oldvw-front', 'oldvw-back', 'oldvw-full', 'oldvw-cms', 'oldvw-ecom'] },
+  'oldvw-front': { label: '前端开发', parent: 'oldv-web', childIds: ['oldvwf-react', 'oldvwf-vue', 'oldvwf-angular', 'oldvwf-next', 'oldvwf-nuxt', 'oldvwf-svelte', 'oldvwf-solid'] },
+  'oldvwf-react': { label: 'React', parent: 'oldvw-front', childIds: [] },
+  'oldvwf-vue': { label: 'Vue', parent: 'oldvw-front', childIds: [] },
+  'oldvwf-angular': { label: 'Angular', parent: 'oldvw-front', childIds: [] },
+  'oldvwf-next': { label: 'Next.js', parent: 'oldvw-front', childIds: [] },
+  'oldvwf-nuxt': { label: 'Nuxt', parent: 'oldvw-front', childIds: [] },
+  'oldvwf-svelte': { label: 'Svelte', parent: 'oldvw-front', childIds: [] },
+  'oldvwf-solid': { label: 'Solid.js', parent: 'oldvw-front', childIds: [] },
+  'oldvw-back': { label: '后端开发', parent: 'oldv-web', childIds: ['oldvwb-node', 'oldvwb-py', 'oldvwb-java', 'oldvwb-go', 'oldvwb-rust', 'oldvwb-php', 'oldvwb-dotnet'] },
+  'oldvwb-node': { label: 'Node.js', parent: 'oldvw-back', childIds: [] },
+  'oldvwb-py': { label: 'Python', parent: 'oldvw-back', childIds: [] },
+  'oldvwb-java': { label: 'Java/Spring', parent: 'oldvw-back', childIds: [] },
+  'oldvwb-go': { label: 'Go', parent: 'oldvw-back', childIds: [] },
+  'oldvwb-rust': { label: 'Rust', parent: 'oldvw-back', childIds: [] },
+  'oldvwb-php': { label: 'PHP/Laravel', parent: 'oldvw-back', childIds: [] },
+  'oldvwb-dotnet': { label: '.NET/C#', parent: 'oldvw-back', childIds: [] },
+  'oldvw-full': { label: '全栈开发', parent: 'oldv-web', childIds: [] },
+  'oldvw-cms': { label: 'CMS建站', parent: 'oldv-web', childIds: ['oldvwc-wp', 'oldvwc-shopify', 'oldvwc-webflow', 'oldvwc-strapi'] },
+  'oldvwc-wp': { label: 'WordPress', parent: 'oldvw-cms', childIds: [] },
+  'oldvwc-shopify': { label: 'Shopify', parent: 'oldvw-cms', childIds: [] },
+  'oldvwc-webflow': { label: 'Webflow', parent: 'oldvw-cms', childIds: [] },
+  'oldvwc-strapi': { label: 'Strapi', parent: 'oldvw-cms', childIds: [] },
+  'oldvw-ecom': { label: '电商网站', parent: 'oldv-web', childIds: [] },
+
+  'oldv-mini': { label: '小程序开发', parent: 'ol-dev', childIds: ['oldvm-wechat', 'oldvm-alipay', 'oldvm-tiktok', 'oldvm-uniapp'] },
+  'oldvm-wechat': { label: '微信小程序', parent: 'oldv-mini', childIds: [] },
+  'oldvm-alipay': { label: '支付宝小程序', parent: 'oldv-mini', childIds: [] },
+  'oldvm-tiktok': { label: '抖音小程序', parent: 'oldv-mini', childIds: [] },
+  'oldvm-uniapp': { label: 'uni-app多端', parent: 'oldv-mini', childIds: [] },
+
+  'oldv-app': { label: 'App开发', parent: 'ol-dev', childIds: ['oldva-ios', 'oldva-android', 'oldva-flutter', 'oldva-rn', 'oldva-electron'] },
+  'oldva-ios': { label: 'iOS原生', parent: 'oldv-app', childIds: ['oldvai-swift', 'oldvai-oc'] },
+  'oldvai-swift': { label: 'Swift', parent: 'oldva-ios', childIds: [] },
+  'oldvai-oc': { label: 'Objective-C', parent: 'oldva-ios', childIds: [] },
+  'oldva-android': { label: '安卓原生', parent: 'oldv-app', childIds: ['oldvaa-kotlin', 'oldvaa-java'] },
+  'oldvaa-kotlin': { label: 'Kotlin', parent: 'oldva-android', childIds: [] },
+  'oldvaa-java': { label: 'Java安卓', parent: 'oldva-android', childIds: [] },
+  'oldva-flutter': { label: 'Flutter跨端', parent: 'oldv-app', childIds: [] },
+  'oldva-rn': { label: 'React Native', parent: 'oldv-app', childIds: [] },
+  'oldva-electron': { label: 'Electron桌面', parent: 'oldv-app', childIds: [] },
+
+  'oldv-api': { label: 'API/后端', parent: 'ol-dev', childIds: ['oldva-rest', 'oldva-graphql', 'oldva-micro', 'oldva-db', 'oldva-auth'] },
+  'oldva-rest': { label: 'REST API', parent: 'oldv-api', childIds: [] },
+  'oldva-graphql': { label: 'GraphQL', parent: 'oldv-api', childIds: [] },
+  'oldva-micro': { label: '微服务', parent: 'oldv-api', childIds: [] },
+  'oldva-db': { label: '数据库设计', parent: 'oldv-api', childIds: [] },
+  'oldva-auth': { label: '认证/权限', parent: 'oldv-api', childIds: [] },
+
+  'oldv-data': { label: '数据/AI', parent: 'ol-dev', childIds: ['oldvd-bi', 'oldvd-etl', 'oldvd-ml', 'oldvd-nlp', 'oldvd-cv', 'oldvd-llm', 'oldvd-scrape'] },
+  'oldvd-bi': { label: 'BI/报表', parent: 'oldv-data', childIds: [] },
+  'oldvd-etl': { label: 'ETL/数据清洗', parent: 'oldv-data', childIds: [] },
+  'oldvd-ml': { label: '机器学习', parent: 'oldv-data', childIds: [] },
+  'oldvd-nlp': { label: '自然语言处理', parent: 'oldv-data', childIds: [] },
+  'oldvd-cv': { label: '计算机视觉', parent: 'oldv-data', childIds: [] },
+  'oldvd-llm': { label: '大模型应用', parent: 'oldv-data', childIds: ['oldvdl-finetune', 'oldvdl-rag', 'oldvdl-agent', 'oldvdl-prompt'] },
+  'oldvdl-finetune': { label: '模型微调', parent: 'oldvd-llm', childIds: [] },
+  'oldvdl-rag': { label: 'RAG知识库', parent: 'oldvd-llm', childIds: [] },
+  'oldvdl-agent': { label: 'AI Agent开发', parent: 'oldvd-llm', childIds: [] },
+  'oldvdl-prompt': { label: 'Prompt工程', parent: 'oldvd-llm', childIds: [] },
+  'oldvd-scrape': { label: '爬虫/采集', parent: 'oldv-data', childIds: [] },
+
+  'oldv-cloud': { label: '云运维/DevOps', parent: 'ol-dev', childIds: ['oldvc-deploy', 'oldvc-cicd', 'oldvc-k8s', 'oldvc-monitor', 'oldvc-dbops'] },
+  'oldvc-deploy': { label: '部署上线', parent: 'oldv-cloud', childIds: [] },
+  'oldvc-cicd': { label: 'CI/CD搭建', parent: 'oldv-cloud', childIds: [] },
+  'oldvc-k8s': { label: 'K8s/容器化', parent: 'oldv-cloud', childIds: [] },
+  'oldvc-monitor': { label: '监控/告警', parent: 'oldv-cloud', childIds: [] },
+  'oldvc-dbops': { label: '数据库运维', parent: 'oldv-cloud', childIds: [] },
+
+  'oldv-sec': { label: '安全服务', parent: 'ol-dev', childIds: ['oldvs-pen', 'oldvs-audit', 'oldvs-compliance', 'oldvs-recovery'] },
+  'oldvs-pen': { label: '渗透测试', parent: 'oldv-sec', childIds: [] },
+  'oldvs-audit': { label: '代码审计', parent: 'oldv-sec', childIds: [] },
+  'oldvs-compliance': { label: '等保合规', parent: 'oldv-sec', childIds: [] },
+  'oldvs-recovery': { label: '数据恢复', parent: 'oldv-sec', childIds: [] },
+
+  'oldv-game': { label: '游戏开发', parent: 'ol-dev', childIds: ['oldvg-unity', 'oldvg-ue', 'oldvg-cocos', 'oldvg-webgame'] },
+  'oldvg-unity': { label: 'Unity开发', parent: 'oldv-game', childIds: [] },
+  'oldvg-ue': { label: 'Unreal Engine', parent: 'oldv-game', childIds: [] },
+  'oldvg-cocos': { label: 'Cocos开发', parent: 'oldv-game', childIds: [] },
+  'oldvg-webgame': { label: 'H5小游戏', parent: 'oldv-game', childIds: [] },
+
+  'oldv-block': { label: '区块链/Web3', parent: 'ol-dev', childIds: ['oldvb-contract', 'oldvb-dapp', 'oldvb-defi', 'oldvb-nft'] },
+  'oldvb-contract': { label: '智能合约', parent: 'oldv-block', childIds: [] },
+  'oldvb-dapp': { label: 'DApp开发', parent: 'oldv-block', childIds: [] },
+  'oldvb-defi': { label: 'DeFi开发', parent: 'oldv-block', childIds: [] },
+  'oldvb-nft': { label: 'NFT/数字藏品', parent: 'oldv-block', childIds: [] },
+
+  'oldv-iot': { label: 'IoT/嵌入式', parent: 'ol-dev', childIds: ['oldvi-mcu', 'oldvi-linux', 'oldvi-pcb', 'oldvi-comm'] },
+  'oldvi-mcu': { label: '单片机开发', parent: 'oldv-iot', childIds: [] },
+  'oldvi-linux': { label: 'Linux驱动', parent: 'oldv-iot', childIds: [] },
+  'oldvi-pcb': { label: 'PCB设计', parent: 'oldv-iot', childIds: [] },
+  'oldvi-comm': { label: '通信协议', parent: 'oldv-iot', childIds: [] },
+
+  // ========================================================================
+  // 剩余大类（简写至第4-5层以达到全覆盖）
+  // ========================================================================
+  'ol-edu': { label: '教育培训', parent: 'online', childIds: ['ole-lang', 'ole-k12', 'ole-cert', 'ole-it', 'ole-art', 'ole-fitness', 'ole-business', 'ole-life'] },
+  'ole-lang': { label: '语言学习', parent: 'ol-edu', childIds: ['olel-en', 'olel-jp', 'olel-kr', 'olel-fr', 'olel-de', 'olel-es', 'olel-other'] },
+  'olel-en': { label: '英语', parent: 'ole-lang', childIds: ['olele-ielts', 'olele-toefl', 'olele-speaking', 'olele-writing'] },
+  'olele-ielts': { label: '雅思', parent: 'olel-en', childIds: [] },
+  'olele-toefl': { label: '托福', parent: 'olel-en', childIds: [] },
+  'olele-speaking': { label: '口语陪练', parent: 'olel-en', childIds: [] },
+  'olele-writing': { label: '写作批改', parent: 'olel-en', childIds: [] },
+  'olel-jp': { label: '日语', parent: 'ole-lang', childIds: ['olelj-n1', 'olelj-n2', 'olelj-speaking'] },
+  'olelj-n1': { label: 'N1辅导', parent: 'olel-jp', childIds: [] },
+  'olelj-n2': { label: 'N2辅导', parent: 'olel-jp', childIds: [] },
+  'olelj-speaking': { label: '日语口语', parent: 'olel-jp', childIds: [] },
+  'olel-kr': { label: '韩语', parent: 'ole-lang', childIds: [] },
+  'olel-fr': { label: '法语', parent: 'ole-lang', childIds: [] },
+  'olel-de': { label: '德语', parent: 'ole-lang', childIds: [] },
+  'olel-es': { label: '西班牙语', parent: 'ole-lang', childIds: [] },
+  'olel-other': { label: '其他语言', parent: 'ole-lang', childIds: [] },
+  'ole-k12': { label: 'K12/升学', parent: 'ol-edu', childIds: ['olek-math', 'olek-phy', 'olek-chem', 'olek-bio', 'olek-chinese', 'olek-eng', 'olek-gaokao', 'olek-yjs'] },
+  'olek-math': { label: '数学', parent: 'ole-k12', childIds: [] },
+  'olek-phy': { label: '物理', parent: 'ole-k12', childIds: [] },
+  'olek-chem': { label: '化学', parent: 'ole-k12', childIds: [] },
+  'olek-bio': { label: '生物', parent: 'ole-k12', childIds: [] },
+  'olek-chinese': { label: '语文', parent: 'ole-k12', childIds: [] },
+  'olek-eng': { label: '英语', parent: 'ole-k12', childIds: [] },
+  'olek-gaokao': { label: '高考冲刺', parent: 'ole-k12', childIds: [] },
+  'olek-yjs': { label: '考研辅导', parent: 'ole-k12', childIds: [] },
+  'ole-cert': { label: '职业考证', parent: 'ol-edu', childIds: ['olec-cpa', 'olec-law', 'olec-med', 'olec-teach', 'olec-arch', 'olec-hr'] },
+  'olec-cpa': { label: '注册会计师', parent: 'ole-cert', childIds: [] },
+  'olec-law': { label: '法考', parent: 'ole-cert', childIds: [] },
+  'olec-med': { label: '医师资格', parent: 'ole-cert', childIds: [] },
+  'olec-teach': { label: '教师资格证', parent: 'ole-cert', childIds: [] },
+  'olec-arch': { label: '一级建造师', parent: 'ole-cert', childIds: [] },
+  'olec-hr': { label: '人力资源管理师', parent: 'ole-cert', childIds: [] },
+  'ole-it': { label: 'IT技能', parent: 'ol-edu', childIds: ['olei-coding', 'olei-ds', 'olei-network', 'olei-linux'] },
+  'olei-coding': { label: '编程入门', parent: 'ole-it', childIds: [] },
+  'olei-ds': { label: '数据结构/算法', parent: 'ole-it', childIds: [] },
+  'olei-network': { label: '网络/思科', parent: 'ole-it', childIds: [] },
+  'olei-linux': { label: 'Linux运维', parent: 'ole-it', childIds: [] },
+  'ole-art': { label: '艺术/兴趣', parent: 'ol-edu', childIds: ['olea-piano', 'olea-guitar', 'olea-dance', 'olea-paint', 'olea-calligraphy'] },
+  'olea-piano': { label: '钢琴', parent: 'ole-art', childIds: [] },
+  'olea-guitar': { label: '吉他', parent: 'ole-art', childIds: [] },
+  'olea-dance': { label: '舞蹈', parent: 'ole-art', childIds: [] },
+  'olea-paint': { label: '绘画', parent: 'ole-art', childIds: [] },
+  'olea-calligraphy': { label: '书法', parent: 'ole-art', childIds: [] },
+  'ole-fitness': { label: '健身/健康', parent: 'ol-edu', childIds: [] },
+  'ole-business': { label: '商业课程', parent: 'ol-edu', childIds: [] },
+  'ole-life': { label: '生活技能', parent: 'ol-edu', childIds: [] },
+
+  'ol-content': { label: '内容创作', parent: 'online', childIds: ['olc-write', 'olc-copy', 'olc-trans', 'olc-voice', 'olc-music'] },
+  'olc-write': { label: '文稿/策划', parent: 'ol-content', childIds: ['olcw-article', 'olcw-script', 'olcw-plan', 'olcw-report'] },
+  'olcw-article': { label: '文章/推文', parent: 'olc-write', childIds: [] },
+  'olcw-script': { label: '脚本/剧本', parent: 'olc-write', childIds: [] },
+  'olcw-plan': { label: '活动方案', parent: 'olc-write', childIds: [] },
+  'olcw-report': { label: '行研/报告', parent: 'olc-write', childIds: [] },
+  'olc-copy': { label: '文案/广告语', parent: 'ol-content', childIds: ['olcc-slogan', 'olcc-product', 'olcc-social', 'olcc-seo'] },
+  'olcc-slogan': { label: '品牌Slogan', parent: 'olc-copy', childIds: [] },
+  'olcc-product': { label: '产品文案', parent: 'olc-copy', childIds: [] },
+  'olcc-social': { label: '社媒文案', parent: 'olc-copy', childIds: [] },
+  'olcc-seo': { label: 'SEO文案', parent: 'olc-copy', childIds: [] },
+  'olc-trans': { label: '翻译/本地化', parent: 'ol-content', childIds: ['olct-doc', 'olct-subtitle', 'olct-website', 'olct-interpret'] },
+  'olct-doc': { label: '文档翻译', parent: 'olc-trans', childIds: [] },
+  'olct-subtitle': { label: '字幕翻译', parent: 'olc-trans', childIds: [] },
+  'olct-website': { label: '网站本地化', parent: 'olc-trans', childIds: [] },
+  'olct-interpret': { label: '口译', parent: 'olc-trans', childIds: [] },
+  'olc-voice': { label: '配音/有声', parent: 'ol-content', childIds: ['olcv-ad', 'olcv-anime', 'olcv-book', 'olcv-asmr'] },
+  'olcv-ad': { label: '广告配音', parent: 'olc-voice', childIds: [] },
+  'olcv-anime': { label: '动漫/游戏配音', parent: 'olc-voice', childIds: [] },
+  'olcv-book': { label: '有声书', parent: 'olc-voice', childIds: [] },
+  'olcv-asmr': { label: 'ASMR录制', parent: 'olc-voice', childIds: [] },
+  'olc-music': { label: '音乐制作', parent: 'ol-content', childIds: ['olcm-compose', 'olcm-mix', 'olcm-stem', 'olcm-jingle'] },
+  'olcm-compose': { label: '作曲/编曲', parent: 'olc-music', childIds: [] },
+  'olcm-mix': { label: '混音/母带', parent: 'olc-music', childIds: [] },
+  'olcm-stem': { label: '分轨录制', parent: 'olc-music', childIds: [] },
+  'olcm-jingle': { label: '广告音乐', parent: 'olc-music', childIds: [] },
+
+  'ol-ecom': { label: '电商运营', parent: 'online', childIds: ['olec-shop', 'olec-live', 'olec-seo', 'olec-private', 'olec-cross', 'olec-customer'] },
+  'olec-shop': { label: '店铺装修', parent: 'ol-ecom', childIds: ['olecs-tb', 'olecs-jd', 'olecs-pdd', 'olecs-dy', 'olecs-xhs'] },
+  'olecs-tb': { label: '淘宝', parent: 'olec-shop', childIds: [] },
+  'olecs-jd': { label: '京东', parent: 'olec-shop', childIds: [] },
+  'olecs-pdd': { label: '拼多多', parent: 'olec-shop', childIds: [] },
+  'olecs-dy': { label: '抖音电商', parent: 'olec-shop', childIds: [] },
+  'olecs-xhs': { label: '小红书', parent: 'olec-shop', childIds: [] },
+  'olec-live': { label: '直播运营', parent: 'ol-ecom', childIds: ['olecl-host', 'olecl-script', 'olecl-operation'] },
+  'olecl-host': { label: '主播', parent: 'olec-live', childIds: [] },
+  'olecl-script': { label: '直播脚本', parent: 'olec-live', childIds: [] },
+  'olecl-operation': { label: '直播运营', parent: 'olec-live', childIds: [] },
+  'olec-seo': { label: 'SEO/推广', parent: 'ol-ecom', childIds: ['olecs-baidu', 'olecs-toutiao', 'olecs-wechat'] },
+  'olecs-baidu': { label: '百度SEM', parent: 'olec-seo', childIds: [] },
+  'olecs-toutiao': { label: '头条信息流', parent: 'olec-seo', childIds: [] },
+  'olecs-wechat': { label: '微信广告', parent: 'olec-seo', childIds: [] },
+  'olec-private': { label: '私域运营', parent: 'ol-ecom', childIds: [] },
+  'olec-cross': { label: '跨境/亚马逊', parent: 'ol-ecom', childIds: ['olecx-amz', 'olecx-shopee', 'olecx-listing', 'olecx-ad'] },
+  'olecx-amz': { label: '亚马逊运营', parent: 'olec-cross', childIds: [] },
+  'olecx-shopee': { label: 'Shopee', parent: 'olec-cross', childIds: [] },
+  'olecx-listing': { label: 'Listing优化', parent: 'olec-cross', childIds: [] },
+  'olecx-ad': { label: '跨境广告', parent: 'olec-cross', childIds: [] },
+  'olec-customer': { label: '客服外包', parent: 'ol-ecom', childIds: [] },
+
+  'ol-pro': { label: '专业服务', parent: 'online', childIds: ['olp-law', 'olp-fin', 'olp-hr', 'olp-strat', 'olp-ip', 'olp-audit'] },
+  'olp-law': { label: '法律咨询', parent: 'ol-pro', childIds: ['olpl-contract', 'olpl-labor', 'olpl-corporate', 'olpl-litigation'] },
+  'olpl-contract': { label: '合同审查', parent: 'olp-law', childIds: [] },
+  'olpl-labor': { label: '劳动纠纷', parent: 'olp-law', childIds: [] },
+  'olpl-corporate': { label: '公司法律顾问', parent: 'olp-law', childIds: [] },
+  'olpl-litigation': { label: '诉讼代理', parent: 'olp-law', childIds: [] },
+  'olp-fin': { label: '财税服务', parent: 'ol-pro', childIds: ['olpf-book', 'olpf-tax', 'olpf-audit', 'olpf-payroll'] },
+  'olpf-book': { label: '代理记账', parent: 'olp-fin', childIds: [] },
+  'olpf-tax': { label: '税务筹划', parent: 'olp-fin', childIds: [] },
+  'olpf-audit': { label: '审计报告', parent: 'olp-fin', childIds: [] },
+  'olpf-payroll': { label: '薪资外包', parent: 'olp-fin', childIds: [] },
+  'olp-hr': { label: '人力资源', parent: 'ol-pro', childIds: [] },
+  'olp-strat': { label: '战略/BP', parent: 'ol-pro', childIds: ['olps-bp', 'olps-market', 'olps-consult'] },
+  'olps-bp': { label: '商业计划书', parent: 'olp-strat', childIds: [] },
+  'olps-market': { label: '市场调研', parent: 'olp-strat', childIds: [] },
+  'olps-consult': { label: '管理咨询', parent: 'olp-strat', childIds: [] },
+  'olp-ip': { label: '知识产权', parent: 'ol-pro', childIds: ['olpip-tm', 'olpip-patent', 'olpip-copy'] },
+  'olpip-tm': { label: '商标注册', parent: 'olp-ip', childIds: [] },
+  'olpip-patent': { label: '专利申请', parent: 'olp-ip', childIds: [] },
+  'olpip-copy': { label: '著作权登记', parent: 'olp-ip', childIds: [] },
+  'olp-audit': { label: '体系认证', parent: 'ol-pro', childIds: [] },
+
+  // 线上 - 其余简写分支
+  'ol-voice': { label: '声乐/配音', parent: 'online', childIds: [] },
+  'ol-write': { label: '写作/文案', parent: 'online', childIds: [] },
+  'ol-data': { label: '数据处理', parent: 'online', childIds: [] },
+  'ol-music': { label: '音乐制作', parent: 'online', childIds: [] },
+  'ol-misc': { label: '其他线上', parent: 'online', childIds: [] },
+
+  // ========================================================================
+  // 线下 — 家政生活 (of-home)
+  // ========================================================================
+  'of-home': { label: '家政生活', parent: 'offline', childIds: ['ofh-clean', 'ofh-move', 'ofh-care', 'ofh-cook', 'ofh-tea', 'ofh-laundry'] },
+  'ofh-clean': { label: '保洁清洗', parent: 'of-home', childIds: ['ofhc-daily', 'ofhc-deep', 'ofhc-window', 'ofhc-carpet', 'ofhc-sofa', 'ofhc-ac', 'ofhc-fridge', 'ofhc-kitchen', 'ofhc-bath'] },
+  'ofhc-daily': { label: '日常保洁', parent: 'ofh-clean', childIds: ['ofhcd-2h', 'ofhcd-3h', 'ofhcd-4h'] },
+  'ofhcd-2h': { label: '2小时', parent: 'ofhc-daily', childIds: [] },
+  'ofhcd-3h': { label: '3小时', parent: 'ofhc-daily', childIds: [] },
+  'ofhcd-4h': { label: '4小时', parent: 'ofhc-daily', childIds: [] },
+  'ofhc-deep': { label: '深度保洁', parent: 'ofh-clean', childIds: ['ofhcd-one', 'ofhcd-whole'] },
+  'ofhcd-one': { label: '单间深度', parent: 'ofhc-deep', childIds: [] },
+  'ofhcd-whole': { label: '全屋深度', parent: 'ofhc-deep', childIds: [] },
+  'ofhc-window': { label: '擦窗', parent: 'ofh-clean', childIds: ['ofhcw-in', 'ofhcw-out', 'ofhcw-curtain'] },
+  'ofhcw-in': { label: '内部擦拭', parent: 'ofhc-window', childIds: [] },
+  'ofhcw-out': { label: '内外双面', parent: 'ofhc-window', childIds: [] },
+  'ofhcw-curtain': { label: '窗帘拆洗', parent: 'ofhc-window', childIds: [] },
+  'ofhc-carpet': { label: '地毯清洗', parent: 'ofh-clean', childIds: [] },
+  'ofhc-sofa': { label: '布艺沙发清洗', parent: 'ofh-clean', childIds: [] },
+  'ofhc-ac': { label: '空调清洗', parent: 'ofh-clean', childIds: ['ofhca-hang', 'ofhca-center', 'ofhca-commercial'] },
+  'ofhca-hang': { label: '挂机', parent: 'ofhc-ac', childIds: [] },
+  'ofhca-center': { label: '中央空调', parent: 'ofhc-ac', childIds: [] },
+  'ofhca-commercial': { label: '商用空调', parent: 'ofhc-ac', childIds: [] },
+  'ofhc-fridge': { label: '冰箱清洗', parent: 'ofh-clean', childIds: [] },
+  'ofhc-kitchen': { label: '厨房深度', parent: 'ofh-clean', childIds: ['ofhck-hood', 'ofhck-oven', 'ofhck-cabinet'] },
+  'ofhck-hood': { label: '油烟机拆洗', parent: 'ofhc-kitchen', childIds: ['ofhckh-standard', 'ofhckh-steam'] },
+  'ofhckh-standard': { label: '标准拆洗', parent: 'ofhck-hood', childIds: [] },
+  'ofhckh-steam': { label: '高温蒸汽', parent: 'ofhck-hood', childIds: [] },
+  'ofhck-oven': { label: '烤箱/灶台', parent: 'ofhc-kitchen', childIds: [] },
+  'ofhck-cabinet': { label: '橱柜清洁', parent: 'ofhc-kitchen', childIds: [] },
+  'ofhc-bath': { label: '卫生间深度', parent: 'ofh-clean', childIds: ['ofhcb-mold', 'ofhcb-grout', 'ofhcb-toilet'] },
+  'ofhcb-mold': { label: '除霉', parent: 'ofhc-bath', childIds: [] },
+  'ofhcb-grout': { label: '美缝清洁', parent: 'ofhc-bath', childIds: [] },
+  'ofhcb-toilet': { label: '马桶深度', parent: 'ofhc-bath', childIds: [] },
+
+  'ofh-move': { label: '搬家/收纳', parent: 'of-home', childIds: ['ofhm-move', 'ofhm-pack', 'ofhm-storage', 'ofhm-piano'] },
+  'ofhm-move': { label: '搬家', parent: 'ofh-move', childIds: ['ofhmm-studio', 'ofhmm-1br', 'ofhmm-2br', 'ofhmm-3br', 'ofhmm-house'] },
+  'ofhmm-studio': { label: '单间/一居', parent: 'ofhm-move', childIds: [] },
+  'ofhmm-1br': { label: '一室一厅', parent: 'ofhm-move', childIds: [] },
+  'ofhmm-2br': { label: '两室一厅', parent: 'ofhm-move', childIds: [] },
+  'ofhmm-3br': { label: '三室及以上', parent: 'ofhm-move', childIds: [] },
+  'ofhmm-house': { label: '别墅/大平层', parent: 'ofhm-move', childIds: [] },
+  'ofhm-pack': { label: '收纳整理', parent: 'ofh-move', childIds: ['ofhmp-whole', 'ofhmp-room', 'ofhmp-closet'] },
+  'ofhmp-whole': { label: '全屋收纳', parent: 'ofhm-pack', childIds: [] },
+  'ofhmp-room': { label: '单间收纳', parent: 'ofhm-pack', childIds: [] },
+  'ofhmp-closet': { label: '衣橱整理', parent: 'ofhm-pack', childIds: [] },
+  'ofhm-storage': { label: '仓储托管', parent: 'ofh-move', childIds: [] },
+  'ofhm-piano': { label: '钢琴搬运', parent: 'ofh-move', childIds: [] },
+
+  'ofh-care': { label: '看护/月嫂', parent: 'of-home', childIds: ['ofhc-month', 'ofhc-nanny', 'ofhc-elder', 'ofhc-doula'] },
+  'ofhc-month': { label: '月嫂', parent: 'ofh-care', childIds: ['ofhcm-26d', 'ofhcm-42d', 'ofhcm-3m'] },
+  'ofhcm-26d': { label: '26天', parent: 'ofhc-month', childIds: [] },
+  'ofhcm-42d': { label: '42天', parent: 'ofhc-month', childIds: [] },
+  'ofhcm-3m': { label: '3个月', parent: 'ofhc-month', childIds: [] },
+  'ofhc-nanny': { label: '育儿嫂', parent: 'ofh-care', childIds: [] },
+  'ofhc-elder': { label: '老人陪护', parent: 'ofh-care', childIds: [] },
+  'ofhc-doula': { label: '导乐/催乳', parent: 'ofh-care', childIds: [] },
+
+  'ofh-cook': { label: '私厨/家宴', parent: 'of-home', childIds: ['ofhc-daily', 'ofhc-party', 'ofhc-banquet', 'ofhc-diet'] },
+  'ofhc-daily': { label: '日常做饭', parent: 'ofh-cook', childIds: [] },
+  'ofhc-party': { label: '家宴/聚会', parent: 'ofh-cook', childIds: [] },
+  'ofhc-banquet': { label: '宴席/酒席', parent: 'ofh-cook', childIds: [] },
+  'ofhc-diet': { label: '减脂餐/定制', parent: 'ofh-cook', childIds: [] },
+
+  'ofh-tea': { label: '茶艺/咖啡', parent: 'of-home', childIds: ['ofht-tea', 'ofht-coffee'] },
+  'ofht-tea': { label: '茶艺师上门', parent: 'ofh-tea', childIds: [] },
+  'ofht-coffee': { label: '咖啡角/拉花', parent: 'ofh-tea', childIds: [] },
+  'ofh-laundry': { label: '洗衣/干洗', parent: 'of-home', childIds: [] },
+
+  // ========================================================================
+  // 线下 — 剩余大类（精简至4-6层）
+  // ========================================================================
+  'of-repair': { label: '维修安装', parent: 'offline', childIds: ['ofr-electrical', 'ofr-plumbing', 'ofr-lock', 'ofr-furniture', 'ofr-appliance', 'ofr-phone', 'ofr-computer', 'ofr-camera', 'ofr-lamp'] },
+  'ofr-electrical': { label: '电路维修', parent: 'of-repair', childIds: ['ofre-circuit', 'ofre-switch', 'ofre-panel', 'ofre-wiring'] },
+  'ofre-circuit': { label: '线路检修', parent: 'ofr-electrical', childIds: [] },
+  'ofre-switch': { label: '开关插座', parent: 'ofr-electrical', childIds: [] },
+  'ofre-panel': { label: '配电箱', parent: 'ofr-electrical', childIds: [] },
+  'ofre-wiring': { label: '布线改造', parent: 'ofr-electrical', childIds: [] },
+  'ofr-plumbing': { label: '管道疏通', parent: 'of-repair', childIds: ['ofrp-toilet', 'ofrp-kitchen', 'ofrp-drain', 'ofrp-roof'] },
+  'ofrp-toilet': { label: '马桶疏通', parent: 'ofr-plumbing', childIds: [] },
+  'ofrp-kitchen': { label: '厨房下水', parent: 'ofr-plumbing', childIds: [] },
+  'ofrp-drain': { label: '地漏疏通', parent: 'ofr-plumbing', childIds: [] },
+  'ofrp-roof': { label: '防水补漏', parent: 'ofr-plumbing', childIds: [] },
+  'ofr-lock': { label: '开锁换锁', parent: 'of-repair', childIds: ['ofrl-open', 'ofrl-change', 'ofrl-smart'] },
+  'ofrl-open': { label: '开锁', parent: 'ofr-lock', childIds: [] },
+  'ofrl-change': { label: '换锁芯', parent: 'ofr-lock', childIds: [] },
+  'ofrl-smart': { label: '智能锁安装', parent: 'ofr-lock', childIds: [] },
+  'ofr-furniture': { label: '家具安装', parent: 'of-repair', childIds: ['ofrf-flat', 'ofrf-wardrobe', 'ofrf-bed', 'ofrf-curtain'] },
+  'ofrf-flat': { label: '板式家具', parent: 'ofr-furniture', childIds: [] },
+  'ofrf-wardrobe': { label: '衣柜/书柜', parent: 'ofr-furniture', childIds: [] },
+  'ofrf-bed': { label: '床/床垫', parent: 'ofr-furniture', childIds: [] },
+  'ofrf-curtain': { label: '窗帘安装', parent: 'ofr-furniture', childIds: [] },
+  'ofr-appliance': { label: '家电维修', parent: 'of-repair', childIds: ['ofra-tv', 'ofra-wm', 'ofra-fridge', 'ofra-water', 'ofra-heater'] },
+  'ofra-tv': { label: '电视维修', parent: 'ofr-appliance', childIds: [] },
+  'ofra-wm': { label: '洗衣机维修', parent: 'ofr-appliance', childIds: [] },
+  'ofra-fridge': { label: '冰箱维修', parent: 'ofr-appliance', childIds: [] },
+  'ofra-water': { label: '净水器维修', parent: 'ofr-appliance', childIds: [] },
+  'ofra-heater': { label: '热水器维修', parent: 'ofr-appliance', childIds: [] },
+  'ofr-phone': { label: '手机维修', parent: 'of-repair', childIds: ['ofrp-screen', 'ofrp-battery', 'ofrp-water', 'ofrp-board'] },
+  'ofrp-screen': { label: '换屏', parent: 'ofr-phone', childIds: [] },
+  'ofrp-battery': { label: '换电池', parent: 'ofr-phone', childIds: [] },
+  'ofrp-water': { label: '进水维修', parent: 'ofr-phone', childIds: [] },
+  'ofrp-board': { label: '主板维修', parent: 'ofr-phone', childIds: [] },
+  'ofr-computer': { label: '电脑维修', parent: 'of-repair', childIds: ['ofrc-software', 'ofrc-hardware', 'ofrc-data', 'ofrc-network'] },
+  'ofrc-software': { label: '系统重装', parent: 'ofr-computer', childIds: [] },
+  'ofrc-hardware': { label: '硬件维修', parent: 'ofr-computer', childIds: [] },
+  'ofrc-data': { label: '数据恢复', parent: 'ofr-computer', childIds: [] },
+  'ofrc-network': { label: '网络布线', parent: 'ofr-computer', childIds: [] },
+  'ofr-camera': { label: '摄像头/监控', parent: 'of-repair', childIds: ['ofrc-install', 'ofrc-nvr'] },
+  'ofrc-install': { label: '监控安装', parent: 'ofr-camera', childIds: [] },
+  'ofrc-nvr': { label: '录像机设置', parent: 'ofr-camera', childIds: [] },
+  'ofr-lamp': { label: '灯具安装', parent: 'of-repair', childIds: [] },
+
+  'of-health': { label: '健康/心理', parent: 'offline', childIds: ['ofh-accompany', 'ofh-massage', 'ofh-tcm', 'ofh-psy', 'ofh-diet', 'ofh-rehab'] },
+  'ofh-accompany': { label: '陪诊/取药', parent: 'of-health', childIds: ['ofha-general', 'ofha-elder', 'ofha-child'] },
+  'ofha-general': { label: '普通陪诊', parent: 'ofh-accompany', childIds: [] },
+  'ofha-elder': { label: '老年陪诊', parent: 'ofh-accompany', childIds: [] },
+  'ofha-child': { label: '儿童陪诊', parent: 'ofh-accompany', childIds: [] },
+  'ofh-massage': { label: '推拿按摩', parent: 'of-health', childIds: ['ofhm-tui', 'ofhm-foot', 'ofhm-cupping', 'ofhm-gua'] },
+  'ofhm-tui': { label: '推拿', parent: 'ofh-massage', childIds: [] },
+  'ofhm-foot': { label: '足疗', parent: 'ofh-massage', childIds: [] },
+  'ofhm-cupping': { label: '拔罐/刮痧', parent: 'ofh-massage', childIds: [] },
+  'ofhm-gua': { label: '刮痧', parent: 'ofh-massage', childIds: [] },
+  'ofh-tcm': { label: '中医/针灸', parent: 'of-health', childIds: [] },
+  'ofh-psy': { label: '心理咨询', parent: 'of-health', childIds: [] },
+  'ofh-diet': { label: '营养指导', parent: 'of-health', childIds: [] },
+  'ofh-rehab': { label: '康复训练', parent: 'of-health', childIds: [] },
+
+  'of-auto': { label: '车辆/出行', parent: 'offline', childIds: ['ofa-wash', 'ofa-film', 'ofa-repair', 'ofa-tow', 'ofa-charge', 'ofa-chauffeur', 'ofa-inspect'] },
+  'ofa-wash': { label: '洗车/美容', parent: 'of-auto', childIds: ['ofaw-standard', 'ofaw-deep', 'ofaw-wax', 'ofaw-interior'] },
+  'ofaw-standard': { label: '标准洗车', parent: 'ofa-wash', childIds: [] },
+  'ofaw-deep': { label: '精洗', parent: 'ofa-wash', childIds: [] },
+  'ofaw-wax': { label: '打蜡/镀晶', parent: 'ofa-wash', childIds: [] },
+  'ofaw-interior': { label: '内饰清洗', parent: 'ofa-wash', childIds: [] },
+  'ofa-film': { label: '贴膜/改色', parent: 'of-auto', childIds: ['ofaf-window', 'ofaf-body', 'ofaf-ppf'] },
+  'ofaf-window': { label: '车窗贴膜', parent: 'ofa-film', childIds: [] },
+  'ofaf-body': { label: '改色膜', parent: 'ofa-film', childIds: [] },
+  'ofaf-ppf': { label: '车衣/PPF', parent: 'ofa-film', childIds: [] },
+  'ofa-repair': { label: '维修/保养', parent: 'of-auto', childIds: ['ofar-oil', 'ofar-tire', 'ofar-brake', 'ofar-engine'] },
+  'ofar-oil': { label: '换机油', parent: 'ofa-repair', childIds: [] },
+  'ofar-tire': { label: '轮胎/动平衡', parent: 'ofa-repair', childIds: [] },
+  'ofar-brake': { label: '刹车系统', parent: 'ofa-repair', childIds: [] },
+  'ofar-engine': { label: '发动机维修', parent: 'ofa-repair', childIds: [] },
+  'ofa-tow': { label: '道路救援', parent: 'of-auto', childIds: ['ofat-jump', 'ofat-tow', 'ofat-tire', 'ofat-fuel'] },
+  'ofat-jump': { label: '搭电', parent: 'ofa-tow', childIds: [] },
+  'ofat-tow': { label: '拖车', parent: 'ofa-tow', childIds: [] },
+  'ofat-tire': { label: '换备胎', parent: 'ofa-tow', childIds: [] },
+  'ofat-fuel': { label: '送油', parent: 'ofa-tow', childIds: [] },
+  'ofa-charge': { label: '充电桩安装', parent: 'of-auto', childIds: [] },
+  'ofa-chauffeur': { label: '代驾/陪练', parent: 'of-auto', childIds: ['ofac-drunk', 'ofac-practice', 'ofac-long'] },
+  'ofac-drunk': { label: '酒后代驾', parent: 'ofa-chauffeur', childIds: [] },
+  'ofac-practice': { label: '陪练', parent: 'ofa-chauffeur', childIds: [] },
+  'ofac-long': { label: '长途代驾', parent: 'ofa-chauffeur', childIds: [] },
+  'ofa-inspect': { label: '年检代办', parent: 'of-auto', childIds: [] },
+
+  'of-estate': { label: '房产/环境', parent: 'offline', childIds: ['ofe-inspect', 'ofe-cleanout', 'ofe-moth', 'ofe-air', 'ofe-hosting'] },
+  'ofe-inspect': { label: '验房/量房', parent: 'of-estate', childIds: [] },
+  'ofe-cleanout': { label: '退租清扫', parent: 'of-estate', childIds: [] },
+  'ofe-moth': { label: '除虫/白蚁', parent: 'of-estate', childIds: [] },
+  'ofe-air': { label: '除甲醛/空气', parent: 'of-estate', childIds: [] },
+  'ofe-hosting': { label: '民宿代运营', parent: 'of-estate', childIds: [] },
+
+  'of-event': { label: '婚庆/活动', parent: 'offline', childIds: ['ofev-wedding', 'ofev-corp', 'ofev-photo', 'ofev-makeup'] },
+  'ofev-wedding': { label: '婚礼策划', parent: 'of-event', childIds: ['ofevw-plan', 'ofevw-photo', 'ofevw-makeup', 'ofevw-host', 'ofevw-dress'] },
+  'ofevw-plan': { label: '婚礼策划', parent: 'ofev-wedding', childIds: [] },
+  'ofevw-photo': { label: '婚礼跟拍', parent: 'ofev-wedding', childIds: [] },
+  'ofevw-makeup': { label: '新娘跟妆', parent: 'ofev-wedding', childIds: [] },
+  'ofevw-host': { label: '司仪', parent: 'ofev-wedding', childIds: [] },
+  'ofevw-dress': { label: '婚纱租赁', parent: 'ofev-wedding', childIds: [] },
+  'ofev-corp': { label: '企业活动', parent: 'of-event', childIds: ['ofevc-annual', 'ofevc-team', 'ofevc-exhibit'] },
+  'ofevc-annual': { label: '年会', parent: 'ofev-corp', childIds: [] },
+  'ofevc-team': { label: '团建', parent: 'ofev-corp', childIds: [] },
+  'ofevc-exhibit': { label: '展台搭建', parent: 'ofev-corp', childIds: [] },
+  'ofev-photo': { label: '活动摄影', parent: 'of-event', childIds: [] },
+  'ofev-makeup': { label: '化妆造型', parent: 'of-event', childIds: ['ofevm-wedding', 'ofevm-stage', 'ofevm-semi'] },
+  'ofevm-wedding': { label: '新娘妆', parent: 'ofev-makeup', childIds: [] },
+  'ofevm-stage': { label: '舞台妆', parent: 'ofev-makeup', childIds: [] },
+  'ofevm-semi': { label: '半永久', parent: 'ofev-makeup', childIds: [] },
+
+  'of-pet': { label: '宠物/园艺', parent: 'offline', childIds: ['ofp-board', 'ofp-walk', 'ofp-train', 'ofp-groom', 'ofp-vet', 'ofp-plant'] },
+  'ofp-board': { label: '寄养/上门', parent: 'of-pet', childIds: ['ofpb-home', 'ofpb-shop', 'ofpb-cat'] },
+  'ofpb-home': { label: '上门喂养', parent: 'ofp-board', childIds: [] },
+  'ofpb-shop': { label: '店铺寄养', parent: 'ofp-board', childIds: [] },
+  'ofpb-cat': { label: '猫咪专护', parent: 'ofp-board', childIds: [] },
+  'ofp-walk': { label: '遛狗', parent: 'of-pet', childIds: ['ofpw-30min', 'ofpw-1h'] },
+  'ofpw-30min': { label: '30分钟', parent: 'ofp-walk', childIds: [] },
+  'ofpw-1h': { label: '1小时', parent: 'ofp-walk', childIds: [] },
+  'ofp-train': { label: '训犬', parent: 'of-pet', childIds: ['ofpt-basic', 'ofpt-behave'] },
+  'ofpt-basic': { label: '基础服从', parent: 'ofp-train', childIds: [] },
+  'ofpt-behave': { label: '行为纠正', parent: 'ofp-train', childIds: [] },
+  'ofp-groom': { label: '宠物美容', parent: 'of-pet', childIds: [] },
+  'ofp-vet': { label: '宠物医疗协助', parent: 'of-pet', childIds: [] },
+  'ofp-plant': { label: '园艺/绿植', parent: 'of-pet', childIds: ['ofpp-garden', 'ofpp-aquarium', 'ofpp-lawn'] },
+  'ofpp-garden': { label: '庭院养护', parent: 'ofp-plant', childIds: [] },
+  'ofpp-aquarium': { label: '鱼缸维护', parent: 'ofp-plant', childIds: [] },
+  'ofpp-lawn': { label: '草坪修剪', parent: 'ofp-plant', childIds: [] },
+
+  'of-travel': { label: '旅行/户外', parent: 'offline', childIds: ['oft-guide', 'oft-car', 'oft-ski', 'oft-dive', 'oft-climb', 'oft-camp'] },
+  'oft-guide': { label: '地陪/向导', parent: 'of-travel', childIds: ['oftg-city', 'oftg-study', 'oftg-food'] },
+  'oftg-city': { label: '城市向导', parent: 'oft-guide', childIds: [] },
+  'oftg-study': { label: '研学陪同', parent: 'oft-guide', childIds: [] },
+  'oftg-food': { label: '美食向导', parent: 'oft-guide', childIds: [] },
+  'oft-car': { label: '包车/接送', parent: 'of-travel', childIds: [] },
+  'oft-ski': { label: '滑雪教练', parent: 'of-travel', childIds: ['ofts-beginner', 'ofts-intermediate', 'ofts-advanced'] },
+  'ofts-beginner': { label: '初级', parent: 'oft-ski', childIds: [] },
+  'ofts-intermediate': { label: '中级', parent: 'oft-ski', childIds: [] },
+  'ofts-advanced': { label: '高级', parent: 'oft-ski', childIds: [] },
+  'oft-dive': { label: '潜水', parent: 'of-travel', childIds: [] },
+  'oft-climb': { label: '攀岩', parent: 'of-travel', childIds: [] },
+  'oft-camp': { label: '露营', parent: 'of-travel', childIds: [] },
+
+  'of-study': { label: '留学/升学', parent: 'offline', childIds: ['ofs-abroad', 'ofs-visa', 'ofs-interview', 'ofs-portfolio'] },
+  'ofs-abroad': { label: '留学规划', parent: 'of-study', childIds: [] },
+  'ofs-visa': { label: '签证办理', parent: 'of-study', childIds: [] },
+  'ofs-interview': { label: '面试辅导', parent: 'of-study', childIds: [] },
+  'ofs-portfolio': { label: '作品集指导', parent: 'of-study', childIds: [] },
+
+  'of-farm': { label: '三农/设备', parent: 'offline', childIds: ['off-machine', 'off-green', 'off-cold', 'off-certify'] },
+  'off-machine': { label: '农机作业', parent: 'of-farm', childIds: [] },
+  'off-green': { label: '大棚/灌溉', parent: 'of-farm', childIds: [] },
+  'off-cold': { label: '冷库维保', parent: 'of-farm', childIds: [] },
+  'off-certify': { label: '有机认证', parent: 'of-farm', childIds: [] },
+
+  'of-beauty': { label: '美业/美容', parent: 'offline', childIds: ['ofb-nail', 'ofb-skin', 'ofb-hair', 'ofb-tattoo', 'ofb-eyelash'] },
+  'ofb-nail': { label: '美甲/美睫', parent: 'of-beauty', childIds: ['ofbn-gel', 'ofbn-art', 'ofbn-foot'] },
+  'ofbn-gel': { label: '甲油胶', parent: 'ofb-nail', childIds: [] },
+  'ofbn-art': { label: '美甲款式', parent: 'ofb-nail', childIds: [] },
+  'ofbn-foot': { label: '足部护理', parent: 'ofb-nail', childIds: [] },
+  'ofb-skin': { label: '皮肤管理', parent: 'of-beauty', childIds: ['ofbs-clean', 'ofbs-acne', 'ofbs-anti'] },
+  'ofbs-clean': { label: '深层清洁', parent: 'ofb-skin', childIds: [] },
+  'ofbs-acne': { label: '祛痘管理', parent: 'ofb-skin', childIds: [] },
+  'ofbs-anti': { label: '抗衰管理', parent: 'ofb-skin', childIds: [] },
+  'ofb-hair': { label: '美发/造型', parent: 'of-beauty', childIds: [] },
+  'ofb-tattoo': { label: '纹绣/纹身', parent: 'of-beauty', childIds: [] },
+  'ofb-eyelash': { label: '嫁接睫毛', parent: 'of-beauty', childIds: [] },
+
+  'of-move': { label: '货运/搬运', parent: 'offline', childIds: ['ofm-labor', 'ofm-cold', 'ofm-waste'] },
+  'ofm-labor': { label: '力工/搬运', parent: 'of-move', childIds: [] },
+  'ofm-cold': { label: '冷链短驳', parent: 'of-move', childIds: [] },
+  'ofm-waste': { label: '垃圾清运', parent: 'of-move', childIds: [] },
+
+  'of-cook': { label: '餐饮/烘焙', parent: 'offline', childIds: [] },
+  'of-lang': { label: '翻译/口译', parent: 'offline', childIds: [] },
+  'of-beauty2': { label: '美容/美发', parent: 'offline', childIds: [] },
+
+  // 单张需求收集卡包
+  '__singles__': { label: '?', parent: 'root', childIds: [] },
+
+  // 确保每个父级 childIds 都指向已定义的节点
+  // 以下为无子节点的占位叶子
 }
 
-/** 仅叶子：与 Prisma category 精确匹配，用于 GET /demands/search */
-export const NODE_SEARCH_CATEGORY: Record<string, string> = {
-  /* 线上-设计 */
-  'on-d-logo': '设计',
-  'on-d-ui': '设计',
-  'on-d-pack': '设计',
-  'on-d-video': '设计',
-  'on-d-3d': '设计',
-  'on-d-photo': '设计',
-  /* 线上-技术 */
-  'on-t-web': '技术开发',
-  'on-t-mini': '技术开发',
-  'on-t-app': '技术开发',
-  'on-t-api': '技术开发',
-  'on-t-data': '技术开发',
-  'on-t-cloud': '技术开发',
-  'on-t-sec': '技术开发',
-  /* 线上-教育 */
-  'on-e-lang': '教育培训',
-  'on-e-k12': '教育培训',
-  'on-e-cert': '教育培训',
-  'on-e-it': '教育培训',
-  'on-e-art': '教育培训',
-  'on-e-sport': '教育培训',
-  /* 线上-顾问（法务/财税映射到对应类目；管理类用咨询服务） */
-  'on-p-law': '法律法务',
-  'on-p-tax': '财务税务',
-  'on-p-hr': '企业服务',
-  'on-p-strat': '咨询服务',
-  'on-p-ip': '法律法务',
-  'on-p-comp': '咨询服务',
-  /* 线上-电商 */
-  'on-ec-shop': '电商运营',
-  'on-ec-live': '电商运营',
-  'on-ec-seo': '电商运营',
-  'on-ec-pr': '电商运营',
-  'on-ec-cross': '电商运营',
-  /* 线上-文娱 */
-  'on-m-game': '影音娱乐',
-  'on-m-voice': '设计',
-  'on-m-copy': '咨询服务',
-
-  /* 线下-家政生活 */
-  'off-l-daily': '家政服务',
-  'off-l-deep': '家政服务',
-  'off-l-acs': '家政服务',
-  'off-l-move': '家政服务',
-  'off-l-baby': '家政服务',
-  'off-l-chef': '美食餐饮',
-  'off-l-tea': '茶艺文化',
-  /* 线下-维修 */
-  'off-r-phone': '维修服务',
-  'off-r-pc': '维修服务',
-  'off-r-appliance': '维修服务',
-  'off-r-plumb': '维修服务',
-  'off-r-lock': '维修服务',
-  'off-r-net': '技术开发',
-  /* 线下-健康 */
-  'off-h-clinic': '医疗健康',
-  'off-h-massage': '医疗健康',
-  'off-h-tcm': '医疗健康',
-  'off-h-psy': '心理咨询',
-  'off-h-diet': '医疗健康',
-  /* 线下-车 */
-  'off-c-wash': '汽车服务',
-  'off-c-beauty': '汽车服务',
-  'off-c-repair': '汽车服务',
-  'off-c-rescue': '汽车服务',
-  'off-c-pile': '汽车服务',
-  'off-c-driver': '汽车服务',
-  /* 线下-房产 */
-  'off-he-check': '房产相关',
-  'off-he-rent': '房产相关',
-  'off-he-bnb': '房产相关',
-  'off-he-law': '房产相关',
-  'off-he-air': '环保检测',
-  'off-he-pest': '家政服务',
-  /* 线下-企业 */
-  'off-b-event': '企业服务',
-  'off-b-photo': '婚庆摄影',
-  'off-b-logi': '仓储物流',
-  'off-b-hr': '企业服务',
-  'off-b-iso': '咨询服务',
-  'off-b-train': '教育培训',
-  /* 线下-婚庆美业 */
-  'off-w-photo': '婚庆摄影',
-  'off-w-makeup': '婚庆摄影',
-  'off-w-host': '婚庆摄影',
-  'off-w-dress': '婚庆摄影',
-  'off-w-nail': '家政服务',
-  'off-w-skin': '家政服务',
-  /* 线下-宠物园艺 */
-  'off-p-board': '宠物服务',
-  'off-p-walk': '宠物服务',
-  'off-p-train': '宠物服务',
-  'off-p-vet': '宠物服务',
-  'off-p-plant': '家政服务',
-  'off-p-fish': '宠物服务',
-  /* 三农 */
-  'off-f-machine': '三农服务',
-  'off-f-greenhouse': '三农服务',
-  'off-f-cold': '维修服务',
-  'off-f-org': '咨询服务',
-  /* 旅行 */
-  'off-t-guide': '旅游出行',
-  'off-t-driver': '汽车服务',
-  'off-t-ski': '旅游出行',
-  'off-t-dive': '旅游出行',
-  'off-t-climb': '健身运动',
-  'off-t-camp': '旅游出行',
-  /* 翻译留学 */
-  'off-lang-doc': '翻译语言',
-  'off-lang-escort': '翻译语言',
-  'off-lang-sim': '翻译语言',
-  'off-s-paper': '留学出国',
-  'off-s-visa': '留学出国',
-  'off-s-interview': '教育培训',
-  'off-tea-class': '茶艺文化',
-  'off-tea-party': '茶艺文化',
-  'off-coffee': '美食餐饮',
-}
-
-/** 子树内所有叶子 id（与 collectLeaves 相同语义） */
+/** 获取指定节点下所有叶子节点 ID（不含非叶子） */
 export function subtreeLeafIds(nodeId: string): string[] {
-  return collectLeaves(nodeId)
-}
-
-/** 子树叶子映射的去重类目（卡池中间层按类目并集计数） */
-export function subtreeSearchCategories(taxonId: string): string[] {
-  const set = new Set<string>()
-  for (const id of collectLeaves(taxonId)) {
-    const c = NODE_SEARCH_CATEGORY[id]
-    if (c) set.add(c)
+  const node = TAXONOMY[nodeId]
+  if (!node) return []
+  if (node.childIds.length === 0) return [nodeId]
+  const result: string[] = []
+  for (const cid of node.childIds) {
+    const child = TAXONOMY[cid]
+    if (!child) continue
+    if (child.childIds.length === 0) {
+      result.push(cid)
+    } else {
+      result.push(...subtreeLeafIds(cid))
+    }
   }
-  return [...set].sort()
+  return result
 }
 
-function collectLeaves(nodeId: string): string[] {
-  const meta = TAXONOMY[nodeId]
-  if (!meta) return []
-  if (meta.childIds.length === 0) return [nodeId]
-  return meta.childIds.flatMap(collectLeaves)
-}
+/** 节点色相映射（按 ID 哈希分配色谱） */
+const SPECTRUM = [
+  '#f43f5e', '#e11d48', '#be123c', '#9f1239',
+  '#f97316', '#ea580c', '#d97706', '#b45309',
+  '#eab308', '#ca8a04', '#a16207', '#854d0e',
+  '#22c55e', '#16a34a', '#15803d', '#166534',
+  '#06b6d4', '#0891b2', '#0e7490', '#155e75',
+  '#3b82f6', '#2563eb', '#1d4ed8', '#1e3a8a',
+  '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6',
+  '#ec4899', '#db2777', '#be185d', '#9d174d',
+]
 
-export const ONLINE_LEAVES = collectLeaves('online') as readonly string[]
-export const OFFLINE_LEAVES = collectLeaves('offline') as readonly string[]
-
-export function taxonomyPathLabel(path: string[]): string {
-  if (path.length === 0) return '全部'
-  const last = path[path.length - 1]!
-  return TAXONOMY[last]?.label ?? last
-}
-
-export function childBlackIds(path: string[]): string[] {
-  const last = path[path.length - 1]!
-  return TAXONOMY[last]?.childIds ?? []
-}
-
-export function isTaxonomyLeaf(path: string[]): boolean {
-  return childBlackIds(path).length === 0
-}
-
-/** 线下到场子树内层级：0=「线下到场」节点，1=二级大类，2=叶子…；非该子树为 null */
-export function offlineTaxonomyTier(taxonId: string): number | null {
-  if (taxonId === 'root' || taxonId === 'online') return null
-  if (taxonId === 'offline') return 0
-  let tier = 1
-  let id: string | null = TAXONOMY[taxonId]?.parent ?? null
-  while (id) {
-    if (id === 'offline') return tier
-    if (id === 'root' || id === 'online') return null
-    id = TAXONOMY[id]?.parent ?? null
-    tier++
+export function taxonomySpectrumColorForNodeId(nodeId: string): string | undefined {
+  let hash = 0
+  for (let i = 0; i < nodeId.length; i++) {
+    hash = ((hash << 5) - hash) + nodeId.charCodeAt(i)
+    hash |= 0
   }
-  return null
+  return SPECTRUM[Math.abs(hash) % SPECTRUM.length]
 }
 
-/** 线下到场层级色：深蓝→靛→紫→玫红（避开黄/浅绿），高饱和、在暗色界面与 bg-card 上更清晰 */
-const OFFLINE_SPECTRUM = [
-  'hsl(212, 93%, 72%)',
-  'hsl(228, 90%, 71%)',
-  'hsl(244, 88%, 70%)',
-  'hsl(262, 86%, 69%)',
-  'hsl(280, 85%, 68%)',
-  'hsl(298, 84%, 67%)',
-  'hsl(316, 82%, 66%)',
-  'hsl(330, 80%, 65%)',
-] as const
+/**
+ * 叶子节点 → 搜索分类映射表（用于将后端 demand.category 还原为叶子节点）
+ * 每个叶子节点在此注册后，方可从需求列表一键「加入手牌」到正确的分类黑卡。
+ * 新增叶子节点时同步在此添加映射。
+ */
+export const NODE_SEARCH_CATEGORY: Record<string, string> = {
+  // 游戏代练
+  'olgbwr-bronze': 'game', 'olgbwr-silver': 'game', 'olgbwr-gold': 'game', 'olgbwr-plat': 'game',
+  'olgbwr-diamond': 'game', 'olgbwrs-25': 'game', 'olgbwrs-50': 'game', 'olgbwrs-100': 'game',
+  'olgbwrs25-mid': 'game', 'olgbwrs25-jungle': 'game', 'olgbwrs25-top': 'game', 'olgbwrs25-adc': 'game', 'olgbwrs25-support': 'game',
+  'olgbwrs50-mid': 'game', 'olgbwrs50-jungle': 'game', 'olgbwrs50-top': 'game', 'olgbwrs50-adc': 'game', 'olgbwrs50-support': 'game',
+  'olgbwrs100-mid': 'game', 'olgbwrs100-jungle': 'game', 'olgbwrs100-top': 'game', 'olgbwrs100-adc': 'game', 'olgbwrs100-support': 'game',
+  'olgbwr-king': 'game', 'olgbwr-myth': 'game', 'olgbwa-avatar': 'game', 'olgbwa-title': 'game',
+  'olgbwa-medal': 'game', 'olgbwa-ranking': 'game',
+  'olgbwh-shan': 'game', 'olgbwh-libai': 'game', 'olgbwh-hanxin': 'game', 'olgbwh-luna': 'game',
+  'olgbwh-jing': 'game', 'olgbwh-mengqi': 'game', 'olgbwho-mid': 'game', 'olgbwho-jungle': 'game',
+  'olgbwho-top': 'game', 'olgbwho-adc': 'game', 'olgbwho-support': 'game',
+  'olgbwt-team': 'game', 'olgbwt-tournament': 'game',
+  'olgblr-iron': 'game', 'olgblr-bronze': 'game', 'olgblr-silver': 'game', 'olgblr-gold': 'game',
+  'olgblr-plat': 'game', 'olgblr-emerald': 'game', 'olgblr-diamond': 'game', 'olgblr-master': 'game',
+  'olgblr-gm': 'game', 'olgblr-challenger': 'game',
+  'olgblp-win5': 'game', 'olgblp-win7': 'game', 'olgblp-win10': 'game',
+  'olgblr-top': 'game', 'olgblr-jungle': 'game', 'olgblr-mid': 'game', 'olgblr-adc': 'game', 'olgblr-support': 'game',
+  'olgbla-lv': 'game', 'olgbla-skin': 'game', 'olgbla-blue': 'game',
+  'olgbpr-bronze': 'game', 'olgbpr-silver': 'game', 'olgbpr-gold': 'game', 'olgbpr-plat': 'game',
+  'olgbpr-diamond': 'game', 'olgbpr-crown': 'game', 'olgbpr-ace': 'game', 'olgbp-rp': 'game',
+  'olgbpk-100': 'game', 'olgbpk-300': 'game', 'olgbpk-500': 'game', 'olgbp-gun': 'game',
+  'olgb-hyxd': 'game', 'olgba-rank': 'game', 'olgba-bp': 'game', 'olgbd-mm': 'game',
+  'olgbd-calibration': 'game', 'olgbo-rank': 'game', 'olgbw-rating': 'game', 'olgbw-mythic': 'game',
+  'olgbw-gold': 'game', 'olgbw-level': 'game', 'olgbf-level': 'game', 'olgbf-raid': 'game',
+  'olgb-other': 'game',
 
-export function offlineSpectrumColor(tier: number): string {
-  const i = Math.min(Math.max(tier, 0), OFFLINE_SPECTRUM.length - 1)
-  return OFFLINE_SPECTRUM[i]!
+  // 陪玩
+  'olgcwr-low': 'game', 'olgcwr-mid': 'game', 'olgcwr-high': 'game', 'olgcwr-top': 'game',
+  'olgcwf-sound': 'game', 'olgcwf-duo': 'game', 'olgcwf-five': 'game',
+  'olgcwt-hero': 'game', 'olgcwt-macro': 'game', 'olgcwt-micro': 'game',
+  'olgcwg-chat': 'game', 'olgcwg-game': 'game',
+  'olgcl-rank': 'game', 'olgcl-fun': 'game', 'olgcl-teach': 'game',
+  'olgc-pubg': 'game', 'olgc-valorant': 'game', 'olgc-csgo': 'game', 'olgc-fortnite': 'game', 'olgc-mc': 'game', 'olgc-other': 'game',
+
+  // 账号交易
+  'olgabw-v8': 'game', 'olgabw-v9': 'game', 'olgabw-v10': 'game', 'olgabw-limited': 'game',
+  'olgabl-skin': 'game', 'olgabl-rank': 'game', 'olgab-steam': 'game', 'olgab-psn': 'game',
+  'olgab-xbox': 'game', 'olgab-nintendo': 'game', 'olga-sell': 'game',
+  'olgar-hour': 'game', 'olgar-day': 'game', 'olgar-week': 'game', 'olga-recover': 'game',
+  'olgi-gold': 'game', 'olgi-skin': 'game', 'olgi-card': 'game', 'olgi-gacha': 'game', 'olgi-pass': 'game',
+  'olgl-observer': 'game', 'olgl-host': 'game', 'olgl-edit': 'game', 'olgl-cover': 'game',
+  'olgt-qa': 'game', 'olgt-localize': 'game', 'olgt-balance': 'game', 'olgt-bug': 'game',
+
+  // 设计
+  'oldumi-social': 'design', 'oldumi-ecom': 'design', 'oldumi-tool': 'design', 'oldumi-game': 'design', 'oldumi-health': 'design',
+  'olduma-social': 'design', 'olduma-ecom': 'design', 'olduma-tool': 'design',
+  'oldum-flutter': 'design', 'oldum-rn': 'design',
+  'olduw-landing': 'design', 'olduwd-analytics': 'design', 'olduwd-crm': 'design', 'olduwd-erp': 'design',
+  'olduw-saas': 'design', 'olduw-portfolio': 'design', 'olduw-blog': 'design',
+  'oldu-app': 'design', 'oldum-wechat': 'design', 'oldum-alipay': 'design', 'oldum-bytedance': 'design',
+  'oldu-tv': 'design', 'oldu-watch': 'design', 'oldu-prototype': 'design', 'oldu-designsys': 'design',
+  'oldbl-word': 'design', 'oldbl-icon': 'design', 'oldbl-combine': 'design', 'oldbl-mascot': 'design',
+  'oldbv-card': 'design', 'oldbv-stationery': 'design', 'oldbv-uniform': 'design', 'oldbv-sign': 'design',
+  'oldb-guide': 'design', 'oldb-naming': 'design',
+  'oldpp-recruit': 'design', 'oldpp-promo': 'design', 'oldpp-film': 'design', 'oldpp-event': 'design',
+  'oldp-flyer': 'design', 'oldpb-catalog': 'design', 'oldpb-magazine': 'design', 'oldpb-annual': 'design',
+  'oldpk-food': 'design', 'oldpk-cos': 'design', 'oldpk-elect': 'design', 'oldpk-gift': 'design',
+  'oldp-billboard': 'design',
+
+  // 开发
+  'oldvwf-react': 'dev', 'oldvwf-vue': 'dev', 'oldvwf-angular': 'dev', 'oldvwf-next': 'dev',
+  'oldvwf-nuxt': 'dev', 'oldvwf-svelte': 'dev', 'oldvwf-solid': 'dev',
+  'oldvwb-node': 'dev', 'oldvwb-py': 'dev', 'oldvwb-java': 'dev', 'oldvwb-go': 'dev',
+  'oldvwb-rust': 'dev', 'oldvwb-php': 'dev', 'oldvwb-dotnet': 'dev', 'oldvw-full': 'dev',
+  'oldvwc-wp': 'dev', 'oldvwc-shopify': 'dev', 'oldvwc-webflow': 'dev', 'oldvwc-strapi': 'dev',
+  'oldvw-ecom': 'dev',
+  'oldvm-wechat': 'dev', 'oldvm-alipay': 'dev', 'oldvm-tiktok': 'dev', 'oldvm-uniapp': 'dev',
+  'oldvai-swift': 'dev', 'oldvai-oc': 'dev', 'oldvaa-kotlin': 'dev', 'oldvaa-java': 'dev',
+  'oldva-flutter': 'dev', 'oldva-rn': 'dev', 'oldva-electron': 'dev',
+  'oldva-rest': 'dev', 'oldva-graphql': 'dev', 'oldva-micro': 'dev', 'oldva-db': 'dev', 'oldva-auth': 'dev',
+  'oldvd-bi': 'dev', 'oldvd-etl': 'dev', 'oldvd-ml': 'dev', 'oldvd-nlp': 'dev', 'oldvd-cv': 'dev',
+  'oldvdl-finetune': 'dev', 'oldvdl-rag': 'dev', 'oldvdl-agent': 'dev', 'oldvdl-prompt': 'dev',
+  'oldvd-scrape': 'dev',
+  'oldvc-deploy': 'dev', 'oldvc-cicd': 'dev', 'oldvc-k8s': 'dev', 'oldvc-monitor': 'dev', 'oldvc-dbops': 'dev',
+  'oldvs-pen': 'dev', 'oldvs-audit': 'dev', 'oldvs-compliance': 'dev', 'oldvs-recovery': 'dev',
+  'oldvg-unity': 'dev', 'oldvg-ue': 'dev', 'oldvg-cocos': 'dev', 'oldvg-webgame': 'dev',
+  'oldvb-contract': 'dev', 'oldvb-dapp': 'dev', 'oldvb-defi': 'dev', 'oldvb-nft': 'dev',
+  'oldvi-mcu': 'dev', 'oldvi-linux': 'dev', 'oldvi-pcb': 'dev', 'oldvi-comm': 'dev',
+
+  // 教育
+  'olele-ielts': 'edu', 'olele-toefl': 'edu', 'olele-speaking': 'edu', 'olele-writing': 'edu',
+  'olelj-n1': 'edu', 'olelj-n2': 'edu', 'olelj-speaking': 'edu',
+  'olel-kr': 'edu', 'olel-fr': 'edu', 'olel-de': 'edu', 'olel-es': 'edu', 'olel-other': 'edu',
+  'olek-math': 'edu', 'olek-phy': 'edu', 'olek-chem': 'edu', 'olek-bio': 'edu', 'olek-chinese': 'edu',
+  'olek-eng': 'edu', 'olek-gaokao': 'edu', 'olek-yjs': 'edu',
+  'olec-cpa': 'edu', 'olec-law': 'edu', 'olec-med': 'edu', 'olec-teach': 'edu', 'olec-arch': 'edu', 'olec-hr': 'edu',
+  'olei-coding': 'edu', 'olei-ds': 'edu', 'olei-network': 'edu', 'olei-linux': 'edu',
+  'olea-piano': 'edu', 'olea-guitar': 'edu', 'olea-dance': 'edu', 'olea-paint': 'edu', 'olea-calligraphy': 'edu',
+  'ole-fitness': 'edu', 'ole-business': 'edu', 'ole-life': 'edu',
+
+  // 内容
+  'olcw-article': 'content', 'olcw-script': 'content', 'olcw-plan': 'content', 'olcw-report': 'content',
+  'olcc-slogan': 'content', 'olcc-product': 'content', 'olcc-social': 'content', 'olcc-seo': 'content',
+  'olct-doc': 'content', 'olct-subtitle': 'content', 'olct-website': 'content', 'olct-interpret': 'content',
+  'olcv-ad': 'content', 'olcv-anime': 'content', 'olcv-book': 'content', 'olcv-asmr': 'content',
+
+  // 电商
+  'olecs-tb': 'ecom', 'olecs-jd': 'ecom', 'olecs-pdd': 'ecom', 'olecs-dy': 'ecom', 'olecs-xhs': 'ecom',
+  'olecl-host': 'ecom', 'olecl-script': 'ecom', 'olecl-operation': 'ecom',
+  'olecs-baidu': 'ecom', 'olecs-toutiao': 'ecom', 'olecs-wechat': 'ecom',
+  'olec-private': 'ecom', 'olecx-amz': 'ecom', 'olecx-shopee': 'ecom', 'olecx-listing': 'ecom', 'olecx-ad': 'ecom',
+  'olec-customer': 'ecom',
+
+  // 专业服务
+  'olpl-contract': 'pro', 'olpl-labor': 'pro', 'olpl-corporate': 'pro', 'olpl-litigation': 'pro',
+  'olpf-book': 'pro', 'olpf-tax': 'pro', 'olpf-audit': 'pro', 'olpf-payroll': 'pro',
+  'olp-hr': 'pro', 'olps-bp': 'pro', 'olps-market': 'pro', 'olps-consult': 'pro',
+  'olpip-tm': 'pro', 'olpip-patent': 'pro', 'olpip-copy': 'pro', 'olp-audit': 'pro',
+
+  // 线下家政
+  'ofhcd-2h': 'home', 'ofhcd-3h': 'home', 'ofhcd-4h': 'home',
+  'ofhcd-one': 'home', 'ofhcd-whole': 'home',
+  'ofhcw-in': 'home', 'ofhcw-out': 'home', 'ofhcw-curtain': 'home',
+  'ofhc-carpet': 'home', 'ofhc-sofa': 'home',
+  'ofhca-hang': 'home', 'ofhca-center': 'home', 'ofhca-commercial': 'home',
+  'ofhc-fridge': 'home',
+  'ofhckh-standard': 'home', 'ofhckh-steam': 'home', 'ofhck-oven': 'home', 'ofhck-cabinet': 'home',
+  'ofhcb-mold': 'home', 'ofhcb-grout': 'home', 'ofhcb-toilet': 'home',
+  'ofhmm-studio': 'home', 'ofhmm-1br': 'home', 'ofhmm-2br': 'home', 'ofhmm-3br': 'home', 'ofhmm-house': 'home',
+  'ofhmp-whole': 'home', 'ofhmp-room': 'home', 'ofhmp-closet': 'home', 'ofhm-piano': 'home',
+  'ofhcm-26d': 'home', 'ofhcm-42d': 'home', 'ofhcm-3m': 'home',
+  'ofhc-nanny': 'home', 'ofhc-elder': 'home', 'ofhc-doula': 'home',
+  'ofhc-daily': 'home', 'ofhc-party': 'home', 'ofhc-banquet': 'home', 'ofhc-diet': 'home',
+
+  // 维修
+  'ofre-circuit': 'repair', 'ofre-switch': 'repair', 'ofre-panel': 'repair', 'ofre-wiring': 'repair',
+  'ofrp-toilet': 'repair', 'ofrp-kitchen': 'repair', 'ofrp-drain': 'repair', 'ofrp-roof': 'repair',
+  'ofrl-open': 'repair', 'ofrl-change': 'repair', 'ofrl-smart': 'repair',
+  'ofrf-flat': 'repair', 'ofrf-wardrobe': 'repair', 'ofrf-bed': 'repair', 'ofrf-curtain': 'repair',
+  'ofra-tv': 'repair', 'ofra-wm': 'repair', 'ofra-fridge': 'repair', 'ofra-water': 'repair', 'ofra-heater': 'repair',
+  'ofrp-screen': 'repair', 'ofrp-battery': 'repair', 'ofrp-water': 'repair', 'ofrp-board': 'repair',
+  'ofrc-software': 'repair', 'ofrc-hardware': 'repair', 'ofrc-data': 'repair', 'ofrc-network': 'repair',
+  'ofrc-install': 'repair', 'ofrc-nvr': 'repair', 'ofr-lamp': 'repair',
+
+  // 健康
+  'ofha-general': 'health', 'ofha-elder': 'health', 'ofha-child': 'health',
+  'ofhm-tui': 'health', 'ofhm-foot': 'health', 'ofhm-cupping': 'health', 'ofhm-gua': 'health',
+  'ofh-tcm': 'health', 'ofh-psy': 'health', 'ofh-diet': 'health', 'ofh-rehab': 'health',
+
+  // 车辆
+  'ofaw-standard': 'auto', 'ofaw-deep': 'auto', 'ofaw-wax': 'auto', 'ofaw-interior': 'auto',
+  'ofaf-window': 'auto', 'ofaf-body': 'auto', 'ofaf-ppf': 'auto',
+  'ofar-oil': 'auto', 'ofar-tire': 'auto', 'ofar-brake': 'auto', 'ofar-engine': 'auto',
+  'ofat-jump': 'auto', 'ofat-tow': 'auto', 'ofat-tire': 'auto', 'ofat-fuel': 'auto',
+  'ofa-charge': 'auto', 'ofac-drunk': 'auto', 'ofac-practice': 'auto', 'ofac-long': 'auto',
+  'ofa-inspect': 'auto',
+
+  // 房产/活动/宠物/旅行等
+  'ofe-inspect': 'estate', 'ofe-cleanout': 'estate', 'ofe-moth': 'estate', 'ofe-air': 'estate', 'ofe-hosting': 'estate',
+  'ofevw-plan': 'event', 'ofevw-photo': 'event', 'ofevw-makeup': 'event', 'ofevw-host': 'event', 'ofevw-dress': 'event',
+  'ofevc-annual': 'event', 'ofevc-team': 'event', 'ofevc-exhibit': 'event',
+  'ofev-photo': 'event', 'ofevm-wedding': 'event', 'ofevm-stage': 'event', 'ofevm-semi': 'event',
+  'ofpb-home': 'pet', 'ofpb-shop': 'pet', 'ofpb-cat': 'pet',
+  'ofpw-30min': 'pet', 'ofpw-1h': 'pet', 'ofpt-basic': 'pet', 'ofpt-behave': 'pet',
+  'ofp-groom': 'pet', 'ofp-vet': 'pet',
+  'ofpp-garden': 'pet', 'ofpp-aquarium': 'pet', 'ofpp-lawn': 'pet',
+  'oftg-city': 'travel', 'oftg-study': 'travel', 'oftg-food': 'travel', 'oft-car': 'travel',
+  'ofts-beginner': 'travel', 'ofts-intermediate': 'travel', 'ofts-advanced': 'travel',
+  'oft-dive': 'travel', 'oft-climb': 'travel', 'oft-camp': 'travel',
+  'ofs-abroad': 'study', 'ofs-visa': 'study', 'ofs-interview': 'study', 'ofs-portfolio': 'study',
+  'off-machine': 'farm', 'off-green': 'farm', 'off-cold': 'farm', 'off-certify': 'farm',
+  'ofbn-gel': 'beauty', 'ofbn-art': 'beauty', 'ofbn-foot': 'beauty',
+  'ofbs-clean': 'beauty', 'ofbs-acne': 'beauty', 'ofbs-anti': 'beauty',
+  'ofb-hair': 'beauty', 'ofb-tattoo': 'beauty', 'ofb-eyelash': 'beauty',
+  'ofm-labor': 'move', 'ofm-cold': 'move', 'ofm-waste': 'move',
+  'of-cook': 'cook', 'of-lang': 'lang',
 }
 
-/** 线上服务子树内层级：0=「线上服务」节点，1=二级大类，2=叶子…；非该子树为 null */
-export function onlineTaxonomyTier(taxonId: string): number | null {
-  if (taxonId === 'root' || taxonId === 'offline') return null
-  if (taxonId === 'online') return 0
-  let tier = 1
-  let id: string | null = TAXONOMY[taxonId]?.parent ?? null
-  while (id) {
-    if (id === 'online') return tier
-    if (id === 'root' || id === 'offline') return null
-    id = TAXONOMY[id]?.parent ?? null
-    tier++
+/** 获取节点的完整路径标签 */
+export function nodePathLabels(nodeId: string): string[] {
+  const labels: string[] = []
+  let current = TAXONOMY[nodeId]
+  while (current) {
+    labels.unshift(current.label)
+    if (!current.parent) break
+    current = TAXONOMY[current.parent]
   }
-  return null
+  return labels
 }
 
-/** 线上层级色：青绿→翠→琥珀→橙→玫（与线下蓝紫系区分，同样偏高饱和） */
-const ONLINE_SPECTRUM = [
-  'hsl(186, 92%, 69%)',
-  'hsl(172, 90%, 68%)',
-  'hsl(160, 88%, 67%)',
-  'hsl(148, 86%, 66%)',
-  'hsl(136, 84%, 65%)',
-  'hsl(38, 92%, 64%)',
-  'hsl(20, 90%, 64%)',
-  'hsl(352, 86%, 66%)',
-] as const
-
-export function onlineSpectrumColor(tier: number): string {
-  const i = Math.min(Math.max(tier, 0), ONLINE_SPECTRUM.length - 1)
-  return ONLINE_SPECTRUM[i]!
-}
-
-/** 「线上服务」与「线下到场」同为 root 下一级分叉，视觉上用同一锚点色（子级仍各走各枝色板） */
-const TAXONOMY_ROOT_BRANCH_PEER_COLOR = 'hsl(220, 90%, 69%)'
-
-/** 任意分类节点：在线上或线下子树内则返回对应层级色 */
-export function taxonomySpectrumColorForNodeId(
-  taxonId: string,
-): string | undefined {
-  if (taxonId === 'online' || taxonId === 'offline') {
-    return TAXONOMY_ROOT_BRANCH_PEER_COLOR
-  }
-  const off = offlineTaxonomyTier(taxonId)
-  if (off !== null) return offlineSpectrumColor(off)
-  const on = onlineTaxonomyTier(taxonId)
-  if (on !== null) return onlineSpectrumColor(on)
-  return undefined
-}
