@@ -1,8 +1,8 @@
 'use client'
 
-import { SplineScene } from "@/components/ui/spline"
-import { Card } from "@/components/ui/card"
-import { Spotlight } from "@/components/ui/spotlight"
+import { SplineScene } from '@/components/ui/spline'
+import { Card } from '@/components/ui/card'
+import { Spotlight } from '@/components/ui/spotlight'
 
 export function SplineSceneBasic() {
   return (

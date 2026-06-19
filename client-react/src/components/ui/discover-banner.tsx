@@ -130,7 +130,13 @@ function useShaderCanvas() {
 
 // ---- Discover Banner ----
 
-export default function DiscoverBanner({ onSearch, className = '' }: { onSearch?: (keyword: string) => void; className?: string }) {
+export default function DiscoverBanner({
+  onSearch,
+  className = '',
+}: {
+  onSearch?: (keyword: string) => void
+  className?: string
+}) {
   const canvasRef = useShaderCanvas()
   const [searchText, setSearchText] = useState('')
 
@@ -141,7 +147,9 @@ export default function DiscoverBanner({ onSearch, className = '' }: { onSearch?
   }, [searchText, onSearch])
 
   return (
-    <div className={`relative w-full h-[320px] md:h-[460px] overflow-hidden rounded-2xl bg-black ${className}`}>
+    <div
+      className={`relative w-full h-[320px] md:h-[460px] overflow-hidden rounded-2xl bg-black ${className}`}
+    >
       {/* Animations */}
       <style>{`
         @keyframes db-fade-up {
@@ -170,13 +178,23 @@ export default function DiscoverBanner({ onSearch, className = '' }: { onSearch?
         <div className="db-fade-up db-delay-1 mb-4">
           <div className="flex items-center gap-1.5 px-4 py-1.5 bg-orange-500/10 backdrop-blur-md border border-orange-300/25 rounded-full">
             <Sparkles size={13} className="text-orange-300" />
-            <span className="text-xs font-medium text-orange-100 tracking-wide">连接身边的高手 · 解决你的需求</span>
+            <span className="text-xs font-medium text-orange-100 tracking-wide">
+              连接身边的高手 · 解决你的需求
+            </span>
           </div>
         </div>
 
         {/* Headline */}
-        <h1 className="db-fade-up db-delay-2 text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-3"
-          style={{ background: 'linear-gradient(135deg, #fb923c 0%, #facc15 40%, #fdba74 70%, #fbbf24 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}>
+        <h1
+          className="db-fade-up db-delay-2 text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-3"
+          style={{
+            background:
+              'linear-gradient(135deg, #fb923c 0%, #facc15 40%, #fdba74 70%, #fbbf24 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
           发现好服务
         </h1>
 

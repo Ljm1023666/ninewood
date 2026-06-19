@@ -37,7 +37,8 @@ const LENS_BOX_SHADOW = `
   .trim()
 
 export interface TahoeGlassButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof tahoeGlassButtonVariants> {
   contentClassName?: string
   /** 玻璃底色，默认随前景色低透明 */
@@ -48,20 +49,61 @@ export interface TahoeGlassButtonProps
  * Apple Tahoe 系液态玻璃按钮：程序化噪声位移 + 强高光阴影栈（无外链/WebP，包体小）。
  * 若需与参考稿完全一致，可将 feTurbulence 换为 feImage + data URI 法线贴图。
  */
-export const TahoeGlassButton = React.forwardRef<HTMLButtonElement, TahoeGlassButtonProps>(
-  ({ className, children, size, contentClassName, glassColor, type = 'button', style, ...props }, ref) => {
+export const TahoeGlassButton = React.forwardRef<
+  HTMLButtonElement,
+  TahoeGlassButtonProps
+>(
+  (
+    {
+      className,
+      children,
+      size,
+      contentClassName,
+      glassColor,
+      type = 'button',
+      style,
+      ...props
+    },
+    ref,
+  ) => {
     const filterId = React.useId().replace(/:/g, '')
 
     const lensBg = glassColor ?? 'oklch(from var(--foreground) l c h / 6%)'
 
     return (
       <>
-        <svg className="pointer-events-none absolute h-0 w-0 overflow-hidden" aria-hidden>
-          <filter id={`liquid-glass-${filterId}`} primitiveUnits="objectBoundingBox" x="0" y="0" width="1" height="1">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.04" numOctaves="1" seed="3" result="noise" />
+        <svg
+          className="pointer-events-none absolute h-0 w-0 overflow-hidden"
+          aria-hidden
+        >
+          <filter
+            id={`liquid-glass-${filterId}`}
+            primitiveUnits="objectBoundingBox"
+            x="0"
+            y="0"
+            width="1"
+            height="1"
+          >
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.04 0.04"
+              numOctaves="1"
+              seed="3"
+              result="noise"
+            />
             <feGaussianBlur in="noise" stdDeviation="0.02" result="blurred" />
-            <feGaussianBlur in="SourceGraphic" stdDeviation="0.01" result="blur" />
-            <feDisplacementMap in="blur" in2="blurred" scale="0.035" xChannelSelector="R" yChannelSelector="G" />
+            <feGaussianBlur
+              in="SourceGraphic"
+              stdDeviation="0.01"
+              result="blur"
+            />
+            <feDisplacementMap
+              in="blur"
+              in2="blurred"
+              scale="0.035"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
           </filter>
         </svg>
 
@@ -89,12 +131,18 @@ export const TahoeGlassButton = React.forwardRef<HTMLButtonElement, TahoeGlassBu
               backdropFilter: `blur(8px) url(#liquid-glass-${filterId}) saturate(150%)`,
               WebkitBackdropFilter: 'blur(8px) saturate(150%)',
               boxShadow: LENS_BOX_SHADOW,
-              transition: 'background-color 400ms cubic-bezier(1, 0, 0.4, 1), box-shadow 400ms cubic-bezier(1, 0, 0.4, 1)',
+              transition:
+                'background-color 400ms cubic-bezier(1, 0, 0.4, 1), box-shadow 400ms cubic-bezier(1, 0, 0.4, 1)',
             }}
           />
           <span
-            className={cn('relative z-10 flex w-full items-center justify-center gap-[inherit] select-none', contentClassName)}
-            style={{ textShadow: '0 1px 2px oklch(from var(--background) l c h / 30%)' }}
+            className={cn(
+              'relative z-10 flex w-full items-center justify-center gap-[inherit] select-none',
+              contentClassName,
+            )}
+            style={{
+              textShadow: '0 1px 2px oklch(from var(--background) l c h / 30%)',
+            }}
           >
             {children}
           </span>

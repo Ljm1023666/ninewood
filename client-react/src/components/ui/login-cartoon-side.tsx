@@ -145,7 +145,11 @@ export interface LoginCartoonSideProps {
   isTyping: boolean
 }
 
-export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCartoonSideProps) {
+export function LoginCartoonSide({
+  password,
+  showPassword,
+  isTyping,
+}: LoginCartoonSideProps) {
   const [mouseX, setMouseX] = useState(0)
   const [mouseY, setMouseY] = useState(0)
   const [isPurpleBlinking, setIsPurpleBlinking] = useState(false)
@@ -168,26 +172,32 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
 
   useEffect(() => {
     const scheduleBlink = () =>
-      setTimeout(() => {
-        setIsPurpleBlinking(true)
-        setTimeout(() => {
-          setIsPurpleBlinking(false)
-          scheduleBlink()
-        }, 150)
-      }, Math.random() * 4000 + 3000)
+      setTimeout(
+        () => {
+          setIsPurpleBlinking(true)
+          setTimeout(() => {
+            setIsPurpleBlinking(false)
+            scheduleBlink()
+          }, 150)
+        },
+        Math.random() * 4000 + 3000,
+      )
     const t = scheduleBlink()
     return () => clearTimeout(t)
   }, [])
 
   useEffect(() => {
     const scheduleBlink = () =>
-      setTimeout(() => {
-        setIsBlackBlinking(true)
-        setTimeout(() => {
-          setIsBlackBlinking(false)
-          scheduleBlink()
-        }, 150)
-      }, Math.random() * 4000 + 3000)
+      setTimeout(
+        () => {
+          setIsBlackBlinking(true)
+          setTimeout(() => {
+            setIsBlackBlinking(false)
+            scheduleBlink()
+          }, 150)
+        },
+        Math.random() * 4000 + 3000,
+      )
     const t = scheduleBlink()
     return () => clearTimeout(t)
   }, [])
@@ -202,7 +212,9 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
     return undefined
   }, [isTyping])
 
-  const peekTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const peekTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  )
   useEffect(() => {
     if (!(password.length > 0 && showPassword)) {
       setIsPurplePeeking(false)
@@ -211,14 +223,17 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
     }
     let cancelled = false
     const schedulePeek = () => {
-      peekTimerRef.current = window.setTimeout(() => {
-        if (cancelled) return
-        setIsPurplePeeking(true)
-        window.setTimeout(() => {
-          if (!cancelled) setIsPurplePeeking(false)
-        }, 800)
-        schedulePeek()
-      }, 2000 + Math.random() * 3000)
+      peekTimerRef.current = window.setTimeout(
+        () => {
+          if (cancelled) return
+          setIsPurplePeeking(true)
+          window.setTimeout(() => {
+            if (!cancelled) setIsPurplePeeking(false)
+          }, 800)
+          schedulePeek()
+        },
+        2000 + Math.random() * 3000,
+      )
     }
     schedulePeek()
     return () => {
@@ -248,7 +263,7 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
   const purpleStretch = isTyping || (password.length > 0 && !showPassword)
 
   return (
-    <div className="relative hidden flex-col justify-between bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-12 text-primary-foreground lg:flex">
+    <div className="relative flex flex-col justify-between bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-12 text-primary-foreground">
       <div className="relative z-20">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary-foreground/10 backdrop-blur-sm">
@@ -376,9 +391,17 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
               className="absolute flex gap-6 transition-all duration-700 ease-in-out"
               style={{
                 left:
-                  password.length > 0 && showPassword ? 10 : isLookingAtEachOther ? 32 : 26 + blackPos.faceX,
+                  password.length > 0 && showPassword
+                    ? 10
+                    : isLookingAtEachOther
+                      ? 32
+                      : 26 + blackPos.faceX,
                 top:
-                  password.length > 0 && showPassword ? 28 : isLookingAtEachOther ? 12 : 32 + blackPos.faceY,
+                  password.length > 0 && showPassword
+                    ? 28
+                    : isLookingAtEachOther
+                      ? 12
+                      : 32 + blackPos.faceY,
               }}
             >
               <EyeBall
@@ -388,8 +411,20 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
                 eyeColor="white"
                 pupilColor="#2D2D2D"
                 isBlinking={isBlackBlinking}
-                forceLookX={password.length > 0 && showPassword ? -4 : isLookingAtEachOther ? 0 : undefined}
-                forceLookY={password.length > 0 && showPassword ? -4 : isLookingAtEachOther ? -4 : undefined}
+                forceLookX={
+                  password.length > 0 && showPassword
+                    ? -4
+                    : isLookingAtEachOther
+                      ? 0
+                      : undefined
+                }
+                forceLookY={
+                  password.length > 0 && showPassword
+                    ? -4
+                    : isLookingAtEachOther
+                      ? -4
+                      : undefined
+                }
               />
               <EyeBall
                 size={16}
@@ -398,8 +433,20 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
                 eyeColor="white"
                 pupilColor="#2D2D2D"
                 isBlinking={isBlackBlinking}
-                forceLookX={password.length > 0 && showPassword ? -4 : isLookingAtEachOther ? 0 : undefined}
-                forceLookY={password.length > 0 && showPassword ? -4 : isLookingAtEachOther ? -4 : undefined}
+                forceLookX={
+                  password.length > 0 && showPassword
+                    ? -4
+                    : isLookingAtEachOther
+                      ? 0
+                      : undefined
+                }
+                forceLookY={
+                  password.length > 0 && showPassword
+                    ? -4
+                    : isLookingAtEachOther
+                      ? -4
+                      : undefined
+                }
               />
             </div>
           </div>
@@ -414,30 +461,47 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
               zIndex: 3,
               backgroundColor: '#FF9B6B',
               borderRadius: '120px 120px 0 0',
-              transform: password.length > 0 && showPassword ? 'skewX(0deg)' : `skewX(${orangePos.bodySkew || 0}deg)`,
+              transform:
+                password.length > 0 && showPassword
+                  ? 'skewX(0deg)'
+                  : `skewX(${orangePos.bodySkew || 0}deg)`,
               transformOrigin: 'bottom center',
             }}
           >
             <div
               className="absolute flex gap-8 transition-all duration-200 ease-out"
               style={{
-                left: password.length > 0 && showPassword ? 50 : 82 + (orangePos.faceX || 0),
-                top: password.length > 0 && showPassword ? 85 : 90 + (orangePos.faceY || 0),
+                left:
+                  password.length > 0 && showPassword
+                    ? 50
+                    : 82 + (orangePos.faceX || 0),
+                top:
+                  password.length > 0 && showPassword
+                    ? 85
+                    : 90 + (orangePos.faceY || 0),
               }}
             >
               <Pupil
                 size={12}
                 maxDistance={5}
                 pupilColor="#2D2D2D"
-                forceLookX={password.length > 0 && showPassword ? -5 : undefined}
-                forceLookY={password.length > 0 && showPassword ? -4 : undefined}
+                forceLookX={
+                  password.length > 0 && showPassword ? -5 : undefined
+                }
+                forceLookY={
+                  password.length > 0 && showPassword ? -4 : undefined
+                }
               />
               <Pupil
                 size={12}
                 maxDistance={5}
                 pupilColor="#2D2D2D"
-                forceLookX={password.length > 0 && showPassword ? -5 : undefined}
-                forceLookY={password.length > 0 && showPassword ? -4 : undefined}
+                forceLookX={
+                  password.length > 0 && showPassword ? -5 : undefined
+                }
+                forceLookY={
+                  password.length > 0 && showPassword ? -4 : undefined
+                }
               />
             </div>
           </div>
@@ -452,37 +516,60 @@ export function LoginCartoonSide({ password, showPassword, isTyping }: LoginCart
               backgroundColor: '#E8D754',
               borderRadius: '70px 70px 0 0',
               zIndex: 4,
-              transform: password.length > 0 && showPassword ? 'skewX(0deg)' : `skewX(${yellowPos.bodySkew || 0}deg)`,
+              transform:
+                password.length > 0 && showPassword
+                  ? 'skewX(0deg)'
+                  : `skewX(${yellowPos.bodySkew || 0}deg)`,
               transformOrigin: 'bottom center',
             }}
           >
             <div
               className="absolute flex gap-6 transition-all duration-200 ease-out"
               style={{
-                left: password.length > 0 && showPassword ? 20 : 52 + (yellowPos.faceX || 0),
-                top: password.length > 0 && showPassword ? 35 : 40 + (yellowPos.faceY || 0),
+                left:
+                  password.length > 0 && showPassword
+                    ? 20
+                    : 52 + (yellowPos.faceX || 0),
+                top:
+                  password.length > 0 && showPassword
+                    ? 35
+                    : 40 + (yellowPos.faceY || 0),
               }}
             >
               <Pupil
                 size={12}
                 maxDistance={5}
                 pupilColor="#2D2D2D"
-                forceLookX={password.length > 0 && showPassword ? -5 : undefined}
-                forceLookY={password.length > 0 && showPassword ? -4 : undefined}
+                forceLookX={
+                  password.length > 0 && showPassword ? -5 : undefined
+                }
+                forceLookY={
+                  password.length > 0 && showPassword ? -4 : undefined
+                }
               />
               <Pupil
                 size={12}
                 maxDistance={5}
                 pupilColor="#2D2D2D"
-                forceLookX={password.length > 0 && showPassword ? -5 : undefined}
-                forceLookY={password.length > 0 && showPassword ? -4 : undefined}
+                forceLookX={
+                  password.length > 0 && showPassword ? -5 : undefined
+                }
+                forceLookY={
+                  password.length > 0 && showPassword ? -4 : undefined
+                }
               />
             </div>
             <div
               className="absolute h-[4px] w-20 rounded-full bg-[#2D2D2D] transition-all duration-200 ease-out"
               style={{
-                left: password.length > 0 && showPassword ? 10 : 40 + (yellowPos.faceX || 0),
-                top: password.length > 0 && showPassword ? 88 : 88 + (yellowPos.faceY || 0),
+                left:
+                  password.length > 0 && showPassword
+                    ? 10
+                    : 40 + (yellowPos.faceX || 0),
+                top:
+                  password.length > 0 && showPassword
+                    ? 88
+                    : 88 + (yellowPos.faceY || 0),
               }}
             />
           </div>

@@ -130,8 +130,14 @@ export const GlassEffect: React.FC<GlassEffectProps> = ({
 
 // ---- Glass Dock ----
 
-export const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({ icons, href }) => (
-  <GlassEffect href={href} className="rounded-3xl p-3 hover:p-4 hover:rounded-4xl">
+export const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({
+  icons,
+  href,
+}) => (
+  <GlassEffect
+    href={href}
+    className="rounded-3xl p-3 hover:p-4 hover:rounded-4xl"
+  >
     <div className="flex items-center justify-center gap-2 rounded-3xl p-3 py-0 px-0.5 overflow-hidden">
       {icons.map((icon, i) => (
         <img
@@ -152,18 +158,20 @@ export const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({ icon
 
 // ---- Glass Button ----
 
-export const GlassButton: React.FC<{ children: React.ReactNode; href?: string; className?: string }> = ({
-  children,
-  href,
-  className = '',
-}) => (
+export const GlassButton: React.FC<{
+  children: React.ReactNode
+  href?: string
+  className?: string
+}> = ({ children, href, className = '' }) => (
   <GlassEffect
     href={href}
     className={`rounded-3xl px-10 py-6 hover:px-11 hover:py-7 hover:rounded-4xl overflow-hidden ${className}`}
   >
     <div
       className="transition-all duration-700 hover:scale-95"
-      style={{ transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)' }}
+      style={{
+        transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 2.2)',
+      }}
     >
       {children}
     </div>

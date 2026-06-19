@@ -7,9 +7,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-[var(--primary-gradient)] text-white shadow-sm hover:opacity-90',
+        default:
+          'bg-[var(--primary-gradient)] text-white shadow-sm hover:opacity-90',
         destructive: 'bg-error text-white hover:opacity-90',
-        outline: 'border border-border bg-transparent text-text-primary hover:bg-bg-tertiary',
+        outline:
+          'border border-border bg-transparent text-text-primary hover:bg-bg-tertiary',
         secondary: 'bg-bg-tertiary text-text-primary hover:bg-bg-secondary',
         ghost: 'text-text-primary hover:bg-bg-tertiary',
         link: 'text-accent underline-offset-4 hover:underline',

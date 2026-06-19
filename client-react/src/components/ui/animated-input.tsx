@@ -59,7 +59,10 @@ export function AnimatedInput({
           setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
         }}
         onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => { setHovering(false); setMousePos({ x: 0, y: 0 }) }}
+        onMouseLeave={() => {
+          setHovering(false)
+          setMousePos({ x: 0, y: 0 })
+        }}
       >
         {/* 鼠标追踪光晕 — 银白微光 */}
         {hovering && (
@@ -67,7 +70,7 @@ export function AnimatedInput({
             className="absolute inset-0 pointer-events-none transition-opacity duration-200"
             style={{
               background: `radial-gradient(200px circle at ${mousePos.x}px ${mousePos.y}px, var(--accent-color) 0%, transparent 70%)`,
-              opacity: 0.08
+              opacity: 0.08,
             }}
           />
         )}
@@ -94,10 +97,12 @@ export function AnimatedInput({
 
         {/* 左侧图标 */}
         {icon && (
-          <span className={cn(
-            'absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 z-10',
-            focused ? 'text-neutral-300' : 'text-neutral-500',
-          )}>
+          <span
+            className={cn(
+              'absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 z-10',
+              focused ? 'text-neutral-300' : 'text-neutral-500',
+            )}
+          >
             {icon}
           </span>
         )}
@@ -141,18 +146,38 @@ export function AnimatedInput({
             onClick={onToggle}
             className={cn(
               'absolute right-3 top-1/2 -translate-y-1/2 transition-colors duration-200 z-10',
-              showPassword ? 'text-neutral-200' : 'text-neutral-500 hover:text-neutral-400',
+              showPassword
+                ? 'text-neutral-200'
+                : 'text-neutral-500 hover:text-neutral-400',
             )}
           >
             {showPassword ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
               </svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
               </svg>
             )}
           </button>

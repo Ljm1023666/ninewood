@@ -2,18 +2,25 @@ import {
   useRef,
   useState,
   useEffect,
-  useCallback,
   type CSSProperties,
   type MouseEvent,
-  type TouchEvent,
   type HTMLAttributes,
-} from "react"
-import { Link } from "react-router-dom"
-import { cn } from "@/lib/utils"
+} from 'react'
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useMotionTemplate,
+} from 'motion/react'
+import { Link } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
+import { InfoCard } from '@/components/ui/info-card'
+import { AuroraGradientBar } from '@/components/ui/aurora-gradient-bar'
+import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 
-export interface InteractiveProductCardProps
-  extends HTMLAttributes<HTMLDivElement> {
+export interface InteractiveProductCardProps extends HTMLAttributes<HTMLDivElement> {
   imageUrl: string
   logoUrl: string
   title: string
@@ -29,6 +36,21 @@ export interface InteractiveProductCardProps
   onSwipePrev?: () => void
   /** 为 true 时由外层垂直拖动手势切页，关闭内部滑切/滚轮切页 */
   externalVerticalDrag?: boolean
+  /** 为 true 时关闭本卡片自带的鼠标 3D 倾斜（供外层如 CometCard 统一做 3D） */
+  disableSurfaceTilt?: boolean
+  /** 全卡跟手高光（与 CometCard 联用时开启） */
+  innerSheen?: boolean
+  /** 点击翻面：正面标题置于橙色横条内 + 左下角红色价格；背面 InfoCard 完整描述 */
+  flipDescription?: boolean
+  /** 背面顶部大图：个人中心封面；未传时用 publisherUserId 映射预设图（与全站个人中心一致） */
+  profileCoverUrl?: string | null
+  /** 与 profileCoverUrl 搭配：发布者 id，用于无封面时的预设封面 */
+  publisherUserId?: string | null
+}
+
+function parsePriceNumber(price: string): number {
+  const n = Number(price.replace(/[^\d.]/g, ''))
+  return Number.isFinite(n) ? n : 0
 }
 
 export function InteractiveProductCard({
@@ -45,123 +67,113 @@ export function InteractiveProductCard({
   onSwipeNext,
   onSwipePrev,
   externalVerticalDrag = false,
+  disableSurfaceTilt = false,
+  innerSheen = false,
+  flipDescription = false,
+  profileCoverUrl,
+  publisherUserId,
   ...props
 }: InteractiveProductCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const isDark = useThemeStore((s) => s.current.dark)
+  const [flipped, setFlipped] = useState(false)
+  const flippedRef = useRef(false)
+  flippedRef.current = flipped
+  const flipAtMs = useRef(0)
+
+  const sheenX = useMotionValue(0)
+  const sheenY = useMotionValue(0)
+  const sheenXSpring = useSpring(sheenX)
+  const sheenYSpring = useSpring(sheenY)
+  const sheenGlareX = useTransform(sheenXSpring, [-0.5, 0.5], [0, 100])
+  const sheenGlareY = useTransform(sheenYSpring, [-0.5, 0.5], [0, 100])
+  const sheenBackground = useMotionTemplate`radial-gradient(circle farthest-corner at ${sheenGlareX}% ${sheenGlareY}%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.42) 30%, rgba(255, 255, 255, 0.16) 64%, rgba(255, 255, 255, 0) 100%)`
+
   const [style, setStyle] = useState<CSSProperties>({})
-  const touchActive = useRef(false)
-  const neutralLockedRef = useRef(false)
-  const calibrateTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const touchStartY = useRef(0)
   const onSwipeNextRef = useRef(onSwipeNext)
   const onSwipePrevRef = useRef(onSwipePrev)
   onSwipeNextRef.current = onSwipeNext
   onSwipePrevRef.current = onSwipePrev
   const removeMouseSwipeListenersRef = useRef<(() => void) | null>(null)
-  /** 粗指针设备：禁用触摸移动跟手 3D（touchmove 会极频繁 setState）；陀螺仪仍可用 */
-  const coarsePointerRef = useRef(false)
-  useEffect(() => {
-    coarsePointerRef.current = window.matchMedia("(pointer: coarse)").matches
-  }, [])
 
-  // 切换卡片或内容变化时清空 3D tilt，避免滑动过程与松手后视觉不一致
+  // 切换卡片或内容变化时清空 3D tilt 和翻面状态
   useEffect(() => {
     setStyle({})
+    sheenX.set(0)
+    sheenY.set(0)
+    setFlipped(false)
     return () => {
       removeMouseSwipeListenersRef.current?.()
       removeMouseSwipeListenersRef.current = null
     }
-  }, [imageUrl, logoUrl, title, description, price])
+  }, [imageUrl, logoUrl, title, description, price, sheenX, sheenY])
 
-  const applyTilt = useCallback((x: number, y: number) => {
-    if (!cardRef.current) return
-    const { width, height } = cardRef.current.getBoundingClientRect()
-    const rotateX = ((y - 0.5) * 2) * -10
-    const rotateY = ((x - 0.5) * 2) * 10
-    setStyle({
-      transform: `perspective(1000px) rotateX(${(rotateX / 10) * 7}deg) rotateY(${(rotateY / 10) * 7}deg) scale3d(1.06, 1.06, 1.06)`,
-      transition: "transform 0.15s ease-out",
-    })
-  }, [])
+  const safeToggleFlip = () => {
+    if (!flipDescription || !description.trim()) return
+    if (flipAtMs.current && Date.now() - flipAtMs.current < 650) return
+    flipAtMs.current = Date.now()
+    setFlipped((v) => !v)
+  }
 
   // ── 桌面：鼠标跟动 ──
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!externalVerticalDrag && (onSwipeNextRef.current || onSwipePrevRef.current) && (e.buttons & 1)) {
+    if (
+      !externalVerticalDrag &&
+      (onSwipeNextRef.current || onSwipePrevRef.current) &&
+      e.buttons & 1
+    ) {
       return
     }
+    if (innerSheen && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect()
+      sheenX.set((e.clientX - rect.left) / rect.width - 0.5)
+      sheenY.set((e.clientY - rect.top) / rect.height - 0.5)
+    }
+    if (disableSurfaceTilt) return
     if (!cardRef.current) return
     const { left, top, width, height } = cardRef.current.getBoundingClientRect()
     const rx = ((e.clientY - top) / height - 0.5) * 2
     const ry = ((e.clientX - left) / width - 0.5) * 2
     setStyle({
       transform: `perspective(800px) rotateX(${rx * -7}deg) rotateY(${ry * 7}deg) scale3d(1.06, 1.06, 1.06)`,
-      transition: "transform 0.1s ease-out",
+      transition: 'transform 0.1s ease-out',
     })
-  }
-
-  // ── 触摸：手指跟动（与陀螺仪共存）──
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 0) return
-    if (coarsePointerRef.current) return
-    touchActive.current = true
-    const rect = cardRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const rx = ((e.touches[0].clientY - rect.top) / rect.height - 0.5) * 2
-    const ry = ((e.touches[0].clientX - rect.left) / rect.width - 0.5) * 2
-    setStyle({
-      transform: `perspective(800px) rotateX(${rx * -7}deg) rotateY(${ry * 7}deg) scale3d(1.06, 1.06, 1.06)`,
-      transition: "transform 0.1s ease-out",
-    })
-  }
-
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    if (externalVerticalDrag) {
-      touchStartY.current = e.touches[0]?.clientY ?? 0
-      return
-    }
-    touchActive.current = true
-    touchStartY.current = e.touches[0]?.clientY ?? 0
-    handleTouchMove(e)
   }
 
   const resetTilt = () => {
-    touchActive.current = false
-    neutralLockedRef.current = false
-    clearTimeout(calibrateTimerRef.current)
-    calibrateTimerRef.current = setTimeout(() => { neutralLockedRef.current = true }, 500)
-  }
-
-  // 触摸结束：检测滑动方向
-  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
-    if (externalVerticalDrag) {
-      resetTilt()
-      return
+    sheenX.set(0)
+    sheenY.set(0)
+    if (!disableSurfaceTilt) {
+      setStyle({
+        transform:
+          'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1.06, 1.06, 1.06)',
+        transition: 'transform 0.2s ease-out',
+      })
     }
-    const endY = (e as any).changedTouches?.[0]?.clientY ?? touchStartY.current
-    const dy = touchStartY.current - endY
-    if (dy > 50 && onSwipeNext) onSwipeNext()
-    else if (dy < -50 && onSwipePrev) onSwipePrev()
-    else resetTilt()
   }
 
-  /** 左键按下后在任意位置松手：按垂直位移切上/下一张（与触摸阈值一致） */
+  /** 左键按下后在任意位置松手：按垂直位移切上/下一张 */
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (externalVerticalDrag) return
+    if (flipDescription && description.trim() && flipped) return
     if (e.button !== 0) return
-    if ((e.target as HTMLElement).closest('a, button, [role="button"]')) return
+    if ((e.target as HTMLElement).closest('a, button')) return
     if (!onSwipeNextRef.current && !onSwipePrevRef.current) return
 
     removeMouseSwipeListenersRef.current?.()
     const startY = e.clientY
     let finished = false
-    const finish = (ev: MouseEvent) => {
+    const finish = (ev: globalThis.MouseEvent) => {
       if (finished) return
       finished = true
       window.removeEventListener('mouseup', finish, true)
       window.removeEventListener('blur', onBlur)
       removeMouseSwipeListenersRef.current = null
       const dy = startY - ev.clientY
+      if (flipDescription && description.trim() && flippedRef.current) {
+        resetTilt()
+        return
+      }
       if (dy > 50 && onSwipeNextRef.current) onSwipeNextRef.current()
       else if (dy < -50 && onSwipePrevRef.current) onSwipePrevRef.current()
       else resetTilt()
@@ -193,136 +205,46 @@ export function InteractiveProductCard({
   // 鼠标滚轮
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (externalVerticalDrag) return
+    if (flipDescription && description.trim() && flipped) return
     if (e.deltaY > 30 && onSwipeNext) onSwipeNext()
     else if (e.deltaY < -30 && onSwipePrev) onSwipePrev()
   }
 
-  // ── 陀螺仪 + 加速度计（手机也启用；触摸跟手倾斜仍关闭以防 touchmove 爆刷）
-  // 传感器回调用 rAF 合并到每帧最多一次 setState，减轻掉帧
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return () => {}
-
-    const w = window as any
-    const DoeCtor = w.DeviceOrientationEvent as
-      | (typeof DeviceOrientationEvent & { requestPermission?: () => Promise<string> })
-      | undefined
-
-    let cleanup: (() => void) | undefined
-    let orientationFired = false
-    let neutralBeta = 0
-    let neutralGamma = 0
-
-    // 重置中性位
-    function resetNeutral() {
-      neutralLockedRef.current = false
-      clearTimeout(calibrateTimerRef.current)
-      calibrateTimerRef.current = setTimeout(() => {
-        neutralLockedRef.current = true
-      }, 500)
-    }
-
-    let rafId: number | null = null
-    let pendingStyle: CSSProperties | null = null
-
-    function flushStyle() {
-      rafId = null
-      if (pendingStyle == null || touchActive.current) {
-        pendingStyle = null
-        return
-      }
-      setStyle(pendingStyle)
-      pendingStyle = null
-    }
-
-    function scheduleSetStyle(next: CSSProperties) {
-      if (touchActive.current) return
-      pendingStyle = next
-      if (rafId == null) rafId = requestAnimationFrame(flushStyle)
-    }
-
-    const applyGyro = (rxNorm: number, ryNorm: number) => {
-      if (touchActive.current) return
-      const rx = Math.max(-1, Math.min(1, rxNorm))
-      const ry = Math.max(-1, Math.min(1, ryNorm))
-      scheduleSetStyle({
-        transform: `perspective(800px) rotateX(${rx * -7}deg) rotateY(${ry * 7}deg) scale3d(1.06, 1.06, 1.06)`,
-        transition: "transform 0.08s ease-out",
-      })
-    }
-
-    function handleOrientation(e: any) {
-      if (e.beta == null || e.gamma == null) return
-      orientationFired = true
-
-      // 前 0.5 秒持续更新中性位（平滑锁定）
-      if (!neutralLockedRef.current) {
-        const W = 0.85 // 指数平滑权重
-        neutralBeta = neutralBeta * W + e.beta * (1 - W)
-        neutralGamma = neutralGamma * W + e.gamma * (1 - W)
-        // 中性位未锁定时卡片归正
-        scheduleSetStyle({
-          transform: "perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1.06, 1.06, 1.06)",
-          transition: "transform 0.15s ease-out",
-        })
-        return
-      }
-
-      // 锁定后：相对偏移计算倾斜
-      const deltaBeta = e.beta - neutralBeta
-      const deltaGamma = e.gamma - neutralGamma
-      applyGyro(deltaBeta / 30, deltaGamma / 30)
-    }
-
-    function handleMotion(e: any) {
-      if (orientationFired) return
-      const ag = e.accelerationIncludingGravity
-      if (!ag || ag.x == null) return
-      const rx = (ag.y ?? 0) / 9.8
-      const ry = (ag.x ?? 0) / 9.8
-      applyGyro(rx, ry)
-    }
-
-    function attachSensors() {
-      window.addEventListener("deviceorientation", handleOrientation)
-      window.addEventListener("devicemotion", handleMotion)
-      // 启动首次校准（2 秒后锁定中性位）
-      resetNeutral()
-    }
-
-    const needsPermission = typeof DoeCtor?.requestPermission === "function"
-
-    if (!needsPermission) {
-      // Android：直接双通道监听
-      attachSensors()
-    } else {
-      // iOS 13+：需要用户手势触发权限
-      function onGesture() {
-        DoeCtor!.requestPermission!()
-          .then((state: string) => {
-            if (state === "granted") attachSensors()
-          })
-          .catch(() => {})
-        document.removeEventListener("touchstart", onGesture)
-        document.removeEventListener("click", onGesture)
-      }
-      document.addEventListener("touchstart", onGesture, { once: true })
-      document.addEventListener("click", onGesture, { once: true })
-      cleanup = () => {
-        document.removeEventListener("touchstart", onGesture)
-        document.removeEventListener("click", onGesture)
-      }
-    }
-
-    return () => {
-      if (rafId != null) cancelAnimationFrame(rafId)
-      window.removeEventListener("deviceorientation", handleOrientation)
-      window.removeEventListener("devicemotion", handleMotion)
-      cleanup?.()
-    }
-  }, [])
-
   const safeDots = Math.min(Math.max(dotCount, 1), 12)
   const safeActive = Math.min(Math.max(activeDotIndex, 0), safeDots - 1)
+
+  const isFlipLayout = flipDescription && description.trim().length > 0
+  const profileBackImageUrl =
+    profileCoverUrl?.trim() ||
+    publisherUserCoverPreset(publisherUserId ?? undefined)
+  const numericPrice = parsePriceNumber(price)
+  /** 翻面标题色条：各档仅在自身色相（或金/极光辅色）内做渐变流光 */
+  const titleBarShimmerClass =
+    numericPrice > 10000
+      ? undefined
+      : cn(
+          'flip-card-title-bar-shimmer',
+          numericPrice > 3000 && numericPrice <= 10000
+            ? 'flip-card-title-bar-shimmer--gold'
+            : numericPrice > 1000
+              ? 'flip-card-title-bar-shimmer--red'
+              : numericPrice > 500
+                ? 'flip-card-title-bar-shimmer--orange'
+                : numericPrice > 100
+                  ? 'flip-card-title-bar-shimmer--violet'
+                  : numericPrice > 10
+                    ? 'flip-card-title-bar-shimmer--blue'
+                    : 'flip-card-title-bar-shimmer--green',
+        )
+  /** 翻面布局时根节点不要叠 perspective，否则与 CometCard / 内层 perspective 叠加，背面会像斜薄片、出现诡异侧棱 */
+  const rootTransformStyle: CSSProperties = isFlipLayout
+    ? {}
+    : disableSurfaceTilt
+      ? {
+          transform:
+            'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+        }
+      : style
 
   return (
     <div
@@ -330,114 +252,279 @@ export function InteractiveProductCard({
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
-      style={style}
+      style={rootTransformStyle}
       className={cn(
         /* 宽度用视口推算，避免父级 flex 压缩时 100% 变成极窄条 */
         /* 宽度：扣除全局侧栏，避免在 main 内仍按整屏 vw 计算导致视觉不居中 */
-        'relative box-border aspect-[9/16] w-[min(272px,calc(100vw-var(--sidebar-w,72px)-2rem))] max-w-full shrink-0 rounded-3xl shadow-lg md:w-[min(332px,calc(100vw-var(--sidebar-w,72px)-2.5rem))]',
-        isDark ? 'bg-card' : 'bg-transparent',
+        'relative box-border aspect-[9/16] w-[min(332px,calc(100vw-var(--sidebar-w,72px)-2.5rem))] max-w-full shrink-0 rounded-3xl',
+        isFlipLayout ? 'shadow-none' : 'shadow-lg',
+        isFlipLayout ? 'overflow-visible' : 'overflow-hidden',
+        'bg-transparent',
         '[transform-style:preserve-3d]',
-        'touch-manipulation',
         className,
+        isFlipLayout && '!ring-0 !ring-offset-0',
       )}
       {...props}
     >
-      <img
-        src={imageUrl}
-        alt={title}
-        className="absolute inset-0 h-full w-full rounded-3xl object-cover transition-transform duration-300"
-        style={{ transform: "translateZ(-20px) scale(1.1)" }}
-      />
-      {isDark ? (
-        <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-      ) : (
-        /* 浅色：约 80% 透明（≈20% 黑），略压高光、不糊图 */
-        <div className="pointer-events-none absolute inset-0 rounded-3xl bg-black/20" />
-      )}
-
-      <div
-        className="absolute inset-0 flex flex-col p-5"
-        style={{ transform: "translateZ(40px)" }}
-      >
-        <div
-          className={cn(
-            'flex items-start justify-between gap-3 rounded-xl border p-4',
-            isDark
-              ? 'border-white/10 bg-white/5 md:backdrop-blur-md'
-              : 'border-black/15 bg-transparent',
-          )}
-        >
-          <div className="min-w-0 flex-1 pr-1">
-            <h3
-              className={cn(
-                'text-2xl font-bold leading-tight',
-                isDark ? 'text-white' : 'text-text-primary [text-shadow:none]',
-              )}
-            >
-              {title}
-            </h3>
-            {description.trim() ? (
-              <p
-                className={cn(
-                  'mt-1 line-clamp-4 text-sm leading-relaxed',
-                  isDark ? 'text-white/70' : 'text-text-primary [text-shadow:none]',
-                )}
-              >
-                {description}
-              </p>
-            ) : null}
-          </div>
-          {avatarTo ? (
-            <Link
-              to={avatarTo}
-              className={cn('shrink-0 rounded-full outline-none ring-2 transition', isDark ? 'ring-white/25 hover:ring-white/55 focus-visible:ring-white' : 'ring-black/[0.1] hover:ring-black/[0.2] focus-visible:ring-black/[0.3]')}
-              aria-label={avatarLabel || "查看用户主页"}
-              onClick={(e) => e.stopPropagation()}
+      {isFlipLayout ? (
+        <div className="absolute inset-0 [perspective:1400px] [transform-style:preserve-3d]">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={flipped ? '返回卡片正面' : '查看需求描述'}
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest('a, button')) return
+              safeToggleFlip()
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                safeToggleFlip()
+              }
+            }}
+            className={cn(
+              'absolute inset-0 cursor-pointer outline-none [transform-style:preserve-3d]',
+              isDark
+                ? 'focus-visible:ring-2 focus-visible:ring-white/35'
+                : 'focus-visible:ring-2 focus-visible:ring-black/25',
+            )}
+            style={{
+              transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              transformOrigin: '50% 50%',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            {/* 正面：封面 + 高光 + 文案；翻面时子层不再 translateZ，避免旋转时挤出“盒子侧棱” */}
+            <div
+              className="absolute inset-0 z-[1] overflow-hidden rounded-3xl [backface-visibility:hidden] [transform-style:preserve-3d]"
+              style={{ transform: 'rotateY(0deg) translateZ(0)' }}
             >
               <img
-                src={logoUrl}
-                alt=""
-                className="h-12 w-12 rounded-full object-cover"
+                src={imageUrl}
+                alt={title}
+                decoding="async"
+                fetchPriority="high"
+                className="absolute inset-0 h-full w-full rounded-3xl object-cover [backface-visibility:hidden]"
+                style={{ transform: 'translateZ(0) scale(1)' }}
               />
-            </Link>
-          ) : (
-            <img
-              src={logoUrl}
-              alt=""
-              className={cn('h-12 w-12 shrink-0 rounded-full object-cover ring-2', isDark ? 'ring-white/25' : 'ring-black/[0.1]')}
-            />
-          )}
-        </div>
 
-        <div className="absolute top-[140px] left-5">
-          <div
-            className={cn(
-              'text-3xl font-extrabold',
-              isDark ? 'text-white drop-shadow-lg' : 'text-text-primary [text-shadow:none]',
-            )}
-          >
-            {price}
+              {innerSheen ? (
+                <motion.div
+                  className="pointer-events-none absolute inset-0 z-[5] h-full w-full rounded-3xl mix-blend-soft-light [backface-visibility:hidden]"
+                  style={{
+                    transform: 'translateZ(0)',
+                    background: sheenBackground,
+                    opacity: 0.62,
+                  }}
+                />
+              ) : null}
+
+              <div
+                className="absolute inset-0 z-10 flex min-h-0 flex-col px-10 pt-16"
+                style={{ transform: 'translateZ(40px)' }}
+              >
+                <div
+                  className={cn(
+                    'relative shrink-0 flex w-full justify-center overflow-hidden px-4 py-3 [text-rendering:optimizeLegibility]',
+                    titleBarShimmerClass,
+                  )}
+                >
+                  {numericPrice > 10000 ? (
+                    <>
+                      <AuroraGradientBar
+                        className="absolute inset-0 z-0 min-h-[44px] w-full [filter:drop-shadow(0_0_6px_rgba(102,126,234,0.5))_drop-shadow(0_0_12px_rgba(0,255,255,0.3))]"
+                        intensity={1.15}
+                      />
+                      <div
+                        className="flip-card-title-bar-aurora-sheen pointer-events-none absolute inset-0 z-[1] min-h-[44px]"
+                        aria-hidden
+                      />
+                    </>
+                  ) : null}
+                  <h3
+                    className={cn(
+                      'relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight',
+                      isDark ? 'text-white [text-shadow:none]' : 'text-black [text-shadow:none]',
+                    )}
+                  >
+                    {title}
+                  </h3>
+                </div>
+
+                <div className="pointer-events-none absolute bottom-5 left-1/2 z-[11] flex -translate-x-1/2 gap-2">
+                  {Array.from({ length: safeDots }).map((_, index) => (
+                    <div
+                      key={index}
+                      data-active={index === safeActive ? 'true' : 'false'}
+                      className="flip-card-front-dot h-1.5 w-1.5 shrink-0"
+                    >
+                      <span
+                        className="flip-card-front-dot-shine"
+                        style={{
+                          animationDelay: `${index * 0.14}s`,
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 背面：z 低于正面，避免 InfoCard 锥形边框在 preserve-3d 下叠到正面；未翻面时 pointer-events-none 防鼠标驱动背面环带 */}
+            <div
+              className={cn(
+                'absolute inset-0 z-0 min-h-0 min-w-0 overflow-hidden rounded-3xl [backface-visibility:hidden] [transform:rotateY(180deg)_translateZ(2px)] [transform-style:preserve-3d]',
+                !flipped && 'pointer-events-none',
+              )}
+            >
+              <div className="relative h-full min-h-0 w-full overflow-hidden rounded-3xl [isolation:isolate] [transform:translate3d(0,0,0)] [transform-style:flat]">
+                <InfoCard
+                  fillContainer
+                  descriptionMode="scroll"
+                  shellBorderRadius="1.5rem"
+                  image={profileBackImageUrl}
+                  imageAlt={avatarLabel || title}
+                  heroImageTo={avatarTo}
+                  heroImageAriaLabel={avatarLabel}
+                  title={title}
+                  description={description}
+                  borderColor="var(--ic-border-1)"
+                  borderBgColor="var(--ic-border-bg)"
+                  cardBgColor="var(--ic-card-bg)"
+                  textColor="var(--ic-text)"
+                  hoverTextColor="var(--ic-hover-text-1)"
+                  fontFamily="var(--font-family)"
+                  rtlFontFamily="var(--font-family)"
+                  effectBgColor="var(--ic-border-1)"
+                  patternColor1="var(--ic-pattern-1)"
+                  patternColor2="var(--ic-pattern-2)"
+                  contentPadding="14.3px 16px"
+                />
+                <div className="pointer-events-none absolute bottom-5 left-4 z-20 max-w-[calc(100%-2rem)] text-left">
+                  <span className="flip-card-back-price text-3xl font-extrabold leading-none [text-shadow:none]">
+                    {price}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      ) : (
+        <>
+          <img
+            src={imageUrl}
+            alt={title}
+            decoding="async"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover [backface-visibility:hidden]"
+            style={{ transform: 'translateZ(0) scale(1)' }}
+          />
 
-        <div className="mt-auto flex w-full justify-center gap-2 pb-2">
-          {Array.from({ length: safeDots }).map((_, index) => (
-            <div
-              key={index}
-              className={cn(
-                "h-1.5 w-1.5 rounded-full",
-                index === safeActive
-                  ? isDark ? "bg-white" : "bg-black/60"
-                  : isDark ? "bg-white/30" : "bg-black/20",
-              )}
+          {innerSheen ? (
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-[5] h-full w-full mix-blend-soft-light [backface-visibility:hidden]"
+              style={{
+                transform: 'translateZ(22px)',
+                background: sheenBackground,
+                opacity: 0.62,
+              }}
             />
-          ))}
-        </div>
-      </div>
+          ) : null}
+
+          <div
+            className="absolute inset-0 z-10 flex flex-col px-10 pb-5 pt-16"
+            style={{ transform: 'translateZ(40px)' }}
+          >
+            <div className="flex shrink-0 flex-col gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 pr-1">
+                  <h3
+                    className={cn(
+                      'text-2xl font-bold leading-tight [transform:translateX(0.01em)]',
+                      isDark
+                        ? 'text-white'
+                        : 'text-text-primary [text-shadow:none]',
+                    )}
+                  >
+                    {title}
+                  </h3>
+                  {description.trim() ? (
+                    <p
+                      className={cn(
+                        'mt-1 line-clamp-4 text-sm leading-relaxed',
+                        isDark
+                          ? 'text-white/70'
+                          : 'text-text-primary [text-shadow:none]',
+                      )}
+                    >
+                      {description}
+                    </p>
+                  ) : null}
+                </div>
+                {avatarTo ? (
+                  <Link
+                    to={avatarTo}
+                    className={cn(
+                      'shrink-0 rounded-full outline-none ring-2 transition',
+                      isDark
+                        ? 'ring-white/25 hover:ring-white/55 focus-visible:ring-white'
+                        : 'ring-black/[0.1] hover:ring-black/[0.2] focus-visible:ring-black/[0.3]',
+                    )}
+                    aria-label={avatarLabel || '查看用户主页'}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img
+                      src={logoUrl}
+                      alt=""
+                      className="h-12 w-12 rounded-full object-cover"
+                    />
+                  </Link>
+                ) : (
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    className={cn(
+                      'h-12 w-12 shrink-0 rounded-full object-cover ring-2',
+                      isDark ? 'ring-white/25' : 'ring-black/[0.1]',
+                    )}
+                  />
+                )}
+              </div>
+
+              <div
+                className={cn(
+                  'text-3xl font-extrabold',
+                  isDark
+                    ? 'text-white drop-shadow-lg'
+                    : 'text-text-primary [text-shadow:none]',
+                )}
+              >
+                {price}
+              </div>
+            </div>
+
+            <div className="mt-auto flex w-full justify-center gap-2 pb-2">
+              {Array.from({ length: safeDots }).map((_, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    index === safeActive
+                      ? isDark
+                        ? 'bg-white'
+                        : 'bg-black/60'
+                      : isDark
+                        ? 'bg-white/30'
+                        : 'bg-black/20',
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
