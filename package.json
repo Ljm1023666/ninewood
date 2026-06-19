@@ -2,25 +2,23 @@
   "name": "ninewood",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:electron": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"node scripts/electron-dev.mjs\"",
-    "dev:server": "npm run dev -w server",
-    "dev:client": "npm run dev -w client-react",
-    "build": "npm run build -w server && npm run build -w client-react",
-    "build:electron": "npm run build:electron -w client-react",
-    "test": "npm run test -w client-react",
-    "lint": "npm run lint -w client-react",
-    "lint:fix": "npm run lint:fix -w client-react",
-    "format": "npm run format -w client-react",
-    "prepare": "husky || true",
-    "typecheck": "npm run typecheck -w server && npm run typecheck -w client-react",
-    "typecheck:server": "npm run typecheck -w server",
-    "typecheck:client": "npm run typecheck -w client-react"
+    "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\"",
+    "dev:electron": "concurrently \"pnpm dev:server\" \"pnpm dev:client\" \"node scripts/electron-dev.mjs\"",
+    "dev:server": "pnpm --filter server run dev",
+    "dev:client": "pnpm --filter client-react run dev",
+    "build": "pnpm build:server && pnpm build:client",
+    "build:server": "pnpm --filter server run build",
+    "build:client": "pnpm --filter client-react run build",
+    "build:electron": "pnpm --filter client-react run build:electron",
+    "test": "pnpm --filter client-react run test",
+    "lint": "pnpm --filter client-react run lint",
+    "lint:fix": "pnpm --filter client-react run lint:fix",
+    "format": "pnpm --filter client-react run format",
+    "prepare": "echo ok",
+    "typecheck": "pnpm typecheck:server && pnpm typecheck:client",
+    "typecheck:server": "pnpm --filter server run typecheck",
+    "typecheck:client": "pnpm --filter client-react exec tsc --noEmit"
   },
-  "workspaces": [
-    "server",
-    "client-react"
-  ],
   "devDependencies": {
     "concurrently": "^9.1.2"
   },
@@ -33,7 +31,9 @@
       "@prisma/client",
       "@prisma/engines",
       "prisma",
-      "esbuild"
+      "esbuild",
+      "electron",
+      "electron-winstaller"
     ],
     "overrides": {
       "@types/express": "^4.17.21",

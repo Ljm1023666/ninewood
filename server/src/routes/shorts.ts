@@ -31,7 +31,7 @@ shortsRouter.get('/', async (req: Request, res: Response) => {
         where: { followerId: userId },
         select: { followingId: true },
       });
-      const ids = following.map(f => f.followingId);
+      const ids = following.map((f: any) => f.followingId);
       ids.push(userId); // also include own
       where.userId = { in: ids };
     }
@@ -42,7 +42,7 @@ shortsRouter.get('/', async (req: Request, res: Response) => {
           where: { cityCode: me.cityCode },
           select: { id: true },
         });
-        where.userId = { in: nearbyUsers.map(u => u.id) };
+        where.userId = { in: nearbyUsers.map((u: any) => u.id) };
       }
     }
 

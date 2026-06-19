@@ -147,6 +147,7 @@ export default function DemandCreate() {
   const workspaceFields = useDemandWorkspaceStore((s) => s.fields)
   const workspaceReady = useDemandWorkspaceStore((s) => s.readyToPublish)
   const confidence = useDemandWorkspaceStore((s) => s.confidence)
+  const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
   const applyAgent = useDemandWorkspaceStore((s) => s.applyAgentResult)
   const applyAnalyze = useDemandWorkspaceStore((s) => s.applyAnalyzeResult)
   const resetWorkspace = useDemandWorkspaceStore((s) => s.reset)
@@ -255,12 +256,11 @@ export default function DemandCreate() {
 
   const sendMessage = useCallback(
     async (rawMessage: string) => {
-      const isAggressive = rawMessage.startsWith('[Aggressive:')
       const isThink = rawMessage.startsWith('[Think:')
       const isCanvas = rawMessage.startsWith('[Canvas:')
 
       const text = rawMessage
-        .replace(/^\[(Aggressive|Think|Canvas):\s*/, '')
+        .replace(/^\[(Think|Canvas):\s*/, '')
         .replace(/\]$/, '')
         .trim()
       if (!text) return
@@ -272,13 +272,12 @@ export default function DemandCreate() {
       setThinkCollapsed(false)
       thinkAccRef.current = ''
 
-      // Speed 模式：清空旧消息和工作区，每次从头开始
-      if (isAggressive) {
+      const speedMode = useDemandWorkspaceStore.getState().speedMode
+
+      // Speed 模式：每次从头开始，清空旧消息和工作区
+      if (speedMode) {
         setMessages([])
         resetWorkspace()
-        useDemandWorkspaceStore.getState().setSpeedMode(true)
-      } else {
-        useDemandWorkspaceStore.getState().setSpeedMode(false)
       }
 
       const confirmedCtx = useDemandWorkspaceStore
@@ -366,9 +365,12 @@ export default function DemandCreate() {
           await handleCanvasModeRef.current(text)
         } else if (isThink) {
           await handleDefaultModeRef.current(history, true)
-        } else {
-          // 默认 = 激进：一句话生成草稿，不追问
+        } else if (speedMode) {
+          // Speed ON：一句话生成草稿，不追问
           await handleAggressiveModeRef.current(text)
+        } else {
+          // Speed OFF：Agent 对话，逐步补全信息
+          await handleDefaultModeRef.current(history, false)
         }
       } catch {
         setMessages((prev) => [
@@ -809,6 +811,13 @@ export default function DemandCreate() {
           f.serviceType === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
         )
         fd.append('expireAt', new Date(Date.now() + 7 * 86400000).toISOString())
+        // 新字段
+        if (f.regionId) fd.append('regionId', String(f.regionId))
+        if (f.tagName) fd.append('tagName', f.tagName)
+        if (f.isCertifiedOnly) fd.append('isCertifiedOnly', 'true')
+        if (f.amountEstimate) fd.append('amountEstimate', String(f.amountEstimate))
+        if (f.pushConfig) fd.append('pushConfig', JSON.stringify(f.pushConfig))
+        if (f.coverImage) fd.append('coverImage', f.coverImage)
         await demandApi.create(fd)
         toast(force ? '已发布至无差别池' : '发布成功', 'success')
         resetWorkspace()
@@ -1102,6 +1111,10 @@ export default function DemandCreate() {
                 onSend={(message) => sendMessage(message)}
                 isLoading={loading}
                 enableSpeed
+                speedMode={speedMode}
+                onSpeedChange={(on) =>
+                  useDemandWorkspaceStore.getState().setSpeedMode(on)
+                }
                 placeholder="说点什么？"
                 value={draftInput}
                 onInputChange={setDraftInput}
@@ -1126,7 +1139,7 @@ export default function DemandCreate() {
               <>
                 <WorkspaceSummary />
                 <WorkspaceFields />
-                <WorkspaceTools />
+                {!speedMode && <WorkspaceTools />}
               </>
             )}
           </div>

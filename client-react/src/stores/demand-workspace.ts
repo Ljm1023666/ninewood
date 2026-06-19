@@ -10,6 +10,12 @@ export interface DemandFields {
   taxonomyLeafId: string | null
   scopeLabels: string[]
   suggestedKeywords: string[]
+  regionId?: number
+  tagName?: string
+  isCertifiedOnly: boolean
+  pushConfig?: Record<string, unknown>
+  coverImage?: string
+  amountEstimate?: number
 }
 
 interface DemandWorkspaceState {
@@ -79,6 +85,12 @@ const INITIAL_FIELDS: DemandFields = {
   taxonomyLeafId: null,
   scopeLabels: [],
   suggestedKeywords: [],
+  regionId: undefined,
+  tagName: undefined,
+  isCertifiedOnly: false,
+  pushConfig: undefined,
+  coverImage: undefined,
+  amountEstimate: undefined,
 }
 
 export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
@@ -92,7 +104,7 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
     missingAnswers: {},
     confidence: 'low',
     readyToPublish: false,
-    speedMode: false,
+    speedMode: true,
     lockedKeywords: new Set(),
 
     setSpeedMode: (on) => set({ speedMode: on }),
@@ -272,7 +284,7 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
         fields: { ...INITIAL_FIELDS },
         fieldOverrides: new Set(),
         lockedKeywords: new Set(),
-        speedMode: false,
+        speedMode: true,
         missingInfo: [],
         missingQueue: [],
         answeredQueue: [],

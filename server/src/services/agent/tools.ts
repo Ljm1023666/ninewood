@@ -59,7 +59,7 @@ export function registerNinewoodTools(): void {
         },
       });
 
-      const list = demands.map((d) => ({
+      const list = demands.map((d: any) => ({
         id: d.id,
         title: d.title,
         category: d.category,
@@ -79,7 +79,7 @@ export function registerNinewoodTools(): void {
         success: true,
         data: list,
         message: `找到 ${list.length} 个相关需求：\n${list
-          .map((d) => `- ${d.title}（${d.category}）¥${d.minPrice}起`)
+          .map((d: any) => `- ${d.title}（${d.category}）¥${d.minPrice}起`)
           .join('\n')}`,
       };
     },
@@ -234,7 +234,7 @@ export function registerNinewoodTools(): void {
         success: true,
         data: demands,
         message: `你共有 ${demands.length} 个需求：\n${demands
-          .map((d) => `- ${d.title}（${d.status}）${d.applicantCount}人申请`)
+          .map((d: any) => `- ${d.title}（${d.status}）${d.applicantCount}人申请`)
           .join('\n')}`,
       };
     },

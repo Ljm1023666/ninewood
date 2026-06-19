@@ -23,7 +23,11 @@ import { complaintRouter } from './routes/complaint.js';
 import { adminRouter } from './routes/admin.js';
 import { aiRouter } from './routes/ai.js';
 import { agentRouter } from './routes/agent.js';
+import { reviewRouter } from './routes/review.js';
 import { captchaRouter } from './routes/captcha.js';
+import { regionRouter } from './routes/region.js';
+import { tagRouter } from './routes/tag.js';
+import { certificationRouter } from './routes/certification.js';
 import { registerNinewoodTools } from './services/agent/tools.js';
 
 Sentry.init({
@@ -66,6 +70,9 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/demands', demandRouter);
 app.use('/api/orders', orderRouter);
+app.use('/api/regions', regionRouter);
+app.use('/api/tags', tagRouter);
+app.use('/api/certification', certificationRouter);
 app.use('/api/circles', circleRouter);
 app.use('/api/deposits', depositRouter);
 app.use('/api/messages', messageRouter);
@@ -74,6 +81,7 @@ app.use('/api/complaints', complaintRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/agent', agentRouter);
+app.use('/api/reviews', reviewRouter);
 app.use('/api/captcha', captchaRouter);
 
 // 注册 Ninewood 业务工具

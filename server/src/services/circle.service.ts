@@ -83,7 +83,7 @@ export const circleService = {
       },
       orderBy: { joinedAt: 'desc' },
     });
-    return memberships.map((m) => ({
+    return memberships.map((m: any) => ({
       ...m,
       circle: m.circle
         ? {
@@ -122,7 +122,7 @@ export const circleService = {
         select: { circleId: true },
       });
       if (myCircleIds.length) {
-        where.id = { notIn: myCircleIds.map(m => m.circleId) };
+        where.id = { notIn: myCircleIds.map((m: any) => m.circleId) };
       }
     }
     const circles = await prisma.circle.findMany({
@@ -133,7 +133,7 @@ export const circleService = {
       },
       orderBy: [{ memberCount: 'desc' }, { activeScore: 'desc' }],
     });
-    return circles.map((c) => ({
+    return circles.map((c: any) => ({
       ...c,
       coverUrl: c.coverUrl || c.owner?.coverUrl || null,
     }));

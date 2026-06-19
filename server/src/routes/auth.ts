@@ -132,7 +132,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/auth/login — phone + password for existing users
+// POST /api/auth/login — phone + password
 authRouter.post('/login', async (req: Request, res: Response) => {
   try {
     const { phone, password } = loginSchema.parse(req.body);

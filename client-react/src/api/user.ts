@@ -48,4 +48,28 @@ export const userApi = {
   getFavoriteStatus(demandId: string) {
     return api.get(`/users/favorites/${demandId}/status`)
   },
+  searchByTags(tags: string, params?: { regionId?: number; includeBusy?: boolean; page?: number }) {
+    return api.get('/users/search', { params: { tags, ...params } })
+  },
+  updateTags(tags: string[]) {
+    return api.put('/users/tags', { tags })
+  },
+  getMyTags() {
+    return api.get('/users/tags')
+  },
+  getUserTags(userId: string) {
+    return api.get(`/users/tags/${userId}`)
+  },
+  updateBusy(isBusy: boolean, allowSpecialSearch?: boolean) {
+    return api.put('/users/busy', { isBusy, allowSpecialSearch })
+  },
+  getMyBusy() {
+    return api.get('/users/busy')
+  },
+  getBlocklist() {
+    return api.get('/users/blocklist')
+  },
+  updateBlocklist(blocklist: { tags?: string[]; keywords?: string[]; ageRanges?: string[] }) {
+    return api.put('/users/blocklist', blocklist)
+  },
 }

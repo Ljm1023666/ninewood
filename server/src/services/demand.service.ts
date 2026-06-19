@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { ServiceType, DemandStatus, Prisma } from '@prisma/client';
+import { ServiceType, DemandStatus, DemandStage, Prisma } from '@prisma/client';
 
 const CERT_ORDER: Record<string, number> = { MASTER: 4, ADVANCED: 3, INTERMEDIATE: 2, BASIC: 1, NONE: 0 };
 
@@ -35,9 +35,14 @@ export const demandService = {
     category: string;
     taxonomyLeafId?: string;
     serviceType: ServiceType;
-    locationLat?: number;
-    locationLng?: number;
     cityCode?: string;
+    regionId?: number;
+    tagName?: string;
+    isCertifiedOnly?: boolean;
+    pushConfig?: any;
+    coverImage?: string;
+    amountEstimate?: number;
+    stage?: DemandStage;
     expireAt: string;
     circleId?: string;
     mediaUrls?: string[];
@@ -65,9 +70,14 @@ export const demandService = {
         category: params.category,
         taxonomyLeafId: params.taxonomyLeafId || null,
         serviceType: params.serviceType,
-        locationLat: params.locationLat || null,
-        locationLng: params.locationLng || null,
         cityCode: params.cityCode || null,
+        regionId: params.regionId || null,
+        tagName: params.tagName || null,
+        isCertifiedOnly: params.isCertifiedOnly || false,
+        pushConfig: params.pushConfig || null,
+        coverImage: params.coverImage || null,
+        amountEstimate: params.amountEstimate ?? null,
+        stage: params.stage || 'active',
         expireAt: new Date(params.expireAt),
         circleId: params.circleId || null,
         isPublic: params.circleId ? false : true,
@@ -84,7 +94,7 @@ export const demandService = {
 
   async search(params: {
     keyword?: string;
-    tags?: string;
+    tagName?: string;
     category?: string;
     /** 逗号分隔；与 category 二选一，多类目 IN */
     categories?: string;
@@ -108,6 +118,9 @@ export const demandService = {
     ids?: string[];
     /** 搜索模式：exact 精确 / fuzzy 模糊 */
     searchMode?: 'exact' | 'fuzzy';
+    /** 活池/死池筛选: active | completed */
+    stage?: string;
+    regionId?: number;
   }) {
     const page = params.page || 1;
     const limit = params.limit || 20;
@@ -119,10 +132,6 @@ export const demandService = {
         : undefined;
 
     const keywordTrimmed = params.keyword?.trim();
-    const tagsList = params.tags
-      ?.split(',')
-      .map((s) => s.trim())
-      .filter(Boolean) ?? [];
     const serviceTypeOk =
       params.serviceType === 'ONLINE' || params.serviceType === 'OFFLINE' ? params.serviceType : undefined;
 
@@ -137,12 +146,18 @@ export const demandService = {
         .map((s) => s.trim())
         .filter(Boolean) ?? [];
 
-    const and: any[] = [{ status: 'PENDING' as const }];
+    // 默认只展示活池（active），传 stage=completed 切换至死池
+    const stageFilter: any =
+      params.stage === 'completed'
+        ? { stage: 'completed' as const, status: 'COMPLETED' as const }
+        : { stage: 'active' as const, NOT: { status: 'CLOSED' as const } };
+    const and: any[] = [stageFilter];
     if (publisherFilter) and.push({ userId: publisherFilter });
     if (params.ids && Array.isArray(params.ids) && params.ids.length > 0) {
       and.push({ id: { in: params.ids } });
     }
     if (serviceTypeOk) and.push({ serviceType: serviceTypeOk as ServiceType });
+    if (params.regionId != null) and.push({ regionId: params.regionId });
     if (taxonomyLeafIdsList.length > 0) {
       and.push({ taxonomyLeafId: { in: taxonomyLeafIdsList } });
     } else if (params.taxonomyLeafId) {
@@ -179,15 +194,13 @@ export const demandService = {
       }
     }
 
-    if (tagsList.length > 0) {
-      for (const tag of tagsList) {
-        and.push({
-          OR: [
-            { title: { contains: tag, mode: 'insensitive' } },
-            { description: { contains: tag, mode: 'insensitive' } },
-          ],
-        });
-      }
+    // 标签卡包筛选（单标签关联）
+    if (params.tagName) {
+      and.push({ tagName: params.tagName });
+    }
+    // 未分类需求筛选
+    if (params.tagName === '__untagged__') {
+      and.push({ tagName: null });
     }
 
     if (params.userId) {
@@ -215,7 +228,9 @@ export const demandService = {
           const distance = params.distance!;
 
           // 用 Prisma.sql 片段构建 WHERE 条件，参数绑定由 Prisma 负责
-          const whereFragments: Prisma.Sql[] = [Prisma.sql`d.status = 'PENDING'`];
+          const whereFragments: Prisma.Sql[] = params.stage === 'completed'
+            ? [Prisma.sql`d.stage = 'completed' AND d.status = 'COMPLETED'`]
+            : [Prisma.sql`d.stage = 'active' AND d.status != 'CLOSED'`];
 
           if (publisherFilter) whereFragments.push(Prisma.sql`d."userId" = ${publisherFilter}::uuid`);
           if (params.cityCode) whereFragments.push(Prisma.sql`d."cityCode" = ${params.cityCode}`);
@@ -237,11 +252,8 @@ export const demandService = {
             const kw = `%${keywordTrimmed}%`;
             whereFragments.push(Prisma.sql`(d."title" ILIKE ${kw} OR d."description" ILIKE ${kw})`);
           }
-          if (tagsList.length > 0) {
-            for (const tag of tagsList) {
-              const t = `%${tag}%`;
-              whereFragments.push(Prisma.sql`(d."title" ILIKE ${t} OR d."description" ILIKE ${t})`);
-            }
+          if (params.tagName) {
+            whereFragments.push(Prisma.sql`d."tagName" = ${params.tagName}`);
           }
 
           const whereClause = Prisma.join(whereFragments, '\n          AND ');
@@ -353,7 +365,7 @@ export const demandService = {
       take: limit,
     });
 
-    const paged = demands.map((d) => ({
+    const paged = demands.map((d: any) => ({
       id: d.id,
       title: d.title,
       minPrice: Number(d.minPrice),
@@ -401,12 +413,12 @@ export const demandService = {
     if (!demand) throw { status: 404, message: '需求不存在' };
 
     const isOwner = userId === demand.userId;
-    const hasOrder = demand.applications.some(a => a.status === 'ACCEPTED');
+    const hasOrder = demand.applications.some((a: any) => a.status === 'ACCEPTED');
 
     return {
       ...demand,
       minPrice: Number(demand.minPrice),
-      applications: isOwner ? demand.applications.map(a => ({
+      applications: isOwner ? demand.applications.map((a: any) => ({
         ...a,
         offerPrice: a.offerPrice ? Number(a.offerPrice) : null,
       })) : [],

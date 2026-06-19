@@ -10,7 +10,7 @@ export const depositService = {
       throw { status: 400, message: '部分需求不存在或不属于你' };
     }
 
-    const totalMinPrice = demands.reduce((sum, d) => sum + Number(d.minPrice), 0);
+    const totalMinPrice = demands.reduce((sum: number, d: any) => sum + Number(d.minPrice), 0);
     const depositAmount = Math.round(totalMinPrice * 0.01 * 100) / 100;
 
     if (depositAmount < 0.01) throw { status: 400, message: '最低报酬过低，无法计算押金' };
@@ -25,7 +25,7 @@ export const depositService = {
         userId,
         amount: depositAmount,
         demandRelations: {
-          create: demands.map(d => ({ demandId: d.id })),
+          create: demands.map((d: any) => ({ demandId: d.id })),
         },
       },
     });
@@ -43,14 +43,14 @@ export const depositService = {
     });
 
     return {
-      totalHeld: deposits.filter(d => d.status === 'PENDING').reduce((s, d) => s + Number(d.amount), 0),
-      totalRefunded: deposits.filter(d => d.status === 'REFUNDED').reduce((s, d) => s + Number(d.amount), 0),
-      totalForfeited: deposits.filter(d => d.status === 'FORFEITED').reduce((s, d) => s + Number(d.amount), 0),
-      deposits: deposits.map(d => ({
+      totalHeld: deposits.filter((d: any) => d.status === 'PENDING').reduce((s: number, d: any) => s + Number(d.amount), 0),
+      totalRefunded: deposits.filter((d: any) => d.status === 'REFUNDED').reduce((s: number, d: any) => s + Number(d.amount), 0),
+      totalForfeited: deposits.filter((d: any) => d.status === 'FORFEITED').reduce((s: number, d: any) => s + Number(d.amount), 0),
+      deposits: deposits.map((d: any) => ({
         id: d.id,
         userId: d.userId,
         amount: Number(d.amount),
-        demandIds: d.demandRelations.map(r => r.demandId),
+        demandIds: d.demandRelations.map((r: any) => r.demandId),
         status: d.status,
         createdAt: d.createdAt,
       })),

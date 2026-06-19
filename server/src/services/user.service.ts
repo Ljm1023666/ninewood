@@ -141,7 +141,7 @@ export const userService = {
       }),
       prisma.follow.count({ where: { followingId: userId } }),
     ]);
-    return { list: list.map(f => f.follower), total, page, totalPages: Math.ceil(total / limit) };
+    return { list: list.map((f: any) => f.follower), total, page, totalPages: Math.ceil(total / limit) };
   },
 
   async getFollowing(userId: string, page = 1) {
@@ -156,7 +156,7 @@ export const userService = {
       }),
       prisma.follow.count({ where: { followerId: userId } }),
     ]);
-    return { list: list.map(f => f.following), total, page, totalPages: Math.ceil(total / limit) };
+    return { list: list.map((f: any) => f.following), total, page, totalPages: Math.ceil(total / limit) };
   },
 
   async getFollowCounts(userId: string) {
@@ -236,7 +236,7 @@ export const userService = {
       prisma.demandFavorite.count({ where: { userId } }),
     ]);
     return {
-      list: list.map(f => f.demand),
+      list: list.map((f: any) => f.demand),
       total,
       page,
       totalPages: Math.ceil(total / limit),

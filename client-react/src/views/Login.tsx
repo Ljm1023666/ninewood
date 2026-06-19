@@ -453,23 +453,6 @@ export default function LoginPage() {
     return () => clearInterval(t)
   }, [countdown])
 
-  // ── 进入人机验证步骤 ──
-  const handleFetchCaptcha = useCallback(async () => {
-    setError('')
-    setCaptchaError('')
-    setIsLoading(true)
-    try {
-      const siteKey = await captchaApi.getSiteKey()
-      if (!siteKey) throw new Error('hCaptcha 未配置')
-      setCaptchaSiteKey(siteKey)
-      setStep('captcha')
-    } catch {
-      setError('人机验证未配置，请联系管理员')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
   // hCaptcha 验证回调 → 发送短信
   const handleHCaptchaVerify = useCallback(
     async (token: string) => {
@@ -495,6 +478,28 @@ export default function LoginPage() {
     [phone],
   )
 
+  // ── 进入人机验证步骤 ──
+  const handleFetchCaptcha = useCallback(async () => {
+    setError('')
+    setCaptchaError('')
+    setIsLoading(true)
+    try {
+      // 开发环境：跳过 hCaptcha 人机验证界面
+      if (import.meta.env.DEV) {
+        await handleHCaptchaVerify(`dev-bypass-${Date.now()}`)
+        return
+      }
+      const siteKey = await captchaApi.getSiteKey()
+      if (!siteKey) throw new Error('hCaptcha 未配置')
+      setCaptchaSiteKey(siteKey)
+      setStep('captcha')
+    } catch {
+      setError('人机验证未配置，请联系管理员')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [handleHCaptchaVerify])
+
   // ── 手机号提交 → 获取人机验证 ──
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -508,7 +513,7 @@ export default function LoginPage() {
     await handleFetchCaptcha()
   }
 
-  // ── 密码登录 ──
+  // ── 密码登录 → 人机验证 → API ──
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!phone || phone.length < 11 || !password) return
@@ -586,6 +591,7 @@ export default function LoginPage() {
     setSmsDigits(Array(SMS_LENGTH).fill(''))
     setError('')
     setCaptchaError('')
+    setCaptchaMode('register')
     setPrivacyAccepted(false)
   }
 

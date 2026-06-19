@@ -2,12 +2,21 @@ import { Router, Request, Response } from 'express';
 import { snatchLimiter } from '../middleware/rate-limit.js';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
-import { upload } from '../middleware/upload.js';
+import { upload, verifyUpload } from '../middleware/upload.js';
 import { demandService } from '../services/demand.service.js';
 import { success, fail, paginated } from '../utils/response.js';
 import { q } from '../utils/query.js';
+import { poolService } from '../services/pool.service.js';
+import { bidService } from '../services/bid.service.js';
+import { pushService } from '../services/push.service.js';
 
 export const demandRouter = Router();
+
+const qstr = (v: unknown): string | undefined => {
+  if (typeof v === 'string') return v;
+  if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
+  return undefined;
+};
 
 const createSchema = z.object({
   title: z.string().min(2).max(100),
@@ -16,9 +25,13 @@ const createSchema = z.object({
   category: z.string().min(1).max(50),
   taxonomyLeafId: z.string().min(1).max(64).optional(),
   serviceType: z.enum(['ONLINE', 'OFFLINE']),
-  locationLat: z.coerce.number().min(-90).max(90).optional(),
-  locationLng: z.coerce.number().min(-180).max(180).optional(),
   cityCode: z.string().max(20).optional(),
+  regionId: z.coerce.number().optional(),
+  tagName: z.string().optional(),
+  isCertifiedOnly: z.coerce.boolean().optional(),
+  pushConfig: z.any().optional(),
+  coverImage: z.string().optional(),
+  amountEstimate: z.coerce.number().optional(),
   expireAt: z.string().min(1),
   circleId: z.string().optional(),
 });
@@ -102,11 +115,30 @@ const applySchema = z.object({
   message: z.string().max(500).optional(),
 });
 
+const extendSchema = z.object({
+  months: z.coerce.number().int().positive().max(12),
+});
+
+const completeSchema = z.object({
+  coverImage: z.string().min(1),
+});
+
+const bidSchema = z.object({
+  offerPrice: z.coerce.number().min(0).optional(),
+  message: z.string().max(500).optional(),
+});
+
+const pushSchema = z.object({
+  tags: z.array(z.string()).optional(),
+  keywords: z.array(z.string()).optional(),
+  ageRanges: z.array(z.string()).optional(),
+});
+
 // POST /api/demands — create
 demandRouter.post('/', authMiddleware, upload.fields([
   { name: 'images', maxCount: 9 },
   { name: 'video', maxCount: 1 },
-]), async (req: Request, res: Response) => {
+]), verifyUpload, async (req: Request, res: Response) => {
   try {
     const data = createSchema.parse(req.body);
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -131,14 +163,9 @@ demandRouter.post('/', authMiddleware, upload.fields([
 // GET /api/demands/search
 demandRouter.get('/search', async (req: Request, res: Response) => {
   try {
-    const qstr = (v: unknown): string | undefined => {
-      if (typeof v === 'string') return v;
-      if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
-      return undefined;
-    };
     const params = {
       keyword: qstr(req.query.keyword),
-      tags: qstr(req.query.tags),
+      tagName: qstr(req.query.tagName),
       category: qstr(req.query.category),
       categories: qstr(req.query.categories),
       taxonomyLeafId: qstr(req.query.taxonomyLeafId),
@@ -155,6 +182,8 @@ demandRouter.get('/search', async (req: Request, res: Response) => {
       excludeExample: req.query.excludeExample === 'true',
       searchMode: (qstr(req.query.searchMode) ?? 'exact') as 'exact' | 'fuzzy',
       exact: req.query.exact === 'true',
+      stage: qstr(req.query.stage),
+      regionId: req.query.regionId ? Number(req.query.regionId) : undefined,
       userId: (req as any).user?.userId,
       publisherId: (req.query.publisher as string) || (req.query.publisherId as string) || undefined,
       ids: req.query.ids ? (req.query.ids as string).split(',').filter(Boolean) : undefined,
@@ -193,6 +222,45 @@ demandRouter.get('/my-status', authMiddleware, async (req: Request, res: Respons
   try {
     const frozenCount = await demandService.getFrozenCount(req.user!.userId);
     success(res, { hasFrozen: frozenCount > 0 });
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ======== 活池检索 ========
+// GET /api/demands/active
+demandRouter.get('/active', async (req: Request, res: Response) => {
+  try {
+    const params = {
+      regionId: req.query.regionId ? Number(req.query.regionId) : undefined,
+      tagName: qstr(req.query.tagName),
+      excludeTagName: qstr(req.query.excludeTagName),
+      untaggedOnly: req.query.untaggedOnly === 'true' ? true : undefined,
+      isCertifiedOnly: req.query.isCertifiedOnly === 'true' ? true : undefined,
+      special: req.query.special === 'true' ? true : undefined,
+      page: req.query.page ? Number(req.query.page) : 1,
+      limit: req.query.pageSize ? Number(req.query.pageSize) : 20,
+    };
+    const result = await poolService.getActive(params);
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ======== 死池检索 ========
+// GET /api/demands/dead
+demandRouter.get('/dead', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const params = {
+      userId: req.user!.userId,
+      regionId: req.query.regionId ? Number(req.query.regionId) : undefined,
+      tagName: req.query.tagName ? (req.query.tagName as string).split(',').filter(Boolean)?.[0] : undefined,
+      page: req.query.page ? Number(req.query.page) : 1,
+      limit: req.query.pageSize ? Number(req.query.pageSize) : 20,
+    };
+    const result = await poolService.getDead(params);
+    success(res, result);
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);
   }
@@ -259,6 +327,83 @@ demandRouter.get('/:id/applications', authMiddleware, async (req: Request, res: 
     const apps = await demandService.getApplications(req.params.id as string, req.user!.userId);
     success(res, apps);
   } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ======== 时间杠杆：延期 ========
+// POST /api/demands/:id/extend
+demandRouter.post('/:id/extend', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { months } = extendSchema.parse(req.body);
+    const result = await poolService.extendDemand(req.params.id, req.user!.userId, months);
+    success(res, result);
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ======== 完成需求（移入死池）=======
+// POST /api/demands/:id/complete
+demandRouter.post('/:id/complete', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { coverImage } = completeSchema.parse(req.body);
+    const result = await poolService.completeDemand(req.params.id, req.user!.userId, coverImage);
+    success(res, result);
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ======== 应标（竞标）=======
+// POST /api/demands/:id/bid
+demandRouter.post('/:id/bid', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const data = bidSchema.parse(req.body);
+    const result = await bidService.bid(req.params.id, req.user!.userId, data);
+    success(res, result, '应标成功', 201);
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// GET /api/demands/:id/bids
+demandRouter.get('/:id/bids', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await bidService.getBids(req.params.id);
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// ======== 推送配置 ========
+// POST /api/demands/:id/push/execute — 执行推送
+demandRouter.post('/:id/push/execute', authMiddleware, async (req, res) => {
+  try {
+    const io = req.app.get('io');
+    const result = await pushService.executePush(req.params.id, io);
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// PUT /api/demands/:id/push
+demandRouter.put('/:id/push', authMiddleware, async (req, res) => {
+  try {
+    const data = pushSchema.parse(req.body);
+    // 先更新配置
+    const result = await poolService.updatePushConfig(req.params.id, req.user!.userId, data);
+    // 再执行推送
+    const io = req.app.get('io');
+    const pushResult = await pushService.executePush(req.params.id, io);
+    success(res, { ...result, ...pushResult });
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '参数验证失败', 400, e.errors);
     fail(res, e.message || '服务器错误', e.status || 500);
   }
 });
