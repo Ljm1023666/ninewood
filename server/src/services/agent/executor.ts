@@ -2,8 +2,15 @@ import { config } from '../../config.js';
 import { readSSEStream } from '../ai/client.js';
 import { toolRegistry, type ToolContext } from './tool-registry.js';
 import { loadAllSkills, buildSkillPrompt } from './skill-loader.js';
+import { buildKnowledgeIndex } from './knowledge-loader.js';
 import { addMessage, truncateTitle } from './conversation.js';
 import type { ToolResult } from './tool-registry.js';
+
+// ─── 工具调用限流 ──────────────────────────────────────────────────────────
+// 同一会话内，单次用户消息最多触发 MAX_TOOL_CALLS 次工具调用
+const MAX_TOOL_CALLS = 8;
+// 连续工具调用链最大深度（防止工具调用无限循环）
+const MAX_CHAIN_DEPTH = 3;
 
 /** Agent 执行参数 */
 export interface AgentExecuteParams {
@@ -20,6 +27,49 @@ export interface AgentExecuteParams {
 /** SSE 事件发送器 */
 export type EventSender = (event: string, data: unknown) => void;
 
+/** 流式过滤 MiniMax 自带的 <think> 标签（跨 delta 安全） */
+function createThinkStripper() {
+  let inside = false
+  let buf = ''
+  return {
+    feed(chunk: string): string | null {
+      let out = ''
+      for (const ch of chunk) {
+        buf += ch
+        if (!inside && buf.endsWith('<think>')) {
+          inside = true
+          buf = ''
+          continue
+        }
+        if (inside && buf.endsWith('</think>')) {
+          inside = false
+          buf = ''
+          continue
+        }
+        if (!inside && buf.length >= 7) {
+          const idx = buf.indexOf('<think>')
+          if (idx >= 0) {
+            out += buf.slice(0, idx)
+            buf = buf.slice(idx)
+            inside = true
+            buf = buf.replace('<think>', '')
+          } else {
+            out += buf.slice(0, -7)
+            buf = buf.slice(-7)
+          }
+        }
+      }
+      return out || null
+    },
+    flush(): string | null {
+      if (inside) return null
+      const result = buf.replace(/<think>.*?<\/think>/gs, '')
+      buf = ''
+      return result || null
+    },
+  }
+}
+
 /** 构建系统提示 */
 function buildSystemPrompt(
   ctx: ToolContext,
@@ -28,7 +78,7 @@ function buildSystemPrompt(
     context?: Record<string, unknown>;
   },
 ): string {
-  let prompt = '你是九木平台的智能助手。你可以和用户闲聊、解答问题，也可以在用户需要时帮助发布需求或搜索服务。';
+  let prompt = '你是九木平台的智能助手。你可以和用户闲聊、解答问题，也可以在用户需要时帮助发布需求或搜索服务。当用户表达"去/跳转/打开某个页面"的意图时，调用 navigate_to 工具帮 TA 跳转。';
 
   if (options.context?.page === 'demand-create') {
     prompt += ' 用户当前在"发布需求"页面。如果用户明确想发布需求，帮 TA 分析整理；如果用户只是随便聊聊，就正常聊天，但心里记住聊天中透露的信息（兴趣、偏好、状态等），后续如果 TA 转向需求讨论时，可以结合之前的聊天内容来更好地理解 TA。';
@@ -45,7 +95,32 @@ function buildSystemPrompt(
 - 如果有不确定的地方，向用户追问确认`;
 
   if (options.useTools) {
-    prompt += '\n- 你可以调用工具来完成操作，工具调用前先向用户解释你要做什么';
+    prompt += `
+你可以调用工具来完成操作，但请严格遵循以下优先级规则：
+
+【工具选择规则 — 严格按优先级判断】
+
+规则 1：用户问"怎么做""是什么""有什么功能" → 优先调用 read_knowledge 查知识库。
+   示例："怎么发布需求"、"认证有什么用"、"什么是卡池" → read_knowledge
+
+规则 2：用户说"帮我做/我要/我想"执行操作 → 优先调用对应写工具。
+   示例："帮我发一个王者代打需求" → create_demand
+   示例："帮我下架那个需求" → withdraw_demand
+   示例："接受张三的申请" → accept_applicant
+
+规则 3：用户说"帮我看看/搜一下"浏览数据 → 优先调用只读工具。
+   示例："看看我的需求" → list_my_demands
+   示例："搜一下王者荣耀" → search_demands
+   示例："看看谁申请了" → list_applicants
+
+规则 4：用户问平台信息（"这是什么平台""九木有什么功能"）→ 用知识库或直接回答，不调工具。
+
+【执行规则】
+- 只读工具（search, list, get, read）：可直接调用，无需先问用户
+- 写操作工具（create, update, withdraw, apply, accept, reject）：必须先向用户解释清楚要做什么、影响什么，确认后再调用
+- 多工具可串联：用户说"搜王者荣耀需求，然后看第一个的详情" → 先 search_demands，再用第一个结果的 id 调 get_demand_detail
+- 一次说清所有操作：如果需要执行多个步骤，一次性列出计划让用户确认，不要来回确认
+- 工具调用失败时，根据错误信息引导用户修正，不要直接放弃`;
   }
 
   // 注入技能提示
@@ -53,6 +128,9 @@ function buildSystemPrompt(
   if (skills.length > 0) {
     prompt += buildSkillPrompt(skills);
   }
+
+  // 注入知识库（仅索引，完整内容通过 read_knowledge 工具按需检索）
+  prompt += buildKnowledgeIndex();
 
   return prompt;
 }
@@ -114,20 +192,35 @@ export async function executeAgent(
     await truncateTitle(conversationId, message);
 
     // 构建请求体
+    const selectedModel = model || config.aiModel
     const body: Record<string, unknown> = {
-      model: model || config.aiModel,
+      model: selectedModel,
       max_tokens: 4096,
       temperature: 0.1,
       stream: true,
       messages,
     };
 
+    // 根据模型名自动路由到对应提供商
+    const isDeepSeek = selectedModel.startsWith('deepseek')
+    const dsCfg = config.providers?.deepseek
+    const apiBaseUrl = isDeepSeek && dsCfg ? dsCfg.baseUrl : config.aiBaseUrl
+    const apiKey = isDeepSeek && dsCfg?.apiKey ? dsCfg.apiKey : config.aiApiKey
+
     if (thinking) {
-      body.thinking = { type: 'enabled' };
+      // DeepSeek V4+ 用 thinking_mode，旧模型用 thinking
+      if (selectedModel.startsWith('deepseek-v4')) {
+        body.thinking_mode = 'thinking'
+      } else {
+        body.thinking = { type: 'enabled' }
+      }
+    } else if (selectedModel.startsWith('deepseek-v4')) {
+      // DeepSeek V4 默认开启思考，关闭时必须显式指定 non-thinking
+      body.thinking_mode = 'non-thinking'
     }
 
     if (webSearch) {
-      body.web_search = { enable: true };
+      body.web_search = isDeepSeek ? { enable: true } : true
     }
 
     if (useTools) {
@@ -136,11 +229,11 @@ export async function executeAgent(
     }
 
     // 流式调用
-    const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
+    const aiRes = await fetch(`${apiBaseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.aiApiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify(body),
     });
@@ -163,19 +256,27 @@ export async function executeAgent(
       { id: string; name: string; arguments: string }
     >();
 
+    // 非思考模式下：过滤 MiniMax 自带的 <think> 标签
+    const thinkStripper = thinking ? null : createThinkStripper()
+
     // 使用共享 SSE 流读取器
     const { fullContent, reasoningContent, thinkLinesSent } = await readSSEStream(
       reader,
       {
         onTextDelta: (delta) => {
-          send('text', { delta });
+          if (thinkStripper) {
+            const cleaned = thinkStripper.feed(delta)
+            if (cleaned) send('text', { delta: cleaned })
+          } else {
+            send('text', { delta })
+          }
         },
-        onThinkLine: (line) => {
+        onThinkLine: thinking ? (line) => {
           send('think', { line });
-        },
-        onReasoningLine: (line) => {
+        } : undefined,
+        onReasoningLine: thinking ? (line) => {
           send('think', { line });
-        },
+        } : undefined,
         onToolCallDelta: (deltas) => {
           for (const tc of deltas) {
             const idx = tc.index ?? 0;
@@ -195,9 +296,14 @@ export async function executeAgent(
       send('think-end', 'ok');
     }
 
+    // 限流：截断超过上限的工具调用
+    const allToolCalls = Array.from(toolCallsMap.values()).filter((tc) => tc.name);
+    const exceeded = allToolCalls.length > MAX_TOOL_CALLS;
+    const limitedToolCalls = allToolCalls.slice(0, MAX_TOOL_CALLS);
+
     // 批量处理工具调用
     const toolResults: ToolResult[] = [];
-    for (const [, tc] of toolCallsMap) {
+    for (const tc of limitedToolCalls) {
       if (!tc.name) continue;
 
       let args: Record<string, unknown> = {};
@@ -221,6 +327,13 @@ export async function executeAgent(
       });
     }
 
+    // 如果工具调用数超过限制，追加一条说明
+    if (exceeded) {
+      send('text', {
+        delta: `\n\n（提示：一次执行的操作较多，已自动限制为前 ${MAX_TOOL_CALLS} 项。如有需要可以分多次告诉我。）`,
+      });
+    }
+
     // 如果有工具调用结果，做一次批量总结
     if (toolResults.length > 0) {
       await continueWithToolResults(
@@ -233,11 +346,17 @@ export async function executeAgent(
       );
     }
 
+    // 非思考模式下冲洗残留缓冲 + 清理 fullContent
+    const flushed = thinkStripper?.flush()
+    if (flushed) send('text', { delta: flushed })
+
+    const cleanedContent = thinking ? fullContent : fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+
     // 保存 assistant 消息
     await addMessage({
       conversationId,
       role: 'assistant',
-      content: fullContent,
+      content: cleanedContent,
       thinking: reasoningContent || undefined,
       toolCalls:
         toolResults.length > 0
@@ -246,7 +365,8 @@ export async function executeAgent(
               return {
                 name: tc?.name || 'unknown',
                 arguments: tc ? safeParseArgs(tc.arguments) : {},
-                result: r.data,
+                result: r.message,
+                data: r.data,
               };
             })
           : undefined,
@@ -295,8 +415,14 @@ async function continueWithToolResults(
     content: '请根据以上工具执行结果，用自然语言向用户总结发生了什么。保持简洁友好，使用简体中文。',
   });
 
+  const selectedModel = model || config.aiModel
+  const isDS = selectedModel.startsWith('deepseek')
+  const dsCfg = config.providers?.deepseek
+  const apiBaseUrl = isDS && dsCfg ? dsCfg.baseUrl : config.aiBaseUrl
+  const apiKey = isDS && dsCfg?.apiKey ? dsCfg.apiKey : config.aiApiKey
+
   const body: Record<string, unknown> = {
-    model: model || config.aiModel,
+    model: selectedModel,
     max_tokens: 1024,
     temperature: 0.1,
     stream: true,
@@ -304,15 +430,21 @@ async function continueWithToolResults(
   };
 
   if (thinking) {
-    body.thinking = { type: 'enabled' };
+    if (selectedModel.startsWith('deepseek-v4')) {
+      body.thinking_mode = 'thinking'
+    } else {
+      body.thinking = { type: 'enabled' }
+    }
+  } else if (selectedModel.startsWith('deepseek-v4')) {
+    body.thinking_mode = 'non-thinking'
   }
 
   try {
-    const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
+    const aiRes = await fetch(`${apiBaseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.aiApiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify(body),
     });
