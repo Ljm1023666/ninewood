@@ -55,10 +55,15 @@ demandRouter.post('/', authMiddleware, upload.fields([
 // GET /api/demands/search
 demandRouter.get('/search', async (req: Request, res: Response) => {
   try {
+    const qstr = (v: unknown): string | undefined => {
+      if (typeof v === 'string') return v;
+      if (Array.isArray(v) && typeof v[0] === 'string') return v[0];
+      return undefined;
+    };
     const params = {
-      keyword: req.query.keyword as string | undefined,
-      category: req.query.category as string | undefined,
-      serviceType: req.query.serviceType as string | undefined,
+      keyword: qstr(req.query.keyword),
+      category: qstr(req.query.category),
+      serviceType: qstr(req.query.serviceType),
       minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
       maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
       distance: req.query.distance ? Number(req.query.distance) : undefined,

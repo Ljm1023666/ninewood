@@ -31,22 +31,32 @@ export default function Messages() {
       {error && (
         <div className="flex flex-1 flex-col items-center justify-center py-16 text-sm text-text-muted">
           <p>{error}</p>
-          <button type="button" onClick={() => void fetchConversations()} className="mt-3 text-accent">
+          <button
+            type="button"
+            onClick={() => void fetchConversations()}
+            className="mt-3 text-accent"
+          >
             重试
           </button>
         </div>
       )}
 
       {loading && !error && (
-        <div className="flex flex-1 items-center justify-center py-16 text-sm text-text-muted">加载中...</div>
+        <div className="flex flex-1 items-center justify-center py-16 text-sm text-text-muted">
+          加载中...
+        </div>
       )}
 
       {!loading && !error && (
         <div className="relative z-10 mx-auto box-border flex w-full max-w-3xl shrink-0 flex-col self-center px-4 pb-8 pt-6 sm:px-6">
           <div className="mb-2 flex min-w-0 items-baseline justify-between gap-3">
-            <span className="text-2xl font-extrabold tracking-[-0.3px] text-text-primary">消息</span>
+            <span className="text-2xl font-extrabold tracking-[-0.3px] text-text-primary">
+              消息
+            </span>
             {conversations.length > 0 && (
-              <span className="shrink-0 whitespace-nowrap text-xs text-text-muted">{conversations.length} 个对话</span>
+              <span className="shrink-0 whitespace-nowrap text-xs text-text-muted">
+                {conversations.length} 个对话
+              </span>
             )}
           </div>
 
@@ -70,14 +80,23 @@ export default function Messages() {
               role="button"
               tabIndex={0}
               onClick={() => navigate(`/messages/${c.user.id}`)}
-              onKeyDown={(e) => e.key === 'Enter' && navigate(`/messages/${c.user.id}`)}
+              onKeyDown={(e) =>
+                e.key === 'Enter' && navigate(`/messages/${c.user.id}`)
+              }
               className="flex cursor-pointer items-center gap-3.5 px-1 py-4 transition-all hover:translate-x-1 hover:bg-bg-secondary active:scale-[0.985]"
             >
               <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-bg-tertiary to-card">
                 {c.user.avatarUrl ? (
-                  <img src={c.user.avatarUrl} className="h-full w-full object-cover" loading="lazy" alt="" />
+                  <img
+                    src={c.user.avatarUrl}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    alt=""
+                  />
                 ) : (
-                  <span className="text-lg font-bold text-text-secondary">{c.user.nickname?.charAt(0)}</span>
+                  <span className="text-lg font-bold text-text-secondary">
+                    {c.user.nickname?.charAt(0)}
+                  </span>
                 )}
                 {c.unreadCount > 0 && (
                   <div className="absolute right-1 top-1 h-2.5 w-2.5 animate-[dot-pulse_2s_ease-in-out_infinite] rounded-full bg-[var(--error-color)]" />
@@ -85,7 +104,9 @@ export default function Messages() {
               </div>
               <div className="min-w-0 flex-1 border-b border-border pb-0.5">
                 <div className="mb-1 flex items-center justify-between">
-                  <span className="text-[17px] font-semibold text-text-primary">{c.user.nickname}</span>
+                  <span className="text-[17px] font-semibold text-text-primary">
+                    {c.user.nickname}
+                  </span>
                   <span className="ml-2 flex-shrink-0 text-xs text-text-muted">
                     {formatChatTime(c.lastMessage?.createdAt)}
                   </span>

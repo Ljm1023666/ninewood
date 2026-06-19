@@ -127,3 +127,97 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 | `init` | 为新项目初始化 CLAUDE.md |
 | `review` | Review Pull Request |
 | `security-review` | 对当前分支改动做安全检查 |
+
+## Ninewood 项目执行约定（Electron + React）
+
+以下约定用于减少错误上下文，按“仓库当前实际配置”执行。
+
+### 目录边界
+
+- 仓库根目录：`e:/Ninewood`
+- 前端：`client-react/`
+- 后端：`server/`
+- Electron 代码：`client-react/electron/`
+- 归档目录：`archive/`（默认只读，不在无明确要求时改动）
+- 构建产物目录（如 `dist/`、`build/`）不手动编辑
+
+### Monorepo 与运行命令
+
+- 包管理：npm workspaces（`server`、`client-react`）
+- 联调开发：`npm run dev`（根目录，并行启动 server + client）
+- Electron 联调：`npm run dev:electron`（根目录）
+- 全量构建：`npm run build`（根目录）
+- 类型检查：`npm run typecheck`（根目录）
+- 仅前端开发：`npm run dev -w client-react`
+- 仅后端开发：`npm run dev -w server`
+
+### 前端技术栈与约定
+
+- React + TypeScript + Vite
+- 路由：`react-router-dom`（当前版本 7.x），路由入口在 `client-react/src/router/index.tsx`
+- 状态管理：Zustand（新增 store 时保持现有模式）
+- 请求库：Axios（优先复用现有 API 层封装）
+- 样式：Tailwind CSS v4（配合 `@tailwindcss/vite`）
+- 路径别名：`@` -> `client-react/src`（见 `vite.config.ts` 与 `tsconfig.app.json`）
+- 组件命名：组件名 PascalCase；文件名优先沿用所在目录既有风格并保持一致
+
+### 后端与接口协作
+
+- 后端框架：Express + Prisma（`server/`）
+- 本地 API 地址：`http://localhost:3001`（前端通过 Vite proxy 走 `/api`、`/uploads`、`/socket.io`）
+- 涉及前后端字段变更时，优先保证类型与接口契约一致，再改调用方
+
+### Electron 通信约定
+
+- 渲染进程通过 `window.electronAPI` 调用主进程能力
+- 预加载脚本入口：`client-react/electron/preload.cjs`
+- IPC channel 采用 `domain:action` 风格（示例：`window:quit`、`window:minimize`、`window:maximize`）
+
+### 代码变更完成标准（DoD）
+
+- 只改与需求直接相关的文件，避免顺手重构
+- 至少执行并通过相关检查（按改动范围选择）：
+  - `npm run typecheck`（根目录，推荐）
+  - `npm run lint -w client-react`（若改动前端）
+- 若改动运行/构建路径，补充最小可复现验证步骤
+
+## 代码质量工具
+
+- **ESLint**：检查语法与规则问题，运行 `npm run lint`
+- **Prettier**：统一格式化，运行 `npm run format`
+- **Vitest**：执行前端单元测试，运行 `npm run test`
+- **Husky**：提交前触发 `lint-staged`
+
+## 组件测试规范
+
+- 测试文件优先放在 `client-react/src/**/__tests__/`，或使用 `.test.tsx` 命名
+- 使用 `vi` 进行 mock 和桩函数控制
+- 使用 `screen` 与 `userEvent` 模拟用户交互
+- 覆盖率目标：核心逻辑大于 80%
+
+## 开发范围锁定（Windows 电脑端优先）
+
+本项目当前阶段 **只开发 Windows 电脑端**，不考虑移动端适配。
+
+### 强制约束
+- 所有 UI 组件默认假设运行在宽屏（>=1280px）环境下
+- 不使用 `@media (max-width: 768px)` 等移动端断点
+- 不添加 `touch` 相关事件（如 `onTouchStart`、`onTouchEnd`）
+- 不引入移动端专用库（如 `@capacitor/*`、`react-swipeable`、`@ionic/react`）
+- 不考虑 PWA、Service Worker、离线缓存等移动端特性
+- 不考虑移动端底栏安全区（`safe-area-inset-bottom`）
+
+### 允许的范围
+- 可以使用 Electron 原生 API（如系统托盘、全局快捷键、本地文件读写）
+- 可以使用大屏交互（右键菜单、拖拽、悬浮效果）
+- 可以假定用户使用鼠标键盘操作
+
+### 代码审查检查点
+- 如果 AI 生成的代码包含移动端适配逻辑，需主动询问并移除
+- 默认不生成响应式布局代码
+
+## 新会话快速提示（Windows-only）
+
+项目当前仅做 Windows 电脑端（Electron + React），默认宽屏交互，不做移动端适配。  
+禁止生成 touch 事件、移动端断点（max-width:768）、safe-area/PWA/Service Worker 相关代码与依赖。  
+如需求与此冲突，请先询问我再实现。

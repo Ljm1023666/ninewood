@@ -37,13 +37,20 @@ export function isDemandDetailRoute(pathname: string): boolean {
 
 /** 不铺 Layout 里「当前用户 / 他人」模糊封面（与白底表单同屏时易在宽屏比例下露出边缝色差） */
 export function suppressLayoutAmbient(pathname: string): boolean {
-  return pathname === '/demands/create' || pathname.startsWith('/demands/create/')
+  return (
+    pathname === '/demands/create' || pathname.startsWith('/demands/create/')
+  )
 }
 
 /** 发布者 id → 固定预设封面 URL */
-export function publisherUserCoverPreset(publisherUserId: string | undefined): string {
+export function publisherUserCoverPreset(
+  publisherUserId: string | undefined,
+): string {
   const fallback = USER_COVER_PRESET_URLS[0]!
-  if (!publisherUserId || USER_COVER_PRESET_URLS.length === 0) return fallback
-  const i = stableIndexFromUserId(publisherUserId, USER_COVER_PRESET_URLS.length)
+  if (!publisherUserId) return fallback
+  const i = stableIndexFromUserId(
+    publisherUserId,
+    USER_COVER_PRESET_URLS.length,
+  )
   return USER_COVER_PRESET_URLS[i]!
 }

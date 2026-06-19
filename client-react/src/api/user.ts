@@ -9,7 +9,11 @@ export const userApi = {
   },
   updateProfile(data: FormData | Record<string, any>) {
     const isFormData = data instanceof FormData
-    return api.put('/users/profile', data, isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {})
+    return api.put(
+      '/users/profile',
+      data,
+      isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {},
+    )
   },
   certStatus() {
     return api.get('/users/cert-status')

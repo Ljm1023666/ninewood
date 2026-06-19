@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { messageApi } from '@/api/message'
 import { Home, type TemplateContact } from '@/components/ui/chat-template'
 import { ResizablePanel } from '@/components/ui/resizable'
+import { SidebarProvider } from '@/components/blocks/sidebar'
 
 export default function MessagesLayout() {
   const navigate = useNavigate()
@@ -29,8 +30,9 @@ export default function MessagesLayout() {
         list.map((c) => ({
           id: c.user.id,
           name: c.user.nickname,
-          message: c.lastMessage?.content || 'Your Last Message Here',
+          message: c.lastMessage?.content || '',
           image: c.user.avatarUrl || 'https://github.com/rayimanoj8.png',
+          unreadCount: (c as any).unreadCount ?? 0,
         })),
       )
     } catch {
@@ -50,7 +52,8 @@ export default function MessagesLayout() {
   }, [rows, threadUserId])
 
   return (
-    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-background">
+    <SidebarProvider>
+      <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-background">
       {/**
        * showNavigateRail={false}：模板内 shadcn Sidebar 为 fixed;left:0，会盖住会话列表并与 Ninewood 全局侧栏重叠。
        * 独立全屏预览请用 ChatTemplateDemoPage（带 SidebarProvider + showNavigateRail 默认 true）。
@@ -59,15 +62,21 @@ export default function MessagesLayout() {
         showNavigateRail={false}
         contacts={rows}
         currentChat={currentChat}
+        selectedContactId={threadUserId}
         onSelectContact={(c) => {
           if (c.id) navigate(`/messages/${c.id}`)
         }}
         rightColumn={
-          <ResizablePanel defaultSize={75} minSize={40} className="min-h-0 min-w-0">
+          <ResizablePanel
+            defaultSize={75}
+            minSize={40}
+            className="min-h-0 min-w-0"
+          >
             <Outlet />
           </ResizablePanel>
         }
       />
     </div>
+    </SidebarProvider>
   )
 }

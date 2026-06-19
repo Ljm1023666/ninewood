@@ -28,15 +28,15 @@ const testUsers = [
 ];
 
 const demandTemplates = [
-  { title: '家电清洗服务', desc: '需要深度清洗空调和洗衣机各一台，需自备工具和清洗剂', price: 150, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.91, lng: 116.40 },
-  { title: 'Logo设计', desc: '科技创业公司需要设计简洁现代的Logo，包含名片和信封设计', price: 500, cat: '设计', type: 'ONLINE' as const },
+  { title: '家电清洗服务', desc: '需要深度清洗空调和洗衣机各一台，需自备工具和清洗剂', price: 8, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.91, lng: 116.40 },
+  { title: 'Logo设计', desc: '科技创业公司需要设计简洁现代的Logo，包含名片和信封设计', price: 88, cat: '设计', type: 'ONLINE' as const },
   { title: '高中数学辅导', desc: '高二学生需要数学一对一辅导，函数和几何薄弱，每周一次', price: 200, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.92, lng: 116.38 },
-  { title: '搬家搬运', desc: '一居室搬家，从朝阳区搬到海淀区，需要一辆面包车和搬運工', price: 400, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.95, lng: 116.32 },
+  { title: '搬家搬运', desc: '一居室搬家，从朝阳区搬到海淀区，需要一辆面包车和搬運工', price: 980, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.95, lng: 116.32 },
   { title: '英语翻译需求', desc: '需要翻译一份商务合同（中译英），约3000字，要求专业术语准确', price: 300, cat: '咨询服务', type: 'ONLINE' as const },
-  { title: '家庭私厨上门', desc: '周末家庭聚餐6人，需要上门做一桌川菜，食材可自行准备', price: 350, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.93, lng: 116.36 },
+  { title: '家庭私厨上门', desc: '周末家庭聚餐6人，需要上门做一桌川菜，食材可自行准备', price: 2800, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.93, lng: 116.36 },
   { title: '手机屏幕维修', desc: 'iPhone 15 Pro屏幕碎裂需要更换，要求原装屏', price: 250, cat: '维修服务', type: 'OFFLINE' as const, lat: 39.90, lng: 116.41 },
   { title: '健身私教课', desc: '需要一位健身教练指导减脂，每周3次，每次1小时', price: 180, cat: '教育培训', type: 'OFFLINE' as const, lat: 39.94, lng: 116.33 },
-  { title: '小程序前端开发', desc: '需要一个微信小程序的前端页面，包含用户登录和商品列表', price: 800, cat: '技术开发', type: 'ONLINE' as const },
+  { title: '小程序前端开发', desc: '需要一个微信小程序的前端页面，包含用户登录和商品列表', price: 8800, cat: '技术开发', type: 'ONLINE' as const },
   { title: '证件照拍摄', desc: '需要专业证件照拍摄，白底和蓝底各一组，精修出片', price: 100, cat: '设计', type: 'OFFLINE' as const, lat: 39.91, lng: 116.39 },
   { title: '宠物代遛', desc: '工作日白天金毛一条，需要附近靠谱人士代遛一小时，自备牵引绳', price: 45, cat: '家政服务', type: 'OFFLINE' as const, lat: 39.88, lng: 116.42 },
   { title: '婚礼跟妆', desc: '户外草坪婚礼，需要跟妆师跟全程，含补妆和换造型', price: 1200, cat: '设计', type: 'OFFLINE' as const, lat: 31.23, lng: 121.47 },
@@ -48,7 +48,7 @@ const demandTemplates = [
   { title: '甲醛检测', desc: '新房入住前做一次甲醛与TVOC检测，需要出具简易报告', price: 280, cat: '咨询服务', type: 'OFFLINE' as const, lat: 40.00, lng: 116.28 },
   { title: '闲置手机回收估价', desc: 'iPhone 13 128G 无拆修，希望上门验机当面打款', price: 1800, cat: '维修服务', type: 'OFFLINE' as const, lat: 39.91, lng: 116.40 },
   { title: '多肉组盆造景', desc: '阳台花架需要一组北欧风多肉拼盘，含盆与土', price: 320, cat: '家政服务', type: 'OFFLINE' as const, lat: 24.99, lng: 102.72 },
-  { title: '民宿空间摄影', desc: '共8间房，需要自然光+补光各一套图，用于平台头图', price: 1500, cat: '设计', type: 'OFFLINE' as const, lat: 30.25, lng: 120.17 },
+  { title: '民宿空间摄影', desc: '共8间房，需要自然光+补光各一套图，用于平台头图', price: 12800, cat: '设计', type: 'OFFLINE' as const, lat: 30.25, lng: 120.17 },
   { title: '城市骑行向导', desc: '周末半天带骑友走长安街沿线经典路线，需熟悉路况与补给点', price: 200, cat: '咨询服务', type: 'OFFLINE' as const, lat: 39.90, lng: 116.39 },
 ];
 

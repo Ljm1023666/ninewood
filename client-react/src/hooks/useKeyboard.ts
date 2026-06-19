@@ -7,7 +7,7 @@ export function useKeyboard(shortcuts: Shortcut[]) {
     function onKeydown(e: KeyboardEvent) {
       for (const s of shortcuts) {
         const keyMatch = e.key === s.key
-        const ctrlMatch = s.ctrl ? (e.ctrlKey || e.metaKey) : true
+        const ctrlMatch = s.ctrl ? e.ctrlKey || e.metaKey : true
         if (keyMatch && ctrlMatch) {
           e.preventDefault()
           s.handler()
