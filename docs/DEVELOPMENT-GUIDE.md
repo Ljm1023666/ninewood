@@ -1,6 +1,6 @@
 # 九木平台 · 产品需求与开发指导（基于现状）
 
-> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.1 落地)
+> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.3 落地)
 > 定位: 本文档以**用户原话需求**为唯一权威来源，对照**当前代码实现**标注完成度，并给出**接下来开发的指导**。
 > 关系: 取代 `ENGINEERING-ROADMAP.md` 作为开发主线。Roadmap 是早期设计稿，部分 API 路径/表结构与现状不一致，仅作历史参考。
 > 配套: 可执行的推进路线、验收标准与测试用例清单见 `ACTION-PLAN.md`。本文档负责"是什么/到哪了"，`ACTION-PLAN.md` 负责"按什么顺序做/做完怎么算数"。
@@ -373,4 +373,4 @@
 |  · §3 #3 段落重写（实现+差距+下一步）；§2 状态矩阵 #3 行同步。
 |  · ACTION-PLAN.md v1.3 同步：§2 阶段 1 表 1.1 行 ✅。
 |  · 未来项（不在本期范围）：认证撤销防漏推、重复推送防重、计数/进度接口。 |
-| 2026-06-19 | v1.8 | Stage 1.3 落地后回写：#4 中 timeLimit 从"后期"升为 Stage 1.3 已落地；发布表单可选「服务时限（分钟）」（15–10080），服务端换算为绝对截止时间落库；processTimeLimitReminders cron（60s）仅提醒不改订单状态，同 orderId 幂等去重。7 个新单测（A–G）全绿。pnpm --filter server test -- time-limit 7/7 passed；server + client tsc 均 clean。ACTION-PLAN.md v1.4 同步。未动 schema / Stage 1.2/2 / socket 底层。 |
+| 2026-06-19 | v1.8 | Stage 1.3 落地后回写：#4 中 timeLimit 从"后期"升为 Stage 1.3 已落地；发布表单可选「服务时限（分钟）」（15–10080），服务端换算为绝对截止时间落库；processTimeLimitReminders cron（60s）仅提醒不改订单状态，同 orderId 幂等去重。7 个新单测（A–G）全绿；`pnpm --filter server test` 45/45 passed；server + client tsc 均 clean。ACTION-PLAN.md v1.4 同步。未动 schema / Stage 1.2/2 / socket 底层。 |
