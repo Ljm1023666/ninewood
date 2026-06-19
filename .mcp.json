@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "magic": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["C:/Users/19617/AppData/Roaming/nvm/v24.15.0/node_modules/@21st-dev/magic/dist/index.js"],
+      "env": {
+        "API_KEY": "480eaad1bf15d3f6821ce894fa6dc829c6dda5fa8ed2ad7404fecb90fdb870d8"
+      }
+    }
+  }
+}
