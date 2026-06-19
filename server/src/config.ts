@@ -22,25 +22,46 @@ export const config = {
     ? process.env.CORS_ORIGINS.split(',')
     : ['http://localhost:5173', 'http://localhost:3000', 'app://.'],
 
-  // MiniMax / DeepSeek AI（OpenAI 兼容接口）
-  aiProvider: process.env.AI_PROVIDER || 'minimax',
-  aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimax.chat/v1',
+  // MiniMax / DeepSeek / Qwen（OpenAI 兼容接口）
+  aiProvider: (process.env.AI_PROVIDER || 'minimax') as 'minimax' | 'deepseek' | 'qwen',
+  aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimaxi.com/v1',
   aiApiKey: process.env.AI_API_KEY || '',
-  // 默认模型（用于普通问答、分类等非思考任务）
-  aiModel: process.env.AI_MODEL || 'MiniMax-M2.7-highspeed',
-  // think 模式用推理模型；未设置则回退到 aiModel
+  aiModel: process.env.AI_MODEL || 'MiniMax-M2.5',
   aiThinkModel: process.env.AI_THINK_MODEL || '',
-  // 快速模式用轻量模型；未设置则回退到 aiModel
   aiFastModel: process.env.AI_FAST_MODEL || '',
 
-  // 多提供商配置（用于模型选择器切换）
+  // 多提供商配置（平台兜底 Key + 默认模型）
   providers: {
+    minimax: {
+      baseUrl: process.env.AI_BASE_URL || 'https://api.minimaxi.com/v1',
+      apiKey: process.env.AI_API_KEY || '',
+      defaultModel: process.env.AI_MODEL || 'MiniMax-M2.5',
+      thinkModel: process.env.AI_THINK_MODEL || process.env.AI_MODEL || 'MiniMax-M2.5',
+      fastModel: process.env.AI_FAST_MODEL || process.env.AI_MODEL || 'MiniMax-M2.5',
+    },
     deepseek: {
-      baseUrl: process.env.DS_BASE_URL || 'https://api.deepseek.com',
+      baseUrl: process.env.DS_BASE_URL || 'https://api.deepseek.com/v1',
       apiKey: process.env.DS_API_KEY || '',
-      defaultModel: process.env.DS_MODEL || 'deepseek-v4-pro',
+      defaultModel: process.env.DS_MODEL || 'deepseek-chat',
+      thinkModel: process.env.DS_THINK_MODEL || 'deepseek-v4-pro',
+      fastModel: process.env.DS_FAST_MODEL || 'deepseek-v4-flash',
+    },
+    qwen: {
+      baseUrl: process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+      apiKey: process.env.QWEN_API_KEY || '',
+      defaultModel: process.env.QWEN_MODEL || 'qwen3.7-plus',
+      thinkModel: process.env.QWEN_THINK_MODEL || 'qwen3.7-plus',
+      fastModel: process.env.QWEN_FAST_MODEL || 'qwen3.7-plus',
     },
   },
+
+  // 平台托管 Key 配额（用户未 BYOK 时生效）
+  platformQuota: {
+    dailyLimit: parseInt(process.env.AI_PLATFORM_DAILY_LIMIT || '150', 10),
+    hourlyLimit: parseInt(process.env.AI_PLATFORM_HOURLY_LIMIT || '50', 10),
+    sessionLimit: parseInt(process.env.AI_PLATFORM_SESSION_LIMIT || '250', 10),
+  },
+  byokRequired: process.env.AI_BYOK_REQUIRED === 'true',
 
   // hCaptcha 人机验证
   hcaptcha: {
@@ -58,6 +79,32 @@ export const config = {
   },
 };
 
+export type LlmProviderId = 'minimax' | 'deepseek' | 'qwen';
+
+export interface LlmCredentials {
+  provider: LlmProviderId;
+  baseUrl: string;
+  apiKey: string;
+}
+
+/** 根据模型名解析 OpenAI 兼容端点与 Key（平台 .env；后续可注入用户 BYOK） */
+export function resolveLlmCredentials(model?: string, userKey?: Partial<Record<LlmProviderId, string>>): LlmCredentials {
+  const m = (model || '').toLowerCase();
+  let provider: LlmProviderId = 'minimax';
+  if (m.startsWith('deepseek')) provider = 'deepseek';
+  else if (m.startsWith('qwen')) provider = 'qwen';
+  else if (config.aiProvider === 'deepseek' || config.aiProvider === 'qwen') provider = config.aiProvider;
+
+  const p = config.providers[provider];
+  const apiKey = userKey?.[provider] || p.apiKey;
+  return { provider, baseUrl: p.baseUrl, apiKey };
+}
+
+/** 列出已配置平台兜底 Key 的提供商（用于设置页展示） */
+export function listConfiguredLlmProviders(): LlmProviderId[] {
+  return (['minimax', 'deepseek', 'qwen'] as const).filter((id) => Boolean(config.providers[id].apiKey));
+}
+
 // ── 启动时环境检查 ──
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -66,11 +113,13 @@ if (isProd && !process.env.SENTRY_DSN) {
   console.warn('[Ninewood] 警告: 生产环境未设置 SENTRY_DSN，错误将不会被上报');
 }
 
-if (!config.aiApiKey) {
+if (!config.aiApiKey && !config.providers.deepseek.apiKey && !config.providers.qwen.apiKey) {
   const msg = isProd
-    ? '[Ninewood] 警告: AI_API_KEY 未设置，AI 功能将不可用'
-    : '[Ninewood] 提示: AI_API_KEY 未设置，AI 功能将不可用';
+    ? '[Ninewood] 警告: 未配置任何平台 LLM API Key（AI_/DS_/QWEN_），AI 功能将不可用'
+    : '[Ninewood] 提示: 未配置平台 LLM API Key，请编辑 server/.env 或见 docs/LLM-CONFIG.md';
   console.warn(msg);
+} else if (!config.aiApiKey) {
+  console.warn('[Ninewood] 提示: AI_API_KEY（MiniMax）未设置，默认路由仍可用 DeepSeek/Qwen 平台 Key');
 }
 
 if (isProd && !config.hcaptcha.secretKey) {

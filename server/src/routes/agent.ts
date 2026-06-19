@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { config } from '../config.js';
+import { config, listConfiguredLlmProviders } from '../config.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { toolRegistry } from '../services/agent/tool-registry.js';
 import { loadAllSkills } from '../services/agent/skill-loader.js';
@@ -15,6 +15,7 @@ import {
   addMessage,
 } from '../services/agent/conversation.js';
 import { executeAgent } from '../services/agent/executor.js';
+import { normalizeAccessMode } from '../services/agent/access-mode.js';
 import { checkQuota, recordCall, getRemaining } from '../services/agent/quota.js';
 import { semanticNavigate } from '../services/semantic-classifier.js';
 
@@ -60,11 +61,34 @@ agentRouter.get('/skills', (_req: Request, res: Response) => {
 
 /** 获取 AI 供应商信息 */
 agentRouter.get('/provider', (_req: Request, res: Response) => {
+  const { minimax, deepseek, qwen } = config.providers;
   res.json({
     provider: config.aiProvider,
     model: config.aiModel,
     thinkModel: config.aiThinkModel || config.aiModel,
     fastModel: config.aiFastModel || config.aiModel,
+    platformConfigured: listConfiguredLlmProviders(),
+    byokRequired: config.byokRequired,
+    providers: {
+      minimax: {
+        defaultModel: minimax.defaultModel,
+        thinkModel: minimax.thinkModel,
+        fastModel: minimax.fastModel,
+        configured: Boolean(minimax.apiKey),
+      },
+      deepseek: {
+        defaultModel: deepseek.defaultModel,
+        thinkModel: deepseek.thinkModel,
+        fastModel: deepseek.fastModel,
+        configured: Boolean(deepseek.apiKey),
+      },
+      qwen: {
+        defaultModel: qwen.defaultModel,
+        thinkModel: qwen.thinkModel,
+        fastModel: qwen.fastModel,
+        configured: Boolean(qwen.apiKey),
+      },
+    },
   });
 });
 
@@ -226,7 +250,7 @@ agentRouter.post('/conversations/:id/stream', authMiddleware, async (req: Reques
   try {
     const userId = req.user!.userId;
     const conversationId = req.params.id as string;
-    const { message, thinkMode, webSearch, context, model } = req.body;
+    const { message, thinkMode, webSearch, context, model, accessMode } = req.body;
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: '请输入消息内容' });
     }
@@ -269,6 +293,7 @@ agentRouter.post('/conversations/:id/stream', authMiddleware, async (req: Reques
         webSearch: webSearch ?? false,
         model: model || undefined,
         context,
+        accessMode: normalizeAccessMode(accessMode),
       },
       send,
     );
@@ -285,6 +310,67 @@ agentRouter.post('/conversations/:id/stream', authMiddleware, async (req: Reques
     res.end();
   }
 });
+
+/** 批准或拒绝待执行的工具操作（请求批准模式） */
+agentRouter.post(
+  '/conversations/:id/approve-tool',
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const conversationId = req.params.id as string;
+      const { toolName, arguments: toolArgs, approved } = req.body as {
+        toolName?: string;
+        arguments?: Record<string, unknown>;
+        approved?: boolean;
+      };
+
+      if (!toolName || typeof toolName !== 'string') {
+        return res.status(400).json({ error: '缺少工具名称' });
+      }
+
+      const conv = await getConversation(conversationId, userId);
+      if (!conv) return res.status(404).json({ error: '对话不存在' });
+
+      if (!approved) {
+        const message = `已拒绝操作：${toolName}`;
+        await addMessage({ conversationId, role: 'assistant', content: message });
+        return res.json({ success: true, approved: false, message });
+      }
+
+      const result = await toolRegistry.execute(
+        toolName,
+        toolArgs ?? {},
+        { userId, conversationId },
+      );
+
+      await addMessage({
+        conversationId,
+        role: 'assistant',
+        content: result.message,
+        toolCalls: [
+          {
+            name: toolName,
+            arguments: toolArgs ?? {},
+            result: result.message,
+            data: result.data,
+          },
+        ],
+      });
+
+      res.json({
+        success: result.success,
+        approved: true,
+        message: result.message,
+        data: result.data,
+        error: result.error,
+      });
+    } catch (e: any) {
+      console.error('[Agent] approve-tool error:', e.message);
+      res.status(500).json({ error: e.message });
+    }
+  },
+);
 
 /** 非流式发送消息 */
 agentRouter.post('/conversations/:id/messages', authMiddleware, async (req: Request, res: Response) => {
