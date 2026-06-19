@@ -79,16 +79,15 @@ export default function Layout() {
   // Tab 根路由不显示全局返回（避免挡标题）；聊天会话 /messages/:id 也不显示（顶栏已有返回）
   const hideGlobalBack =
     p === '/' ||
-    p === '/discover' ||
-    p === '/ui/tailwind-buttons' ||
+    p === '/card-pool' ||
     p === '/demands/create' ||
-    p === '/shorts' ||
     p === '/circles' ||
     p === '/search' ||
     p === '/messages' ||
     p.startsWith('/messages/') ||
     p === '/profile' ||
-    p === '/profile/'
+    p === '/profile/' ||
+    p.startsWith('/follows/')
   const showBack = !hideGlobalBack
   /** 需求详情页 3D 翻面会略超出卡片盒模型；全站 main 的 overflow-hidden 会裁掉透视溢出，仅在此路由放宽 */
   const demandDetail3dOverflow = isDemandDetailRoute(p)
@@ -122,9 +121,9 @@ export default function Layout() {
         {showBack && (
           <button
             onClick={() => navigate(-1)}
-            className="fixed left-[86px] top-3.5 z-[999] flex h-9 w-9 items-center justify-center rounded-xl
+            className="fixed left-[86px] top-4 z-[999] flex h-9 w-9 items-center justify-center rounded-xl
               border border-border bg-card/80 text-text-secondary shadow-md backdrop-blur-md
-              transition-all duration-200 hover:border-accent hover:text-text-primary"
+              transition-[border-color,color] duration-200 hover:border-accent hover:text-text-primary"
             aria-label="返回"
           >
             <ChevronLeft size={20} />

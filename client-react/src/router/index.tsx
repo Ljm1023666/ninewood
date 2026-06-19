@@ -10,10 +10,11 @@ import LoginPage from '@/views/Login'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
-const MessagesIndexPlaceholder = lazy(() => import('@/views/MessagesIndexPlaceholder'))
+const MessagesIndexPlaceholder = lazy(
+  () => import('@/views/MessagesIndexPlaceholder'),
+)
 const Circles = lazy(() => import('@/views/Circles'))
 const CircleDetail = lazy(() => import('@/views/CircleDetail'))
-const Shorts = lazy(() => import('@/views/Shorts'))
 const Search = lazy(() => import('@/views/Search'))
 const CertCenter = lazy(() => import('@/views/CertCenter'))
 const CertIntro = lazy(() => import('@/views/CertIntro'))
@@ -24,7 +25,12 @@ const DemandCreate = lazy(() => import('@/views/DemandCreate'))
 const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 const Discover = lazy(() => import('@/views/Discover'))
-const TailwindButtonsShowcase = lazy(() => import('@/views/TailwindButtonsShowcase'))
+const NewGroupChat = lazy(() => import('@/views/NewGroupChat'))
+const CardPool = lazy(() => import('@/views/CardPool'))
+const CardPoolResourceExplorer = lazy(
+  () => import('@/views/CardPoolResourceExplorer'),
+)
+const Follows = lazy(() => import('@/views/Follows'))
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
   return (
@@ -61,6 +67,34 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Home /> },
           {
+            path: 'card-pool/explorer',
+            element: (
+              <LazyLoad>
+                <CardPoolResourceExplorer />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'card-pool',
+            element: (
+              <LazyLoad>
+                <CardPool />
+              </LazyLoad>
+            ),
+          },
+          { path: 'profile/:id?', element: <Profile /> },
+          {
+            path: 'follows/:userId',
+            element: (
+              <LazyLoad>
+                <Follows />
+              </LazyLoad>
+            ),
+          },
+          { path: 'settings', element: <Settings /> },
+          { path: 'spline', element: <SplineDemoPage /> },
+          { path: 'info-card', element: <InfoCardDemoPage /> },
+          {
             path: 'discover',
             element: (
               <LazyLoad>
@@ -68,18 +102,6 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
-          {
-            path: 'ui/tailwind-buttons',
-            element: (
-              <LazyLoad>
-                <TailwindButtonsShowcase />
-              </LazyLoad>
-            ),
-          },
-          { path: 'profile/:id?', element: <Profile /> },
-          { path: 'settings', element: <Settings /> },
-          { path: 'spline', element: <SplineDemoPage /> },
-          { path: 'info-card', element: <InfoCardDemoPage /> },
           {
             path: 'demands/create',
             element: (
@@ -168,13 +190,21 @@ export const router = createBrowserRouter([
                   </LazyLoad>
                 ),
               },
+              {
+                path: 'merge/:mergeId',
+                element: (
+                  <LazyLoad>
+                    <ChatDetail />
+                  </LazyLoad>
+                ),
+              },
             ],
           },
           {
-            path: 'shorts',
+            path: 'messages/new-group',
             element: (
               <LazyLoad>
-                <Shorts />
+                <NewGroupChat />
               </LazyLoad>
             ),
           },

@@ -27,7 +27,7 @@
   --sunpillar-clr-4: var(--sunpillar-4);
   --sunpillar-clr-5: var(--sunpillar-5);
   --sunpillar-clr-6: var(--sunpillar-6);
-  --card-radius: 30px;
+  --card-radius: 32px;
 }
 
 .pc-card-wrapper {
@@ -273,7 +273,7 @@
 .pc-user-info {
   position: absolute;
   --ui-inset: 20px;
-  --ui-radius-bias: 6px;
+  --ui-radius-bias: 8px;
   bottom: var(--ui-inset);
   left: var(--ui-inset);
   right: var(--ui-inset);
@@ -285,7 +285,7 @@
   backdrop-filter: blur(30px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: calc(max(0px, var(--card-radius) - var(--ui-inset) + var(--ui-radius-bias)));
-  padding: 12px 14px;
+  padding: 12px 16px;
   pointer-events: auto;
 }
 
@@ -315,7 +315,7 @@
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pc-handle {
@@ -339,14 +339,14 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
   backdrop-filter: blur(10px);
 }
 
 .pc-contact-btn:hover {
   border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-1px);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
 }
 
 .pc-content:not(.pc-avatar-content) {

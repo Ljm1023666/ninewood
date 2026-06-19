@@ -14,7 +14,6 @@ import {
   LogOut,
   Award,
   UserRound,
-  Sparkles,
 } from 'lucide-react'
 
 const themeNames: Record<string, string> = {
@@ -36,6 +35,14 @@ export default function Settings() {
   const themeStore = useThemeStore()
   const current = themeStore.current
   const darkMode = themeStore.darkMode
+  /** 与 theme 配置一致：浅色界面时避免白字叠在浅玻璃上 */
+  const isUiLight = !current.dark
+  const cardSurface = isUiLight
+    ? 'text-text-primary bg-bg-card/95 border border-black/[0.08]'
+    : 'text-white bg-white/[0.08]'
+  const labelMuted = isUiLight ? 'text-text-muted' : 'text-white/50'
+  const sectionTitle = isUiLight ? 'text-text-secondary' : 'text-white/80'
+  const sectionHeading = isUiLight ? 'text-text-muted' : 'text-white/55'
 
   const heroBackgroundUrl = useMemo(
     () =>
@@ -83,13 +90,30 @@ export default function Settings() {
 
       <div className="relative z-10 box-border w-full max-w-[36rem] shrink-0 self-center px-4 pb-28 pt-14 md:px-6 md:pt-16">
         <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+          <p
+            className={cn(
+              'text-xs font-semibold uppercase tracking-[0.2em]',
+              isUiLight ? 'text-text-muted' : 'text-white/50',
+            )}
+          >
             账户
           </p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-white drop-shadow-sm">
+          <h1
+            className={cn(
+              'mt-1 text-2xl font-black tracking-tight drop-shadow-sm',
+              isUiLight ? 'text-text-primary' : 'text-white',
+            )}
+          >
             设置
           </h1>
-          <p className="mt-1 text-sm text-white/65">外观与常用入口</p>
+          <p
+            className={cn(
+              'mt-1 text-sm',
+              isUiLight ? 'text-text-secondary' : 'text-white/65',
+            )}
+          >
+            外观与常用入口
+          </p>
         </div>
 
         <LiquidGlassCard
@@ -97,25 +121,34 @@ export default function Settings() {
           shadowIntensity="xs"
           glowIntensity="none"
           borderRadius="16px"
-          className="mb-4 p-5 text-white bg-white/[0.08]"
+          className={cn('mb-4 p-5', cardSurface)}
         >
-          <div className="mb-4 flex items-center gap-2 text-white/80">
+          <div className={cn('mb-4 flex items-center gap-2', sectionTitle)}>
             <Palette className="h-4 w-4 shrink-0" aria-hidden />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-white/55">
+            <h2
+              className={cn(
+                'text-xs font-bold uppercase tracking-wider',
+                sectionHeading,
+              )}
+            >
               外观
             </h2>
           </div>
 
-          <p className="mb-2 text-[11px] text-white/50">显示模式</p>
+          <p className={cn('mb-2 text-[11px]', labelMuted)}>显示模式</p>
           <div className="mb-6 flex gap-2">
             <button
               type="button"
               onClick={goDark}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition-all',
+                'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-[color,background-color,border-color,box-shadow]',
                 !darkMode
-                  ? 'border-white/35 bg-white/20 text-white shadow-md shadow-black/20'
-                  : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
+                  ? isUiLight
+                    ? 'border-black/15 bg-black/[0.06] text-text-primary shadow-sm shadow-black/10'
+                    : 'border-white/35 bg-white/20 text-white shadow-md shadow-black/20'
+                  : isUiLight
+                    ? 'border-black/10 bg-black/[0.03] text-text-secondary hover:bg-black/[0.06]'
+                    : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
               )}
             >
               <Moon className="h-4 w-4" aria-hidden />
@@ -125,10 +158,14 @@ export default function Settings() {
               type="button"
               onClick={goLight}
               className={cn(
-                'flex flex-1 items-center justify-center gap-2 rounded-xl border py-2.5 text-sm font-semibold transition-all',
+                'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold transition-[color,background-color,border-color,box-shadow]',
                 darkMode
-                  ? 'border-white/35 bg-white/20 text-white shadow-md shadow-black/20'
-                  : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
+                  ? isUiLight
+                    ? 'border-black/20 bg-white text-text-primary shadow-sm shadow-black/10'
+                    : 'border-white/35 bg-white/20 text-white shadow-md shadow-black/20'
+                  : isUiLight
+                    ? 'border-black/10 bg-black/[0.03] text-text-secondary hover:bg-black/[0.06]'
+                    : 'border-white/15 bg-white/5 text-white/70 hover:bg-white/10',
               )}
             >
               <Sun className="h-4 w-4" aria-hidden />
@@ -136,7 +173,7 @@ export default function Settings() {
             </button>
           </div>
 
-          <p className="mb-2 text-[11px] text-white/50">主题色</p>
+          <p className={cn('mb-2 text-[11px]', labelMuted)}>主题色</p>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {presets.map((preset) => {
               const active = current.name === preset.name
@@ -146,10 +183,14 @@ export default function Settings() {
                   type="button"
                   onClick={() => themeStore.setTheme(preset.name)}
                   className={cn(
-                    'relative rounded-xl border p-3 text-left transition-all',
-                    'border-white/12 bg-white/5 hover:border-white/25 hover:bg-white/10',
+                    'relative rounded-xl border p-3 text-left transition-[background-color,border-color,box-shadow]',
+                    isUiLight
+                      ? 'border-black/[0.08] bg-black/[0.03] hover:border-black/15 hover:bg-black/[0.06]'
+                      : 'border-white/12 bg-white/5 hover:border-white/25 hover:bg-white/10',
                     active &&
-                      'border-white/45 bg-white/15 ring-1 ring-white/30',
+                      (isUiLight
+                        ? 'border-black/25 bg-white ring-1 ring-black/10'
+                        : 'border-white/45 bg-white/15 ring-1 ring-white/30'),
                   )}
                 >
                   <div
@@ -158,11 +199,23 @@ export default function Settings() {
                       preset.gradient,
                     )}
                   />
-                  <span className="text-[11px] font-medium text-white/85">
+                  <span
+                    className={cn(
+                      'text-[11px] font-medium',
+                      isUiLight ? 'text-text-primary' : 'text-white/85',
+                    )}
+                  >
                     {themeNames[preset.name]}
                   </span>
                   {active && (
-                    <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-emerald-600 shadow">
+                    <span
+                      className={cn(
+                        'absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full shadow',
+                        isUiLight
+                          ? 'bg-[var(--text-primary)] text-white'
+                          : 'bg-white/90 text-emerald-600',
+                      )}
+                    >
                       <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
                     </span>
                   )}
@@ -177,49 +230,91 @@ export default function Settings() {
           shadowIntensity="xs"
           glowIntensity="none"
           borderRadius="16px"
-          className="mb-4 p-2 text-white bg-white/[0.08]"
+          className={cn('mb-4 p-2', cardSurface)}
         >
-          <p className="px-3 pb-2 pt-2 text-[11px] font-bold uppercase tracking-wider text-white/50">
+          <p
+            className={cn(
+              'px-3 pb-2 pt-2 text-[11px] font-bold uppercase tracking-wider',
+              labelMuted,
+            )}
+          >
             快捷入口
           </p>
           <button
             type="button"
             onClick={() => navigate('/profile')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/10"
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-[background-color]',
+              isUiLight ? 'hover:bg-black/[0.04]' : 'hover:bg-white/10',
+            )}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-              <UserRound className="h-5 w-5 text-white/90" aria-hidden />
+            <span
+              className={cn(
+                'flex h-10 w-10 items-center justify-center rounded-lg',
+                isUiLight ? 'bg-black/[0.06]' : 'bg-white/10',
+              )}
+            >
+              <UserRound
+                className={cn(
+                  'h-5 w-5',
+                  isUiLight ? 'text-text-primary' : 'text-white/90',
+                )}
+                aria-hidden
+              />
             </span>
-            <span className="flex-1 text-sm font-semibold text-white/95">
+            <span
+              className={cn(
+                'flex-1 text-sm font-semibold',
+                isUiLight ? 'text-text-primary' : 'text-white/95',
+              )}
+            >
               个人主页
             </span>
-            <ChevronRight className="h-4 w-4 text-white/40" aria-hidden />
+            <ChevronRight
+              className={cn(
+                'h-4 w-4',
+                isUiLight ? 'text-text-muted' : 'text-white/40',
+              )}
+              aria-hidden
+            />
           </button>
           <button
             type="button"
             onClick={() => navigate('/cert-center')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/10"
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-[background-color]',
+              isUiLight ? 'hover:bg-black/[0.04]' : 'hover:bg-white/10',
+            )}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-              <Award className="h-5 w-5 text-white/90" aria-hidden />
+            <span
+              className={cn(
+                'flex h-10 w-10 items-center justify-center rounded-lg',
+                isUiLight ? 'bg-black/[0.06]' : 'bg-white/10',
+              )}
+            >
+              <Award
+                className={cn(
+                  'h-5 w-5',
+                  isUiLight ? 'text-text-primary' : 'text-white/90',
+                )}
+                aria-hidden
+              />
             </span>
-            <span className="flex-1 text-sm font-semibold text-white/95">
+            <span
+              className={cn(
+                'flex-1 text-sm font-semibold',
+                isUiLight ? 'text-text-primary' : 'text-white/95',
+              )}
+            >
               认证中心
             </span>
-            <ChevronRight className="h-4 w-4 text-white/40" aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/ui/tailwind-buttons')}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-white/10"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10">
-              <Sparkles className="h-5 w-5 text-white/90" aria-hidden />
-            </span>
-            <span className="flex-1 text-sm font-semibold text-white/95">
-              Tailwind 按钮样式库
-            </span>
-            <ChevronRight className="h-4 w-4 text-white/40" aria-hidden />
+            <ChevronRight
+              className={cn(
+                'h-4 w-4',
+                isUiLight ? 'text-text-muted' : 'text-white/40',
+              )}
+              aria-hidden
+            />
           </button>
         </LiquidGlassCard>
 
@@ -228,19 +323,34 @@ export default function Settings() {
           shadowIntensity="xs"
           glowIntensity="none"
           borderRadius="16px"
-          className="p-4 text-white bg-white/[0.06]"
+          className={cn(
+            'p-4',
+            isUiLight
+              ? 'text-text-primary bg-bg-card/95 border border-black/[0.08]'
+              : 'text-white bg-white/[0.06]',
+          )}
         >
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-400/35 bg-red-500/15 py-3 text-sm font-bold text-red-200 transition hover:bg-red-500/25"
+            className={cn(
+              'flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-[color,background-color,border-color]',
+              isUiLight
+                ? 'border-red-300 bg-red-500/10 text-red-700 hover:bg-red-500/15'
+                : 'border-red-400/35 bg-red-500/15 text-red-200 hover:bg-red-500/25',
+            )}
           >
             <LogOut className="h-4 w-4" aria-hidden />
             退出登录
           </button>
         </LiquidGlassCard>
 
-        <p className="mt-8 text-center text-xs text-white/40">
+        <p
+          className={cn(
+            'mt-8 text-center text-xs',
+            isUiLight ? 'text-text-muted' : 'text-white/40',
+          )}
+        >
           九木平台 v1.0.0
         </p>
       </div>

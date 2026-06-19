@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { userApi } from '@/api/user'
 import { certLabel, certColor } from '@/constants/cert'
 import { AcetBorderMagicButton } from '@/components/ui/tailwindcss-buttons-variants'
@@ -68,7 +67,7 @@ export default function CertCenter() {
             />
             <div className="relative z-[1]">
               <div
-                className="inline-block px-6 py-2.5 rounded-full text-[15px] font-extrabold text-white tracking-[3px] mb-6"
+                className="inline-block px-6 py-3 rounded-full text-[15px] font-extrabold text-white tracking-[3px] mb-6"
                 style={{ background: currentColor }}
               >
                 {(certLabel as any)[certStatus.certificationLevel]}
@@ -85,7 +84,7 @@ export default function CertCenter() {
                       <span className="block text-[28px] font-black leading-none">
                         {s.n}
                       </span>
-                      <span className="block mt-1.5 text-xs text-text-muted tracking-[1px]">
+                      <span className="block mt-2 text-xs text-text-muted tracking-[1px]">
                         {s.l}
                       </span>
                     </div>
@@ -96,7 +95,7 @@ export default function CertCenter() {
 
             {hasPromotion ? (
               <div className="relative z-[1] mt-6 pt-6 border-t border-border">
-                <div className="flex justify-between items-center mb-2.5">
+                <div className="flex justify-between items-center mb-3">
                   <span className="text-[13px] text-text-secondary">
                     升级进度
                   </span>
@@ -125,7 +124,7 @@ export default function CertCenter() {
                     {Math.round(certStatus.promotion.progress * 100)}%
                   </span>
                 </div>
-                <p className="my-2.5 text-[13px] text-text-muted">
+                <p className="my-3 text-[13px] text-text-muted">
                   还需完成{' '}
                   <strong className="text-text-primary">
                     {certStatus.promotion.needed - certStatus.completedOrders}
@@ -161,10 +160,10 @@ export default function CertCenter() {
               const current = idx === currentIdx
               const color = (certColor as any)[step.level]
               return (
-                <div key={step.level} className="flex gap-4 items-start py-3.5">
+                <div key={step.level} className="flex gap-4 items-start py-4">
                   <div className="relative w-5 flex-shrink-0 flex flex-col items-center">
                     <div
-                      className="rounded-full border-2 transition-all duration-300 flex-shrink-0"
+                      className="rounded-full border-2 transition-[width,height,border-color] duration-300 flex-shrink-0"
                       style={{
                         width: current ? 18 : 14,
                         height: current ? 18 : 14,
@@ -211,12 +210,6 @@ export default function CertCenter() {
             })}
           </div>
         </section>
-        <Link
-          to="/intro"
-          className="mb-4 block rounded-xl border border-border p-4 text-center text-sm font-semibold text-accent hover:bg-card"
-        >
-          了解认证体系 →
-        </Link>
       </div>
     </div>
   )

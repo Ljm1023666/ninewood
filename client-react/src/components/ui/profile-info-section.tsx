@@ -61,7 +61,7 @@ export function ProfileInfoSection({
       <div className="grid grid-cols-3 gap-3">
         <button
           onClick={() => onShowFollow('following')}
-          className="py-3.5 rounded-2xl bg-card border border-border hover:bg-bg-tertiary transition-colors text-center"
+          className="py-4 rounded-2xl bg-card border border-border hover:bg-bg-tertiary transition-colors text-center"
         >
           <p className="text-xl font-extrabold text-text-primary">
             {followCounts.following}
@@ -70,7 +70,7 @@ export function ProfileInfoSection({
         </button>
         <button
           onClick={() => onShowFollow('followers')}
-          className="py-3.5 rounded-2xl bg-card border border-border hover:bg-bg-tertiary transition-colors text-center"
+          className="py-4 rounded-2xl bg-card border border-border hover:bg-bg-tertiary transition-colors text-center"
         >
           <p className="text-xl font-extrabold text-text-primary">
             {followCounts.followers}
@@ -177,7 +177,7 @@ export function ProfileInfoSection({
         ].map((item, i) => (
           <div
             key={i}
-            className="p-3.5 rounded-2xl bg-card border border-border flex items-center gap-3"
+            className="p-4 rounded-2xl bg-card border border-border flex items-center gap-3"
           >
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -202,7 +202,7 @@ export function ProfileInfoSection({
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="flex flex-col items-center gap-1.5 py-3.5 rounded-2xl bg-card border border-border hover:bg-bg-tertiary hover:border-accent/30 transition-all"
+              className="flex flex-col items-center gap-2 py-4 rounded-2xl bg-card border border-border hover:bg-bg-tertiary hover:border-accent/30 transition-[background-color,border-color]"
             >
               <item.icon size={20} className="text-accent" />
               <span className="text-[11px] text-text-muted">{item.label}</span>

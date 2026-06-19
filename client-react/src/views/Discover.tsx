@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
-import { AcetTailwindConnectButton } from '@/components/ui/tailwindcss-buttons-variants'
 import {
   formatDiscoverFilterHint,
   parseDiscoverUrlParams,
@@ -44,19 +43,9 @@ export default function Discover() {
           keyword={keyword}
           serviceType={serviceType}
           scrollRootRef={scrollRef}
+          paginationMode="paged"
+          pageSize={10}
         />
-
-        <div className="mt-10 flex flex-col items-center gap-3 border-t border-border pt-8">
-          <p className="text-center text-xs text-text-muted">
-            想看全部 Aceternity / Tailwind 按钮变体与一键复制？
-          </p>
-          <AcetTailwindConnectButton
-            type="button"
-            onClick={() => navigate('/ui/tailwind-buttons')}
-          >
-            打开按钮样式库
-          </AcetTailwindConnectButton>
-        </div>
       </div>
     </div>
   )

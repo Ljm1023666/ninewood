@@ -8,9 +8,8 @@ export const demandApi = {
     return api.get(`/demands/${id}`)
   },
   create(formData: FormData) {
-    return api.post('/demands', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    // 勿手写 multipart Content-Type，否则缺少 boundary；由浏览器/axios 自动设置
+    return api.post('/demands', formData, { timeout: 600_000 })
   },
   apply(id: string, data: { offerPrice?: number; message?: string }) {
     return api.post(`/demands/${id}/apply`, data)

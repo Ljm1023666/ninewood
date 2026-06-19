@@ -11,7 +11,7 @@ export const circleService = {
   async create(userId: string, data: { name: string; description?: string }) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, coverUrl: true },
     });
     if (!user) throw { status: 404, message: '用户不存在' };
 
@@ -19,6 +19,7 @@ export const circleService = {
     const circle = await prisma.circle.create({
       data: {
         name: data.name,
+        coverUrl: user.coverUrl || null,
         type: 'PRIVATE',
         ownerId: userId,
         inviteCode,
@@ -76,20 +77,28 @@ export const circleService = {
         circle: {
           include: {
             _count: { select: { members: true } },
-            owner: { select: { id: true, nickname: true, avatarUrl: true } },
+            owner: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true } },
           },
         },
       },
       orderBy: { joinedAt: 'desc' },
     });
-    return memberships;
+    return memberships.map((m) => ({
+      ...m,
+      circle: m.circle
+        ? {
+            ...m.circle,
+            coverUrl: m.circle.coverUrl || m.circle.owner?.coverUrl || null,
+          }
+        : m.circle,
+    }));
   },
 
   async getById(circleId: string) {
     const circle = await prisma.circle.findUnique({
       where: { id: circleId },
       include: {
-        owner: { select: { id: true, nickname: true, avatarUrl: true } },
+        owner: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true } },
         members: {
           include: { user: { select: { id: true, nickname: true, avatarUrl: true, certificationLevel: true } } },
           take: 20,
@@ -99,7 +108,10 @@ export const circleService = {
       },
     });
     if (!circle) throw { status: 404, message: '圈子不存在' };
-    return circle;
+    return {
+      ...circle,
+      coverUrl: circle.coverUrl || circle.owner?.coverUrl || null,
+    };
   },
 
   async listPublic(excludeUserId?: string) {
@@ -113,20 +125,24 @@ export const circleService = {
         where.id = { notIn: myCircleIds.map(m => m.circleId) };
       }
     }
-    return prisma.circle.findMany({
+    const circles = await prisma.circle.findMany({
       where,
       include: {
         _count: { select: { members: true } },
-        owner: { select: { id: true, nickname: true, avatarUrl: true } },
+        owner: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true } },
       },
       orderBy: [{ memberCount: 'desc' }, { activeScore: 'desc' }],
     });
+    return circles.map((c) => ({
+      ...c,
+      coverUrl: c.coverUrl || c.owner?.coverUrl || null,
+    }));
   },
 
   async applyPublicCircle(userId: string, data: { name: string; description?: string; cityCode?: string }) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, coverUrl: true },
     });
     if (!user) throw { status: 404, message: '用户不存在' };
 
@@ -138,6 +154,7 @@ export const circleService = {
     const circle = await prisma.circle.create({
       data: {
         name: data.name,
+        coverUrl: user.coverUrl || null,
         type: 'PUBLIC',
         ownerId: userId,
         cityCode: data.cityCode || null,

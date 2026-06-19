@@ -40,7 +40,7 @@ export default function Payment() {
                 type="button"
                 onClick={pay}
                 disabled={loading}
-                className="w-full !rounded-xl !py-3.5 !text-sm font-bold disabled:!opacity-40"
+                className="w-full !rounded-xl !py-4 !text-sm font-bold disabled:!opacity-40"
               >
                 {loading ? '处理中...' : '确认支付'}
               </AcetNextBlueButton>

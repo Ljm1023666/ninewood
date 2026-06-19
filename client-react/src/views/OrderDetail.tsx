@@ -149,7 +149,7 @@ export default function OrderDetail() {
                 onClick={() =>
                   act(() => orderApi.prepay(order.id), '支付成功（模拟）')
                 }
-                className="w-full !rounded-lg !py-2.5 !text-sm font-semibold"
+                className="w-full !rounded-lg !py-3 !text-sm font-semibold"
               >
                 模拟支付 (预付50%)
               </AcetGradientButton>
@@ -160,7 +160,7 @@ export default function OrderDetail() {
                 onClick={() =>
                   act(() => orderApi.complete(order.id), '已标记完成')
                 }
-                className="w-full !rounded-lg !py-2.5 !text-sm font-semibold"
+                className="w-full !rounded-lg !py-3 !text-sm font-semibold"
               >
                 标记完成
               </AcetNextBlueButton>
@@ -171,7 +171,7 @@ export default function OrderDetail() {
                 onClick={() =>
                   act(() => orderApi.confirm(order.id), '订单已完成')
                 }
-                className="w-full !rounded-lg !py-2.5 !text-sm !normal-case !tracking-normal font-semibold"
+                className="w-full !rounded-lg !py-3 !text-sm !normal-case !tracking-normal font-semibold"
               >
                 确认验收
               </AcetSpotifyButton>
@@ -192,7 +192,7 @@ export default function OrderDetail() {
               <AcetFigmaButton
                 type="button"
                 onClick={() => setShowPartial(true)}
-                className="w-full !rounded-lg !border !border-border !bg-transparent !py-2.5 !text-sm font-semibold !text-text-secondary hover:!opacity-90"
+                className="w-full !rounded-lg !border !border-border !bg-transparent !py-3 !text-sm font-semibold !text-text-secondary hover:!opacity-90"
               >
                 部分完成
               </AcetFigmaButton>
@@ -218,7 +218,7 @@ export default function OrderDetail() {
                     setPartial({ ...partial, newPrice: Number(e.target.value) })
                   }
                   placeholder="新价格（低于原价）"
-                  className="bg-card border border-border rounded-lg px-4 py-2.5 text-text-primary text-sm outline-none"
+                  className="bg-card border border-border rounded-lg px-4 py-3 text-text-primary text-sm outline-none"
                 />
                 <textarea
                   value={partial.description}
@@ -227,7 +227,7 @@ export default function OrderDetail() {
                   }
                   placeholder="说明剩余部分"
                   rows={2}
-                  className="bg-card border border-border rounded-lg px-4 py-2.5 text-text-primary text-sm outline-none resize-none"
+                  className="bg-card border border-border rounded-lg px-4 py-3 text-text-primary text-sm outline-none resize-none"
                 />
                 <AcetBrutalButton
                   type="button"
@@ -242,7 +242,7 @@ export default function OrderDetail() {
                       '部分完成已提交',
                     )
                   }
-                  className="w-full !rounded-lg !py-2.5 !text-sm !normal-case"
+                  className="w-full !rounded-lg !py-3 !text-sm !normal-case"
                 >
                   提交
                 </AcetBrutalButton>

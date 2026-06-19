@@ -444,7 +444,7 @@ export function EmptyState({
             transition={{ delay: 0.5 }}
             onClick={onAction}
             className={cn(
-              'px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300',
+              'px-5 py-3 rounded-xl text-sm font-semibold transition-[background-color,border-color,transform] duration-300',
               isError
                 ? 'bg-red-500/15 text-red-300 border border-red-500/20 hover:bg-red-500/25'
                 : cn(

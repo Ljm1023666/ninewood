@@ -7,7 +7,10 @@ import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { authApi } from '@/api/auth'
-import { AcetInvertButton, AcetOutlineButton } from '@/components/ui/tailwindcss-buttons-variants'
+import {
+  AcetInvertButton,
+  AcetOutlineButton,
+} from '@/components/ui/tailwindcss-buttons-variants'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -135,7 +138,7 @@ export default function LoginPage() {
                   setError('')
                 }}
                 className={cn(
-                  'flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-300',
+                  'flex-1 rounded-lg py-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-300',
                   isLogin
                     ? cn(
                         sElevated,
@@ -155,7 +158,7 @@ export default function LoginPage() {
                   setError('')
                 }}
                 className={cn(
-                  'flex-1 rounded-lg py-2.5 text-sm font-medium transition-all duration-300',
+                  'flex-1 rounded-lg py-3 text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-300',
                   !isLogin
                     ? cn(
                         sElevated,
@@ -187,7 +190,7 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="phone"
-                  className={`mb-1.5 block text-sm font-medium ${tSecondary}`}
+                  className={`mb-2 block text-sm font-medium ${tSecondary}`}
                 >
                   手机号
                 </label>
@@ -201,7 +204,7 @@ export default function LoginPage() {
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   required
                   placeholder="请输入手机号"
-                  className={`h-12 w-full rounded-xl border ${inputCls} px-4 outline-none backdrop-blur-sm transition-all duration-300 focus:ring-2`}
+                  className={`h-12 w-full rounded-xl border ${inputCls} px-4 outline-none backdrop-blur-sm transition-[border-color,box-shadow,background-color] duration-300 focus:ring-2`}
                 />
               </div>
 
@@ -209,7 +212,7 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="code"
-                    className={`mb-1.5 block text-sm font-medium ${tSecondary}`}
+                    className={`mb-2 block text-sm font-medium ${tSecondary}`}
                   >
                     验证码
                   </label>
@@ -222,7 +225,7 @@ export default function LoginPage() {
                       maxLength={6}
                       onChange={(e) => setCode(e.target.value)}
                       placeholder="6位验证码"
-                      className={`h-12 flex-1 rounded-xl border ${inputCls} px-4 outline-none backdrop-blur-sm transition-all duration-300 focus:ring-2`}
+                      className={`h-12 flex-1 rounded-xl border ${inputCls} px-4 outline-none backdrop-blur-sm transition-[border-color,box-shadow,background-color] duration-300 focus:ring-2`}
                     />
                     <AcetOutlineButton
                       type="button"
@@ -245,7 +248,7 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="password"
-                    className={`mb-1.5 block text-sm font-medium ${tSecondary}`}
+                    className={`mb-2 block text-sm font-medium ${tSecondary}`}
                   >
                     密码
                   </label>
@@ -257,7 +260,7 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="请输入密码"
-                      className={`h-12 w-full rounded-xl border ${inputCls} pr-12 pl-4 outline-none backdrop-blur-sm transition-all duration-300 focus:ring-2`}
+                      className={`h-12 w-full rounded-xl border ${inputCls} pr-12 pl-4 outline-none backdrop-blur-sm transition-[border-color,box-shadow,background-color] duration-300 focus:ring-2`}
                     />
                     <button
                       type="button"
@@ -301,7 +304,8 @@ export default function LoginPage() {
                 disabled={!canSubmit}
                 className={cn(
                   'h-12 w-full rounded-xl text-base font-semibold',
-                  !canSubmit && cn(sDefault, tDim, 'cursor-not-allowed opacity-60'),
+                  !canSubmit &&
+                    cn(sDefault, tDim, 'cursor-not-allowed opacity-60'),
                 )}
               >
                 {isLoading ? '请稍候…' : isLogin ? '登录' : '注册并登录'}

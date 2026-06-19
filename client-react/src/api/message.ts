@@ -21,4 +21,16 @@ export const messageApi = {
   unreadCount() {
     return api.get('/messages/unread-count')
   },
+  createMerge(title: string, memberIds: string[]) {
+    return api.post('/messages/merge', { title, memberIds })
+  },
+  getMerges() {
+    return api.get('/messages/merge')
+  },
+  getMergeMessages(mergeId: string, page = 1) {
+    return api.get(`/messages/merge/${mergeId}`, { params: { page } })
+  },
+  sendMergeMessage(mergeId: string, content: string) {
+    return api.post(`/messages/merge/${mergeId}/send`, { content })
+  },
 }

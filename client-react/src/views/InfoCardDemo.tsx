@@ -1,7 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { InfoCard } from '@/components/ui/info-card'
-import { AcetFavouriteButton } from '@/components/ui/tailwindcss-buttons-variants'
 
 const containerStyle: CSSProperties = {
   display: 'flex',
@@ -31,7 +29,6 @@ const fileContainerStyle: CSSProperties = {
 }
 
 export default function InfoCardDemoPage() {
-  const navigate = useNavigate()
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll p-6 md:p-12">
       <div className="relative z-10 mx-auto w-full max-w-6xl shrink-0 self-center">
@@ -44,15 +41,6 @@ export default function InfoCardDemoPage() {
           <code className="rounded bg-muted px-1">--ic-*</code>，与{' '}
           <code className="rounded bg-muted px-1">data-appearance</code> 对齐。
         </p>
-        <div className="mb-8 flex flex-wrap items-center gap-3">
-          <AcetFavouriteButton
-            type="button"
-            onClick={() => navigate('/ui/tailwind-buttons')}
-            className="!text-sm"
-          >
-            打开 Aceternity 按钮样式库
-          </AcetFavouriteButton>
-        </div>
         <div className="info-card-demo-scope" style={containerStyle}>
           <div className="file-container" style={fileContainerStyle}>
             <InfoCard

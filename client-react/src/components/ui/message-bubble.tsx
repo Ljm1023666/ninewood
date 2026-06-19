@@ -90,7 +90,7 @@ export function MessageBubble({
       ) : (
         <div
           className={cn(
-            'max-w-[70%] px-4 py-2.5 rounded-2xl text-sm',
+            'max-w-[70%] px-4 py-3 rounded-2xl text-sm',
             isMine
               ? 'bg-blue-600/80 text-white rounded-br-md'
               : cn(
@@ -234,7 +234,9 @@ function VoiceBubble({
     const a = audioRef.current
     if (!a) return
     const onMeta = () =>
-      setDuration(Number.isFinite(a.duration) && a.duration > 0 ? a.duration : 0)
+      setDuration(
+        Number.isFinite(a.duration) && a.duration > 0 ? a.duration : 0,
+      )
     const onEnded = () => setPlaying(false)
     a.addEventListener('loadedmetadata', onMeta)
     a.addEventListener('ended', onEnded)
@@ -256,7 +258,10 @@ function VoiceBubble({
     window.dispatchEvent(
       new CustomEvent(VOICE_PLAY_EVENT, { detail: instanceId.current }),
     )
-    void a.play().then(() => setPlaying(true)).catch(() => setPlaying(false))
+    void a
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false))
   }
 
   const sec = duration > 0 ? Math.max(1, Math.ceil(duration)) : 0
@@ -271,7 +276,7 @@ function VoiceBubble({
       onClick={toggle}
       style={{ width: barW, maxWidth: '72%' }}
       className={cn(
-        'flex cursor-pointer select-none items-center gap-2 rounded-lg px-2.5 py-2 text-left outline-none transition-[transform,opacity] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[var(--primary-start)]/40',
+        'flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-left outline-none transition-[transform,opacity] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[var(--primary-start)]/40',
         isMine
           ? 'flex-row-reverse bg-blue-600/90 text-white rounded-br-sm shadow-sm'
           : cn(
@@ -288,7 +293,11 @@ function VoiceBubble({
       <span
         className={cn(
           'shrink-0 tabular-nums text-[13px] leading-none',
-          isMine ? 'text-white/90' : isDark ? 'text-white/75' : 'text-text-secondary',
+          isMine
+            ? 'text-white/90'
+            : isDark
+              ? 'text-white/75'
+              : 'text-text-secondary',
         )}
       >
         {durText}

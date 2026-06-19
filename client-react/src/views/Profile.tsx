@@ -7,7 +7,6 @@ import { useThemeStore } from '@/stores/theme'
 import { userApi } from '@/api/user'
 import { cn } from '@/lib/utils'
 import { certLabel, certColor } from '@/constants/cert'
-import { FollowList } from '@/components/ui/follow-list'
 import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetFavouriteButton } from '@/components/ui/tailwindcss-buttons-variants'
@@ -41,6 +40,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
 
   const displayUser = isMe ? myUser : user
+  const profileIntroKey = isMe ? `me:${myUser?.id || ''}` : `user:${id || ''}`
   const level = displayUser?.certificationLevel || 'NONE'
   const color = certColor[level as keyof typeof certColor] || '#6b7280'
   const isDark = useThemeStore((s) => s.current.dark)
@@ -62,20 +62,19 @@ export default function Profile() {
     )
   }, [displayUser])
 
-  // ===== 封面开场动画 =====
+  // ===== 封面开场动画（首帧即展示，避免闪出主页内容） =====
   const [intro, setIntro] = useState({
-    show: false,
+    show: true,
     shrink: false,
-    entering: false,
+    entering: true,
   })
   useEffect(() => {
-    if (!displayUser) return
-    // 他人主页只播一次（session 级别）
-    if (!isMe) {
-      const key = `profile_intro_${displayUser.id}`
-      if (sessionStorage.getItem(key)) return
-      sessionStorage.setItem(key, '1')
-    }
+    // 切换他人主页时先清空旧用户，避免旧内容闪出
+    if (!isMe) setUser(null)
+  }, [id, isMe])
+
+  useEffect(() => {
+    // 每次切换用户时重置动画状态
     setIntro({ show: true, shrink: false, entering: true })
     const t1 = setTimeout(
       () => setIntro((p) => ({ ...p, entering: false })),
@@ -88,9 +87,7 @@ export default function Profile() {
       clearTimeout(t1)
       clearTimeout(t2)
     }
-    // 只按用户 id 触发开场动画，避免资料字段变化导致动画重复播放
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayUser?.id])
+  }, [profileIntroKey])
 
   function handleIntroClick() {
     if (!intro.show) return
@@ -117,9 +114,11 @@ export default function Profile() {
   })
   const [isFollowing, setIsFollowing] = useState(false)
   const [certStatus, setCertStatus] = useState<any>(null)
-  const [showFollow, setShowFollow] = useState<
-    'followers' | 'following' | null
-  >(null)
+  // 关注/粉丝改为页面跳转，不再使用 modal
+  function gotoFollowList(mode: 'followers' | 'following') {
+    if (!displayUser?.id) return
+    navigate(`/follows/${displayUser.id}?mode=${mode}`)
+  }
   const [editing, setEditing] = useState(false)
   const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
@@ -275,7 +274,12 @@ export default function Profile() {
         document.body,
       )}
 
-      <div className="relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto thin-scroll">
+      <div
+        className={cn(
+          'relative z-[1] flex h-full min-h-0 w-full flex-col items-stretch overflow-y-auto thin-scroll transition-opacity duration-200',
+          intro.show && !intro.shrink ? 'opacity-0' : 'opacity-100',
+        )}
+      >
         <div
           className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBackgroundUrl})` }}
@@ -289,26 +293,8 @@ export default function Profile() {
           )}
         />
 
-        {/* items-center + 显式宽度：避免 mx-auto+w-full+flex 在部分布局下不居中（与 Settings 一致） */}
-        <div className="relative z-10 box-border flex w-full max-w-[36rem] shrink-0 self-center flex-col gap-4 px-4 pb-28 pt-4">
-          {isMe && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => navigate('/settings')}
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-xl border backdrop-blur-md transition',
-                  isDark
-                    ? 'border-white/15 bg-black/25 text-white/90 hover:bg-black/35'
-                    : 'border-black/10 bg-white/50 text-text-primary hover:bg-white/70',
-                )}
-                aria-label="设置"
-              >
-                <Settings size={18} />
-              </button>
-            </div>
-          )}
-
+        {/* items-center + 显式宽度；min-h-full + justify-center：大屏下内容不贴顶，与底部留白更均衡 */}
+        <div className="relative z-10 box-border flex min-h-full w-full max-w-[36rem] shrink-0 self-center flex-col justify-center gap-4 px-4 pb-28 pt-16">
           <LiquidGlassCard
             draggable={true}
             shadowIntensity="xs"
@@ -426,7 +412,7 @@ export default function Profile() {
                     setEditing(true)
                   }}
                   className={cn(
-                    'flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-xs font-semibold backdrop-blur-sm',
+                    'flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-semibold backdrop-blur-sm',
                     isDark
                       ? 'border-white/20 bg-white/10 text-white hover:bg-white/18'
                       : 'border-black/[0.08] bg-black/[0.04] text-text-primary hover:bg-black/[0.08]',
@@ -442,7 +428,7 @@ export default function Profile() {
                       type="button"
                       onClick={handleFollow}
                       className={cn(
-                        'flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-bold transition-all',
+                        'flex flex-1 items-center justify-center gap-2 rounded-xl border py-3 text-sm font-bold transition-[color,background-color,border-color]',
                         isDark
                           ? 'border-white/25 bg-white/10 text-white'
                           : 'border-black/[0.08] bg-black/[0.04] text-text-primary',
@@ -455,7 +441,7 @@ export default function Profile() {
                     <AcetFavouriteButton
                       type="button"
                       onClick={handleFollow}
-                      className="flex flex-1 items-center justify-center gap-1.5 !rounded-xl !py-2.5 !text-sm font-bold"
+                      className="flex flex-1 items-center justify-center gap-2 !rounded-xl !py-3 !text-sm font-bold"
                     >
                       <UserPlus size={15} />
                       关注
@@ -490,7 +476,7 @@ export default function Profile() {
             >
               <button
                 type="button"
-                onClick={() => setShowFollow('following')}
+                onClick={() => gotoFollowList('following')}
                 className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
               >
                 <span className="text-2xl font-extrabold tabular-nums">
@@ -510,7 +496,7 @@ export default function Profile() {
             >
               <button
                 type="button"
-                onClick={() => setShowFollow('followers')}
+                onClick={() => gotoFollowList('followers')}
                 className="w-full flex flex-col items-center gap-1 rounded-xl transition hover:opacity-80"
               >
                 <span className="text-2xl font-extrabold tabular-nums">
@@ -596,7 +582,7 @@ export default function Profile() {
                 <div
                   key={i}
                   className={cn(
-                    'flex items-center gap-2.5 rounded-xl border p-3',
+                    'flex items-center gap-3 rounded-xl border p-3',
                     isDark
                       ? 'border-white/10 bg-white/5'
                       : 'border-black/[0.06] bg-black/[0.02]',
@@ -655,15 +641,6 @@ export default function Profile() {
           )}
         </div>
       </div>
-
-      {displayUser?.id && (
-        <FollowList
-          visible={showFollow !== null}
-          userId={displayUser.id}
-          mode={showFollow || 'followers'}
-          onClose={() => setShowFollow(null)}
-        />
-      )}
     </>
   )
 }

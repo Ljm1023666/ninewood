@@ -31,22 +31,28 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export default function ChatDetail() {
-  const { userId } = useParams<{ userId: string }>()
+  const { userId, mergeId } = useParams<{ userId?: string; mergeId?: string }>()
   const navigate = useNavigate()
   const userStore = useUserStore()
   const chatStore = useChatStore()
 
+  const isMergeChat = !!mergeId
+  const currentMergeId = mergeId || ''
   const peerId = userId || ''
   const myId = userStore.user?.id || ''
+  const [mergeMessages, setMergeMessages] = useState<any[]>([])
+  const [mergeTitle, setMergeTitle] = useState('群聊')
 
   // 过滤出当前对话的消息
-  const messages = chatStore.messages.filter(
-    (m: ChatMessage) =>
-      ((m.senderId || m.fromUserId) === myId &&
-        (m.receiverId || m.toUserId) === peerId) ||
-      ((m.senderId || m.fromUserId) === peerId &&
-        (m.receiverId || m.toUserId) === myId),
-  )
+  const messages = isMergeChat
+    ? mergeMessages
+    : chatStore.messages.filter(
+        (m: ChatMessage) =>
+          ((m.senderId || m.fromUserId) === myId &&
+            (m.receiverId || m.toUserId) === peerId) ||
+          ((m.senderId || m.fromUserId) === peerId &&
+            (m.receiverId || m.toUserId) === myId),
+      )
 
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
@@ -59,7 +65,9 @@ export default function ChatDetail() {
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mr = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' })
+      const mr = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus',
+      })
       mediaRecorderRef.current = mr
       voiceChunksRef.current = []
 
@@ -68,6 +76,7 @@ export default function ChatDetail() {
       }
 
       mr.onstop = async () => {
+        if (isMergeChat) return
         stream.getTracks().forEach((t) => t.stop())
         const blob = new Blob(voiceChunksRef.current, { type: 'audio/webm' })
         if (blob.size < 100) return
@@ -116,11 +125,39 @@ export default function ChatDetail() {
 
   const startPolling = useCallback(() => {
     if (pollRef.current || connected) return
+    if (isMergeChat) {
+      pollRef.current = setInterval(() => {
+        messageApi
+          .getMergeMessages(currentMergeId)
+          .then((res) => setMergeMessages((res.data.data ?? []) as any[]))
+          .catch(() => {
+            /* noop */
+          })
+      }, 10000)
+      return
+    }
     pollRef.current = setInterval(() => fetchMessages(peerId), 10000)
-  }, [connected, fetchMessages, peerId])
+  }, [connected, currentMergeId, fetchMessages, isMergeChat, peerId])
 
   // 取对端用户信息
   useEffect(() => {
+    if (isMergeChat) {
+      if (!currentMergeId) return
+      messageApi
+        .getMerges()
+        .then((r) => {
+          const merges = (r.data.data ?? []) as any[]
+          const current = merges.find((m) => m.id === currentMergeId)
+          setMergeTitle(current?.title || '群聊')
+        })
+        .catch(() => setMergeTitle('群聊'))
+      messageApi
+        .getMergeMessages(currentMergeId)
+        .then((r) => setMergeMessages((r.data.data ?? []) as any[]))
+        .catch(() => setMergeMessages([]))
+      if (!connected) startPolling()
+      return () => stopPolling()
+    }
     if (!peerId) return
     userApi
       .get(peerId)
@@ -129,12 +166,21 @@ export default function ChatDetail() {
     fetchMessages(peerId)
     if (!connected) startPolling()
     return () => stopPolling()
-  }, [peerId, connected, fetchMessages, startPolling, stopPolling])
+  }, [
+    connected,
+    currentMergeId,
+    fetchMessages,
+    isMergeChat,
+    peerId,
+    startPolling,
+    stopPolling,
+  ])
 
   // 防止跟自己聊天
   useEffect(() => {
+    if (isMergeChat) return
     if (peerId === myId) navigate('/messages', { replace: true })
-  }, [peerId, myId, navigate])
+  }, [isMergeChat, peerId, myId, navigate])
 
   // 消息变化自动滚底
   useEffect(() => {
@@ -144,10 +190,17 @@ export default function ChatDetail() {
   // socket 连接变化
   useEffect(() => {
     if (connected) stopPolling()
-    else if (peerId) startPolling()
-  }, [connected, peerId, startPolling, stopPolling])
+    else if ((isMergeChat && currentMergeId) || peerId) startPolling()
+  }, [
+    connected,
+    currentMergeId,
+    isMergeChat,
+    peerId,
+    startPolling,
+    stopPolling,
+  ])
 
-  const peerNickname = peerUser?.nickname || '聊天'
+  const peerNickname = isMergeChat ? mergeTitle : peerUser?.nickname || '聊天'
 
   function scrollBottom(force = false) {
     const el = listRef.current
@@ -164,10 +217,18 @@ export default function ChatDetail() {
     const text = input.trim()
     if (!text) return
     try {
-      const res = await messageApi.send(peerId, text)
-      useChatStore.setState((s) => ({
-        messages: [...s.messages, res.data.data],
-      }))
+      if (isMergeChat) {
+        await messageApi.sendMergeMessage(currentMergeId, text)
+        const refreshed = await messageApi.getMergeMessages(currentMergeId)
+        setMergeMessages((refreshed.data.data ?? []) as any[])
+        chatStore.bumpConversation()
+      } else {
+        const res = await messageApi.send(peerId, text)
+        useChatStore.setState((s) => ({
+          messages: [...s.messages, res.data.data],
+        }))
+        chatStore.bumpConversation()
+      }
       setInput('')
       setTimeout(() => scrollBottom(true), 100)
     } catch {
@@ -192,6 +253,7 @@ export default function ChatDetail() {
   }
 
   async function sendFile() {
+    if (isMergeChat) return
     if (!uploadFile) return
     try {
       const fd = new FormData()
@@ -252,11 +314,17 @@ export default function ChatDetail() {
     <TemplateChatRightShell
       embedInLayout
       currentChat={{
+        id: isMergeChat ? `merge:${currentMergeId}` : peerId,
         name: peerNickname,
         message: '',
-        image: peerUser?.avatarUrl?.trim() || '',
+        image: isMergeChat ? '' : peerUser?.avatarUrl?.trim() || '',
       }}
       avatarFallback={peerNickname.slice(0, 2)}
+      onProfileClick={
+        !isMergeChat && peerId
+          ? () => navigate(`/profile/${peerId}`)
+          : undefined
+      }
       headerLeading={
         <Button
           variant="ghost"
@@ -284,8 +352,16 @@ export default function ChatDetail() {
                 content={m.content}
                 isMine={(m.senderId || m.fromUserId) === myId}
                 type={m.type}
-                nickname={peerNickname}
-                avatarUrl={peerUser?.avatarUrl || ''}
+                nickname={
+                  isMergeChat
+                    ? (m as any).fromUser?.nickname || '成员'
+                    : peerNickname
+                }
+                avatarUrl={
+                  isMergeChat
+                    ? (m as any).fromUser?.avatarUrl || ''
+                    : peerUser?.avatarUrl || ''
+                }
                 hideAvatar={
                   idx < messages.length - 1 &&
                   (messages[idx + 1]?.senderId ||
@@ -378,18 +454,30 @@ export default function ChatDetail() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" type="button" title="附件">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  title="附件"
+                  disabled={isMergeChat}
+                >
                   <Paperclip className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => imageInputRef.current?.click()}>
+                <DropdownMenuItem
+                  onSelect={() => imageInputRef.current?.click()}
+                >
                   <Image className="mr-2 h-4 w-4" /> 照片与视频
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => videoInputRef.current?.click()}>
+                <DropdownMenuItem
+                  onSelect={() => videoInputRef.current?.click()}
+                >
                   <Camera className="mr-2 h-4 w-4" /> 视频
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => imageInputRef.current?.click()}>
+                <DropdownMenuItem
+                  onSelect={() => imageInputRef.current?.click()}
+                >
                   <File className="mr-2 h-4 w-4" /> 文件
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -464,6 +552,7 @@ export default function ChatDetail() {
               size="icon"
               type="button"
               title={isVoiceMode ? '键盘输入' : '语音'}
+              disabled={isMergeChat}
               onClick={() => {
                 setIsVoiceMode(!isVoiceMode)
                 setShowEmoji(false)

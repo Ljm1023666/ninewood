@@ -52,7 +52,7 @@ export function AnimatedInput({
       {/* 输入容器 */}
       <div
         className="relative overflow-hidden rounded-xl border border-border bg-card
-          transition-all duration-300 ease-out
+          transition-[border-color,background-color] duration-300 ease-out
           group-focus-within:border-accent/50 group-focus-within:bg-bg-tertiary"
         onMouseMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect()
@@ -119,8 +119,8 @@ export function AnimatedInput({
           aria-label={ariaLabel}
           placeholder=" "
           className={cn(
-            'relative z-[1] w-full bg-transparent outline-none text-white text-sm transition-all duration-200',
-            'py-3.5 pr-4',
+            'relative z-[1] w-full bg-transparent outline-none text-white text-sm transition-[color,border-color] duration-200',
+            'py-4 pr-4',
             icon ? 'pl-12' : 'pl-5',
             (showToggle || type === 'password') && 'pr-12',
           )}
@@ -130,7 +130,7 @@ export function AnimatedInput({
         {!focused && !hasValue && placeholder ? (
           <span
             className={cn(
-              'absolute pointer-events-none transition-all duration-200 ease-out z-10',
+              'absolute pointer-events-none transition-[opacity,transform,color] duration-200 ease-out z-10',
               icon ? 'left-14' : 'left-5',
               'top-1/2 -translate-y-1/2 text-sm text-neutral-500',
             )}

@@ -7,299 +7,305 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ── Enums ──────────────────────────────────────────────
+// Enums
 
-enum MessageType {
-  TEXT
-  IMAGE
-  VOICE
+enum CertLevel {
+  NONE
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+  MASTER
+}
+
+enum ServiceType {
+  ONLINE
+  OFFLINE
 }
 
 enum DemandStatus {
-  OPEN
-  IN_PROGRESS
+  PENDING
+  FROZEN
   COMPLETED
-  CANCELLED
+  CLOSED
 }
 
-enum DemandApplicationStatus {
+enum ApplicationStatus {
   PENDING
   ACCEPTED
   REJECTED
 }
 
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  WAITING_REVIEW
+  COMPLETED
+  DISPUTED
+}
+
 enum CircleType {
-  PUBLIC
   PRIVATE
+  PUBLIC
 }
 
 enum CircleStatus {
   ACTIVE
+  WARNING
+  DEFUNCT
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum DepositStatus {
   PENDING
-  ARCHIVED
+  REFUNDED
+  FORFEITED
 }
 
-enum CircleApplicationStatus {
+enum ComplaintStatus {
   PENDING
-  APPROVED
-  REJECTED
+  UPHELD
+  DISMISSED
 }
 
-enum CircleDemandStatus {
-  OPEN
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum NotificationType {
-  FOLLOW
-  COMMENT
-  APPLICATION
+enum MessageType {
+  TEXT
   SYSTEM
-  DEMAND_STATUS
-  CIRCLE_JOIN
-  CIRCLE_APPLICATION
 }
-
-// ── Models ─────────────────────────────────────────────
 
 model User {
-  id         String   @id @default(cuid())
-  username   String   @unique
-  email      String   @unique
-  password   String
-  avatar     String?
-  background String?
-  bio        String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  phone              String    @unique
+  nickname           String
+  avatarUrl          String?
+  coverUrl           String?
+  cityCode           String?
+  certificationLevel CertLevel @default(NONE)
+  snatchCredits      Int       @default(3)
+  creditScore        Int       @default(60)
+  completedOrders    Int       @default(0)
+  role               String    @default("USER")
+  passwordHash       String?
+  bio                String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  // Relations
-  demands              Demand[]
-  createdCircles       Circle[]            @relation("CreatedCircles")
-  memberships          CircleMember[]
-  sentMessages         Message[]           @relation("SentMessages")
-  receivedMessages     Message[]           @relation("ReceivedMessages")
-  circleMessages       CircleMessage[]
-  circleDemands        CircleDemand[]
-  demandApplications   DemandApplication[]
-  demandComments       DemandComment[]
-  circleApplications   CircleApplication[]
-  notifications        Notification[]
-  feedbacks            Feedback[]
-  emojis               UserEmoji[]
+  demands             Demand[]
+  applications        DemandApplication[]
+  providerOrders      Order[]     @relation("Provider")
+  requesterOrders     Order[]     @relation("Requester")
+  ownedCircles        Circle[]    @relation("CircleOwner")
+  memberships         CircleMember[]
+  deposits            Deposit[]
+  sentComplaints      Complaint[] @relation("Complainant")
+  receivedComplaints  Complaint[] @relation("Respondent")
+  sentMessages        Message[]   @relation("Sender")
+  receivedMessages    Message[]   @relation("Receiver")
+  shorts              Short[]
+  following           Follow[]    @relation("Following")
+  followers           Follow[]    @relation("Followers")
 
-  // Follow system
-  followers  Follow[] @relation("Following")
-  following  Follow[] @relation("Follower")
+  @@index([cityCode])
+  @@index([certificationLevel])
 }
-
-// ── Follow ──
-
-model Follow {
-  id          String   @id @default(cuid())
-  followerId  String
-  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
-  followingId String
-  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-
-  @@unique([followerId, followingId])
-}
-
-// ── Demand ──
 
 model Demand {
-  id          String       @id @default(cuid())
-  title       String
-  description String
-  region      String
-  category    String
-  images      String[]
-  status      DemandStatus @default(OPEN)
-  userId      String
-  user        User         @relation(fields: [userId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  minPrice       Decimal      @db.Decimal(10, 2)
+  category       String
+  taxonomyLeafId String?
+  serviceType    ServiceType
+  locationLat    Float?
+  locationLng    Float?
+  cityCode       String?
+  expireAt       DateTime
+  status         DemandStatus @default(PENDING)
+  circleId       String?
+  circle         Circle?      @relation(fields: [circleId], references: [id], onDelete: SetNull)
+  mediaUrls      Json         @default("[]")
+  applicantCount Int          @default(0)
+  isExample      Boolean      @default(false)
+  isPublic       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
 
   applications DemandApplication[]
-  comments     DemandComment[]
-}
+  orders       Order[]
 
-// ── Demand Application ──
+  @@index([userId])
+  @@index([cityCode])
+  @@index([status])
+  @@index([expireAt])
+  @@index([circleId])
+  @@index([category])
+  @@index([taxonomyLeafId])
+  @@index([isExample])
+}
 
 model DemandApplication {
-  id        String                  @id @default(cuid())
-  demandId  String
-  demand    Demand                  @relation(fields: [demandId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User                    @relation(fields: [userId], references: [id])
-  message   String?
-  status    DemandApplicationStatus @default(PENDING)
-  createdAt DateTime                @default(now())
+  id         String            @id @default(uuid())
+  demandId   String
+  demand     Demand            @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerPrice Decimal?          @db.Decimal(10, 2)
+  message    String?
+  isSnatched Boolean           @default(false)
+  status     ApplicationStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
 
   @@unique([demandId, userId])
+  @@index([userId])
+  @@index([demandId])
+  @@index([status])
 }
 
-// ── Demand Comment ──
+model Order {
+  id          String      @id @default(uuid())
+  demandId    String
+  demand      Demand      @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  providerId  String
+  provider    User        @relation("Provider", fields: [providerId], references: [id])
+  requesterId String
+  requester   User        @relation("Requester", fields: [requesterId], references: [id])
+  agreedPrice Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDING)
+  paidAt      DateTime?
+  completedAt DateTime?
+  createdAt   DateTime    @default(now())
 
-model DemandComment {
-  id        String   @id @default(cuid())
-  demandId  String
-  demand    Demand   @relation(fields: [demandId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  content   String
-  createdAt DateTime @default(now())
+  messages Message[]
+
+  @@index([demandId])
+  @@index([providerId])
+  @@index([requesterId])
+  @@index([status])
 }
-
-// ── Circle ──
 
 model Circle {
-  id          String       @id @default(cuid())
+  id          String       @id @default(uuid())
   name        String
-  description String?
-  type        CircleType   @default(PRIVATE)
+  type        CircleType
+  ownerId     String
+  owner       User         @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  cityCode    String?
   inviteCode  String?      @unique
-  region      String?
-  avatar      String?
+  coverUrl    String?
+  memberCount Int          @default(1)
+  activeScore Float        @default(0)
   status      CircleStatus @default(ACTIVE)
-  creatorId   String
-  creator     User         @relation("CreatedCircles", fields: [creatorId], references: [id])
   createdAt   DateTime     @default(now())
 
-  members      CircleMember[]
-  messages     CircleMessage[]
-  demands      CircleDemand[]
-  applications CircleApplication[]
-}
+  members CircleMember[]
+  demands Demand[]
 
-// ── Circle Member ──
+  @@index([ownerId])
+  @@index([cityCode])
+  @@index([status])
+}
 
 model CircleMember {
   circleId String
-  circle   Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circle   Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
   userId   String
-  user     User     @relation(fields: [userId], references: [id])
-  role     String   @default("member") // member, admin
-  joinedAt DateTime @default(now())
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
 
   @@id([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
 }
 
-// ── Circle Message ──
-
-model CircleMessage {
-  id        String   @id @default(cuid())
-  content   String
-  type      MessageType @default(TEXT)
-  senderId  String
-  sender    User     @relation(fields: [senderId], references: [id])
-  circleId  String
-  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-}
-
-// ── Circle Application ──
-
-model CircleApplication {
-  id        String                  @id @default(cuid())
-  circleId  String
-  circle    Circle                  @relation(fields: [circleId], references: [id], onDelete: Cascade)
+model Deposit {
+  id        String        @id @default(uuid())
   userId    String
-  user      User                    @relation(fields: [userId], references: [id])
-  message   String?
-  status    CircleApplicationStatus @default(PENDING)
-  createdAt DateTime                @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Decimal       @db.Decimal(10, 2)
+  demandIds Json
+  status    DepositStatus @default(PENDING)
+  createdAt DateTime      @default(now())
 
-  @@unique([circleId, userId])
+  @@index([userId])
+  @@index([status])
 }
 
-// ── Circle Demand ──
+model Complaint {
+  id         String          @id @default(uuid())
+  fromUserId String
+  fromUser   User            @relation("Complainant", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User            @relation("Respondent", fields: [toUserId], references: [id], onDelete: Cascade)
+  demandId   String
+  reason     String
+  status     ComplaintStatus @default(PENDING)
+  result     String?
+  createdAt  DateTime        @default(now())
 
-model CircleDemand {
-  id          String            @id @default(cuid())
-  circleId    String
-  circle      Circle            @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  title       String
-  description String
-  images      String[]
-  status      CircleDemandStatus @default(OPEN)
-  userId      String
-  user        User              @relation(fields: [userId], references: [id])
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([demandId])
 }
-
-// ── Message ──
 
 model Message {
-  id          String      @id @default(cuid())
-  content     String
-  type        MessageType @default(TEXT)
-  senderId    String
-  sender      User        @relation("SentMessages", fields: [senderId], references: [id])
-  receiverId  String
-  receiver    User        @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  isFavorited Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  readAt      DateTime?
+  id         String      @id @default(uuid())
+  fromUserId String
+  fromUser   User        @relation("Sender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User        @relation("Receiver", fields: [toUserId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?      @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  content    String
+  type       MessageType @default(TEXT)
+  isRead     Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([orderId])
+  @@index([createdAt])
 }
 
-// ── Message Draft ──
+model Short {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mediaUrl    String
+  coverUrl    String?
+  description String?
+  tags        Json     @default("[]")
+  likeCount   Int      @default(0)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
 
-model MessageDraft {
-  id       String @id @default(cuid())
-  userId   String
-  peerId   String
-  content  String
-
-  @@unique([userId, peerId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
-// ── Notification ──
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
 
-model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      NotificationType
-  title     String
-  content   String
-  relatedId String?
-  isRead    Boolean          @default(false)
-  createdAt DateTime         @default(now())
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
-
-// ── Feedback ──
-
-model Feedback {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  content   String
-  images    String[]
-  createdAt DateTime @default(now())
-}
-
-// ── User Emoji ──
-
-model UserEmoji {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
-  url       String
-  createdAt DateTime @default(now())
-}
-
-// ── Conversation Merge ──
 
 model ConversationMerge {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   userId    String
   title     String
-  memberIds String[] // array of userIds merged into one view
+  memberIds String[]
   createdAt DateTime @default(now())
 }

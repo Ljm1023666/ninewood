@@ -9,6 +9,39 @@ const SmsClient = tencentcloud.sms.v20210111.Client;
 const DEFAULT_PASSWORD = '1';
 const smsStore = new Map<string, { code: string; expires: number }>();
 
+type LegacyUser = {
+  id: string;
+  phone: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+  coverUrl: string | null;
+  cityCode: string | null;
+  bio: string | null;
+  certificationLevel: string | null;
+  snatchCredits: number | null;
+  creditScore: number | null;
+  passwordHash?: string | null;
+  createdAt?: Date;
+};
+
+type ModernUser = {
+  id: string;
+  username: string;
+  email: string;
+  password?: string | null;
+  avatar: string | null;
+  background: string | null;
+  bio: string | null;
+  createdAt?: Date;
+};
+
+function inferPhoneFromModernUser(user: { username: string; email: string }): string {
+  if (/^\d{11}$/.test(user.username)) return user.username;
+  const local = user.email.split('@')[0] || '';
+  if (/^\d{11}$/.test(local)) return local;
+  return user.username;
+}
+
 function generateCode(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -35,20 +68,129 @@ function makeToken(user: { id: string; phone: string; certificationLevel: string
   );
 }
 
-function userResponse(user: any) {
+function legacyUserResponse(user: LegacyUser) {
   return {
-    id: user.id, phone: user.phone, nickname: user.nickname,
-    avatarUrl: user.avatarUrl, coverUrl: user.coverUrl, cityCode: user.cityCode, bio: user.bio,
-    certificationLevel: user.certificationLevel,
-    snatchCredits: user.snatchCredits, creditScore: user.creditScore,
+    id: user.id,
+    phone: user.phone,
+    nickname: user.nickname || `用户_${user.phone.slice(-4)}`,
+    avatarUrl: user.avatarUrl,
+    coverUrl: user.coverUrl,
+    cityCode: user.cityCode,
+    bio: user.bio,
+    certificationLevel: user.certificationLevel || 'NONE',
+    snatchCredits: user.snatchCredits || 0,
+    creditScore: user.creditScore || 60,
+    createdAt: user.createdAt?.toISOString(),
   };
 }
 
+function modernUserResponse(user: ModernUser) {
+  const phone = inferPhoneFromModernUser(user);
+  return {
+    id: user.id,
+    phone,
+    nickname: user.username,
+    avatarUrl: user.avatar,
+    coverUrl: user.background,
+    cityCode: null,
+    bio: user.bio,
+    certificationLevel: 'NONE',
+    snatchCredits: 0,
+    creditScore: 60,
+    createdAt: user.createdAt?.toISOString(),
+  };
+}
+
+async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> {
+  try {
+    const rows = await prisma.$queryRawUnsafe<any[]>(
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
+      phone,
+    );
+    return rows?.[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
+  try {
+    const rows = await prisma.$queryRawUnsafe<any[]>(
+      'SELECT "id","phone","nickname","avatarUrl","coverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
+      userId,
+    );
+    return rows?.[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+async function createLegacyUser(phone: string): Promise<LegacyUser | null> {
+  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+  const tail = phone.slice(-4);
+  try {
+    const rows = await prisma.$queryRawUnsafe<any[]>(
+      'INSERT INTO "User" ("phone","nickname","passwordHash","createdAt","updatedAt") VALUES ($1,$2,$3,NOW(),NOW()) RETURNING "id","phone","nickname","avatarUrl","coverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt"',
+      phone,
+      `用户_${tail}`,
+      passwordHash,
+    );
+    return rows?.[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+async function findModernUserByPhone(phone: string): Promise<ModernUser | null> {
+  try {
+    return await prisma.user.findFirst({
+      where: {
+        OR: [{ username: phone }, { email: phone }, { email: `${phone}@ninewood.local` }],
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        password: true,
+        avatar: true,
+        background: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
+async function findModernUserById(userId: string): Promise<ModernUser | null> {
+  try {
+    return await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        background: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export const authService = {
-  // SMS code only for new user registration
   async sendCode(phone: string) {
-    const exists = await prisma.user.findUnique({ where: { phone } });
-    if (exists) throw { status: 400, message: '该手机号已注册，请直接输入密码登录' };
+    const [legacyExists, modernExists] = await Promise.all([
+      findLegacyUserByPhone(phone),
+      findModernUserByPhone(phone),
+    ]);
+    if (legacyExists || modernExists) {
+      throw { status: 400, message: '该手机号已注册，请直接输入密码登录' };
+    }
 
     const code = generateCode();
     smsStore.set(phone, { code, expires: Date.now() + 5 * 60 * 1000 });
@@ -65,7 +207,6 @@ export const authService = {
     return { phone, code: smsOk ? undefined : code };
   },
 
-  // Register: phone + code → create user with default password
   async register(phone: string, code: string) {
     const stored = smsStore.get(phone);
     if (!stored || stored.expires < Date.now()) {
@@ -76,30 +217,107 @@ export const authService = {
     }
     smsStore.delete(phone);
 
-    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
-    const tail = phone.slice(-4);
-    const user = await prisma.user.create({
-      data: { phone, nickname: `用户_${tail}`, passwordHash },
-    });
-
-    return { user: userResponse(user), token: makeToken(user) };
-  },
-
-  // Login: phone + password for existing users
-  async login(phone: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { phone } });
-    if (!user) throw { status: 400, message: '手机号未注册，请先获取验证码注册' };
-
-    if (!user.passwordHash) {
-      // Legacy user without password — set default
-      const hash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
-      await prisma.user.update({ where: { id: user.id }, data: { passwordHash: hash } });
-      user.passwordHash = hash;
+    const [legacyExists, modernExists] = await Promise.all([
+      findLegacyUserByPhone(phone),
+      findModernUserByPhone(phone),
+    ]);
+    if (legacyExists || modernExists) {
+      throw { status: 400, message: '该手机号已注册，请直接输入密码登录' };
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
+    const legacyUser = await createLegacyUser(phone);
+    if (legacyUser) {
+      return {
+        user: legacyUserResponse(legacyUser),
+        token: makeToken({
+          id: legacyUser.id,
+          phone: legacyUser.phone,
+          certificationLevel: legacyUser.certificationLevel || 'NONE',
+        }),
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+    const tail = phone.slice(-4);
+    const modernUser = await prisma.user.create({
+      data: {
+        username: `用户_${tail}`,
+        email: `${phone}@ninewood.local`,
+        password: passwordHash,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        background: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
+    return {
+      user: modernUserResponse(modernUser),
+      token: makeToken({
+        id: modernUser.id,
+        phone,
+        certificationLevel: 'NONE',
+      }),
+    };
+  },
+
+  async login(phone: string, password: string) {
+    const legacyUser = await findLegacyUserByPhone(phone);
+    if (legacyUser) {
+      let valid = false;
+      try {
+        valid = await bcrypt.compare(password, legacyUser.passwordHash || '');
+      } catch {
+        valid = false;
+      }
+      if (!valid) throw { status: 400, message: '密码错误' };
+      return {
+        user: legacyUserResponse(legacyUser),
+        token: makeToken({
+          id: legacyUser.id,
+          phone: legacyUser.phone,
+          certificationLevel: legacyUser.certificationLevel || 'NONE',
+        }),
+      };
+    }
+
+    const modernUser = await findModernUserByPhone(phone);
+    if (!modernUser) throw { status: 400, message: '手机号未注册，请先获取验证码注册' };
+
+    let valid = false;
+    try {
+      valid = await bcrypt.compare(password, modernUser.password || '');
+    } catch {
+      valid = false;
+    }
+    if (!valid && modernUser.password === password) {
+      valid = true;
+      const hash = await bcrypt.hash(password, 10);
+      await prisma.user.update({ where: { id: modernUser.id }, data: { password: hash } });
+    }
     if (!valid) throw { status: 400, message: '密码错误' };
 
-    return { user: userResponse(user), token: makeToken(user) };
+    return {
+      user: modernUserResponse(modernUser),
+      token: makeToken({
+        id: modernUser.id,
+        phone: inferPhoneFromModernUser(modernUser),
+        certificationLevel: 'NONE',
+      }),
+    };
+  },
+
+  async me(userId: string) {
+    const legacyUser = await findLegacyUserById(userId);
+    if (legacyUser) return legacyUserResponse(legacyUser);
+
+    const modernUser = await findModernUserById(userId);
+    if (modernUser) return modernUserResponse(modernUser);
+
+    return null;
   },
 };

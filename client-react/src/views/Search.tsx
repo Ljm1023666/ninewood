@@ -86,7 +86,7 @@ export default function Search() {
                   onKeyDown={(e) =>
                     e.key === 'Enter' && navigate(`/profile/${u.id}`)
                   }
-                  className="flex cursor-pointer items-center gap-3 px-4 py-3.5 hover:bg-bg-secondary sm:px-5"
+                  className="flex cursor-pointer items-center gap-3 px-4 py-4 hover:bg-bg-secondary sm:px-5"
                 >
                   <div
                     className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-lg font-bold text-white"

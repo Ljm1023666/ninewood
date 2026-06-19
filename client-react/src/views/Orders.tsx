@@ -57,7 +57,7 @@ export default function Orders() {
             <button
               key={t.value}
               onClick={() => setRole(t.value)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${role === t.value ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}
+              className={`flex-1 py-3 rounded-lg text-sm font-semibold transition-[color,background-color,border-color] ${role === t.value ? 'bg-[var(--primary-gradient)] text-white' : 'bg-card border border-border text-text-secondary'}`}
             >
               {t.label}
             </button>
@@ -85,7 +85,7 @@ export default function Orders() {
             <div
               key={o.id}
               onClick={() => navigate(`/orders/${o.id}`)}
-              className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-all duration-300 p-4"
+              className="relative overflow-hidden rounded-xl border border-border bg-card backdrop-blur-sm cursor-pointer hover:bg-bg-tertiary hover:border-accent/50 hover:shadow-[4px_0_0_var(--primary-start)] hover:translate-x-1 active:scale-[0.98] transition-[transform,border-color,background-color,box-shadow] duration-300 p-4"
             >
               <div className="flex justify-between items-center">
                 <span className="font-semibold">

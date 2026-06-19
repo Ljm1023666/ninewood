@@ -15,6 +15,21 @@ import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
 
+function stripDebugFromTitle(title: string): string {
+  return title
+    .replace(/（调#[^）]*）/g, '')
+    .replace(/\s*\[seed[^\]]*]/gi, '')
+    .replace(/\s*\(seed[^)]*\)/gi, '')
+    .trim()
+}
+
+function stripSeedFromDescription(desc: string): string {
+  return desc
+    .replace(/\n*\[seed[^\]]*]\n*/gi, '\n')
+    .replace(/\s*\[seed[^\]]*]/gi, '')
+    .trim()
+}
+
 /** 浏览器解码缓存，减轻滑到下一张时首帧白屏 */
 function preloadImageSrc(url: string | undefined | null) {
   const s = typeof url === 'string' ? url.trim() : ''
@@ -116,7 +131,12 @@ export default function DemandDetail() {
 
   const cardDescription = useMemo(() => {
     if (!demand) return ''
-    return ((demand.description as string) || '').trim()
+    return stripSeedFromDescription((demand.description as string) || '')
+  }, [demand])
+
+  const cardTitle = useMemo(() => {
+    if (!demand) return ''
+    return stripDebugFromTitle((demand.title as string) || '')
   }, [demand])
 
   const fetchAll = useCallback(async () => {
@@ -126,10 +146,12 @@ export default function DemandDetail() {
     try {
       const keyword = (searchParams.get('q') ?? '').trim()
       const serviceType = searchParams.get('type') ?? ''
+      const category = (searchParams.get('category') ?? '').trim()
       const listParams: Record<string, any> = { limit: 50 }
       if (keyword) listParams.keyword = keyword
       if (serviceType === 'ONLINE' || serviceType === 'OFFLINE')
         listParams.serviceType = serviceType
+      if (category) listParams.category = category
 
       const [listRes, detailRes] = await Promise.all([
         demandApi.list(listParams),
@@ -236,9 +258,11 @@ export default function DemandDetail() {
   const demandSearchQS = useMemo(() => {
     const q = (searchParams.get('q') ?? '').trim()
     const t = searchParams.get('type') ?? ''
+    const c = (searchParams.get('category') ?? '').trim()
     const p = new URLSearchParams()
     if (q) p.set('q', q)
     if (t === 'ONLINE' || t === 'OFFLINE') p.set('type', t)
+    if (c) p.set('category', c)
     const s = p.toString()
     return s ? '?' + s : ''
   }, [searchParams])
@@ -324,7 +348,7 @@ export default function DemandDetail() {
                 logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
                 profileCoverUrl={demand.user?.coverUrl}
                 publisherUserId={demand.userId}
-                title={demand.title}
+                title={cardTitle}
                 description={cardDescription}
                 price={`¥${demand.minPrice}`}
                 avatarTo={

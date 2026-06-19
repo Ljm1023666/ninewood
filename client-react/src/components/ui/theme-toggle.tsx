@@ -112,7 +112,7 @@ export function ThemeToggleButton() {
         }}
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
-        className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-all duration-300"
+        className="nav-item w-12 h-12 flex flex-col items-center justify-center cursor-pointer rounded-lg transition-[color,background-color,transform] duration-300"
         style={{
           color: 'var(--text-secondary)',
           background: 'transparent',

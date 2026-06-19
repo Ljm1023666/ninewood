@@ -29,6 +29,15 @@
   --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  /* Material「Paper」式层级：暗色表面上抬升，与 MUI elevation 1/2 类比 */
+  --elevation-1:
+    0 1px 3px rgba(0, 0, 0, 0.55),
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(102, 126, 234, 0.12);
+  --elevation-2:
+    0 6px 16px rgba(0, 0, 0, 0.48),
+    0 2px 6px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(102, 126, 234, 0.18);
   --glow-primary: 0 0 30px rgba(102, 126, 234, 0.25);
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
@@ -74,6 +83,8 @@
   --color-sidebar-border: var(--border-color);
   --radius-default: var(--radius);
   --radius-sm: var(--radius-sm);
+  --shadow-elevation-1: var(--elevation-1);
+  --shadow-elevation-2: var(--elevation-2);
 
   @keyframes shimmer {
     from {
@@ -87,6 +98,10 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  font-size: 106.25%;
+}
 
 html, body {
   height: 100%;
@@ -442,4 +457,38 @@ html[data-appearance="dark"] {
   --ic-font-rtl: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --ic-pattern-1: rgba(230, 230, 230, 0.15);
   --ic-pattern-2: rgba(240, 240, 240, 0.15);
+}
+
+/* MUI LinearProgress indeterminate 同类（短滑块） */
+@keyframes linear-progress-mui-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+.linear-progress-mui {
+  background: color-mix(in srgb, var(--text-muted) 20%, transparent);
+}
+.linear-progress-mui__bar {
+  animation: linear-progress-mui-slide 1.75s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .linear-progress-mui__bar {
+    animation: none;
+    width: 100%;
+    transform: none;
+  }
+}
+
+/* Creative Tim / Material Dashboard 式侧栏：左侧品牌色带 + 浅玻璃底 */
+.sidebar-ct-accent {
+  background: linear-gradient(
+    90deg,
+    var(--primary-start) 0,
+    var(--primary-end) 3px,
+    color-mix(in srgb, var(--bg-secondary) 90%, var(--bg-primary)) 3px,
+    rgba(102, 126, 234, 0.07) 100%
+  );
 }
