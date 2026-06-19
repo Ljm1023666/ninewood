@@ -6,6 +6,7 @@ import { ScrollNavbar } from '@/components/ui/scroll-navigation-menu'
 
 import { SearchBar } from '@/components/ui/search-bar'
 import { InputWithTags } from '@/components/ui/input-with-tags'
+import { SparklesCore } from '@/components/ui/sparkles'
 
 export default function Discover() {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -109,6 +110,29 @@ export default function Discover() {
 
   const heroSections = useMemo(() => [
     {
+      title: 'Ninewood',
+      subtitle: { line1: '', line2: '' },
+      render: () => (
+        <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-2xl h-40 z-0">
+          <div className="absolute inset-x-0 top-0 flex flex-col items-center">
+            <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+            <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm mt-px" />
+            <div className="h-px w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent mt-1" />
+            <div className="h-[3px] w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent blur-sm mt-px" />
+          </div>
+          <SparklesCore
+            background="transparent"
+            minSize={0.4}
+            maxSize={1}
+            particleDensity={100}
+            className="w-full h-full"
+            particleColor="#FFFFFF"
+            speed={0.6}
+          />
+        </div>
+      ),
+    },
+    {
       title: '遇见',
       subtitle: {
         line1: '在这个空间里，',
@@ -147,6 +171,40 @@ export default function Discover() {
             initialTags={filterTags}
             pinkTags={searchKeywords.filter(k => searchClassifiedLabels.includes(k))}
             purpleTags={searchKeywords.filter(k => !searchClassifiedLabels.includes(k))}
+          />
+        </div>
+      )
+    },
+    {
+      title: '找到',
+      subtitle: {
+        line1: '连接每一个机会，',
+        line2: '匿名检索，直达服务',
+      },
+      render: () => (
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-sm text-white/40 text-center">
+            输入服务标签，检索附近空闲的服务者
+          </p>
+          <input
+            type="text"
+            placeholder="例如：出租车司机、平面设计..."
+            className="w-full max-w-md mx-auto rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none backdrop-blur-md"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const tag = (e.target as HTMLInputElement).value.trim()
+                if (tag) {
+                  fetch(`/api/providers/search?tagName=${encodeURIComponent(tag)}&limit=10`)
+                    .then(r => r.json())
+                    .then(d => {
+                      const count = d.data?.total || 0
+                      if (count > 0) toast(`${count} 位服务者在线`)
+                      else toast('暂无空闲服务者')
+                    })
+                    .catch(() => toast('搜索失败'))
+                }
+              }
+            }}
           />
         </div>
       ),
