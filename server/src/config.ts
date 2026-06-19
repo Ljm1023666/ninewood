@@ -16,9 +16,9 @@ export const config = {
     : ['http://localhost:5173', 'http://localhost:3000', 'app://.'],
 
   // AI（支持 OpenAI / DeepSeek / MiniMax 等兼容接口）
-  aiBaseUrl: process.env.AI_BASE_URL || 'https://api.deepseek.com/v1',
+  aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimax.chat/v1',
   aiApiKey: process.env.AI_API_KEY || '',
-  aiModel: process.env.AI_MODEL || 'deepseek-chat',
+  aiModel: process.env.AI_MODEL || 'MiniMax-M2.7-highspeed',
   // think 模式用推理模型，非 think 用快模型；未设置则回退到 aiModel
   aiThinkModel: process.env.AI_THINK_MODEL || '',
   aiFastModel: process.env.AI_FAST_MODEL || '',

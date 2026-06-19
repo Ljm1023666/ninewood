@@ -99,12 +99,15 @@ export const demandService = {
     cityCode?: string;
     page?: number;
     limit?: number;
-    excludeExample?: boolean;
+    excludeExample?: boolean
+    exact?: boolean;
     userId?: string;
     /** 只看待发布者的需求（发现页 ?publisher=uuid） */
     publisherId?: string;
     /** 按 ID 列表精确筛选（?, 卡包） */
     ids?: string[];
+    /** 搜索模式：exact 精确 / fuzzy 模糊 */
+    searchMode?: 'exact' | 'fuzzy';
   }) {
     const page = params.page || 1;
     const limit = params.limit || 20;
@@ -157,12 +160,23 @@ export const demandService = {
 
     if (params.excludeExample) and.push({ isExample: false });
     if (keywordTrimmed) {
-      and.push({
-        OR: [
-          { title: { contains: keywordTrimmed, mode: 'insensitive' } },
-          { description: { contains: keywordTrimmed, mode: 'insensitive' } },
-        ],
-      });
+      if (params.exact) {
+        // 精确：标题或描述等于关键词
+        and.push({
+          OR: [
+            { title: { equals: keywordTrimmed, mode: 'insensitive' } },
+            { description: { equals: keywordTrimmed, mode: 'insensitive' } },
+          ],
+        })
+      } else {
+        // 模糊：标题或描述包含关键词
+        and.push({
+          OR: [
+            { title: { contains: keywordTrimmed, mode: 'insensitive' } },
+            { description: { contains: keywordTrimmed, mode: 'insensitive' } },
+          ],
+        })
+      }
     }
 
     if (tagsList.length > 0) {

@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import type { BlackScope } from '@/components/card-pool/types'
 import {
   taxonomySpectrumColorForNodeId,
+  countSpectrumTier,
   TAXONOMY,
 } from '@/components/card-pool/taxonomy'
 
@@ -62,10 +63,19 @@ export function scopeClassificationBasis(scope: BlackScope): string {
   return `${pathLabels} · 合并 ${scope.leafFilter.length} 类：${leafLabels}`
 }
 
-/** 线上 / 线下分类树路径上的标题着色 */
+/** 线上 / 线下分类树路径上的标题着色。count > 0 时按数量映射翻卡同款 shimmer 渐变，否则按节点 ID 哈希分配。 */
 export function scopeTaxonomySpectrumStyle(
   scope: BlackScope,
+  count?: number | null,
 ): CSSProperties | undefined {
+  if (count != null && count > 0) {
+    const tier = countSpectrumTier(count)
+    if (tier)
+      return {
+        color: tier.textColor,
+        '--accent-bg': tier.gradient,
+      } as CSSProperties
+  }
   if (scope.leafFilter && scope.leafFilter.length > 1) {
     const last = scope.path[scope.path.length - 1]!
     const c = taxonomySpectrumColorForNodeId(last)

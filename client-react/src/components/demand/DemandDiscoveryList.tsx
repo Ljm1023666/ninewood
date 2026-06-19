@@ -117,6 +117,7 @@ export function DemandDiscoveryList({
   onDesktopGridRowCountChange,
   onDemandRowRecurse,
   tags,
+  exact,
   paginationMode = 'infinite',
   pageSize = DEFAULT_PAGE_SIZE,
 }: {
@@ -131,6 +132,7 @@ export function DemandDiscoveryList({
   onDesktopGridRowCountChange?: (n: number) => void
   onDemandRowRecurse?: (d: DemandRow) => void
   tags?: string[]
+  exact?: boolean
   paginationMode?: 'infinite' | 'paged'
   pageSize?: number
 }) {
@@ -153,6 +155,7 @@ export function DemandDiscoveryList({
       if (kw) apiParams.keyword = kw
       if (serviceType !== 'ALL') apiParams.serviceType = serviceType
       if (tags && tags.length > 0) apiParams.tags = tags.join(',')
+      if (exact) apiParams.exact = 'true'
       const r = await demandApi.list({
         ...apiParams,
       })
@@ -163,7 +166,7 @@ export function DemandDiscoveryList({
         totalPages: number
       }
     },
-    [keyword, serviceType, listScope, pageSize, tags],
+    [keyword, serviceType, listScope, pageSize, tags, exact],
   )
 
   const {

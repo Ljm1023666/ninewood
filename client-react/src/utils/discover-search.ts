@@ -24,12 +24,19 @@ export function parseDiscoverUrlParams(searchParams: URLSearchParams): {
   keyword: string
   tags: string[]
   taxonomyLeafIds?: string
+  exact?: boolean
 } {
   const q = (searchParams.get('q') ?? '').trim()
   const t = searchParams.get('type')
   const tagsRaw = (searchParams.get('tags') ?? '').trim()
-  const tags = tagsRaw ? tagsRaw.split(',').map(s => s.trim()).filter(Boolean) : []
+  const tags = tagsRaw
+    ? tagsRaw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : []
   const leafIds = searchParams.get('leafIds') ?? undefined
+  const exact = searchParams.get('exact') === 'true'
   const fromQ = parseHeroSearch(q)
 
   if (t === 'ONLINE' || t === 'OFFLINE') {
@@ -38,17 +45,20 @@ export function parseDiscoverUrlParams(searchParams: URLSearchParams): {
       keyword: fromQ.keyword,
       tags,
       taxonomyLeafIds: leafIds,
+      exact,
     }
   }
-  return { ...fromQ, tags, taxonomyLeafIds: leafIds }
+  return { ...fromQ, tags, taxonomyLeafIds: leafIds, exact }
 }
 
 export function formatDiscoverFilterHint(
   keyword: string,
   serviceType: 'ALL' | 'ONLINE' | 'OFFLINE',
+  exact?: boolean,
 ): string {
-  if (serviceType === 'ALL' && !keyword) return '全部'
-  if (serviceType === 'ONLINE') return '线上'
-  if (serviceType === 'OFFLINE') return '线下'
-  return `关键词「${keyword}」`
+  const mode = exact !== false ? '精确' : '模糊'
+  if (serviceType === 'ALL' && !keyword) return `全部 · ${mode}`
+  if (serviceType === 'ONLINE') return `线上 · ${mode}`
+  if (serviceType === 'OFFLINE') return `线下 · ${mode}`
+  return `关键词「${keyword}」· ${mode}`
 }

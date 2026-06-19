@@ -60,10 +60,20 @@ export function HandEntryCardPackFace({
 
   if (isSingles) {
     return (
-      <div className={cn(packButtonClass, 'min-h-[108px] overflow-hidden rounded-lg border border-white/10 bg-neutral-950', className)}>
+      <div
+        className={cn(
+          packButtonClass,
+          'min-h-[108px] overflow-hidden rounded-lg border border-white/10 bg-neutral-950',
+          className,
+        )}
+      >
         <div className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2">
-          <span className="text-5xl font-black leading-none text-white/80">?</span>
-          <span className="text-[11px] font-medium text-white/40">{n ?? '?'}</span>
+          <span className="text-5xl font-black leading-none text-white/80">
+            ?
+          </span>
+          <span className="text-[11px] font-medium text-white/40">
+            {n ?? '?'}
+          </span>
         </div>
       </div>
     )
@@ -118,10 +128,11 @@ export function handPackFacePropsFromScope(
   scopeTotals: Record<string, number | null>,
 ) {
   const k = scopeKey(scope)
+  const n = scopeTotals[k]
   return {
     basis: scopeCurrentClassificationBasis(scope),
-    n: scopeTotals[k],
-    spectrum: scopeTaxonomySpectrumStyle(scope),
+    n,
+    spectrum: scopeTaxonomySpectrumStyle(scope, n),
     isSingles: scope.path[scope.path.length - 1] === '__singles__',
   }
 }
@@ -225,8 +236,9 @@ function HandSwipeRow({
   const k = scopeKey(entry.scope)
   const n = scopeTotals[k]
   const basis = scopeCurrentClassificationBasis(entry.scope)
-  const spectrum = scopeTaxonomySpectrumStyle(entry.scope)
-  const isSingles = entry.scope.path[entry.scope.path.length - 1] === '__singles__'
+  const spectrum = scopeTaxonomySpectrumStyle(entry.scope, n)
+  const isSingles =
+    entry.scope.path[entry.scope.path.length - 1] === '__singles__'
   const snapClosed = useCallback(() => {
     animate(x, 0, { type: 'spring', stiffness: 520, damping: 38 })
     setOpenSwipeId((cur) => (cur === entry.id ? null : cur))

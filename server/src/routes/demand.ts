@@ -78,6 +78,8 @@ demandRouter.get('/search', async (req: Request, res: Response) => {
       page: req.query.page ? Number(req.query.page) : 1,
       limit: req.query.limit ? Number(req.query.limit) : 20,
       excludeExample: req.query.excludeExample === 'true',
+      searchMode: (qstr(req.query.searchMode) ?? 'exact') as 'exact' | 'fuzzy',
+      exact: req.query.exact === 'true',
       userId: (req as any).user?.userId,
       publisherId: (req.query.publisher as string) || (req.query.publisherId as string) || undefined,
       ids: req.query.ids ? (req.query.ids as string).split(',').filter(Boolean) : undefined,
