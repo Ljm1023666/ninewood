@@ -3,6 +3,7 @@
 | 文档 | 读者 | 说明 |
 |------|------|------|
 | [../README.md](../README.md) | 全员 | 项目介绍、环境搭建、常用命令、测试账号 |
+| [RELEASE-NOTES.md](./RELEASE-NOTES.md) | 开发 / 考古 | 全历史稳定版本 tag 索引与发布说明 |
 | [ENGINEERING_OVERVIEW.md](./ENGINEERING_OVERVIEW.md) | 开发者 | 仓库结构、技术栈、模块划分 |
 | [LLM-CONFIG.md](./LLM-CONFIG.md) | 开发者 / 运维 | 大模型提供商、环境变量、BYOK |
 | [FEATURE_SPECIFICATIONS.md](./FEATURE_SPECIFICATIONS.md) | 产品 / 开发 | 功能规格与业务规则 |
