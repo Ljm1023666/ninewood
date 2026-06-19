@@ -427,7 +427,18 @@ html, body {
   mix-blend-mode: multiply;
   opacity: 0.38;
 }
+
+/* 卡包色条流光 — 与翻卡 flip-card-title-bar-shimmer 完全一致 */
+.pack-strip-shimmer {
+  background-size: 200% 100%;
+  animation: flip-card-title-bar-pan 3.8s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .pack-strip-shimmer {
+    animation: none;
+    background-size: 100% 100%;
+  }
   .flip-card-title-bar-shimmer {
     animation: none;
     background-size: 100% 100%;

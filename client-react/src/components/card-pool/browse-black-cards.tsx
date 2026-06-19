@@ -88,14 +88,20 @@ type PackStripProps = {
 
 export function PackStrip({ label, spectrum }: PackStripProps) {
   const accent = spectrumAccentColor(spectrum)
+  // rainbow 渐变来自 CSS 自定义属性 --accent-bg
+  const accentBg = (spectrum as Record<string, unknown> | undefined)?.[
+    '--accent-bg'
+  ] as string | undefined
 
-  if (accent) {
+  const gradient =
+    accentBg ??
+    (accent ? `linear-gradient(105deg, ${accent} 0%, #0a0a12 88%)` : null)
+
+  if (gradient) {
     return (
       <div
-        className="relative flex h-9 w-full shrink-0 items-center justify-center overflow-hidden px-2"
-        style={{
-          background: `linear-gradient(105deg, ${accent} 0%, #0a0a12 88%)`,
-        }}
+        className="relative flex h-9 w-full shrink-0 items-center justify-center overflow-hidden px-2 pack-strip-shimmer"
+        style={{ backgroundImage: gradient }}
       >
         <span className="relative z-10 line-clamp-1 text-center text-[11px] font-bold uppercase tracking-wider text-white drop-shadow-sm">
           {label}
@@ -214,7 +220,7 @@ export function RootSummaryBlackCard({
       onHandZoneHoverChange: onPointerHandZoneHover,
     })
 
-  const spectrum = scopeTaxonomySpectrumStyle(handDragScope)
+  const spectrum = scopeTaxonomySpectrumStyle(handDragScope, total)
 
   return (
     <div className="flex flex-1 items-center justify-center py-6 sm:py-8">
@@ -281,7 +287,7 @@ function ExplorerBrowseBlackCard({
   onCardOpen: (s: BlackScope) => void
 }) {
   const n = scopeTotals[scopeKey(s)]
-  const spectrum = scopeTaxonomySpectrumStyle(s)
+  const spectrum = scopeTaxonomySpectrumStyle(s, n)
   const stripLabel = scopeCurrentClassificationBasis(s)
 
   return (
@@ -348,7 +354,7 @@ function PoolBrowseBlackCard({
       onDropInHand: (at) => onLongPressDropScopeInHand(s, at),
       onHandZoneHoverChange: onPointerHandZoneHover,
     })
-  const spectrum = scopeTaxonomySpectrumStyle(s)
+  const spectrum = scopeTaxonomySpectrumStyle(s, n)
   const stripLabel = scopeCurrentClassificationBasis(s)
 
   return (
