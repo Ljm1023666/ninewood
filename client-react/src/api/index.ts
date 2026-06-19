@@ -1,8 +1,7 @@
 import axios from 'axios'
 
-const baseURL = location.protocol === 'file:'
-  ? 'http://localhost:3001/api'
-  : '/api'
+const baseURL =
+  location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api'
 
 const api = axios.create({
   baseURL,

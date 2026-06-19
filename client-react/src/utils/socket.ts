@@ -22,7 +22,9 @@ export function connectSocket(token: string): Socket {
 
   socket.on('connect', () => console.log('[Socket] connected'))
   socket.on('disconnect', () => console.log('[Socket] disconnected'))
-  socket.on('connect_error', (err) => console.warn('[Socket] connect error:', err.message))
+  socket.on('connect_error', (err) =>
+    console.warn('[Socket] connect error:', err.message),
+  )
 
   if (pingInterval) clearInterval(pingInterval)
   pingInterval = setInterval(() => socket?.emit('ping'), 20000)

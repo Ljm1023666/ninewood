@@ -25,14 +25,14 @@ export const USER_COVER_PRESET_FILES = [
 
 function hashUserId(id: string): number {
   let h = 0
-  for (let i = 0; i < id.length; i++) h = (Math.imul(31, h) + id.charCodeAt(i)) | 0
+  for (let i = 0; i < id.length; i++)
+    h = (Math.imul(31, h) + id.charCodeAt(i)) | 0
   return Math.abs(h)
 }
 
 /** 按发布者 userId 稳定映射到 public/user-cover-presets 下的一张图（需求详情专用） */
 export function userCoverPresetUrl(userId: string): string {
   const n = USER_COVER_PRESET_FILES.length
-  if (n === 0) return ''
   const base = import.meta.env.BASE_URL || '/'
   const prefix = base.endsWith('/') ? base : `${base}/`
   const i = hashUserId(userId) % n

@@ -7,12 +7,23 @@
     "dev:server": "npm run dev -w server",
     "dev:client": "npm run dev -w client-react",
     "build": "npm run build -w server && npm run build -w client-react",
+    "test": "npm run test -w client-react",
+    "lint": "npm run lint -w client-react",
+    "lint:fix": "npm run lint:fix -w client-react",
+    "format": "npm run format -w client-react",
+    "prepare": "husky",
     "typecheck": "npm run typecheck -w server && npm run typecheck -w client-react",
     "typecheck:server": "npm run typecheck -w server",
     "typecheck:client": "npm run typecheck -w client-react"
   },
-  "workspaces": ["server", "client-react"],
+  "workspaces": [
+    "server",
+    "client-react"
+  ],
   "devDependencies": {
     "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "use-sync-external-store": "^1.6.0"
   }
 }

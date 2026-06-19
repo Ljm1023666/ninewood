@@ -16,7 +16,18 @@ export interface ChatMessage {
   isRead?: boolean
 }
 
-function messageKey(msg: Pick<ChatMessage, 'id' | 'content' | 'createdAt' | 'senderId' | 'fromUserId' | 'receiverId' | 'toUserId'>) {
+function messageKey(
+  msg: Pick<
+    ChatMessage,
+    | 'id'
+    | 'content'
+    | 'createdAt'
+    | 'senderId'
+    | 'fromUserId'
+    | 'receiverId'
+    | 'toUserId'
+  >,
+) {
   if (msg.id) return `id:${msg.id}`
   const from = msg.senderId || msg.fromUserId || ''
   const to = msg.receiverId || msg.toUserId || ''
@@ -55,11 +66,16 @@ export const useChatStore = create<ChatState>((set, get) => {
 
   const wire = (s: NonNullable<ReturnType<typeof getSocket>>) => {
     s.off('private:message', onPrivMsg).on('private:message', onPrivMsg)
-    s.off('notification:new', onNotificationNew).on('notification:new', onNotificationNew)
-    s.off('connect', () => set({ connected: true }))
-      .on('connect', () => set({ connected: true }))
-    s.off('disconnect', () => set({ connected: false }))
-      .on('disconnect', () => set({ connected: false }))
+    s.off('notification:new', onNotificationNew).on(
+      'notification:new',
+      onNotificationNew,
+    )
+    s.off('connect', () => set({ connected: true })).on('connect', () =>
+      set({ connected: true }),
+    )
+    s.off('disconnect', () => set({ connected: false })).on('disconnect', () =>
+      set({ connected: false }),
+    )
   }
 
   const unwire = () => {
@@ -101,7 +117,11 @@ export const useChatStore = create<ChatState>((set, get) => {
       const socketOnly = messages.filter((m) => !m.id || !existingIds.has(m.id))
       const merged = [...fetched]
       for (const sm of socketOnly) {
-        if (!merged.some((m) => m.content === sm.content && m.createdAt === sm.createdAt)) {
+        if (
+          !merged.some(
+            (m) => m.content === sm.content && m.createdAt === sm.createdAt,
+          )
+        ) {
           merged.push(sm)
         }
       }
@@ -116,7 +136,9 @@ export const useChatStore = create<ChatState>((set, get) => {
       try {
         const res = await messageApi.unreadCount()
         set({ unreadCount: res.data.data?.count || 0 })
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     },
   }
 })
