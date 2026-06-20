@@ -91,7 +91,7 @@
 
 ## 2. 实现状态总览
 
-> 最近一次同步：2026-06-15 · v1.5 收尾轮
+> 最近一次同步：2026-06-19 · v2.0 收尾（Stage 1.2 落地 + doc sync）
 > 旁注：上一版"2b/2c 🔴"为审计误判（实现在 `comm.service.ts` 而非 `message.service.ts`，grep 不全导致），本版已纠正
 
 | # | 能力 | 初期范围 | 状态 | 一句话现状 |
@@ -107,14 +107,14 @@
 | 7 | 平台结算 + 预充值最低报价 | ✔ | ✅ | `wallet.hold` + `settleDemand` + `GET /api/orders/:id/pay-breakdown` |
 | 8 | 冻结/撤回（删冻结才能再发） | | ✅ | 冻结 cron + `checkFrozenBeforePublish` + 搜索排除 `FROZEN`（`demand-search-visibility.test.ts`） |
 | 9 | 用户无需计算金额（明细可查） | ✔ | ✅ | `SettlementPanel` + `breakdown/history` + `Payment.tsx` pay-breakdown 折叠面板 |
-| 11 | 公益需求系统（接单沿用两段式，D3 决策） | ⭕ | ⭕ | 10% 抽成入池，WelfareDisbursement 政府拨付可追溯，choice 选奖可用；claim↔comm 计时路径 backlog（见 STAGE-1.2 spec §8，另起 spec） |
+| 11 | 公益需求系统（接单沿用两段式，D3 决策） | | ✅ | 10% 抽成入池，`WelfareDisbursement` 政府拨付可追溯，`choice` 选奖可用；claim↔comm 计时路径 backlog（见 STAGE-1.2 spec §8，另起 spec） |
 | 12 | 私人需求圈（初期只做这个） | | 🟡 | 主体可用；公开圈按 D4 后置；缺测试 + 活跃度 cron 验证 |
 | — | 公开圈/审核/升级/公众待办区 | | 🔴 | **初期不做，整体后置**（决策 D4） |
 
 **结论**：
-- 初期范围 1/2/4/6/7/10 ⭕
-- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** ⭕
-- 下一批：私人圈单测（Stage 1.5），Stage 2 公开圈后置
+- 初期范围 1/2/4/6/7/10 ✅
+- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** ✅
+- 下一批：Stage 2 公开圈或 Stage 1.1/1.2 未来项（见 §4 下一批）
 
 --
 
@@ -264,7 +264,7 @@
 
 - **原文**：地理初步划分（IP 兜底）；可多次筛选；圈内需求明码标价、优先圈内解决，未解决可由发布者公开到大众；大众看不到圈内需求，只看到被公开的。私人圈圈主自建（类微信群）；公开圈需平台申请、核名唯一+地区前缀（「某地某某需求圈」）、前缀按圈员人数解锁、活跃过低预警后注销；全社会可搜、当地人可申请进；圈内人可发可解，圈外人只能在圈内发（标「大众需求」），圈外人须等圈内解决不了、公开后才能解。升级链：大众级手工记录达标→申请县级手工公开圈→优秀成员→市级→…→国家级（部分权力交政府）。
 - **当前实现**
-  - 私人圈：`circle.service.ts`（创建、邀请码加入、`OWNER/MEMBER`）✅。
+  - 私人圈：`circle.service.ts`（创建、邀请码加入、`OWNER/MEMBER`、`getMyCircles`）✅；**单测 ✅**（`circle-private.test.ts` 6 用例 PC-A–F，Stage 1.5 落地）。
   - 公开圈增强：`routes/circle-enhanced.ts`（列表、创建、加入、圈内发需求 `isPublic=false`、`publish` 公开到大众、查圈内需求）🟡。
   - 状态/层级枚举已建：`CircleType(PRIVATE/PUBLIC)`、`CircleStatus(ACTIVE/WARNING/DEFUNCT)`、`CircleLevel(COUNTY/CITY/PROVINCE/NATIONAL)`、`MemberRole`。
   - 活跃度 cron：`cron/circle-activity.ts`（预警/注销方向）🟡。
@@ -274,7 +274,7 @@
   - 公众待办区（圈外人发布进圈、标「大众需求」、圈内 1 小时优先窗口、未接转大众可见）🔴。
   - 升级量化判定（县→市→省→国，按完成单数/好评率/圈员数）🔴。
   - 地区前缀按人数解锁 🔴。
-- **初期下一步**：仅确保私人圈（`circle.service.ts`）创建/邀请码加入/圈内可见可用并补测试；公开圈代码（`circle-enhanced`）初期可不暴露入口。
+- **初期下一步**（✅ Stage 1.5 已落地）：私人圈（`circle.service.ts`）创建/邀请码加入/圈内可见 + 6 用例回归（`circle-private.test.ts` PC-A–F）全绿；公开圈代码（`circle-enhanced`）初期不暴露入口。
 
 ---
 
@@ -294,8 +294,8 @@
 
 1. ✅ **Stage 0** 测试补全 + **deposit.service.ts** 删除 — 已完成。
 2. ✅ **Stage 1.1** autoReceive · **Stage 1.3** timeLimit · **Stage 1.2** 拨付+选奖 — 已完成。
-3. **下一项**：**Stage 1.5 私人圈单测**（`docs/specs/STAGE-1.5-private-circle-tests.md`）。
-4. **后期**：Stage 1.1 未来项（认证撤销防漏推、重复推送防重）；Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区）整体后置（D4）。
+3. ✅ **Stage 1.5** 私人圈回归（`circle-private.test.ts` 6 用例 PC-A–F 全绿）— 已完成。
+4. **下一项（待新 CODEX-HANDOFF）**：Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区，整体后置 D4），或 Stage 1.1/1.2 未来项（认证撤销防漏推 / 重复推送防重 / claim↔comm 对齐 / 计数进度接口）。
 
 ### 暂缓（后期，非初期范围）
 - #12 公开圈全部能力（申请审核、公众待办区、圈升级）——**初期只做私人圈**。
@@ -376,3 +376,4 @@
 | 2026-06-19 | v1.8 | Stage 1.3 落地后回写：#4 中 timeLimit 从"后期"升为 Stage 1.3 已落地；发布表单可选「服务时限（分钟）」（15–10080），服务端换算为绝对截止时间落库；processTimeLimitReminders cron（60s）仅提醒不改订单状态，同 orderId 幂等去重。7 个新单测（A–G）全绿；`pnpm --filter server test` 45/45 passed；server + client tsc 均 clean。ACTION-PLAN.md v1.4 同步。未动 schema / Stage 1.2/2 / socket 底层。 |
 | 2026-06-19 | v1.9 | Brain↔Codex 通道：`docs/CODEX-HANDOFF.md`；§3 #2 Stage 0 单测标记 ✅；§4 下一批更新（1.1/1.3 ✅，1.2 进行中）。 |
 | 2026-06-19 | v2.0 | Stage 1.2 落地后回写：#11 拨付+选奖（§2 #11 → ⭕ + §3 #11 整段重写，删除 3 条已落地的"差无政府对接/无选奖/选奖未实现"）；§3 #3 hygiene（autoReceive 已落地注 + 未来项替换"下一步任务"）；§4 下一批（1.2 ✅，下一项 Stage 1.5）；§5 API 补 admin 拨付 + complete body；§5 关键数据模型加 `WelfareDisbursement`/`WelfareReward.rewardType/choiceLabel`；§1 原文未动；§6 决策未动。 |
+| 2026-06-19 | v2.1 | Stage 1.5 私人圈回归落地（commit `985e109`，`circle-private.test.ts` 6 用例 PC-A–F 全绿，全量 60/60 绿 + typecheck clean）。§3 #12 私人圈行加「单测 ✅」+ 初期下一步标 ✅；§4 下一批 Stage 1.5 → ✅，下一项 → Stage 2/未来项（待新 CODEX-HANDOFF）。hygiene：§2 #11 行的 `⭕` 改为图例符号（初期范围留空 / 状态 ✅）；§2 结论三行 `⭕` → `✅`；§2 同步日期 `v1.5 收尾轮` → `v2.0 收尾（Stage 1.2 落地 + doc sync）`；ACTION-PLAN §0 L14 「当前执行 Stage 1.2」→「Stage 1.5」（与 §0 任务队列对齐）。未动 §1 / §6 / 业务代码。 |
