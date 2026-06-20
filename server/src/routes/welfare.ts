@@ -144,6 +144,13 @@ welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, r
     if (!demand) return fail(res, '需求不存在', 404)
     if (demand.userId !== req.user!.userId) return fail(res, '无权操作', 403)
 
+    // Stage 1.2: 可选 rewardMode(随机 | 选奖)
+    const rewardMode = req.body.rewardMode === 'choice' ? 'choice' : 'random'
+    const choiceLabel = typeof req.body.choiceLabel === 'string' ? req.body.choiceLabel : undefined
+    if (rewardMode === 'choice' && !choiceLabel) {
+      return fail(res, '选奖模式必须提供 choiceLabel', 400)
+    }
+
     const finalPrice = Number(req.body.finalPrice || demand.minPrice)
     const regionId = demand.regionId || 0
 
@@ -174,9 +181,12 @@ welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, r
     const provider = await prisma.demandApplicantV2.findFirst({
       where: { demandId: demand.id, status: 'ACCEPTED' },
     })
-    let reward: { type: 'monetary' | 'spiritual'; amount: number; badge: string | null } | null = null
+    let reward: { type: 'monetary' | 'spiritual' | 'choice'; amount: number; badge: string | null } | null = null
     if (provider) {
-      reward = await welfareRewardService.grantReward(demand.id, provider.userId, regionId)
+      reward = await welfareRewardService.grantReward(demand.id, provider.userId, regionId, {
+        mode: rewardMode,
+        choiceLabel,
+      })
     }
 
     success(res, { settlement, reward, finalPrice }, '公益需求已完成')

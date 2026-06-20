@@ -130,6 +130,20 @@ enum DemandStage {
   completed
 }
 
+
+enum WalletLedgerType {
+  HOLD
+  RELEASE
+  CREDIT
+  DEBIT
+}
+
+enum WalletHoldStatus {
+  HELD
+  RELEASED
+  CONSUMED
+}
+
 enum TagCategory {
   service
   demand
@@ -149,6 +163,8 @@ model User {
   snatchCredits      Int       @default(3)
   creditScore        Int       @default(60)
   completedOrders    Int       @default(0)
+  // S1.2 修复:开发期模拟货币(1 点 = 1 元;见 DEVELOPMENT-GUIDE 决策 D5)
+  points             Int       @default(1000000)
   role               String    @default("USER")
   passwordHash       String?
   bio                String?
@@ -378,8 +394,9 @@ model Complaint {
   toUserId   String
   toUser     User            @relation("Respondent", fields: [toUserId], references: [id], onDelete: Cascade)
   demandId   String
-  reason     String
-  status     ComplaintStatus @default(PENDING)
+  reason       String
+  evidenceUrls String[]     @default([])
+  status       ComplaintStatus @default(PENDING)
   result     String?
   createdAt  DateTime        @default(now())
 
@@ -656,6 +673,37 @@ model PushPreference {
   pushFrequency   PushFrequency @default(NORMAL)
 }
 
+
+
+// 公益/钱包流水
+model WalletHold {
+  id          String   @id @default(uuid())
+  userId      String
+  demandId    String   @unique
+  amount      Float
+  status      WalletHoldStatus @default(HELD)
+  releasedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model WalletLedger {
+  id            String   @id @default(uuid())
+  userId        String
+  type          WalletLedgerType
+  amount        Float
+  balanceAfter  Float
+  referenceType String?
+  referenceId   String?
+  memo          String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([referenceType, referenceId])
+}
+
 // 结算记录
 model Settlement {
   id               String   @id @default(uuid())
@@ -673,6 +721,21 @@ model Settlement {
   @@index([createdAt])
 }
 
+
+
+model WelfareDisbursement {
+  id           String   @id @default(uuid())
+  regionId     Int
+  amount       Float
+  recipientOrg String   @db.VarChar(200)
+  memo         String?  @db.VarChar(500)
+  operatorId   String
+  createdAt    DateTime @default(now())
+
+  @@index([regionId])
+  @@index([createdAt])
+}
+
 // 公益随机奖励
 model WelfareReward {
   id           String   @id @default(uuid())
@@ -680,6 +743,8 @@ model WelfareReward {
   providerId   String
   amount       Float    @default(0)
   isSpiritual  Boolean  @default(false)
+  rewardType   String   @default("random") // random | spiritual | choice
+  choiceLabel  String?  @db.VarChar(100)
   badge        String?
   fundPoolId   String?
   createdAt    DateTime @default(now())

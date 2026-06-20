@@ -4,6 +4,8 @@ import { authMiddleware } from '../middleware/auth.js';
 import { adminMiddleware } from '../middleware/admin.js';
 import { success, fail } from '../utils/response.js';
 import { prisma } from '../lib/prisma.js';
+import { z } from 'zod';
+import { welfareDisbursementService } from '../services/welfare-disbursement.js';
 
 export const adminRouter = Router();
 
@@ -205,3 +207,49 @@ adminRouter.put('/circles/:id/approve', async (req: Request, res: Response) => {
   });
   success(res, circle, '公开圈已审核通过');
 });
+
+
+// === Stage 1.2: 公益资金池拨付 ===
+
+const disbursementCreateSchema = z.object({
+  regionId: z.coerce.number().int().min(0),
+  amount: z.coerce.number().positive(),
+  recipientOrg: z.string().min(1).max(200),
+  memo: z.string().max(500).optional(),
+})
+
+// POST /api/admin/welfare/disbursements
+adminRouter.post('/welfare/disbursements', async (req: Request, res: Response) => {
+  try {
+    const data = disbursementCreateSchema.parse(req.body)
+    const result = await welfareDisbursementService.recordDisbursement({
+      regionId: data.regionId,
+      amount: data.amount,
+      recipientOrg: data.recipientOrg,
+      memo: data.memo,
+      operatorId: req.user!.userId,
+    })
+    success(res, result, '拨付已登记', 201)
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '参数验证失败', 400, e.errors)
+    if (e.status) return fail(res, e.message, e.status)
+    fail(res, e.message || 'server error', 500)
+  }
+})
+
+// GET /api/admin/welfare/disbursements?regionId=...
+adminRouter.get('/welfare/disbursements', async (req: Request, res: Response) => {
+  try {
+    const regionId = Number(req.query.regionId)
+    if (!Number.isFinite(regionId)) {
+      return fail(res, '缺少 regionId', 400)
+    }
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 20
+    const result = await welfareDisbursementService.listDisbursements(regionId, page, limit)
+    success(res, result)
+  } catch (e: any) {
+    if (e.status) return fail(res, e.message, e.status)
+    fail(res, e.message || 'server error', 500)
+  }
+})

@@ -14,7 +14,36 @@ const SPIRITUAL_BADGES = [
 
 export const welfareRewardService = {
   /** 完成公益需求后发放奖励 */
-  async grantReward(demandId: string, providerId: string, regionId: number) {
+  async grantReward(
+    demandId: string,
+    providerId: string,
+    regionId: number,
+    options?: { mode?: "random" | "choice"; choiceLabel?: string },
+  ) {
+    const mode = options?.mode ?? 'random'
+
+    // 选奖(honor-only):不扣池,仅荣誉记录
+    if (mode === 'choice') {
+      const label = (options?.choiceLabel ?? '').trim()
+      if (!label) {
+        throw Object.assign(new Error('选奖模式必须提供 choiceLabel'), { status: 400 })
+      }
+      if (label.length > 100) {
+        throw Object.assign(new Error('choiceLabel 不能超过 100 字'), { status: 400 })
+      }
+      const choice = await prisma.welfareReward.create({
+        data: {
+          demandId,
+          providerId,
+          amount: 0,
+          isSpiritual: false,
+          rewardType: 'choice',
+          choiceLabel: label,
+        },
+      })
+      return { type: 'choice' as const, amount: 0, badge: label, id: choice.id }
+    }
+
     const pool = await prisma.welfareFundPool.findUnique({ where: { regionId } })
 
     // 池子有余额 → 随机红包
@@ -25,7 +54,7 @@ export const welfareRewardService = {
       if (amount > 0) {
         await prisma.$transaction([
           prisma.welfareReward.create({
-            data: { demandId, providerId, amount, fundPoolId: pool.id },
+            data: { demandId, providerId, amount, fundPoolId: pool.id, rewardType: 'random' },
           }),
           prisma.welfareFundPool.update({
             where: { regionId },
@@ -47,6 +76,7 @@ export const welfareRewardService = {
         providerId,
         amount: 0,
         isSpiritual: true,
+        rewardType: 'spiritual',
         badge,
       },
     })
