@@ -18,7 +18,10 @@
 
 ### Codex 执行边界
 
-- **当前任务**：Stage 1.2 公益收尾（`docs/specs/STAGE-1.2-welfare.md` v1.0 · 已批准）。任务入口：`docs/CODEX-HANDOFF.md`。
+- **当前任务队列**：Stage 1.5（待新 CODEX-HANDOFF 启动信号）
+- ~~Task 1~~ ✅ Stage 1.2 收尾 — commit `d00d7a5`，54/54 绿 + V6 admin 403。
+- ~~Task 2~~ ✅ `DEVELOPMENT-GUIDE` 回写 — `docs/DEVELOPMENT-GUIDE.md` v2.0。
+- **Task 3**：私人圈单测（`docs/specs/STAGE-1.5-private-circle-tests.md`）— 待本回写 read-back 通过后开工。
 - **测试策略**：沿用 Vitest + Prisma mock；Stage 1.2 允许 schema migration，仍不接真实测试库。
 - **禁止扩大范围**：不做公开圈（Stage 2）、不改 socket 底层、不重写 welfare claim 为普通两段式（见 spec §8 backlog）、不做 stub 进 feat commit。
 - **删旧押金边界**：阶段 0 最多删除/归档无引用的 `server/src/services/deposit.service.ts`；**不要删除** Prisma 里的 `Deposit` / `DepositDemand` 表，也不要生成删表 migration。
@@ -76,7 +79,7 @@
 |---|---|---|---|
 | 1.1 #3 认证者主动接受 | 决策调整：复用 `UserTag.autoReceive`（不新增 `PushPreference.autoAccept`）。`push-engine.ts` 增条件参数 `autoReceiveOnly` + `triggerAutoReceivePush`；`user-tag.ts` 加 `PATCH /:tagName/auto-receive`；`demand.service.create` 接入自动触发 | 1 service + 1 路由 + 1 service 钩子 + 12 个测试 | ✅ Stage 1.1 已完成：12 个用例 (auto-receive.test.ts A–L) 全绿；实现 100% 对齐 `docs/specs/STAGE-1.1-auto-receive.md`；未动 schema / `DemandPush` / socket 底层。V1–V10 验收全通过。
 |  · **未来项（不在本期范围）**：认证撤销防漏推、重复推送防重、计数/进度接口 |
-| 1.2 #11 公益收尾 | 资金池→政府拨付出账记录；补「选奖」奖励类型 | schema + welfare service + admin 路由 | 拨付出账可追溯 + 选奖路径可用 | 🟡 **Spec v1.0 已批准**（`docs/specs/STAGE-1.2-welfare.md`）；Codex 执行中，见 `docs/CODEX-HANDOFF.md` |
+| 1.2 #11 公益收尾 | 资金池→政府拨付出账记录；补「选奖」奖励类型 | schema + welfare service + admin 路由 | 拨付出账可追溯 + 选奖路径可用 | ✅ **Stage 1.2 已完成**（commit `d00d7a5`：54/54 单测绿 + V6 admin 403 + V8 未越界） |
 | 1.3 #4 timeLimit 接线 | 发布表单可选字段 + 超时验收提醒 | schema 已留字段 + UI + cron | 填写后到期触发提醒 | ✅ Stage 1.3 已完成：发布表单可选 timeLimitMinutes (15–10080) 换算为绝对 timeLimit；OrderDetail 展示剩余/超时；processTimeLimitReminders cron (60s) 按 Order 锚点扫描 IN_PROGRESS + timeLimit<=now，同 orderId 幂等发送 [TIME_LIMIT] SYSTEM 消息（**仅提醒、不改订单状态**）。7 个单测 (A–G) 全绿。 |
 
 ### 阶段 2 — 公开圈全套（明确后置 · 决策 D4）
@@ -211,3 +214,5 @@ rg "depositService|deposit\\.service" server/src server/prisma
 | 2026-06-19 | v1.3 | Stage 1.1 落地：#3 主动接受采用"复用 `UserTag.autoReceive`"决策（不新增 `PushPreference.autoAccept`）。新增 `push-engine.ts` 条件参数 `autoReceiveOnly` + `triggerAutoReceivePush`、`user-tag.ts` PATCH 路由、`demand.service.create` 钩起自动推送、`auto-receive.test.ts` 12 个用例（A–L）。未动 schema / `DemandPush` / socket 底层；手动推送路径不变（条件参数防回归）。`pnpm --filter server test` 19 文件 / 84 用例 全绿，`tsc --noEmit` clean。§1.1 行 ✅。DEVELOPMENT-GUIDE.md v1.7 同步§3 #3 与§2 状态矩阵。未来项：认证撤销、重复推送防重、计数/进度接口。 |
 | 2026-06-19 | v1.4 | Stage 1.3 落地：#4 timeLimit 接线（`docs/specs/STAGE-1.3-time-limit.md` v1.0 为准）。`POST /api/demands` 接受可选 `timeLimitMinutes`（>=15 且 <=10080）；`order.service.getById` 在 demand select 中返回 `timeLimit`；新增 `server/src/cron/time-limit-reminder.ts` 以 Order 为锚点（60s）扫描 IN_PROGRESS + timeLimit<=now，同 orderId 幂等发送两条 [TIME_LIMIT] SYSTEM 消息。表单（WorkspaceFields）、发布（DemandCreate）、订单详情（OrderDetail）均最小改动。7 个新单测（time-limit.test.ts A–G）全绿。`pnpm --filter server test -- time-limit` 7/7 passed；server + client tsc 均 clean。DEVELOPMENT-GUIDE.md v1.8 同步§3 #4 + §2 状态矩阵 + 版本记录。未动 schema / Stage 1.2/2 / socket 底层。 |
 | 2026-06-19 | v1.5 | S1.3 合入 origin 后：新建 `docs/CODEX-HANDOFF.md`（Brain↔Codex 任务通道）；批准 `docs/specs/STAGE-1.2-welfare.md` v1.0（政府拨付 + 选奖）；§0 执行边界更新为 Stage 1.2；DEVELOPMENT-GUIDE §3 #2 / §4 扫尾（Stage 0 单测 ✅、下一批路线更新）。 |
+| 2026-06-19 | v1.6 | Brain 下发 Codex 三任务队列：S1.2 测试收尾 → S1.2-doc 回写 DEVELOPMENT-GUIDE → S1.5 私人圈单测；新增 `specs/STAGE-1.2-doc-sync.md`、`specs/STAGE-1.5-private-circle-tests.md`；更新 `CODEX-HANDOFF.md` v2。 |
+| 2026-06-19 | v1.7 | Stage 1.2 落地（commit `d00d7a5`，54/54 绿）+ doc sync：`DEVELOPMENT-GUIDE.md` v2.0（§2 #11 → ⭕ + §3 #11 重写 + §4 下一批更新为 Stage 1.5 + §5 API 补 admin 拨付 + 关键数据模型加 `WelfareDisbursement`）；§0 当前任务 → Stage 1.5；§2 行 1.2 → ✅。未动 §1 / §6 / 业务代码。 |

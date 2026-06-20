@@ -5,60 +5,96 @@
 
 ---
 
-## 当前基线（2026-06-19）
+## 当前基线（2026-06-19 · Brain 审计）
 
 | 项 | 状态 |
 |---|---|
-| Git | `origin/master` 已含 Stage 0 / 1.1 / 1.3 + 文档扫尾 |
-| Server 测试 | `pnpm --filter server test` → **45/45** |
-| Typecheck | server + client `tsc --noEmit` clean |
-| Schema | Stage 1.1 / 1.3 均为 0 schema；**Stage 1.2 允许 migration** |
+| Git | `origin/master` 含 Stage 0 / 1.1 / 1.3；**Stage 1.2 代码在工作区，未验收** |
+| Server 测试 | `pnpm --filter server test` → **49/52**（`welfare-disbursement.test.ts` **3 失败**） |
+| Typecheck | 待 Codex 每轮 read-back 自报 |
+| Schema | `WelfareDisbursement` + `WelfareReward.rewardType/choiceLabel` 已在 schema；migration 待确认已 apply |
 
 ### 已合入里程碑
 
 - **Stage 0**：comm-close / demand-window / location-privacy 单测；删 `deposit.service.ts`
 - **Stage 1.1**：autoReceive（`docs/specs/STAGE-1.1-auto-receive.md`）
-- **Stage 1.3**：timeLimit（`f84e590` 功能 + 服务层从 dangling blob 恢复，非 stub）
+- **Stage 1.3**：timeLimit（`docs/specs/STAGE-1.3-time-limit.md`）
+
+### Stage 1.2 代码现状（Brain 核对）
+
+| 交付项 | 状态 |
+|---|---|
+| `welfare-disbursement.ts` + admin 路由 | ✅ 已有 |
+| `welfare-reward.ts` choice 分支 | ✅ 已有 |
+| `welfare.ts` complete body | ✅ 已有 |
+| `welfare-disbursement.test.ts` | 🟡 **7 用例，3 失败**（见下） |
+| V6 admin 403 单测 | 🔴 缺失 |
+| `DEVELOPMENT-GUIDE` 回写 | 🔴 未做（§3 #11 仍写旧差距） |
+
+**已知测试失败（修断言即可，勿改业务语义）**：
+
+1. **Test A / D**：Prisma `create` 调用形如 `{ data: { ... } }`，测试用了 `objectContaining` 缺 `data` 包装 → 改为 `expect.objectContaining({ data: expect.objectContaining({...}) })`
+2. **Test E**：`grantReward` random 路径可能不经过 `$transaction` 或 mock 的 `cb` 签名不对 → 读 `welfare-reward.ts:55+` 对齐 mock（`findUnique` 在 transaction 外时需单独 mock）
 
 ---
 
 ## Brain 决策（无需再问用户）
 
-1. **下一功能**：Stage 1.2 公益收尾（非 Stage 2 公开圈）
-2. **规格**：`docs/specs/STAGE-1.2-welfare.md` — **Brain 已批准 v1.0**，可直接实现
-3. **禁止**：stub 进 feat commit；并行 session 误删文件时 **先汇报再恢复 blob**，不要写占位 service
-4. **Commit 纪律**：功能 1 commit + 文档 1 commit；不 amend 已 push 历史
-5. **验证**：每轮 read-back 必须含 **全量** `pnpm --filter server test`，不得只报切片
+1. **权威规格**：`docs/DEVELOPMENT-GUIDE.md` §1 + §6；执行顺序见本文「任务队列」
+2. **禁止**：stub 进 feat commit；扩 Stage 2 公开圈；重写 welfare claim；改 §1 原文
+3. **Commit 纪律**：功能 1 commit + 文档 1 commit；不 amend 已 push 历史
+4. **验证**：每轮 read-back 含 **全量** `pnpm --filter server test`，不得只报切片
+5. **文档是交付物**：Stage 1.2 不算完成，直到 `STAGE-1.2-doc-sync.md` 落地
 
 ---
 
-## 🔴 当前任务：Stage 1.2（按 spec 执行）
+## 🔴 当前任务队列（按顺序，不得跳步）
 
-**规格**：`docs/specs/STAGE-1.2-welfare.md`（v1.0 · 已批准）
+### Task 1 — Stage 1.2 收尾（代码 + 测试）
 
-**摘要**：
+**规格**：`docs/specs/STAGE-1.2-welfare.md` v1.0
 
-1. 新增 `WelfareDisbursement` 表 + 拨付 service + admin 路由（资金池出账可追溯）
-2. `WelfareReward.rewardType` + 「选奖」分支（`choice` 模式）
-3. Vitest mock 单测 ≥6 用例（见 spec §6）
-4. 文档回写单独 commit（DEVELOPMENT-GUIDE §3 #11 + ACTION-PLAN §2 行 1.2）
+**必做**：
 
-**明确不做（本期）**：
+1. 修 `welfare-disbursement.test.ts` 至 **全绿**（含 Test A/D/E）
+2. 补 **Test G / V6**：非 ADMIN 调 `POST /api/admin/welfare/disbursements` → 403（mock `adminMiddleware` 或路由层）
+3. 确认 migration `welfare_disbursement_and_choice_reward` 存在且 `prisma generate` 通过
+4. 全量 `pnpm --filter server test` + `pnpm typecheck`
 
-- 公益 `claim` 重写成普通 `requestDemand` 路径（留 backlog，见 spec §8）
-- 政府外部 API 对接、公开圈、socket 广播
-- `DemandDetail` timeLimit 展示（S1.3 可选项，仍跳过）
-
-**完成后 read-back 格式**：
+**read-back 格式**：
 
 ```markdown
 ## git log --oneline -3
-## 测试（全量 + welfare 切片）
+## 测试（全量：X/X + welfare 文件）
 ## V1–V8 对照表（spec §7）
 ## 未做/未越界清单
 ```
 
-Brain 收到 read-back 后复审；通过则 Brain push，失败则列 Critical 打回。
+Brain 复审 Task 1 通过后，**再执行 Task 2**（不要合并为一个 commit 混 doc）。
+
+---
+
+### Task 2 — Stage 1.2-doc 开发指导回写
+
+**规格**：`docs/specs/STAGE-1.2-doc-sync.md` v1.0（Brain 已批准）
+
+**必做**：
+
+1. 按 spec §1 更新 `DEVELOPMENT-GUIDE.md`（§2 #11、§3 #11、§4 下一批、§5 API、版本 v2.0）
+2. 更新 `ACTION-PLAN.md` §2 行 1.2 → ✅
+3. **仅 docs** 单独 commit
+
+**read-back**：列出改动的章节标题 + §2 #11 新状态 + 版本号。
+
+---
+
+### Task 3 — Stage 1.5 私人圈单测（Task 2 完成后）
+
+**规格**：`docs/specs/STAGE-1.5-private-circle-tests.md` v1.0（Brain 已批准）
+
+**必做**：`circle-private.test.ts` ≥5 用例；docs commit（DEVELOPMENT-GUIDE §3 #12、v2.1）
+
+**明确不做**：公开圈、circle-enhanced 入口暴露
 
 ---
 
@@ -66,24 +102,39 @@ Brain 收到 read-back 后复审；通过则 Brain push，失败则列 Critical 
 
 | 情况 | 动作 |
 |---|---|
-| spec 未批准 | 只读代码，不写业务；可修 typo / 文档滞后 |
-| import 链断裂 | read-back 说明缺失文件，**不要** stub 进 feat |
+| Task 1 测试非全绿 | 不得开始 Task 2 |
+| spec 与代码冲突 | read-back 列差异，等 Brain 裁决；**不要**擅自改 §6 决策 |
+| import 链断裂 | 汇报缺失文件，不要 stub |
 | 与 parallel session 冲突 | stash 汇报，等 Brain 协调 |
-| 测试非 45/45 | 不得声称完成 |
 
 ---
 
 ## 参考路径
 
 ```
-docs/DEVELOPMENT-GUIDE.md      §1 原文 · §6 决策
-docs/ACTION-PLAN.md            §2 阶段表
-docs/specs/STAGE-1.1-auto-receive.md
-docs/specs/STAGE-1.2-welfare.md   ← 当前
-server/src/routes/welfare.ts
-server/src/services/welfare-reward.ts
-server/src/middleware/admin.ts
+docs/DEVELOPMENT-GUIDE.md           §1 原文 · §2–§5 回写目标
+docs/ACTION-PLAN.md                 §2 阶段表
+docs/specs/STAGE-1.2-welfare.md     Task 1
+docs/specs/STAGE-1.2-doc-sync.md    Task 2
+docs/specs/STAGE-1.5-private-circle-tests.md   Task 3
+server/src/services/welfare-disbursement.ts
+server/src/__tests__/welfare-disbursement.test.ts
+server/src/services/circle.service.ts
 ```
+
+---
+
+## DEVELOPMENT-GUIDE 对齐 backlog（Task 3 之后 · 仅 Brain 排期）
+
+以下**不要** Codex 自行开工，等新 spec + handoff：
+
+| 项 | 说明 |
+|---|---|
+| #11 claim ↔ comm 计时对齐 | STAGE-1.2 spec §8 backlog |
+| #3 认证撤销防漏推 | DEVELOPMENT-GUIDE §3 #3 未来项 |
+| #2c socket 广播切断 | 非初期；不改 socket 底层除非新 spec |
+| Stage 2 公开圈全套 | 决策 D4 后置 |
+| `Deposit/DepositDemand` 表清理 | 仅归档讨论，禁止删表 migration |
 
 ---
 
@@ -91,4 +142,5 @@ server/src/middleware/admin.ts
 
 | 日期 | 变更 |
 |---|---|
-| 2026-06-19 | 初版：S1.3 合入后创建；下发 S1.2 v1.0 已批准任务 |
+| 2026-06-19 | 初版：S1.2 v1.0 已批准 |
+| 2026-06-19 | v2：Brain 审计 S1.2 半成品（52 测 3 败）；拆 Task 1/2/3；新增 `STAGE-1.2-doc-sync` + `STAGE-1.5-private-circle-tests`；明确 DEVELOPMENT-GUIDE 为对齐目标 |

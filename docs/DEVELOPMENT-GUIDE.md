@@ -1,6 +1,6 @@
-# 九木平台 · 产品需求与开发指导（基于现状）
+﻿# 九木平台 · 产品需求与开发指导（基于现状）
 
-> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.3 落地)
+> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.2 落地)
 > 定位: 本文档以**用户原话需求**为唯一权威来源，对照**当前代码实现**标注完成度，并给出**接下来开发的指导**。
 > 关系: 取代 `ENGINEERING-ROADMAP.md` 作为开发主线。Roadmap 是早期设计稿，部分 API 路径/表结构与现状不一致，仅作历史参考。
 > 配套: 可执行的推进路线、验收标准与测试用例清单见 `ACTION-PLAN.md`。本文档负责"是什么/到哪了"，`ACTION-PLAN.md` 负责"按什么顺序做/做完怎么算数"。
@@ -107,17 +107,16 @@
 | 7 | 平台结算 + 预充值最低报价 | ✔ | ✅ | `wallet.hold` + `settleDemand` + `GET /api/orders/:id/pay-breakdown` |
 | 8 | 冻结/撤回（删冻结才能再发） | | ✅ | 冻结 cron + `checkFrozenBeforePublish` + 搜索排除 `FROZEN`（`demand-search-visibility.test.ts`） |
 | 9 | 用户无需计算金额（明细可查） | ✔ | ✅ | `SettlementPanel` + `breakdown/history` + `Payment.tsx` pay-breakdown 折叠面板 |
-| 11 | 公益需求系统（接单沿用两段式） | | 🟡 | 10% 抽成+奖励闭环；claim 已对齐两段式（2026-06-15 修复）；无政府拨付出账 |
+| 11 | 公益需求系统（接单沿用两段式，D3 决策） | ⭕ | ⭕ | 10% 抽成入池，WelfareDisbursement 政府拨付可追溯，choice 选奖可用；claim↔comm 计时路径 backlog（见 STAGE-1.2 spec §8，另起 spec） |
 | 12 | 私人需求圈（初期只做这个） | | 🟡 | 主体可用；公开圈按 D4 后置；缺测试 + 活跃度 cron 验证 |
 | — | 公开圈/审核/升级/公众待办区 | | 🔴 | **初期不做，整体后置**（决策 D4） |
 
-**结论**：初期范围（1/2/4/6/7/10）**已全部落地**；剩余工作集中在：
-(a) 回归测试补全（#2c 完成切断、冻结后窗口存续），
-(b) #3/#11/#12 后期范围，
-(c) 旧 `Deposit/DepositDemand` 表与 `deposit.service.ts` 清理，
+**结论**：
+- 初期范围 1/2/4/6/7/10 ⭕
+- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** ⭕
+- 下一批：私人圈单测（Stage 1.5），Stage 2 公开圈后置
 
-
----
+--
 
 ## 3. 逐条对照与开发任务
 
@@ -168,10 +167,8 @@
   - 推送目标主要按 `UserTag(status=IDLE)`，**「自动提醒认证者」未与认证体系直接挂钩**。
     - 资格门槛：优先 `UserTag.certified=true`，兜底 `User.certificationLevel !== 'NONE'`；不足返 403。
   - Roadmap 的「推送进度 `GET /pushes/:id/status`」无（也无 `DemandPush` 表）。
-- **下一步任务（非初期范围，排后）**
-    - 匹配规则：`status=IDLE` + `autoReceive=true` + tag 匹配 + 可选 region 匹配；走现有 7 规则链 `shouldReceivePush`。
-    - 触发点：`demand.service.create()` 交付 demand 后，catch 包裹调用 `triggerAutoReceivePush`；推送失败不反向影响 demand 创布。
-    - 接口：`PATCH /api/user-tags/:tagName/auto-receive`（body `{ autoReceive: boolean }`，身份校验全后端推导）。
+- **autoReceive（Stage 1.1 已落地）**：复用 `UserTag.autoReceive`（**未新增** `PushPreference.autoAccept`），push-engine.ts 新增 autoReceiveOnly 参数 + `triggerAutoReceivePush`；user-tag.ts 加 PATCH /:tagName/auto-receive；demand.service.create 交付后挂起自动推送。详见 docs/specs/STAGE-1.1-auto-receive.md，12 个用例（auto-receive.test.ts A–L）全绿。
+- **未来项（非初期范围）**：认证撤销防护（certification 撤销后停止被推送 + 已推送撤回）；重复推送防重（demand 状态机防回退重发）；计数/进度接口（/pushes/:id/status 等）。详见 ACTION-PLAN.md 阶段 1 行的「未来项」说明。
 
 ### 4. 效果导向验收 ✅
 
@@ -247,20 +244,21 @@
 - **原文**：初期只做 1、2、4、6、7、10。
 - **执行**：见第 4 节「范围锁定」。
 
-### 11. 公益需求系统 🟡
+### 11. 公益需求系统 ✅（2026-06-19 Stage 1.2 落地）
 
 - **原文**：设为公益 → 投入当地公益需求圈；抽成专用于建圈；服务者获奖励（抽奖/选奖/红包，资金来自抽成）；政府高管理权限；**独特交付：无需请求接单，所有人默认接单**，完成后直接联系交付，获成交价 + 随机奖励；冻结期 15 分钟特殊处理为 **15 天**；抽成 **10%** 且全部交当地政府/部门。
 - **当前实现**
   - `routes/welfare.ts`：发布公益需求（15 天窗口 ✅）、自动建 `公益需求圈-{regionId}`（PUBLIC）✅、关联 `CircleDemand` ✅、`maxApplicants=9999`。
   - 抽成 10%：`calculateSettlementWelfare` ✅。
-  - 奖励：`welfare-reward.ts`（池有钱→随机红包，池空→精神勋章）✅；`WelfareFundPool` / `WelfareReward` 表 ✅。
+  - 奖励：`welfare-reward.ts`（池有钱→随机红包，池空→精神勋章）✅；**选奖 `mode=choice` + `choiceLabel`**（honor-only，不扣池，rewardType=choice）✅；`WelfareFundPool` / `WelfareReward` 表 ✅。
+  - **拨付（Stage 1.2 新增）**：`WelfareDisbursement` 表 + migration `welfare_disbursement_and_choice_reward`；`server/src/services/welfare-disbursement.ts` 的 `recordDisbursement`（事务内落库 + 池 balance/totalOutflow 减扣，amount 超额返 400，round 2 位精度）+ `listDisbursements`（按 regionId + createdAt desc 分页）；admin 路由 `POST/GET /api/admin/welfare/disbursements` 复用 `authMiddleware` + `adminMiddleware`；运维有「出账记录」可查。详见 docs/specs/STAGE-1.2-welfare.md。
   - 认领：`POST /api/welfare/claim` 已对齐两段式（调用 `requestDemand`，PENDING 而非直接 COMMUNICATING）✅。
-- **决策（见第 6 节）**：公益**仍走两段式接单**（保留请求→接单），不做「所有人默认接单直接交付」。原文「默认接单」仅作文案/体验简化，不改变接单环节。
-- **差距**
-  - 公益交付应统一到普通两段式流程（当前 `claim` 是另一套，需对齐 #6）。
-  - 「抽成全部交当地政府/部门」只入了 `WelfareFundPool`，**无政府对接/拨付出口**。
-  - 奖励「选择奖项」分支未实现（仅随机红包 + 精神勋章）。
-- **下一步任务（后期）**：公益接单对齐 #6 两段式；设计资金池→政府拨付的出账记录；补「选奖」奖励类型。
+- **决策（见第 6 节 D3 不变）**：公益**仍走两段式接单**（保留请求→接单），不做「所有人默认接单直接交付」。原文「默认接单」仅作文案/体验简化，不改变接单环节。
+- **保留差距（均非初期必做）**
+  - 无真实政府外部 API；**仅 ADMIN 端记账录出账**（不接政府系统）。
+  - 选奖 honor-only，不扣池（STAGE-1.2 决策）。
+  - claim ↔ `comm.service` 计时路径不完全一致（**backlog**，见 STAGE-1.2 spec §8；另起 spec，不在 Task 1 范围）。
+- **下一步任务（后期）**：claim↔comm 对齐（独立 spec）；Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区）整体后置（D4）。
 
 ### 12. 需求圈体系 🟡 / 🔴
 
@@ -294,10 +292,10 @@
 
 ### 下一批（2026-06-19 更新）
 
-1. ✅ **Stage 0 测试补全** + **deposit.service.ts 删除** — 已完成。
-2. ✅ **Stage 1.1** autoReceive · **Stage 1.3** timeLimit — 已完成。
-3. **进行中**：**Stage 1.2** 公益政府拨付出账 + 选奖（`docs/specs/STAGE-1.2-welfare.md`）。
-4. **后期**：Stage 1.1 未来项（认证撤销防漏推、重复推送防重）；Stage 2 公开圈全套。
+1. ✅ **Stage 0** 测试补全 + **deposit.service.ts** 删除 — 已完成。
+2. ✅ **Stage 1.1** autoReceive · **Stage 1.3** timeLimit · **Stage 1.2** 拨付+选奖 — 已完成。
+3. **下一项**：**Stage 1.5 私人圈单测**（`docs/specs/STAGE-1.5-private-circle-tests.md`）。
+4. **后期**：Stage 1.1 未来项（认证撤销防漏推、重复推送防重）；Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区）整体后置（D4）。
 
 ### 暂缓（后期，非初期范围）
 - #12 公开圈全部能力（申请审核、公众待办区、圈升级）——**初期只做私人圈**。
@@ -331,13 +329,16 @@
 | 标签分析 | `GET /api/tag-stats` · `POST /api/tag-stats/refresh` | Roadmap 写的是 `/api/tags/stats` |
 | 交易 | `GET /api/transactions/:demandId/breakdown` · `GET /api/transactions/history` | |
 | 点数钱包 | `GET /api/wallet/balance` · `GET /api/wallet/ledger` | 开发期 1点=1元，默认 100W |
-| 公益 | `POST /api/welfare/demands` · `POST /api/welfare/claim` | 15 天 + 自动建公益圈 |
+| 公益发布/认领 | `POST /api/welfare/demands` · `POST /api/welfare/claim` | 15 天 + 自动建公益圈；claim 已对齐两段式（PENDING） |
+| 公益完成 | `POST /api/welfare/complete/:demandId` | body 可选 `{ finalPrice, rewardMode, choiceLabel }`；rewardMode=`choice` 时必传 choiceLabel |
+| 公益拨付（Admin） | `POST /api/admin/welfare/disbursements` · `GET /api/admin/welfare/disbursements?regionId=` | Stage 1.2；需 ADMIN；事务内落库 + 池 balance/totalOutflow 减扣 |
 | 圈（私人） | `/api/circles/*` | 邀请码加入 |
-| 圈（公开增强） | `/api/circles-enhanced/*` | 无申请审核、无升级 |
+| 圈（公开增强） | `/api/circles-enhanced/*` | 无申请审核、无升级（初期不暴露入口） |
 
 ### 关键数据模型（`server/prisma/schema.prisma`）
 
-- 已建：`UserTag`、`DemandApplicantV2`（含 `commStartAt/commDeadline/extensionMinutes`）、`TagStats`、`PushPreference`、`WelfareFundPool`、`WelfareReward`、`CircleDemand`、`Settlement`、`Deposit/DepositDemand`、`Complaint`、`Review`。
+- 已建：`UserTag`、`DemandApplicantV2`（含 `commStartAt/commDeadline/extensionMinutes`）、`TagStats`、`PushPreference`、`WelfareFundPool`、`WelfareReward`（含 `rewardType` random|spiritual|choice + `choiceLabel`）、`WelfareDisbursement`（Stage 1.2：池→政府/部门出账，含 regionId/amount/recipientOrg/memo/operatorId/createdAt）、`CircleDemand`、`Settlement`、`Deposit/DepositDemand`、`Complaint`、`Review` 等。
+- 配套 S1.2 修复（先前 typecheck 卡住）：`User.points Int @default(1000000)`（D5 决策：开发期模拟货币）、`WalletHold` / `WalletLedger`（wallet.service 依赖）、`Complaint.evidenceUrls String[]`（stage 0 v1.4 引入）。
 - Roadmap 提及但**未建**：`DemandPush`、独立 `Card` 死池表、`AuditLog`（死池用 `Demand.lifecycleStage` + `ActiveDemand` 替代）。
 
 ---
@@ -374,3 +375,4 @@
 |  · 未来项（不在本期范围）：认证撤销防漏推、重复推送防重、计数/进度接口。 |
 | 2026-06-19 | v1.8 | Stage 1.3 落地后回写：#4 中 timeLimit 从"后期"升为 Stage 1.3 已落地；发布表单可选「服务时限（分钟）」（15–10080），服务端换算为绝对截止时间落库；processTimeLimitReminders cron（60s）仅提醒不改订单状态，同 orderId 幂等去重。7 个新单测（A–G）全绿；`pnpm --filter server test` 45/45 passed；server + client tsc 均 clean。ACTION-PLAN.md v1.4 同步。未动 schema / Stage 1.2/2 / socket 底层。 |
 | 2026-06-19 | v1.9 | Brain↔Codex 通道：`docs/CODEX-HANDOFF.md`；§3 #2 Stage 0 单测标记 ✅；§4 下一批更新（1.1/1.3 ✅，1.2 进行中）。 |
+| 2026-06-19 | v2.0 | Stage 1.2 落地后回写：#11 拨付+选奖（§2 #11 → ⭕ + §3 #11 整段重写，删除 3 条已落地的"差无政府对接/无选奖/选奖未实现"）；§3 #3 hygiene（autoReceive 已落地注 + 未来项替换"下一步任务"）；§4 下一批（1.2 ✅，下一项 Stage 1.5）；§5 API 补 admin 拨付 + complete body；§5 关键数据模型加 `WelfareDisbursement`/`WelfareReward.rewardType/choiceLabel`；§1 原文未动；§6 决策未动。 |
