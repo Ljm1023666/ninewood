@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { upload, verifyUpload } from '../middleware/upload.js';
 import { messageService } from '../services/message.service.js';
+import { tryStartCommWindow } from '../services/comm.service.js';
 import { success, fail } from '../utils/response.js';
 import { q } from '../utils/query.js';
 
@@ -102,6 +103,7 @@ messageRouter.post('/send', authMiddleware, upload.single('file'), verifyUpload,
     if (!toUserId || !msgContent) return fail(res, '缺少接收者或内容', 400);
     const dur = duration ? parseInt(duration as string, 10) : undefined;
     const msg = await messageService.send(req.user!.userId, toUserId, msgContent, orderId, msgType, dur);
+    await tryStartCommWindow(req.user!.userId, toUserId);
 
     // Notify receiver via socket (real-time delivery)
     const io = req.app.get('io');

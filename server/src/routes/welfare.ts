@@ -117,19 +117,17 @@ welfareRouter.post('/claim/:demandId', authMiddleware, async (req: Request, res:
       return fail(res, '已有其他人正在确认，请稍后再试', 409)
     }
 
-    // 创建认领记录（自动设为 COMMUNICATING，5 分钟确认窗口）
+    // 创建认领记录（PENDING；双消息起算由 comm.service.tryStartCommWindow 触发）
     const applicant = await prisma.demandApplicantV2.create({
       data: {
         demandId: demand.id,
         userId: req.user!.userId,
         message: '公益认领',
-        status: 'COMMUNICATING',
-        commStartAt: new Date(),
-        commDeadline: new Date(Date.now() + 5 * 60000),
+        status: 'PENDING',
       },
     })
 
-    success(res, applicant, '已认领，请在 5 分钟内与发布者确认', 201)
+    success(res, applicant, '已认领，请与发布者沟通（双方互发消息后开始 5 分钟计时）', 201)
   } catch (e: any) {
     fail(res, e.message || 'server error', 500)
   }
