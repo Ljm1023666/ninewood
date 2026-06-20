@@ -1,6 +1,6 @@
 ﻿# 九木平台 · 产品需求与开发指导（基于现状）
 
-> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.2 落地)
+> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.5 落地)
 > 定位: 本文档以**用户原话需求**为唯一权威来源，对照**当前代码实现**标注完成度，并给出**接下来开发的指导**。
 > 关系: 取代 `ENGINEERING-ROADMAP.md` 作为开发主线。Roadmap 是早期设计稿，部分 API 路径/表结构与现状不一致，仅作历史参考。
 > 配套: 可执行的推进路线、验收标准与测试用例清单见 `ACTION-PLAN.md`。本文档负责"是什么/到哪了"，`ACTION-PLAN.md` 负责"按什么顺序做/做完怎么算数"。
@@ -91,7 +91,7 @@
 
 ## 2. 实现状态总览
 
-> 最近一次同步：2026-06-19 · v2.0 收尾（Stage 1.2 落地 + doc sync）
+> 最近一次同步：2026-06-19 · v2.1 收尾（Stage 1.5 私人圈单测 + doc sync）
 > 旁注：上一版"2b/2c 🔴"为审计误判（实现在 `comm.service.ts` 而非 `message.service.ts`，grep 不全导致），本版已纠正
 
 | # | 能力 | 初期范围 | 状态 | 一句话现状 |
@@ -108,13 +108,13 @@
 | 8 | 冻结/撤回（删冻结才能再发） | | ✅ | 冻结 cron + `checkFrozenBeforePublish` + 搜索排除 `FROZEN`（`demand-search-visibility.test.ts`） |
 | 9 | 用户无需计算金额（明细可查） | ✔ | ✅ | `SettlementPanel` + `breakdown/history` + `Payment.tsx` pay-breakdown 折叠面板 |
 | 11 | 公益需求系统（接单沿用两段式，D3 决策） | | ✅ | 10% 抽成入池，`WelfareDisbursement` 政府拨付可追溯，`choice` 选奖可用；claim↔comm 计时路径 backlog（见 STAGE-1.2 spec §8，另起 spec） |
-| 12 | 私人需求圈（初期只做这个） | | 🟡 | 主体可用；公开圈按 D4 后置；缺测试 + 活跃度 cron 验证 |
+| 12 | 私人需求圈（初期只做这个） | | 🟡 | 主体可用；`circle.service.ts` 单测 ✅（`circle-private.test.ts` PC-A–F）；公开圈 D4 后置；活跃度 cron 待验 |
 | — | 公开圈/审核/升级/公众待办区 | | 🔴 | **初期不做，整体后置**（决策 D4） |
 
 **结论**：
 - 初期范围 1/2/4/6/7/10 ✅
-- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** ✅
-- 下一批：Stage 2 公开圈或 Stage 1.1/1.2 未来项（见 §4 下一批）
+- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** / **1.5（私人圈单测）** ✅
+- 下一批：Stage 2 公开圈或 Stage 1.1/1.2 未来项（见 §4 下一批；待新 `CODEX-HANDOFF`）
 
 --
 
@@ -377,3 +377,4 @@
 | 2026-06-19 | v1.9 | Brain↔Codex 通道：`docs/CODEX-HANDOFF.md`；§3 #2 Stage 0 单测标记 ✅；§4 下一批更新（1.1/1.3 ✅，1.2 进行中）。 |
 | 2026-06-19 | v2.0 | Stage 1.2 落地后回写：#11 拨付+选奖（§2 #11 → ⭕ + §3 #11 整段重写，删除 3 条已落地的"差无政府对接/无选奖/选奖未实现"）；§3 #3 hygiene（autoReceive 已落地注 + 未来项替换"下一步任务"）；§4 下一批（1.2 ✅，下一项 Stage 1.5）；§5 API 补 admin 拨付 + complete body；§5 关键数据模型加 `WelfareDisbursement`/`WelfareReward.rewardType/choiceLabel`；§1 原文未动；§6 决策未动。 |
 | 2026-06-19 | v2.1 | Stage 1.5 私人圈回归落地（commit `985e109`，`circle-private.test.ts` 6 用例 PC-A–F 全绿，全量 60/60 绿 + typecheck clean）。§3 #12 私人圈行加「单测 ✅」+ 初期下一步标 ✅；§4 下一批 Stage 1.5 → ✅，下一项 → Stage 2/未来项（待新 CODEX-HANDOFF）。hygiene：§2 #11 行的 `⭕` 改为图例符号（初期范围留空 / 状态 ✅）；§2 结论三行 `⭕` → `✅`；§2 同步日期 `v1.5 收尾轮` → `v2.0 收尾（Stage 1.2 落地 + doc sync）`；ACTION-PLAN §0 L14 「当前执行 Stage 1.2」→「Stage 1.5」（与 §0 任务队列对齐）。未动 §1 / §6 / 业务代码。 |
+| 2026-06-19 | v2.2 | Brain hygiene（Task 3 复审后）：§2 #12 行去掉「缺测试」、补单测 ✅；§2 同步行 → v2.1；结论段补 Stage 1.5；`CODEX-HANDOFF.md` v3（基线 60/60、队列待机）；`ACTION-PLAN` §0 三任务全 ✅。未动 §1 / §6 / 业务代码。 |

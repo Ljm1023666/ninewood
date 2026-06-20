@@ -1,6 +1,6 @@
 # Stage 1.5 — 私人需求圈回归测试
 
-> 状态: **v1.0 · Brain 已批准** · 创建: 2026-06-19  
+> 状态: **v1.0 · 已落地**（commit `985e109` + doc `aef7170`）· 创建: 2026-06-19  
 > 依据: `DEVELOPMENT-GUIDE.md` §1 原文 #12、§6 决策 D4（初期只做私人圈）  
 > 对应: `DEVELOPMENT-GUIDE.md` §3 #12「初期下一步：仅确保私人圈…补测试」
 
@@ -51,6 +51,6 @@
 
 ## 4. 交付清单
 
-- [ ] `circle-private.test.ts`（≥5）  
-- [ ] 全量测试绿 + typecheck  
-- [ ] docs commit（§3 #12 + §4 + 版本 v2.1）  
+- [x] `circle-private.test.ts`（≥5）  
+- [x] 全量测试绿 + typecheck  
+- [x] docs commit（§3 #12 + §4 + 版本 v2.1）  

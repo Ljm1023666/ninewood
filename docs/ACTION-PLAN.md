@@ -1,6 +1,6 @@
 # 九木平台 · Codex 执行规格与后续开发计划
 
-> 版本: v1.5 · 创建: 2026-06-19 · 最近同步: 2026-06-19 (Stage 1.2 spec 批准 · CODEX-HANDOFF 建立)
+> 版本: v1.9 · 创建: 2026-06-19 · 最近同步: 2026-06-19 (Stage 1.5 落地 · 三任务队列待机)
 > 定位: 承接 `DEVELOPMENT-GUIDE.md` 的现状分析，给出**可执行的推进路线**与**验收标准**。
 > 关系: `DEVELOPMENT-GUIDE.md` 回答"需求是什么 / 实现到哪了"；本文档回答"接下来按什么顺序做、做完怎么算数"。
 > 使用对象: 本文档写给 Codex 等代码执行员。执行员负责按本文档落地代码与测试，不重新解释产品方向，不扩大范围。
@@ -11,17 +11,17 @@
 
 1. 执行前先读 `DEVELOPMENT-GUIDE.md` §1（需求原文）和 §6（已决策），但**不要改 §1 原文**。
 2. 第 1 节是**核对结论**：记录开发指导文档与代码的偏差（文档已出现过时之处）。
-3. 第 2 节是**三阶段路线**：按优先级排序，每项带验收标准。Stage 0 / 1.1 / 1.3 / **1.2 / 1.5 已完成**；**当前执行 Stage 1.5 私人圈回归**（已落地，见 `docs/CODEX-HANDOFF.md` 后续任务）。
+3. 第 2 节是**三阶段路线**：按优先级排序，每项带验收标准。Stage 0 / 1.1 / 1.3 / **1.2 / 1.5 已完成**；**当前待机**（三任务队列闭环，下一项见 `docs/CODEX-HANDOFF.md` backlog）。
 4. 第 3 节是**阶段 0 执行规格**（归档参考）：Stage 0 已全部完成，勿再重复实现。
 5. 第 4 节是**推进纪律**：基于仓库既有规则，避免返工。
 6. 第 5 节是**风险登记**。
 
 ### Codex 执行边界
 
-- **当前任务队列**：Stage 1.5（待新 CODEX-HANDOFF 启动信号）
+- **当前任务队列**：**待机**（Task 1–3 已全部批准；Brain 下发新 spec 后再更新 `CODEX-HANDOFF.md`）
 - ~~Task 1~~ ✅ Stage 1.2 收尾 — commit `d00d7a5`，54/54 绿 + V6 admin 403。
-- ~~Task 2~~ ✅ `DEVELOPMENT-GUIDE` 回写 — `docs/DEVELOPMENT-GUIDE.md` v2.0。
-- **Task 3**：私人圈单测（`docs/specs/STAGE-1.5-private-circle-tests.md`）— 待本回写 read-back 通过后开工。
+- ~~Task 2~~ ✅ `DEVELOPMENT-GUIDE` 回写 — `docs/DEVELOPMENT-GUIDE.md` v2.0（`3e5d547`）。
+- ~~Task 3~~ ✅ 私人圈单测 — commit `985e109` + doc `aef7170`（`circle-private.test.ts` 6 用例，全量 60/60 绿）。
 - **测试策略**：沿用 Vitest + Prisma mock；Stage 1.2 允许 schema migration，仍不接真实测试库。
 - **禁止扩大范围**：不做公开圈（Stage 2）、不改 socket 底层、不重写 welfare claim 为普通两段式（见 spec §8 backlog）、不做 stub 进 feat commit。
 - **删旧押金边界**：阶段 0 最多删除/归档无引用的 `server/src/services/deposit.service.ts`；**不要删除** Prisma 里的 `Deposit` / `DepositDemand` 表，也不要生成删表 migration。
@@ -217,3 +217,4 @@ rg "depositService|deposit\\.service" server/src server/prisma
 | 2026-06-19 | v1.6 | Brain 下发 Codex 三任务队列：S1.2 测试收尾 → S1.2-doc 回写 DEVELOPMENT-GUIDE → S1.5 私人圈单测；新增 `specs/STAGE-1.2-doc-sync.md`、`specs/STAGE-1.5-private-circle-tests.md`；更新 `CODEX-HANDOFF.md` v2。 |
 | 2026-06-19 | v1.7 | Stage 1.2 落地（commit `d00d7a5`，54/54 绿）+ doc sync：`DEVELOPMENT-GUIDE.md` v2.0（§2 #11 → ⭕ + §3 #11 重写 + §4 下一批更新为 Stage 1.5 + §5 API 补 admin 拨付 + 关键数据模型加 `WelfareDisbursement`）；§0 当前任务 → Stage 1.5；§2 行 1.2 → ✅。未动 §1 / §6 / 业务代码。 |
 | 2026-06-19 | v1.8 | Stage 1.5 私人圈回归落地（commit `985e109`，`circle-private.test.ts` 6 用例 PC-A–F，全量 60/60 绿 + typecheck clean）。DEVELOPMENT-GUIDE.md v2.1：§3 #12 私人圈行加「单测 ✅」+ 初期下一步标 ✅；§4 下一批 Stage 1.5 → ✅、下一项 → Stage 2/未来项；hygiene（§2 #11 ⭕ → ✅、§2 结论三行 ⭕ → ✅、§2 同步日期 v1.5→v2.0）；§0 L14 「当前执行 Stage 1.2」→「1.5 已完成」（与 §0 任务队列对齐）。未动 §1 / §6 / 业务代码。 |
+| 2026-06-19 | v1.9 | Brain hygiene：§0 三任务全 ✅、队列 → 待机；`CODEX-HANDOFF.md` v3（基线 60/60）；`DEVELOPMENT-GUIDE` v2.2（§2 #12 单测同步）。未动 §1 / §6 / 业务代码。 |
