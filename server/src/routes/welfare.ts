@@ -96,7 +96,7 @@ welfareRouter.get('/fund-pool/:regionId', async (req: Request, res: Response) =>
   }
 })
 
-// POST /api/welfare/claim — 认领公益需求（先到先得 + 5 分钟确认窗口）
+// POST /api/welfare/claim — 认领公益需求（先到先得 → PENDING，comm 双消息起算）
 welfareRouter.post('/claim/:demandId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const demand = await prisma.demand.findUnique({

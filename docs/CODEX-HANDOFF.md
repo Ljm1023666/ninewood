@@ -5,108 +5,77 @@
 
 ---
 
-## 当前基线（2026-06-19 · Task 1–3 已落地 · Task 4 待执行）
+## 当前基线（2026-06-19 · Task 1–5 已全部落地）
 
 | 项 | 状态 |
 |---|---|
-| Git（本地） | 含 `96fac8f` hygiene；Task 1–3：`d00d7a5` · `3e5d547` · `985e109` · `aef7170` · `96fac8f` |
-| Server 测试 | `pnpm --filter server test` → **60/60**（9 文件） |
+| Git（本地） | Task 4 `7c5f3ee` · Task 5 doc（见最新 commit） |
+| Server 测试 | `pnpm --filter server test` → **67/67**（10 文件） |
 | Typecheck | `pnpm typecheck` → clean |
-| 已知代码债 | `welfare/claim` 预写 `COMMUNICATING`；`tryStartCommWindow` **无调用点**（Task 4 修） |
-| 开发指导 | `DEVELOPMENT-GUIDE.md` **v2.2**（§3 #11 仍标 claim↔comm backlog，Task 5 修） |
+| 开发指导 | `DEVELOPMENT-GUIDE.md` **v2.3** |
 
 ### 已合入里程碑
 
 | Stage | 交付 | 关键 commit / 测试 |
 |---|---|---|
 | **0** | comm-close / demand-window / location-privacy | — |
-| **1.1** | autoReceive | `STAGE-1.1-auto-receive.md` |
-| **1.3** | timeLimit | `STAGE-1.3-time-limit.md` |
+| **1.1** | autoReceive | 12 用例 |
+| **1.3** | timeLimit | 7 用例 |
 | **1.2** | 拨付 + 选奖 | `d00d7a5` · 9 用例 |
-| **1.5** | 私人圈单测 | `985e109` · `circle-private.test.ts` 6 用例 |
-| **hygiene** | handoff 待机 | `96fac8f` |
+| **1.5** | 私人圈单测 | `985e109` · 6 用例 |
+| **1.6** | claim↔comm | `7c5f3ee` · `welfare-claim-comm.test.ts` 7 用例 |
+
+### 测试分布（67/67）
+
+welfare 9 · **welfare-claim-comm 7** · comm-close 7 · auto-receive 12 · deposit 4 · order 7 · time-limit 7 · auth 3 · demand 2 · circle-private 6 · 其它 3
 
 ---
 
 ## Brain 决策（无需再问用户）
 
-1. **权威规格**：`docs/DEVELOPMENT-GUIDE.md` §1 + §6；执行顺序见「任务队列」
-2. **禁止**：stub 进 feat commit；无 spec 扩 Stage 2；改 §1 原文；改 socket `io.emit` 块
-3. **Commit 纪律**：Task 4 功能 1 commit + Task 5 文档 1 commit
-4. **验证**：每轮 read-back 含 **全量** `pnpm --filter server test`
-5. **D3 不变**：公益仍两段式；Task 4 只对齐 **comm 计时**，不重写 claim 为 `requestDemand`
+1. **权威规格**：`docs/DEVELOPMENT-GUIDE.md` §1 + §6
+2. **禁止**：无 spec 扩 Stage 2；改 §1 原文；stub 进 feat commit
+3. **Commit 纪律**：功能 1 commit + 文档 1 commit
+4. **验证**：read-back 含全量 `pnpm --filter server test`
 
 ---
 
-## ✅ 已完成任务（Task 1–3）
+## ✅ 已完成任务队列
 
 | # | 任务 | commit | Brain |
 |---|---|---|---|
 | 1 | Stage 1.2 收尾 | `d00d7a5` | ✅ |
 | 2 | Stage 1.2-doc | `3e5d547` | ✅ |
-| 3 | Stage 1.5 私人圈单测 | `985e109` + `aef7170` | ✅ |
+| 3 | Stage 1.5 私人圈 | `985e109` + `aef7170` | ✅ |
+| 4 | Stage 1.6 claim↔comm | `7c5f3ee` | ✅ |
+| 5 | Stage 1.6-doc | （doc commit） | ✅ |
 
 ---
 
-## 🔴 当前任务队列（按顺序，不得跳步）
+## 🟡 当前状态：待机
 
-### Task 4 — Stage 1.6 公益 claim ↔ comm 对齐（代码 + 测试）
+**无活跃 Codex 任务。** 下一项需 Brain 批准新 spec。
 
-**规格**：`docs/specs/STAGE-1.6-welfare-claim-comm.md` v1.0（Brain 已批准）
-
-**必做**：
-
-1. `welfare.ts` claim → **`PENDING`**，去掉预写 `commStartAt`/`commDeadline`
-2. `POST /api/messages/send` 成功后 **`await tryStartCommWindow(from, to)`**
-3. 新增 `server/src/__tests__/welfare-claim-comm.test.ts`（≥6：WC-A–F）
-4. 全量 `pnpm --filter server test` + `pnpm typecheck`
-5. **仅 feat** 单独 commit（**不要**改 DEVELOPMENT-GUIDE）
-
-**read-back**：git log · 全量测试 · V1–V7 · 未越界清单
-
-Brain 复审 Task 4 通过后 → **Task 5**
-
----
-
-### Task 5 — Stage 1.6-doc 开发指导回写
-
-**规格**：`docs/specs/STAGE-1.6-doc-sync.md` v1.0（Brain 已批准）
-
-**必做**：`DEVELOPMENT-GUIDE` v2.3 + `ACTION-PLAN` v2.0；**仅 docs** 单独 commit
-
----
-
-## 待机 backlog（Task 5 之后 · 仅 Brain 排期）
+### 候选 backlog
 
 | 项 | 说明 |
 |---|---|
-| Stage 2 公开圈 | D4 后置；需 `STAGE-2-*.md` |
-| #3 认证撤销防漏推 | §3 #3 未来项 |
-| #2c socket 广播切断 | 非初期 |
-| #12 活跃度 cron smoke | Stage 1.5 可选项 |
-| `Deposit/DepositDemand` 表 | 禁止删表 migration |
+| **Stage 2 公开圈** | D4 后置；需 `STAGE-2-*.md` |
+| **#3 认证撤销防漏推** | §3 #3 未来项 |
+| **#2c socket 广播切断** | 非初期 |
+| **#12 活跃度 cron smoke** | Stage 1.5 可选项 |
+| **`Deposit/DepositDemand` 表清理** | 禁止删表 migration |
 
 ---
 
-## 阻塞处理
+## 下一任务（Brain 填写 · Codex 等待）
 
-| 情况 | 动作 |
-|---|---|
-| Task 4 非全绿 | 不得开始 Task 5 |
-| spec 与代码冲突 | read-back 列差异，等 Brain 裁决 |
-|  tempted 改 requestDemand / 多人 claim | **停止** — 违反 spec §0 |
-
----
-
-## 参考路径
-
-```
-docs/specs/STAGE-1.6-welfare-claim-comm.md    Task 4
-docs/specs/STAGE-1.6-doc-sync.md              Task 5
-server/src/routes/welfare.ts                  claim handler
-server/src/routes/message.ts                  POST /send
-server/src/services/comm.service.ts           tryStartCommWindow
-server/src/__tests__/welfare-disbursement.test.ts   mock 风格参考
+```markdown
+<!-- 启动 Task 6 时填写 -->
+任务名:
+规格路径:
+范围锁定:
+验收:
 ```
 
 ---
@@ -115,5 +84,5 @@ server/src/__tests__/welfare-disbursement.test.ts   mock 风格参考
 
 | 日期 | 变更 |
 |---|---|
-| 2026-06-19 | v3：Task 1–3 闭环，待机 |
-| 2026-06-19 | v4：Brain 批准 Task 4/5（Stage 1.6 claim↔comm）；队列激活 |
+| 2026-06-19 | v4：Task 4/5 排期 |
+| 2026-06-19 | v5：Task 4–5 全部批准；基线 67/67；队列 → **待机** |

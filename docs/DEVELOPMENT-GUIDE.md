@@ -1,6 +1,6 @@
 ﻿# 九木平台 · 产品需求与开发指导（基于现状）
 
-> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.5 落地)
+> 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.6 落地)
 > 定位: 本文档以**用户原话需求**为唯一权威来源，对照**当前代码实现**标注完成度，并给出**接下来开发的指导**。
 > 关系: 取代 `ENGINEERING-ROADMAP.md` 作为开发主线。Roadmap 是早期设计稿，部分 API 路径/表结构与现状不一致，仅作历史参考。
 > 配套: 可执行的推进路线、验收标准与测试用例清单见 `ACTION-PLAN.md`。本文档负责"是什么/到哪了"，`ACTION-PLAN.md` 负责"按什么顺序做/做完怎么算数"。
@@ -91,14 +91,14 @@
 
 ## 2. 实现状态总览
 
-> 最近一次同步：2026-06-19 · v2.1 收尾（Stage 1.5 私人圈单测 + doc sync）
+> 最近一次同步：2026-06-19 · v2.3 收尾（Stage 1.6 claim↔comm + doc sync）
 > 旁注：上一版"2b/2c 🔴"为审计误判（实现在 `comm.service.ts` 而非 `message.service.ts`，grep 不全导致），本版已纠正
 
 | # | 能力 | 初期范围 | 状态 | 一句话现状 |
 |---|---|:---:|:---:|---|
 | 1 | 位置模糊（50m 噪声） | ✔ | ✅ | `fuzzLocation` 落库 + raw SQL 已切 `fuzzyLat/fuzzyLng`（2026-06-15 修复） |
 | 2a | 15 分钟紧急窗口 + 自动冻结 | ✔ | ✅ | `visibleUntil` + 30s cron 冻结；Stage 0 已补 `processDemandWindows` 单测（`demand-window.test.ts`） |
-| 2b | 5 分钟沟通资格（双方互发消息计时） | ✔ | ✅ | `comm.service.ts` 状态机：双方首消息 → `COMMUNICATING` + 5min；`comm-integration.test.ts` 已覆盖 |
+| 2b | 5 分钟沟通资格（双方互发消息计时） | ✔ | ✅ | `comm.service.tryStartCommWindow`；`POST /api/messages/send` 已接线（Stage 1.6）；`comm-close.test.ts` + `welfare-claim-comm.test.ts` WC-D–G |
 | 2c | 沟通延长 / 完成后强制切断 | ✔ | ✅ | `closeAllCommForDemand` 已接入 4 处（`comm.service.ts:104` → `acceptance`/`demand.acceptApplicant`/`pool.completeDemand`）；Stage 0 已补单测（`comm-close.test.ts`） |
 | 3 | AI 标签 + 推送认证者 / 主动接受 | | ✅ | Stage 1.1 已落地：复用 `UserTag.autoReceive`（原决策为"不新增 `PushPreference.autoAccept`"，考虑到字段已存在 + 按 tag 粒度更精细）；`demand.service.create` 交付后自动触发推送；12 个新单测 (A–L) 已覆盖。`autoAccept` 名字在后续业务可能会提供，但本期不变。未来项：认证撤销场景需下阶段补上。 |
 | 4 | 效果导向验收（拒付/举证） | ✔ | ✅ | `WAITING_REVIEW`→确认/拒付；`Complaint.evidenceUrls`；拒付弹窗支持图片上传（`POST /api/uploads/evidence`） |
@@ -107,14 +107,14 @@
 | 7 | 平台结算 + 预充值最低报价 | ✔ | ✅ | `wallet.hold` + `settleDemand` + `GET /api/orders/:id/pay-breakdown` |
 | 8 | 冻结/撤回（删冻结才能再发） | | ✅ | 冻结 cron + `checkFrozenBeforePublish` + 搜索排除 `FROZEN`（`demand-search-visibility.test.ts`） |
 | 9 | 用户无需计算金额（明细可查） | ✔ | ✅ | `SettlementPanel` + `breakdown/history` + `Payment.tsx` pay-breakdown 折叠面板 |
-| 11 | 公益需求系统（接单沿用两段式，D3 决策） | | ✅ | 10% 抽成入池，`WelfareDisbursement` 政府拨付可追溯，`choice` 选奖可用；claim↔comm 计时路径 backlog（见 STAGE-1.2 spec §8，另起 spec） |
+| 11 | 公益需求系统（接单沿用两段式，D3 决策） | | ✅ | 10% 抽成入池，`WelfareDisbursement` 拨付可追溯，`choice` 选奖；claim PENDING + comm 双消息起算已对齐（Stage 1.6） |
 | 12 | 私人需求圈（初期只做这个） | | 🟡 | 主体可用；`circle.service.ts` 单测 ✅（`circle-private.test.ts` PC-A–F）；公开圈 D4 后置；活跃度 cron 待验 |
 | — | 公开圈/审核/升级/公众待办区 | | 🔴 | **初期不做，整体后置**（决策 D4） |
 
 **结论**：
 - 初期范围 1/2/4/6/7/10 ✅
-- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** / **1.5（私人圈单测）** ✅
-- 下一批：Stage 2 公开圈或 Stage 1.1/1.2 未来项（见 §4 下一批；待新 `CODEX-HANDOFF`）
+- Stage 1.1 / 1.3 / **1.2（拨付+选奖）** / **1.5（私人圈单测）** / **1.6（claim↔comm）** ✅
+- 下一批：Stage 2 公开圈或 Stage 1.1/1.2 未来项（见 §4 下一批）
 
 --
 
@@ -145,12 +145,13 @@
 
 - **原文**：点击「请求接单」获得专属 5 分钟沟通资格；**双方各发一条消息才开始计时**；15 分钟结束后已获资格者的 5 分钟仍有效；双方可约定无限延长；需求被确认完成则强制切断（除非加好友）。
 - **当前实现**
-  - 状态机在 `server/src/services/comm.service.ts`：检测发布者↔申请者双方首消息 → 置 `COMMUNICATING` + `commStartAt=now` + `commDeadline=now+5min`（comm.service.ts:55-65）。
+  - 状态机在 `server/src/services/comm.service.ts`：`tryStartCommWindow` 检测发布者↔申请者双方首消息 → 置 `COMMUNICATING` + `commStartAt=now` + `commDeadline=now+5min`（comm.service.ts:54-63）。
+  - **私信接线（Stage 1.6）**：`POST /api/messages/send` 成功后 `await tryStartCommWindow(from, to)`（`routes/message.ts`）。
   - 延长接口：`POST /api/demands/:id/extend-comm`（demand.ts:481-489），`extendComm()` 累加 `extensionMinutes` 并顺延 `commDeadline`（comm.service.ts:88-98）。
   - 计时超时：`server/src/cron/demand-window.ts` 检查 `COMMUNICATING + commDeadline<=now → TIMED_OUT`。
   - 公益认领同样走该状态机（已并入两段式，对齐 D3）。
   - **完成/接单切断**：`closeAllCommForDemand()`（comm.service.ts:104）用 `updateMany` 把该 demand 下所有 `PENDING/COMMUNICATING` 置终态；已接入 4 处——正式接单（demand.service.ts:791）、确认验收（acceptance.service.ts:36/127）、卡池完成（pool.service.ts:241）。
-  - 测试：`server/src/__tests__/comm-integration.test.ts` 覆盖"双方首消息起算 / 单方不起算 / 延长"三条路径。
+  - 测试：`comm-close.test.ts`（切断 7 用例）；`welfare-claim-comm.test.ts` WC-D–G（双消息起算 + send 接线）。
 - **剩余差距**（2026-06-19 复核：切断逻辑 + Stage 0 单测已覆盖）
   - [ ] 切断仅做 DB 状态置终态，**未通过 socket 向其他申请人广播实时关闭通知**（前端需轮询/刷新才感知）。
   - ✅ 冻结后沟通窗口存续：`demand-window.test.ts` 5 用例（Stage 0.2）。
@@ -244,7 +245,7 @@
 - **原文**：初期只做 1、2、4、6、7、10。
 - **执行**：见第 4 节「范围锁定」。
 
-### 11. 公益需求系统 ✅（2026-06-19 Stage 1.2 落地）
+### 11. 公益需求系统 ✅（2026-06-19 Stage 1.2 + 1.6 落地）
 
 - **原文**：设为公益 → 投入当地公益需求圈；抽成专用于建圈；服务者获奖励（抽奖/选奖/红包，资金来自抽成）；政府高管理权限；**独特交付：无需请求接单，所有人默认接单**，完成后直接联系交付，获成交价 + 随机奖励；冻结期 15 分钟特殊处理为 **15 天**；抽成 **10%** 且全部交当地政府/部门。
 - **当前实现**
@@ -252,13 +253,12 @@
   - 抽成 10%：`calculateSettlementWelfare` ✅。
   - 奖励：`welfare-reward.ts`（池有钱→随机红包，池空→精神勋章）✅；**选奖 `mode=choice` + `choiceLabel`**（honor-only，不扣池，rewardType=choice）✅；`WelfareFundPool` / `WelfareReward` 表 ✅。
   - **拨付（Stage 1.2 新增）**：`WelfareDisbursement` 表 + migration `welfare_disbursement_and_choice_reward`；`server/src/services/welfare-disbursement.ts` 的 `recordDisbursement`（事务内落库 + 池 balance/totalOutflow 减扣，amount 超额返 400，round 2 位精度）+ `listDisbursements`（按 regionId + createdAt desc 分页）；admin 路由 `POST/GET /api/admin/welfare/disbursements` 复用 `authMiddleware` + `adminMiddleware`；运维有「出账记录」可查。详见 docs/specs/STAGE-1.2-welfare.md。
-  - 认领：`POST /api/welfare/claim` 已对齐两段式（调用 `requestDemand`，PENDING 而非直接 COMMUNICATING）✅。
+  - 认领：`POST /api/welfare/claim` — **先到先得**创建 `PENDING`（不设 `commStartAt`/`commDeadline`）；5 分钟窗口由 `tryStartCommWindow` 在双方互发私信后启动（Stage 1.6 ✅）；正式接单仍走 `acceptApplicant`（D3）。
 - **决策（见第 6 节 D3 不变）**：公益**仍走两段式接单**（保留请求→接单），不做「所有人默认接单直接交付」。原文「默认接单」仅作文案/体验简化，不改变接单环节。
 - **保留差距（均非初期必做）**
   - 无真实政府外部 API；**仅 ADMIN 端记账录出账**（不接政府系统）。
   - 选奖 honor-only，不扣池（STAGE-1.2 决策）。
-  - claim ↔ `comm.service` 计时路径不完全一致（**backlog**，见 STAGE-1.2 spec §8；另起 spec，不在 Task 1 范围）。
-- **下一步任务（后期）**：claim↔comm 对齐（独立 spec）；Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区）整体后置（D4）。
+- **下一步任务（后期）**：Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区）整体后置（D4）。
 
 ### 12. 需求圈体系 🟡 / 🔴
 
@@ -295,11 +295,11 @@
 1. ✅ **Stage 0** 测试补全 + **deposit.service.ts** 删除 — 已完成。
 2. ✅ **Stage 1.1** autoReceive · **Stage 1.3** timeLimit · **Stage 1.2** 拨付+选奖 — 已完成。
 3. ✅ **Stage 1.5** 私人圈回归（`circle-private.test.ts` 6 用例 PC-A–F 全绿）— 已完成。
-4. **下一项（待新 CODEX-HANDOFF）**：Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区，整体后置 D4），或 Stage 1.1/1.2 未来项（认证撤销防漏推 / 重复推送防重 / claim↔comm 对齐 / 计数进度接口）。
+4. ✅ **Stage 1.6** claim↔comm（`welfare-claim-comm.test.ts` 7 用例 WC-A–G 全绿）— 已完成。
+5. **下一项（待 Brain 排期）**：Stage 2 公开圈（circle-enhanced 申请审核 + 升级链 + 公众待办区，整体后置 D4），或 Stage 1.1/1.2 未来项（认证撤销防漏推 / 重复推送防重 / 计数进度接口）。
 
 ### 暂缓（后期，非初期范围）
 - #12 公开圈全部能力（申请审核、公众待办区、圈升级）——**初期只做私人圈**。
-- 公益 `claim` 与普通两段式完全对齐（见 STAGE-1.2 spec §8 backlog）。
 
 ---
 
@@ -329,7 +329,7 @@
 | 标签分析 | `GET /api/tag-stats` · `POST /api/tag-stats/refresh` | Roadmap 写的是 `/api/tags/stats` |
 | 交易 | `GET /api/transactions/:demandId/breakdown` · `GET /api/transactions/history` | |
 | 点数钱包 | `GET /api/wallet/balance` · `GET /api/wallet/ledger` | 开发期 1点=1元，默认 100W |
-| 公益发布/认领 | `POST /api/welfare/demands` · `POST /api/welfare/claim` | 15 天 + 自动建公益圈；claim 已对齐两段式（PENDING） |
+| 公益发布/认领 | `POST /api/welfare/demands` · `POST /api/welfare/claim` | 15 天 + 自动建公益圈；claim 先到先得 → PENDING；comm 双消息起算（Stage 1.6） |
 | 公益完成 | `POST /api/welfare/complete/:demandId` | body 可选 `{ finalPrice, rewardMode, choiceLabel }`；rewardMode=`choice` 时必传 choiceLabel |
 | 公益拨付（Admin） | `POST /api/admin/welfare/disbursements` · `GET /api/admin/welfare/disbursements?regionId=` | Stage 1.2；需 ADMIN；事务内落库 + 池 balance/totalOutflow 减扣 |
 | 圈（私人） | `/api/circles/*` | 邀请码加入 |
@@ -378,3 +378,4 @@
 | 2026-06-19 | v2.0 | Stage 1.2 落地后回写：#11 拨付+选奖（§2 #11 → ⭕ + §3 #11 整段重写，删除 3 条已落地的"差无政府对接/无选奖/选奖未实现"）；§3 #3 hygiene（autoReceive 已落地注 + 未来项替换"下一步任务"）；§4 下一批（1.2 ✅，下一项 Stage 1.5）；§5 API 补 admin 拨付 + complete body；§5 关键数据模型加 `WelfareDisbursement`/`WelfareReward.rewardType/choiceLabel`；§1 原文未动；§6 决策未动。 |
 | 2026-06-19 | v2.1 | Stage 1.5 私人圈回归落地（commit `985e109`，`circle-private.test.ts` 6 用例 PC-A–F 全绿，全量 60/60 绿 + typecheck clean）。§3 #12 私人圈行加「单测 ✅」+ 初期下一步标 ✅；§4 下一批 Stage 1.5 → ✅，下一项 → Stage 2/未来项（待新 CODEX-HANDOFF）。hygiene：§2 #11 行的 `⭕` 改为图例符号（初期范围留空 / 状态 ✅）；§2 结论三行 `⭕` → `✅`；§2 同步日期 `v1.5 收尾轮` → `v2.0 收尾（Stage 1.2 落地 + doc sync）`；ACTION-PLAN §0 L14 「当前执行 Stage 1.2」→「Stage 1.5」（与 §0 任务队列对齐）。未动 §1 / §6 / 业务代码。 |
 | 2026-06-19 | v2.2 | Brain hygiene（Task 3 复审后）：§2 #12 行去掉「缺测试」、补单测 ✅；§2 同步行 → v2.1；结论段补 Stage 1.5；`CODEX-HANDOFF.md` v3（基线 60/60、队列待机）；`ACTION-PLAN` §0 三任务全 ✅。未动 §1 / §6 / 业务代码。 |
+| 2026-06-19 | v2.3 | Stage 1.6 claim↔comm 落地（commit `7c5f3ee`，`welfare-claim-comm.test.ts` 7 用例 WC-A–G，全量 67/67 绿 + typecheck clean）。claim → PENDING；`POST /api/messages/send` 接线 `tryStartCommWindow`；§2 #11/#2b、§3 #11 删除 claim↔comm backlog；§4 下一批 Stage 1.6 ✅；修正 `comm-integration.test.ts` 引用。未动 §1 / §6。 |

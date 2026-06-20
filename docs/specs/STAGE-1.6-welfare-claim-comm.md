@@ -1,6 +1,6 @@
 # Stage 1.6 — 公益 claim 与 comm 双消息起算对齐
 
-> 状态: **v1.0 · Brain 已批准** · 创建: 2026-06-19  
+> 状态: **v1.0 · 已落地**（commit `7c5f3ee`）· 创建: 2026-06-19  
 > 依据: `DEVELOPMENT-GUIDE.md` §1 原文 #11、§6 决策 **D3**（公益仍走两段式接单）；`STAGE-1.2-welfare.md` §8 backlog #1  
 > 对应: `DEVELOPMENT-GUIDE.md` §3 #11「claim ↔ comm 计时路径 backlog」
 
@@ -123,11 +123,11 @@ await tryStartCommWindow(req.user!.userId, toUserId)
 
 ## 5. 交付清单
 
-- [ ] `welfare.ts` claim → PENDING  
-- [ ] `message` send 接线 `tryStartCommWindow`  
-- [ ] `welfare-claim-comm.test.ts`（≥6）  
-- [ ] `pnpm --filter server test` 全绿 + typecheck  
-- [ ] **不要**在本 commit 改 `DEVELOPMENT-GUIDE`（留给 Task 5 doc）
+- [x] `welfare.ts` claim → PENDING  
+- [x] `message` send 接线 `tryStartCommWindow`  
+- [x] `welfare-claim-comm.test.ts`（≥6）  
+- [x] `pnpm --filter server test` 全绿 + typecheck  
+- [x] **不要**在本 commit 改 `DEVELOPMENT-GUIDE`（Task 5 doc）
 
 ---
 

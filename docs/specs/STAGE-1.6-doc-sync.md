@@ -1,6 +1,6 @@
 # Stage 1.6-doc — 开发指导文档回写（claim↔comm）
 
-> 状态: **v1.0 · Brain 已批准** · 创建: 2026-06-19  
+> 状态: **v1.0 · 已落地** · 创建: 2026-06-19  
 > 前置: Task 4（`STAGE-1.6-welfare-claim-comm.md`）代码 + 单测全绿  
 > 对应: `DEVELOPMENT-GUIDE.md` §2 #11 · §3 #2b/#11 · §4 · §5
 
@@ -72,6 +72,6 @@
 
 ## 4. 交付清单
 
-- [ ] `DEVELOPMENT-GUIDE.md` v2.3  
-- [ ] `ACTION-PLAN.md` v2.0  
-- [ ] docs commit 单独  
+- [x] `DEVELOPMENT-GUIDE.md` v2.3  
+- [x] `ACTION-PLAN.md` v2.0  
+- [x] docs commit 单独  

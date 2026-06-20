@@ -1,6 +1,6 @@
 # 九木平台 · Codex 执行规格与后续开发计划
 
-> 版本: v1.10 · 创建: 2026-06-19 · 最近同步: 2026-06-19 (Task 4/5 Stage 1.6 已排期)
+> 版本: v2.0 · 创建: 2026-06-19 · 最近同步: 2026-06-19 (Stage 1.6 落地 · 队列待机)
 > 定位: 承接 `DEVELOPMENT-GUIDE.md` 的现状分析，给出**可执行的推进路线**与**验收标准**。
 > 关系: `DEVELOPMENT-GUIDE.md` 回答"需求是什么 / 实现到哪了"；本文档回答"接下来按什么顺序做、做完怎么算数"。
 > 使用对象: 本文档写给 Codex 等代码执行员。执行员负责按本文档落地代码与测试，不重新解释产品方向，不扩大范围。
@@ -11,17 +11,16 @@
 
 1. 执行前先读 `DEVELOPMENT-GUIDE.md` §1（需求原文）和 §6（已决策），但**不要改 §1 原文**。
 2. 第 1 节是**核对结论**：记录开发指导文档与代码的偏差（文档已出现过时之处）。
-3. 第 2 节是**三阶段路线**：按优先级排序，每项带验收标准。Stage 0 / 1.1 / 1.3 / **1.2 / 1.5 已完成**；**当前执行 Stage 1.6 claim↔comm**（见 `docs/CODEX-HANDOFF.md` Task 4）。
+3. 第 2 节是**三阶段路线**：按优先级排序，每项带验收标准。Stage 0 / 1.1 / 1.3 / **1.2 / 1.5 / 1.6 已完成**；**当前待机**（Task 4–5 闭环，下一项见 `docs/CODEX-HANDOFF.md` backlog）。
 4. 第 3 节是**阶段 0 执行规格**（归档参考）：Stage 0 已全部完成，勿再重复实现。
 5. 第 4 节是**推进纪律**：基于仓库既有规则，避免返工。
 6. 第 5 节是**风险登记**。
 
 ### Codex 执行边界
 
-- **当前任务队列**：**Task 4 → Task 5**（`docs/CODEX-HANDOFF.md` v4）
-- ~~Task 1~~ ✅ · ~~Task 2~~ ✅ · ~~Task 3~~ ✅（见 handoff 已完成表）
-- **Task 4**：Stage 1.6 claim↔comm（`docs/specs/STAGE-1.6-welfare-claim-comm.md`）
-- **Task 5**：Stage 1.6-doc（`docs/specs/STAGE-1.6-doc-sync.md`）— Task 4 read-back 通过后
+- **当前任务队列**：**待机**（Task 1–5 已全部批准；见 `docs/CODEX-HANDOFF.md` v5）
+- ~~Task 1–3~~ ✅ · ~~Task 4~~ ✅ Stage 1.6 feat — `7c5f3ee`（67/67 绿）
+- ~~Task 5~~ ✅ Stage 1.6-doc — `DEVELOPMENT-GUIDE` v2.3
 - **测试策略**：沿用 Vitest + Prisma mock；Stage 1.2 允许 schema migration，仍不接真实测试库。
 - **禁止扩大范围**：不做公开圈（Stage 2）、不改 socket 底层、不重写 welfare claim 为普通两段式（见 spec §8 backlog）、不做 stub 进 feat commit。
 - **删旧押金边界**：阶段 0 最多删除/归档无引用的 `server/src/services/deposit.service.ts`；**不要删除** Prisma 里的 `Deposit` / `DepositDemand` 表，也不要生成删表 migration。
@@ -81,6 +80,8 @@
 |  · **未来项（不在本期范围）**：认证撤销防漏推、重复推送防重、计数/进度接口 |
 | 1.2 #11 公益收尾 | 资金池→政府拨付出账记录；补「选奖」奖励类型 | schema + welfare service + admin 路由 | 拨付出账可追溯 + 选奖路径可用 | ✅ **Stage 1.2 已完成**（commit `d00d7a5`：54/54 单测绿 + V6 admin 403 + V8 未越界） |
 | 1.3 #4 timeLimit 接线 | 发布表单可选字段 + 超时验收提醒 | schema 已留字段 + UI + cron | 填写后到期触发提醒 | ✅ Stage 1.3 已完成：发布表单可选 timeLimitMinutes (15–10080) 换算为绝对 timeLimit；OrderDetail 展示剩余/超时；processTimeLimitReminders cron (60s) 按 Order 锚点扫描 IN_PROGRESS + timeLimit<=now，同 orderId 幂等发送 [TIME_LIMIT] SYSTEM 消息（**仅提醒、不改订单状态**）。7 个单测 (A–G) 全绿。 |
+| 1.5 #12 私人圈回归 | `circle.service.ts` 私人路径单测 | 测试 only | ≥5 用例 PC-A–F | ✅ `985e109` · `circle-private.test.ts` 6 用例 |
+| 1.6 #11 claim↔comm | claim→PENDING + send 接线 tryStartCommWindow | welfare.ts + message.ts + 测试 | 双消息起算 + 先到先得 | ✅ `7c5f3ee` · `welfare-claim-comm.test.ts` 7 用例 WC-A–G · 67/67 绿 |
 
 ### 阶段 2 — 公开圈全套（明确后置 · 决策 D4）
 
@@ -219,3 +220,4 @@ rg "depositService|deposit\\.service" server/src server/prisma
 | 2026-06-19 | v1.8 | Stage 1.5 私人圈回归落地（commit `985e109`，`circle-private.test.ts` 6 用例 PC-A–F，全量 60/60 绿 + typecheck clean）。DEVELOPMENT-GUIDE.md v2.1：§3 #12 私人圈行加「单测 ✅」+ 初期下一步标 ✅；§4 下一批 Stage 1.5 → ✅、下一项 → Stage 2/未来项；hygiene（§2 #11 ⭕ → ✅、§2 结论三行 ⭕ → ✅、§2 同步日期 v1.5→v2.0）；§0 L14 「当前执行 Stage 1.2」→「1.5 已完成」（与 §0 任务队列对齐）。未动 §1 / §6 / 业务代码。 |
 | 2026-06-19 | v1.9 | Brain hygiene：§0 三任务全 ✅、队列 → 待机；`CODEX-HANDOFF.md` v3（基线 60/60）；`DEVELOPMENT-GUIDE` v2.2（§2 #12 单测同步）。未动 §1 / §6 / 业务代码。 |
 | 2026-06-19 | v1.10 | Brain 排期 Task 4/5：Stage 1.6 claim↔comm spec 批准；`CODEX-HANDOFF` v4 激活队列。 |
+| 2026-06-19 | v2.0 | Stage 1.6 落地（feat `7c5f3ee` + doc sync v2.3）：claim→PENDING、message send 接线 tryStartCommWindow；§2 阶段 1 表补 1.5/1.6；§0 队列 → 待机。未动 §1 / §6。 |
