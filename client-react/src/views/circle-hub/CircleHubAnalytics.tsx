@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -17,50 +17,6 @@ import { MsIcon } from '@/components/ui/ms-icon'
 import { useCircleHub } from './circle-hub-context'
 import { circleApi } from '@/api/circle'
 
-
-
-
-
-const chartTooltip = {
-  contentStyle: {
-    background: 'rgba(28, 32, 39, 0.9)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: 8,
-    color: '#e0e2ec',
-    fontSize: 12,
-  },
-}
-
-function startOfDay(d: Date): Date {
-  const next = new Date(d)
-  next.setHours(0, 0, 0, 0)
-  return next
-}
-
-function formatDateLabel(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function getLast30DaysRange() {
-  const end = startOfDay(new Date())
-  const start = new Date(end)
-  start.setDate(end.getDate() - 29)
-  return { start, end }
-}
-
-function getCurrentWeekMonday(): Date {
-  const today = startOfDay(new Date())
-  const weekday = today.getDay()
-  const diff = weekday === 0 ? -6 : 1 - weekday
-  const monday = new Date(today)
-  monday.setDate(today.getDate() + diff)
-  return monday
-}
-
-/** 分析数据 — Stitch analytics-variant-b 左右分栏 */
 const ENGAGEMENT_FALLBACK = [
   { name: '发布需求', value: 1, color: '#abc7ff' },
   { name: '评论互动', value: 1, color: '#458fff' },
@@ -81,27 +37,29 @@ function formatDateLabel(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return y + '-' + m + '-' + day
+}
+
+type AnalyticsDto = {
+  range: { start: string; end: string }
+  kpis: {
+    memberCount: number
+    memberGrowthPct: number | null
+    activeRate: number
+    activeRateDelta: number | null
+    weekDemands: number
+    weekDemandsDelta: number | null
+    interactions: number
+    interactionsDelta: number | null
+  }
+  memberGrowthSeries: Array<{ offsetDay: number; label: string; date: string; value: number }>
+  weeklyDemandSeries: Array<{ weekday: string; count: number }>
+  engagement: Array<{ name: string; value: number; color: string }>
 }
 
 export default function CircleHubAnalytics() {
   const { circle, memberCount, demands } = useCircleHub()
-  const [analytics, setAnalytics] = useState<{
-    range: { start: string; end: string }
-    kpis: {
-      memberCount: number
-      memberGrowthPct: number | null
-      activeRate: number
-      activeRateDelta: number | null
-      weekDemands: number
-      weekDemandsDelta: number | null
-      interactions: number
-      interactionsDelta: number | null
-    }
-    memberGrowthSeries: Array<{ offsetDay: number; label: string; date: string; value: number }>
-    weeklyDemandSeries: Array<{ weekday: string; count: number }>
-    engagement: Array<{ name: string; value: number; color: string }>
-  } | null>(null)
+  const [analytics, setAnalytics] = useState<AnalyticsDto | null>(null)
   const [analyticsError, setAnalyticsError] = useState('')
 
   useEffect(() => {
@@ -111,7 +69,7 @@ export default function CircleHubAnalytics() {
       .getAnalytics(circle.id, '30d')
       .then((res) => {
         if (cancelled) return
-        setAnalytics(res.data.data as typeof analytics)
+        setAnalytics(res.data.data as AnalyticsDto)
       })
       .catch((err) => {
         if (cancelled) return
@@ -125,11 +83,11 @@ export default function CircleHubAnalytics() {
   const kpis = analytics?.kpis
   const memberGrowthData = analytics?.memberGrowthSeries || []
   const weeklyDemandData = analytics?.weeklyDemandSeries || []
-  const engagement = analytics?.engagement?.length ? analytics.engagement : ENGAGEMENT_FALLBACK
+  const engagement = analytics?.engagement && analytics.engagement.length > 0 ? analytics.engagement : ENGAGEMENT_FALLBACK
 
-  const rangeStart = analytics?.range.start || formatDateLabel(new Date(Date.now() - 29 * 86400_000))
+  const rangeStart = analytics?.range.start || formatDateLabel(new Date(Date.now() - 29 * 86400000))
   const rangeEnd = analytics?.range.end || formatDateLabel(new Date())
-  const weekMonday = useMemo(() => {
+  const weekMonday = (() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const wd = today.getDay()
@@ -137,7 +95,7 @@ export default function CircleHubAnalytics() {
     const m = new Date(today)
     m.setDate(today.getDate() + diff)
     return formatDateLabel(m)
-  }, [])
+  })()
 
   if (!circle) return null
 
@@ -148,9 +106,14 @@ export default function CircleHubAnalytics() {
   const weekDemandsKpi = kpis?.weekDemands ?? demandCount
   const interactions = kpis?.interactions ?? 0
   const interactionsDelta = kpis?.interactionsDelta
-  const rangeCaption = `过去 30 天 路 起始 ${rangeStart}`
-  const pickerCaption = `最近 30 天 路 ${rangeStart} 起`
-  const weekCaption = `本周 路 ${weekMonday} 起`
+  const rangeCaption = '过去 30 天 路 起始 ' + rangeStart
+  const pickerCaption = '最近 30 天 路 ' + rangeStart + ' 起'
+  const weekCaption = '本周 路 ' + weekMonday + ' 起'
+
+  const growthSign = (memberGrowth == null) ? '—' : (memberGrowth >= 0 ? '+' : '') + memberGrowth + '%'
+  const activeDeltaText = (activeRateDelta == null) ? '—' : (activeRateDelta >= 0 ? '+' : '') + activeRateDelta + '%'
+  const weekDeltaText = (kpis?.weekDemandsDelta == null) ? '—' : String(kpis.weekDemandsDelta)
+  const interDeltaText = (interactionsDelta == null) ? '—' : (interactionsDelta >= 0 ? '+' : '') + interactionsDelta
 
   return (
     <div className="cdb-main-inner cdb-hub-page">
@@ -176,7 +139,7 @@ export default function CircleHubAnalytics() {
                 <span className="cdb-hub-stat-num">{kpis?.memberCount ?? memberCount ?? 1}</span>
                 <span className="cdb-hub-stat-delta cdb-hub-stat-delta--up">
                   <MsIcon name="trending_up" size={14} aria-hidden />
-                  {memberGrowth == null ? '—' : `${memberGrowth >= 0 ? '+' : ''}${memberGrowth}%`}
+                  {growthSign}
                 </span>
               </div>
             </div>
@@ -186,7 +149,7 @@ export default function CircleHubAnalytics() {
                 <span className="cdb-hub-stat-num">{activeRate}%</span>
                 <span className="cdb-hub-stat-delta cdb-hub-stat-delta--up">
                   <MsIcon name="trending_up" size={14} aria-hidden />
-                  {activeRateDelta == null ? '—' : `${activeRateDelta >= 0 ? '+' : ''}${activeRateDelta}%`}
+                  {activeDeltaText}
                 </span>
               </div>
             </div>
@@ -196,7 +159,7 @@ export default function CircleHubAnalytics() {
                 <span className="cdb-hub-stat-num">{weekDemandsKpi}</span>
                 <span className="cdb-hub-stat-delta cdb-hub-stat-delta--down">
                   <MsIcon name="trending_down" size={14} aria-hidden />
-                  {kpis?.weekDemandsDelta == null ? '—' : kpis.weekDemandsDelta}
+                  {weekDeltaText}
                 </span>
               </div>
             </div>
@@ -206,7 +169,7 @@ export default function CircleHubAnalytics() {
                 <span className="cdb-hub-stat-num">{interactions}</span>
                 <span className="cdb-hub-stat-delta cdb-hub-stat-delta--up">
                   <MsIcon name="trending_up" size={14} aria-hidden />
-                  {interactionsDelta == null ? '—' : `${interactionsDelta >= 0 ? '+' : ''}${interactionsDelta}`}
+                  {interDeltaText}
                 </span>
               </div>
             </div>
@@ -239,9 +202,9 @@ export default function CircleHubAnalytics() {
                   <YAxis tick={{ fill: '#c1c6d6', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     {...chartTooltip}
-                    labelFormatter={(_, payload) => {
-                      const row = payload?.[0]?.payload as { date?: string; label?: string } | undefined
-                      return row?.date ? `${row.date}（第 ${row.label}）` : String(_)
+                    labelFormatter={(_label: any, payload: any) => {
+                      const row = payload && payload[0] && payload[0].payload
+                      return row && row.date ? row.date + '（第 ' + row.label + '）' : String(_label)
                     }}
                   />
                   <Line
