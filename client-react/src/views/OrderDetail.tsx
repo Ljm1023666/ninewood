@@ -155,7 +155,7 @@ export default function OrderDetail() {
           {isRequester && s === 'IN_PROGRESS' && !order.paidAt && (
             <AcetPrimaryButton
               onClick={() =>
-                act(() => orderApi.prepay(order.id), '支付成功（模拟）')
+                act(() => orderApi.prepay(order.id), '支付成功')
               }
               className="w-full"
             >

@@ -153,7 +153,10 @@ export async function createConversation(params?: {
 }
 
 /** 删除对话 */
-export async function deleteConversation(id: string) {
+export async function updateConversation(id: string, data: { title: string }) {
+    return api.patch(`/conversations/${id}`, data)
+  },
+  deleteConversation(id: string) {
   await api.delete(`/agent/conversations/${id}`)
 }
 

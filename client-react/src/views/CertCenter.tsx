@@ -31,8 +31,8 @@ export default function CertCenter() {
     try {
       const r = await userApi.certStatus()
       setCertStatus(r.data.data)
-    } catch {
-      /* noop */
+    } catch (e: any) {
+      toast(e?.response?.data?.message || e?.message || '操作失败', 'error')
     }
   }
 
@@ -41,8 +41,8 @@ export default function CertCenter() {
     try {
       await userApi.upgradeCert()
       await fetchStatus()
-    } catch {
-      /* noop */
+    } catch (e: any) {
+      toast(e?.response?.data?.message || e?.message || '操作失败', 'error')
     } finally {
       setUpgrading(false)
     }

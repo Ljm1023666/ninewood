@@ -6,6 +6,7 @@ import {
   getConversations,
   getConversation,
   createConversation,
+  updateConversation,
   deleteConversation,
   streamMessage,
   getQuota,
@@ -594,9 +595,24 @@ export default function AgentChat() {
                   <input
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    onBlur={() => setEditingId(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') setEditingId(null)
+                    onBlur={async () => {
+                      const trimmed = editTitle.trim()
+                      if (trimmed && trimmed !== conv.title) {
+                        try {
+                          await updateConversation(conv.id, { title: trimmed })
+                          setConversations((prev) =>
+                            prev.map((c) => (c.id === conv.id ? { ...c, title: trimmed } : c)),
+                          )
+                        } catch (e) {
+                          console.error('[Agent] rename failed', e)
+                        }
+                      }
+                      setEditingId(null)
+                    }}
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter') {
+                        ;(e.target as HTMLInputElement).blur()
+                      }
                     }}
                     className="w-full border border-[var(--internal-hairline)] bg-[var(--internal-bg)] px-2 py-0.5 text-sm font-medium text-text-primary outline-none"
                     autoFocus

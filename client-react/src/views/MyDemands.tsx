@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { demandApi } from '@/api/demand'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ConfirmDialog, toast } from '@/components/ui/confirm-dialog'
 import { ListItemCard } from '@/components/ui/list-item-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { ErrorState } from '@/components/ui/error-state'
@@ -50,12 +50,29 @@ function DemandCard({
           </span>
         </div>
       </div>
-      {(d.status === 'FROZEN' || d.status === 'WITHDRAWN') && onDelete && (
+      {(d.status === 'FROZEN' || d.status === 'WITHDRAWN' || d.status === 'ACTIVE' || d.status === 'PENDING') && onDelete && (
         <div
-          className="relative z-[1] mt-3 flex justify-end border-t border-[var(--internal-hairline)] pt-3"
+          className="relative z-[1] mt-3 flex justify-end gap-2 border-t border-[var(--internal-hairline)] pt-3"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
+          {d.status === 'ACTIVE' || d.status === 'PENDING' ? (
+            <SettingsActionButton
+              variant="primary"
+              onClick={async () => {
+                if (window.confirm('确认撚回该需求？你将会退回 99.99% 的押金。')) {
+                  try {
+                    await demandApi.withdrawDemand(d.id)
+                    if (onDelete) onDelete(d.id)
+                  } catch (e: any) {
+                    toast(e?.response?.data?.message || '撚回失败', 'error')
+                  }
+                }
+              }}
+            >
+              撚回
+            </SettingsActionButton>
+          ) : null}
           <SettingsActionButton variant="danger" onClick={() => onDelete(d.id)}>
             <MsIcon name="delete" size={14} className="mr-1 inline" />
             删除

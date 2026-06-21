@@ -29,7 +29,7 @@ export default function Payment() {
 
   return (
     <InternalPageShell width="narrow" contentClassName="flex min-h-full flex-col">
-      <PageHeader title="模拟支付" onBack="back" />
+      <PageHeader title="点数支付" onBack="back" />
 
       <div className="flex flex-1 flex-col items-center justify-center py-12">
         <div className="w-full max-w-sm shrink-0 text-center">
@@ -44,7 +44,9 @@ export default function Payment() {
           ) : (
             <div>
               <MsIcon name="credit_card" size={56} className="mx-auto mb-4 text-accent" />
-              <p className="mb-6 text-sm text-text-muted">模拟支付页面</p>
+          <p className="mb-2 text-base font-medium text-text-primary">点数支付</p>
+          <p className="mb-6 text-sm text-text-muted">开发期间以点数模拟支付（1点=1元）</p>
+              <p className="mb-6 text-sm text-text-muted">点数支付页面</p>
               {error && (
                 <div className="mb-4 flex items-center justify-center gap-1.5 rounded-lg bg-error/10 px-3 py-2 text-sm text-error">
                   <MsIcon name="error" size={16} />

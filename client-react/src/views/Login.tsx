@@ -648,11 +648,12 @@ export default function LoginPage() {
                     <div className="space-y-4">
                       <button
                         type="button"
-                        onClick={() => setError('Google 登录暂未开放')}
-                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-full py-3 px-4 transition-colors cursor-pointer"
+                        disabled
+                        title="Google 登录即将推出\uff0c请使用手机号登录"
+                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white/[0.02] text-white/30 border border-white/5 rounded-full py-3 px-4 cursor-not-allowed"
                       >
                         <span className="text-lg">G</span>
-                        <span>使用 Google 登录</span>
+                        <span>Google 登录\uff08即将推出\uff09</span>
                       </button>
 
                       <div className="flex items-center gap-4">

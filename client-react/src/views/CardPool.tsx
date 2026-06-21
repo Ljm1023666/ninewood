@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
-import { ComboboxDemo } from '@/components/ui/filters-demo'
 import { useTableState } from '@/components/card-pool/useTableState'
 import { CardPoolFooter } from '@/components/card-pool/CardPoolFooter'
 import { TableBreadcrumb } from '@/components/card-pool/TableBreadcrumb'
@@ -541,11 +540,7 @@ export default function CardPool() {
           ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center border-b border-border px-4 py-2">
-          <ComboboxDemo disabled />
-        </div>
-
-        <div
+<div
           ref={scrollRef}
           className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto thin-scroll px-4 py-4"
         >

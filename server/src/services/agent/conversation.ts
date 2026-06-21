@@ -101,3 +101,13 @@ export async function truncateTitle(conversationId: string, firstMessage: string
     data: { title },
   });
 }
+
+/** 重命名对话 */
+export async function updateConversation(id: string, userId: string, data: { title?: string }) {
+  return prisma.agentConversation.updateMany({
+    where: { id, userId },
+    data: {
+      ...(data.title !== undefined ? { title: data.title } : {}),
+    },
+  })
+}

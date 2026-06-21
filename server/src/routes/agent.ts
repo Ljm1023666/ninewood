@@ -164,6 +164,25 @@ agentRouter.delete('/conversations/:id', authMiddleware, async (req: Request, re
   }
 });
 
+
+/** P3-02: 重命名对话 (PATCH /api/agent/conversations/:id) */
+agentRouter.patch('/conversations/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { title } = req.body as { title?: string }
+    if (typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ error: 'title 不能为空' })
+    }
+    const trimmed = title.trim().slice(0, 100)
+    const { updateConversation } = await import('../services/agent/conversation.js')
+    const result = await updateConversation(req.params.id as string, req.user!.userId, { title: trimmed })
+    if (result.count === 0) return res.status(404).json({ error: '对话不存在' })
+    res.json({ success: true, title: trimmed })
+  } catch (e: any) {
+    console.error('[Agent] patch conversation error:', e.message)
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // ── 流式对话（SSE）──
 
 /** 语义分类代理 — 转发到 8001 本地分类服务 */

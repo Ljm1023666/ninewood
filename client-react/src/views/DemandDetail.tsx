@@ -257,8 +257,8 @@ export default function DemandDetail() {
     try {
       const result = await toggleFavorite(demand.id)
       setFavorited(result)
-    } catch {
-      /* noop */
+    } catch (e: any) {
+      toast(e?.response?.data?.message || e?.message || '收藏失败', 'error')
     } finally {
       setFavoriteLoading(false)
     }

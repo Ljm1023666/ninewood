@@ -561,11 +561,18 @@ export const PromptInputBox = React.forwardRef(
     const isImageFile = (file: File) => file.type.startsWith('image/')
 
     const processFile = (file: File) => {
+      // P3-03: 文件校验失败改为 toast（全局 prompt）
       if (!isImageFile(file)) {
+        try {
+          ;(window as any).__codexToast?.('仅支持图片文件', 'error')
+        } catch {}
         console.log('Only image files are allowed')
         return
       }
       if (file.size > 10 * 1024 * 1024) {
+        try {
+          ;(window as any).__codexToast?.('文件超过 10MB 上限', 'error')
+        } catch {}
         console.log('File too large (max 10MB)')
         return
       }
@@ -647,7 +654,7 @@ export const PromptInputBox = React.forwardRef(
     const handleStopRecording = (duration: number) => {
       console.log(`Stopped recording after ${duration} seconds`)
       setIsRecording(false)
-      onSend(`[语音消息 - ${duration}秒]`, [])
+// P3-03: removed fake voice message
     }
 
     const hasContent = input.trim() !== '' || files.length > 0

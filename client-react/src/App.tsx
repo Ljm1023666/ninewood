@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { useEffect, useState } from 'react'
 import { router } from '@/router/index.tsx'
 import { useUserStore } from '@/stores/user'
+import { ElectronTitleBar } from '@/components/layout/TitleBar'
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
