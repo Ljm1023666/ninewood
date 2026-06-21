@@ -1,4 +1,4 @@
-import {
+﻿import {
   useState,
   useEffect,
   useMemo,
@@ -9,6 +9,7 @@ import {
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { demandApi } from '@/api/demand'
+import { orderApi } from '@/api/order'
 
 import { CometCard } from '@/components/ui/comet-card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -487,11 +488,8 @@ export default function DemandDetail() {
             ) : null}
           </div>
         ) : demand.status === 'IN_PROGRESS' ? (
-          <div className="relative z-10 mx-auto mt-6 w-full max-w-md px-3">
-            <p className="text-center text-sm text-white/60">
-              已有人接单，服务进行中
-            </p>
-          </div>
+          <InProgressPanel demand={demand} userId={currentUserId} />
+        )
         ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
           <SettlementPanel demandId={demand.id} />
         ) : null}
@@ -552,6 +550,7 @@ function RequestPanel({ demandId }: { demandId: string }) {
 
 // ═══ AI 2.5: 申请人列表面板（发布者视角）═══
 function ApplicantListPanel({ demandId }: { demandId: string }) {
+  const navigate = useNavigate()
   const [applicants, setApplicants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -565,9 +564,13 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
 
   async function accept(applicantId: string) {
     try {
-      await demandApi.acceptApplicant(demandId, applicantId)
-      toast('已确认接单')
+      const res = await demandApi.acceptApplicant(demandId, applicantId)
+      const orderId = (res.data as any)?.data?.orderId
+      toast('已确认接单，正在跳转支付页...')
       setApplicants((prev) => prev.filter((a) => a.id !== applicantId))
+      if (orderId) {
+        navigate(/payment/)
+      }
     } catch (e: any) {
       toast(e.response?.data?.message || '操作失败')
     }
@@ -618,6 +621,77 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ═══ P0-04: 进行中需求细节面板(订单/支付入口) ═══
+function InProgressPanel({ demand, userId }: { demand: any; userId?: string }) {
+  const navigate = useNavigate()
+  const isOwner = demand.userId === userId
+  const isAccepted = demand.acceptedProviderId === userId
+  const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  // 尝试从 demand 字段获取 orderId(发布者接受时�d）；如果没有，从白合部分接口 GET /orders?demandId=
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        // 实际在接受时 P0-01 已经在 orderId 中；如果 demand 是 IN_PROGRESS，它定有其应的 Order
+        const res = await orderApi.list({ role: isOwner ? 'requester' : 'provider', page: 1 })
+        const list = (res.data as any)?.data?.orders || []
+        const found = list.find((o: any) => o.demandId === demand.id)
+        if (!cancelled) setOrder(found || null)
+      } catch {
+        if (!cancelled) setOrder(null)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [demand.id, isOwner])
+
+  if (loading) {
+    return <p className="text-center text-sm text-white/40">加载中...</p>
+  }
+
+  const status = order?.status
+  const isReady = !!order
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+      <p className="mb-3 text-sm font-medium text-white/80">服务进行中</p>
+      {isReady ? (
+        <div className="flex flex-col gap-2">
+          {isOwner && status === 'IN_PROGRESS' && !order.paidAt && (
+            <button
+              type="button"
+              onClick={() => navigate(`/payment/${order.id}`)}
+              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-white/90"
+            >
+              去支付
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => navigate(`/orders/${order.id}`)}
+            className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+          >
+            查看订单
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(`/messages/${isOwner ? order.providerId : order.requesterId}`)}
+            className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+          >
+            联系对方
+          </button>
+        </div>
+      ) : (
+        <p className="text-xs text-white/40">订单未生成，请稍后刷新</p>
+      )}
     </div>
   )
 }

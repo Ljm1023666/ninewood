@@ -793,9 +793,31 @@ export const demandService = {
     if (!applicant)
       throw Object.assign(new Error('申请不存在'), { status: 404 });
 
-    // 原子操作
-    await prisma.$transaction(async (tx) => {
-      await tx.demand.update({
+        // 同一申请已结束/已正式接单/需求已存在订单 -> 拒绝重复接受
+    if (applicant.demandId !== demandId) {
+      throw Object.assign(new Error('申请不属于该需求'), { status: 400 });
+    }
+    if (applicant.status !== 'PENDING' && applicant.status !== 'COMMUNICATING') {
+      throw Object.assign(new Error('该申请已结束(不可重复接受)'), { status: 400 });
+    }
+    const existingOrder = await prisma.order.findFirst({
+      where: { demandId },
+      select: { id: true },
+    });
+    if (existingOrder) {
+      throw Object.assign(new Error('该需求已生成订单'), { status: 400 });
+    }
+    const alreadyAccepted = await prisma.demandApplicantV2.findFirst({
+      where: { demandId, status: 'ACCEPTED', id: { not: applicantId } },
+      select: { id: true },
+    });
+    if (alreadyAccepted) {
+      throw Object.assign(new Error('该需求已有人正式接单'), { status: 400 });
+    }
+
+    // 原子操作:状态推进 + 切断其他申请人沟通 + 创建订单(P0-01)
+    const { order } = await prisma.$transaction(async (tx) => {
+      const updated = await tx.demand.update({
         where: { id: demandId },
         data: {
           acceptedProviderId: applicant.userId,
@@ -808,9 +830,37 @@ export const demandService = {
         data: { status: 'ACCEPTED' },
       });
       await closeAllCommForDemand(demandId, 'REJECTED', tx);
+
+      // agreedPrice 取 demand.minPrice(后续 partialComplete 可改价)
+      const order = await tx.order.create({
+        data: {
+          demandId,
+          providerId: applicant.userId,
+          requesterId: userId,
+          agreedPrice: demand.minPrice,
+          status: 'IN_PROGRESS',
+        },
+        select: { id: true },
+      });
+
+      await tx.message.create({
+        data: {
+          fromUserId: userId,
+          toUserId: applicant.userId,
+          orderId: order.id,
+          content: `需求方已确认接单,订单已创建「${updated.title}」,可进入支付页完成预付。`,
+          type: 'SYSTEM',
+        },
+      });
+
+      return { order };
     });
 
-    return { ok: true, acceptedUserId: applicant.userId };
+    return {
+      ok: true,
+      acceptedUserId: applicant.userId,
+      orderId: order.id,
+    };
   },
 
   async rejectApplicant(demandId: string, applicantId: string, userId: string) {

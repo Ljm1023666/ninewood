@@ -23,9 +23,9 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('../lib/prisma.js', () => ({
   prisma: {
-    demandApplicantV2: { updateMany: mocks.closeUpdateMany, findUnique: mocks.acceptApplicantFindUnique },
+    demandApplicantV2: { updateMany: mocks.closeUpdateMany, findUnique: mocks.acceptApplicantFindUnique, findFirst: vi.fn().mockResolvedValue(null) },
     demand: { findUnique: mocks.acceptDemandFindUnique },
-    order: { findUnique: mocks.accOrderFindUnique },
+    order: { findUnique: mocks.accOrderFindUnique, findFirst: vi.fn().mockResolvedValue(null) },
     message: { create: mocks.accMessageCreate },
     $transaction: mocks.sharedTransaction,
   },
@@ -81,12 +81,14 @@ describe('acceptApplicant 接单后关闭其他申请 (阶段 0.1)', () => {
 
   it('Test B: 接单后会在同一事务里把同 demand 的 PENDING/COMMUNICATING 都置为 REJECTED', async () => {
     mocks.acceptDemandFindUnique.mockResolvedValue({ id: 'd1', userId: 'pub-1' });
-    mocks.acceptApplicantFindUnique.mockResolvedValue({ id: 'app-A', userId: 'user-A' });
+    mocks.acceptApplicantFindUnique.mockResolvedValue({ id: 'app-A', userId: 'user-A', demandId: 'd1', status: 'PENDING' });
 
     const calls: any[] = [];
     mocks.sharedTransaction.mockImplementation(async (cb: any) => {
-      await cb({
-        demand: { update: vi.fn().mockResolvedValue({}) },
+      const txMock: any = {
+        demand: { update: vi.fn().mockResolvedValue({ id: 'd1', title: 'T' }) },
+        order: { create: vi.fn().mockResolvedValue({ id: 'order-new' }) },
+        message: { create: vi.fn().mockResolvedValue({}) },
         demandApplicantV2: {
           update: vi.fn().mockResolvedValue({}),
           updateMany: vi.fn().mockImplementation(async (arg: any) => {
@@ -94,10 +96,12 @@ describe('acceptApplicant 接单后关闭其他申请 (阶段 0.1)', () => {
             return { count: 1 };
           }),
         },
-      } as any);
+      };
+      return await cb(txMock);
     });
 
-    await demandService.acceptApplicant('d1', 'app-A', 'pub-1');
+    const result = await demandService.acceptApplicant('d1', 'app-A', 'pub-1');
+    expect(result).toMatchObject({ ok: true, orderId: 'order-new' });
 
     expect(calls).toHaveLength(1);
     expect(calls[0]).toEqual({
