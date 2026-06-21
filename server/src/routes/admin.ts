@@ -21,7 +21,7 @@ adminRouter.get('/dashboard', async (_req: Request, res: Response) => {
     prisma.circle.count({ where: { status: 'ACTIVE' } }),
     prisma.userTag.count({ where: { status: 'IDLE' } }),
   ]);
-  const disputeCount = 0;
+  const disputeCount = await prisma.order.count({ where: { status: 'DISPUTED' } });
 
   // ── Monthly Revenue Trend (last 7 months) ──
   const sevenMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
@@ -166,8 +166,11 @@ adminRouter.get('/disputes', async (_req: Request, res: Response) => {
 // POST /api/admin/disputes/:id/resolve
 adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) => {
   const order = await prisma.order.findUnique({ where: { id: req.params.id as string } });
-  if (!order || order.status !== 'WAITING_REVIEW') {
-    return fail(res, '订单不存在或非审核状态', 404);
+  if (!order) {
+    return fail(res, '订单不存在', 404);
+  }
+  if (order.status !== 'WAITING_REVIEW' && order.status !== 'DISPUTED') {
+    return fail(res, '订单状态不允许裁决', 400);
   }
 
   const { action } = req.body; // 'refund' | 'complete'
@@ -175,11 +178,29 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
     return fail(res, '无效的裁决操作', 400);
   }
 
-  const newStatus = action === 'complete' ? 'COMPLETED' : 'COMPLETED';
-  await prisma.order.update({
-    where: { id: req.params.id as string },
-    data: { status: newStatus, completedAt: new Date() },
-  });
+  // P1-02: “refund” 与 “complete” 区分状态，不再静默都标 COMPLETED。
+  if (action === 'refund') {
+    // 退款：订单 -> REFUNDED，不调 wallet.settleDemand（未提供真退款流程）。
+    // 限于本期范围不走真实资金回流，允许 REFUNDED 状态作为中间态。
+    await prisma.order.update({
+      where: { id: req.params.id as string },
+      data: { status: 'REFUNDED', completedAt: new Date() },
+    });
+  } else {
+    // 完成：调用 wallet.settleDemand 并完成订单。
+    try {
+      const { walletService } = await import('../services/wallet.service.js');
+      await walletService.settleDemand(order.demandId, Number(order.agreedPrice));
+    } catch (e: any) {
+      console.warn('[admin.disputes.resolve] settleDemand failed:', e?.message);
+    }
+    await prisma.order.update({
+      where: { id: req.params.id as string },
+      data: { status: 'COMPLETED', completedAt: new Date() },
+    });
+  }
+
+  const finalStatus = action === 'refund' ? 'REFUNDED' : 'COMPLETED';
 
   // Notify both parties
   const io = req.app.get('io') as SocketServer | undefined;
@@ -189,14 +210,14 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
         fromUserId: req.user!.userId,
         toUserId: uid,
         orderId: order.id,
-        content: `争议订单已被管理员裁决：${action === 'complete' ? '订单完成，结算放款' : '订单关闭，退款处理'}`,
+        content: `争议订单已被管理员裁决：${action === 'complete' ? '订单完成，结算放款' : '订单退款关闭'}`,
         type: 'SYSTEM',
       },
     });
-    io?.to(`user:${uid}`).emit('order:update', { orderId: order.id, status: newStatus });
+    io?.to(`user:${uid}`).emit('order:update', { orderId: order.id, status: finalStatus });
   }
 
-  success(res, { message: '争议已裁决', orderId: order.id, status: newStatus });
+  success(res, { message: '争议已裁决', orderId: order.id, status: finalStatus });
 });
 
 // PUT /api/admin/circles/:id/approve

@@ -17,6 +17,7 @@ import AdminAnalyticsTab from './admin/AdminAnalyticsTab'
 import AdminUsersTab from './admin/AdminUsersTab'
 import AdminSystemTab from './admin/AdminSystemTab'
 import AdminOrdersTab from './admin/AdminOrdersTab'
+import AdminDisputesTab from './admin/AdminDisputesTab'
 import type { DashboardData } from './admin/use-admin-data'
 
 const TAB_LABELS: Record<string, string> = Object.fromEntries(
@@ -108,6 +109,8 @@ export default function AdminDashboard() {
         return <AdminUsersTab {...tabProps} />
       case 'orders':
         return <AdminOrdersTab {...tabProps} />
+      case 'disputes':
+        return <AdminDisputesTab />
       case 'monitoring':
         return <AdminSystemTab {...tabProps} />
       default:
