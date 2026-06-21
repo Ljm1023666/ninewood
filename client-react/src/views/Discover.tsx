@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import { toast } from '@/components/ui/confirm-dialog'
 import { HorizonHeroSection } from '@/components/ui/horizon-hero-section'
