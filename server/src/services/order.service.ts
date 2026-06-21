@@ -38,11 +38,6 @@ export const orderService = {
         },
       });
 
-      await tx.demand.update({
-        where: { id: demandId },
-        data: { status: 'COMPLETED' },
-      });
-
       await tx.message.create({
         data: {
           fromUserId: userId,
@@ -221,41 +216,68 @@ export const orderService = {
   },
 
   async cancel(orderId: string, userId: string) {
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { demand: { select: { id: true, minPrice: true } } },
+    });
     if (!order) throw { status: 404, message: '订单不存在' };
     if (order.requesterId !== userId) throw { status: 403, message: '仅需求方可取消' };
     if (order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'DISPUTED') {
       throw { status: 400, message: '订单状态不允许取消' };
     }
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'CANCELLED' },
-    });
+    const breakdown =
+      order.demand != null
+        ? calculateSettlement(
+            Number(order.demand.minPrice),
+            Number(order.agreedPrice),
+            Number(order.demand.minPrice),
+          )
+        : null;
 
-    // 退还该需求关联的押金
-    const depositDemand = await prisma.depositDemand.findFirst({
-      where: {
-        demandId: order.demandId,
-        deposit: { userId: order.requesterId, status: 'PENDING' },
-      },
-      include: { deposit: true },
-    });
-    if (depositDemand) {
-      await prisma.deposit.update({
-        where: { id: depositDemand.depositId },
-        data: { status: 'REFUNDED' },
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' },
       });
-    }
 
-    await prisma.message.create({
-      data: {
-        fromUserId: userId,
-        toUserId: order.providerId,
-        orderId,
-        content: '需求方已取消订单',
-        type: 'SYSTEM',
-      },
+      if (order.paidAt && breakdown && breakdown.serviceFee > 0) {
+        await walletService.credit(
+          userId,
+          breakdown.serviceFee,
+          {
+            referenceType: 'ORDER',
+            referenceId: orderId,
+            memo: '取消订单退还服务费',
+          },
+          tx,
+        );
+      }
+
+      if (order.demand) {
+        await tx.demand.update({
+          where: { id: order.demandId },
+          data: { status: 'ACTIVE', acceptedProviderId: null },
+        });
+        await tx.demandApplicantV2.updateMany({
+          where: {
+            demandId: order.demandId,
+            userId: order.providerId,
+            status: 'ACCEPTED',
+          },
+          data: { status: 'WITHDRAWN' },
+        });
+      }
+
+      await tx.message.create({
+        data: {
+          fromUserId: userId,
+          toUserId: order.providerId,
+          orderId,
+          content: '需求方已取消订单，需求已重新开放申请',
+          type: 'SYSTEM',
+        },
+      });
     });
 
     return { message: '订单已取消' };

@@ -140,7 +140,7 @@ export default function MyDemands() {
       setDeleteId(null)
       fetchData()
     } catch {
-      /* noop */
+      toast('删除失败', 'error')
     }
   }
 

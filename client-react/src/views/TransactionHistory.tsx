@@ -12,6 +12,7 @@ import { LoadingState } from '@/components/ui/loading-state'
 import { cn } from '@/lib/utils'
 import { MsIcon } from '@/components/ui/ms-icon'
 import api from '@/api'
+import { toast } from '@/components/ui/confirm-dialog'
 
 interface TransactionItem {
   id: string
@@ -54,7 +55,7 @@ export default function TransactionHistory() {
       setItems(r.data?.data?.items || [])
       setTotalPages(r.data?.data?.totalPages || 1)
     } catch {
-      /* noop */
+      toast('加载交易记录失败', 'error')
     } finally {
       setLoading(false)
     }

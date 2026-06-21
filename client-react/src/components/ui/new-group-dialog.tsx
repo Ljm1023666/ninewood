@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
 import { messageApi } from '@/api/message'
+import { toast } from '@/components/ui/confirm-dialog'
 
 interface Contact {
   id: string
@@ -84,7 +85,7 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
       onClose()
       navigate(`/messages/merge/${res.data.data.id}`)
     } catch {
-      /* noop */
+      toast('创建群聊失败', 'error')
     } finally {
       setCreating(false)
     }

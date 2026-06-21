@@ -68,7 +68,7 @@ export default function ChatDetail() {
           .getMergeMessages(currentMergeId)
           .then((res) => setMergeMessages((res.data.data ?? []) as any[]))
           .catch(() => {
-            /* noop */
+            toast('消息同步失败', 'error')
           })
       }, 10000)
       return

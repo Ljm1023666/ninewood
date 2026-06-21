@@ -173,7 +173,7 @@ export default function Profile() {
           )
       }
     } catch {
-      /* noop */
+      toast('加载失败', 'error')
     } finally {
       setLoading(false)
     }

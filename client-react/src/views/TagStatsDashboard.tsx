@@ -356,8 +356,8 @@ export default function TagStatsDashboard() {
             <MsIcon
               name="notifications"
               size={24}
-              className="cursor-pointer hover:text-white transition-colors"
-              onClick={() => toast('通知中心未上线', 'info')}
+              className={`opacity-40 ${isDark ? 'text-white/30' : 'text-black/30'}`}
+              aria-hidden
             />
             {me?.avatarUrl ? (
               <img
@@ -371,7 +371,7 @@ export default function TagStatsDashboard() {
               <MsIcon
                 name="account_circle"
                 size={24}
-                className="cursor-pointer hover:text-white transition-colors"
+                className={`opacity-80 ${isDark ? 'text-white/60' : 'text-black/60'}`}
               />
             )}
           </div>

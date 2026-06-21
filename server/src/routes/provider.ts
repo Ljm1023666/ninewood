@@ -73,8 +73,7 @@ const specialSearchSchema = z.object({
 
 providerRouter.post('/special-search', async (req: Request, res: Response) => {
   try {
-    const { tagName, regionId, includeBusy, notifyOnIdle } =
-      specialSearchSchema.parse(req.body)
+    const { tagName, regionId, includeBusy } = specialSearchSchema.parse(req.body)
 
     const statuses = includeBusy ? ['IDLE', 'BUSY'] : ['IDLE']
     const where: any = { status: { in: statuses } }
@@ -103,7 +102,6 @@ providerRouter.post('/special-search', async (req: Request, res: Response) => {
         status: p.status,
         rating: p.rating,
         orderCount: p.orderCount,
-        notifyOnIdle,
       })),
     })
   } catch (e: any) {

@@ -1,6 +1,8 @@
 ﻿import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { orderApi } from '@/api/order'
+import { reviewApi } from '@/api/review'
+import { complaintApi } from '@/api/complaint'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
 import { Button } from '@/components/ui/button'
@@ -21,7 +23,12 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showPartial, setShowPartial] = useState(false)
+  const [showReview, setShowReview] = useState(false)
+  const [showComplaint, setShowComplaint] = useState(false)
   const [partial, setPartial] = useState({ newPrice: 0, description: '' })
+  const [reviewForm, setReviewForm] = useState({ rating: 5, content: '' })
+  const [complaintReason, setComplaintReason] = useState('')
+  const [existingReview, setExistingReview] = useState<any>(null)
 
   const isProvider = order?.providerId === user?.id
   const isRequester = order?.requesterId === user?.id
@@ -44,6 +51,14 @@ export default function OrderDetail() {
     fetchOrder()
   }, [fetchOrder])
 
+  useEffect(() => {
+    if (!id || !order || order.status !== 'COMPLETED') return
+    reviewApi
+      .getByOrder(id)
+      .then((r) => setExistingReview(r.data?.data ?? null))
+      .catch(() => setExistingReview(null))
+  }, [id, order?.status])
+
   async function act(fn: () => Promise<any>, msg: string) {
     try {
       await fn()
@@ -51,6 +66,35 @@ export default function OrderDetail() {
       fetchOrder()
     } catch (e: any) {
       toast(e.response?.data?.message || '操作失败', 'error')
+    }
+  }
+
+  async function submitReview() {
+    if (!order) return
+    try {
+      await reviewApi.create(order.id, reviewForm.rating, reviewForm.content.trim() || undefined)
+      toast('评价已提交')
+      setShowReview(false)
+      setExistingReview({ rating: reviewForm.rating, content: reviewForm.content })
+    } catch (e: any) {
+      toast(e.response?.data?.message || '评价失败', 'error')
+    }
+  }
+
+  async function submitComplaint() {
+    if (!order || !complaintReason.trim()) return
+    const toUserId = isRequester ? order.providerId : order.requesterId
+    try {
+      await complaintApi.create({
+        toUserId,
+        demandId: order.demandId,
+        reason: complaintReason.trim(),
+      })
+      toast('投诉已提交')
+      setShowComplaint(false)
+      setComplaintReason('')
+    } catch (e: any) {
+      toast(e.response?.data?.message || '投诉失败', 'error')
     }
   }
 
@@ -84,6 +128,7 @@ export default function OrderDetail() {
   if (!order) return null
 
   const s = order.status
+  const complaintTargetId = isRequester ? order.providerId : order.requesterId
 
   return (
     <InternalPageShell width="medium">
@@ -151,15 +196,28 @@ export default function OrderDetail() {
           )}
         </div>
 
+        {s === 'COMPLETED' && existingReview && (
+          <p className="mb-4 text-sm text-text-muted">
+            已评价：{existingReview.rating} 星
+            {existingReview.content ? ` — ${existingReview.content}` : ''}
+          </p>
+        )}
+
+        {s === 'DISPUTED' && (
+          <p className="mb-4 text-sm text-amber-400/90">
+            订单处于争议中，管理员将介入处理。
+          </p>
+        )}
+
         <div className="flex flex-col gap-2">
           {isRequester && s === 'IN_PROGRESS' && !order.paidAt && (
             <AcetPrimaryButton
               onClick={() =>
-                act(() => orderApi.prepay(order.id), '支付成功')
+                act(() => orderApi.prepay(order.id), '服务费已扣除')
               }
               className="w-full"
             >
-              模拟支付 (预付50%)
+              点数支付（5% 服务费）
             </AcetPrimaryButton>
           )}
           {isProvider && s === 'IN_PROGRESS' && order.paidAt && (
@@ -182,6 +240,14 @@ export default function OrderDetail() {
               确认验收
             </AcetPrimaryButton>
           )}
+          {s === 'COMPLETED' && !existingReview && (isProvider || isRequester) && (
+            <AcetSecondaryButton
+              onClick={() => setShowReview(true)}
+              className="w-full"
+            >
+              评价对方
+            </AcetSecondaryButton>
+          )}
           {(isProvider || isRequester) &&
             ['IN_PROGRESS', 'WAITING_REVIEW'].includes(s) && (
               <AcetSecondaryButton
@@ -193,6 +259,14 @@ export default function OrderDetail() {
                 发起争议
               </AcetSecondaryButton>
             )}
+          {s === 'DISPUTED' && (isProvider || isRequester) && (
+            <AcetSecondaryButton
+              onClick={() => setShowComplaint(true)}
+              className="w-full !border-amber-500/30 !text-amber-300"
+            >
+              提交投诉
+            </AcetSecondaryButton>
+          )}
           {isRequester && s === 'IN_PROGRESS' && (
             <AcetSecondaryButton
               onClick={() =>
@@ -260,6 +334,78 @@ export default function OrderDetail() {
                 提交
               </AcetPrimaryButton>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showReview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/70"
+          onClick={() => setShowReview(false)}
+        >
+          <div
+            className="w-[90%] max-w-sm rounded-2xl border border-border bg-bg-secondary p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-4 text-lg font-bold">评价</h3>
+            <div className="flex flex-col gap-3">
+              <label className="text-sm text-text-muted">
+                评分（1-5）
+                <input
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={reviewForm.rating}
+                  onChange={(e) =>
+                    setReviewForm({
+                      ...reviewForm,
+                      rating: Math.min(5, Math.max(1, Number(e.target.value))),
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-border bg-card px-4 py-3 text-sm"
+                />
+              </label>
+              <textarea
+                value={reviewForm.content}
+                onChange={(e) =>
+                  setReviewForm({ ...reviewForm, content: e.target.value })
+                }
+                placeholder="选填评价内容"
+                rows={3}
+                className="resize-none rounded-lg border border-border bg-card px-4 py-3 text-sm text-text-primary outline-none"
+              />
+              <AcetPrimaryButton onClick={submitReview} className="w-full">
+                提交评价
+              </AcetPrimaryButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showComplaint && complaintTargetId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/70"
+          onClick={() => setShowComplaint(false)}
+        >
+          <div
+            className="w-[90%] max-w-sm rounded-2xl border border-border bg-bg-secondary p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-4 text-lg font-bold">提交投诉</h3>
+            <textarea
+              value={complaintReason}
+              onChange={(e) => setComplaintReason(e.target.value)}
+              placeholder="描述问题（将记录并供管理员参考）"
+              rows={4}
+              className="mb-3 w-full resize-none rounded-lg border border-border bg-card px-4 py-3 text-sm text-text-primary outline-none"
+            />
+            <AcetPrimaryButton
+              onClick={submitComplaint}
+              disabled={!complaintReason.trim()}
+              className="w-full disabled:opacity-40"
+            >
+              提交
+            </AcetPrimaryButton>
           </div>
         </div>
       )}

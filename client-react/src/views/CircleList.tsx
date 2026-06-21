@@ -14,6 +14,7 @@ import { ListItemCard } from '@/components/ui/list-item-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { LoadingState } from '@/components/ui/loading-state'
 import api from '@/api'
+import { toast } from '@/components/ui/confirm-dialog'
 
 type CircleRow = {
   id: string
@@ -79,7 +80,7 @@ export default function CircleList() {
       const r = await api.get('/circles-enhanced', { params: { limit: 50 } })
       setCircles(r.data?.data?.circles || [])
     } catch {
-      /* noop */
+      toast('加载圈子失败', 'error')
     } finally {
       setLoading(false)
     }

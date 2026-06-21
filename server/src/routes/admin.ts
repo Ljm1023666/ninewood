@@ -6,11 +6,12 @@ import { success, fail } from '../utils/response.js';
 import { prisma } from '../lib/prisma.js';
 import { z } from 'zod';
 import { welfareDisbursementService } from '../services/welfare-disbursement.js';
+import { calculateSettlement } from '../services/settlement.js';
 
 export const adminRouter = Router();
 
-// GET /api/admin/dashboard — no auth required (aggregate data)
-adminRouter.get('/dashboard', async (_req: Request, res: Response) => {
+// GET /api/admin/dashboard — 管理员聚合数据
+adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
   const now = new Date();
 
   // ── Overview Counts ──
@@ -221,7 +222,10 @@ adminRouter.get('/disputes', async (_req: Request, res: Response) => {
 
 // POST /api/admin/disputes/:id/resolve
 adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) => {
-  const order = await prisma.order.findUnique({ where: { id: req.params.id as string } });
+  const order = await prisma.order.findUnique({
+    where: { id: req.params.id as string },
+    include: { demand: { select: { id: true, minPrice: true } } },
+  });
   if (!order) {
     return fail(res, '订单不存在', 404);
   }
@@ -236,11 +240,36 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
 
   // P1-02: “refund” 与 “complete” 区分状态，不再静默都标 COMPLETED。
   if (action === 'refund') {
-    // 退款：订单 -> REFUNDED，不调 wallet.settleDemand（未提供真退款流程）。
-    // 限于本期范围不走真实资金回流，允许 REFUNDED 状态作为中间态。
-    await prisma.order.update({
-      where: { id: req.params.id as string },
-      data: { status: 'REFUNDED', completedAt: new Date() },
+    const { walletService } = await import('../services/wallet.service.js');
+    await prisma.$transaction(async (tx) => {
+      await walletService.releaseHold(order.demandId, 'WITHDRAWN', tx);
+      if (order.paidAt && order.demand) {
+        const breakdown = calculateSettlement(
+          Number(order.demand.minPrice),
+          Number(order.agreedPrice),
+          Number(order.demand.minPrice),
+        );
+        if (breakdown.serviceFee > 0) {
+          await walletService.credit(
+            order.requesterId,
+            breakdown.serviceFee,
+            {
+              referenceType: 'ORDER',
+              referenceId: order.id,
+              memo: '争议退款退还已付服务费',
+            },
+            tx,
+          );
+        }
+      }
+      await tx.demand.update({
+        where: { id: order.demandId },
+        data: { status: 'WITHDRAWN' },
+      });
+      await tx.order.update({
+        where: { id: req.params.id as string },
+        data: { status: 'REFUNDED', completedAt: new Date() },
+      });
     });
   } else {
     // 完成：调用 wallet.settleDemand 并完成订单。
