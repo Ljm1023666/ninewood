@@ -595,10 +595,17 @@ export default function LoginPage() {
     setPrivacyAccepted(false)
   }
 
+  const isDev = (import.meta as any).env?.DEV
+
   return (
     <div
       className={cn('flex w-[100%] flex-col min-h-screen bg-black relative')}
     >
+      {isDev && (
+        <div className="relative z-30 w-full border-b border-amber-500/30 bg-amber-500/10 px-4 py-1 text-center text-[10px] font-mono uppercase tracking-widest text-amber-300">
+          dev · 验证码跳过 hCaptcha，请查看后端控制台
+        </div>
+      )}
       {/* 背景层 */}
       <div className="absolute inset-0 z-0">
         <BackgroundBeams className="[mask-image:radial-gradient(ellipse_at_center,white_50%,transparent_85%)]!" />

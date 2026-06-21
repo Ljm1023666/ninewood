@@ -574,7 +574,7 @@ export const demandService = {
     return application;
   },
 
-  async snatch(demandId: string, userId: string) {
+  async snatch( /** @deprecated 使用 requestDemand+acceptApplicant (V2) 替代 */demandId: string, userId: string) {
     const demand = await prisma.demand.findUnique({ where: { id: demandId } });
     if (!demand) throw { status: 404, message: '需求不存在' };
     if (demand.userId === userId) throw { status: 400, message: '不能抢自己的需求' };
@@ -633,7 +633,7 @@ export const demandService = {
     return application;
   },
 
-  async acceptSnatch(demandId: string, applicationId: string, userId: string) {
+  async acceptSnatch( /** @deprecated 使用 acceptApplicant (V2) 替代 */demandId: string, applicationId: string, userId: string) {
     const demand = await prisma.demand.findUnique({ where: { id: demandId } });
     if (!demand) throw { status: 404, message: '需求不存在' };
     if (demand.userId !== userId) throw { status: 403, message: '无权操作' };

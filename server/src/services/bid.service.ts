@@ -109,6 +109,7 @@ export const bidService = {
   /**
    * 需求者接受某个应标
    */
+  /** @deprecated 资产出处：占位不启用，请使用 acceptApplicant (V2) 代替。本方法保留供脚本调用。 */
   async acceptBid(demandId: string, bidId: string, requesterId: string) {
     try {
       const demand = await prisma.demand.findUnique({ where: { id: demandId } });
