@@ -1,5 +1,6 @@
 ﻿import { prisma } from '../lib/prisma.js';
 import { OrderStatus } from '@prisma/client';
+import { walletService } from './wallet.service.js';
 
 export const orderService = {
   async create(demandId: string, applicationId: string, userId: string) {
@@ -109,13 +110,29 @@ export const orderService = {
     if (!order) throw { status: 404, message: '订单不存在' };
     if (order.requesterId !== userId) throw { status: 403, message: '仅需求方可支付' };
     if (order.status !== 'IN_PROGRESS') throw { status: 400, message: '订单状态不允许支付' };
+    if (order.paidAt) throw { status: 400, message: '订单已支付' };
+
+    const demand = await prisma.demand.findUnique({ where: { id: order.demandId } });
+    if (!demand) throw { status: 404, message: '需求不存在' };
+
+    // P0-02: 按 pay-breakdown 逻辑扣除点数。
+    // 需求发布时已经按最低报价托管(仓 hold)，这里只需要记录 paidAt 作为已支付标志。
+    // 主链路点数流转在 confirm 时通过 wallet.settleDemand 完成。
+    // 不足额检查以 settleDemand 为准(其中含 5% 服务费 debit)。
+    const balance = await walletService.getBalance(userId);
+    const serviceFee = walletService.calculateSettlement
+      ? walletService.calculateSettlement(Number(demand.minPrice), Number(order.agreedPrice), Number(demand.minPrice)).serviceFee
+      : 0;
+    if (balance < serviceFee) {
+      throw { status: 400, message: `点数不足，需 ${serviceFee} 点才能支付` };
+    }
 
     await prisma.order.update({
       where: { id: orderId },
       data: { paidAt: new Date() },
     });
 
-    return { message: '支付成功（模拟）', amount: Number(order.agreedPrice) };
+    return { message: '支付成功，点数已记录', amount: Number(order.agreedPrice) };
   },
 
   async complete(orderId: string, userId: string) {
@@ -148,6 +165,9 @@ export const orderService = {
     if (order.requesterId !== userId) throw { status: 403, message: '仅需求方可确认' };
     if (order.status !== 'WAITING_REVIEW') throw { status: 400, message: '订单状态不允许确认' };
 
+    // P0-03: 主路径走 wallet.settleDemand（消费托管 + 资金分配）
+    const { breakdown } = await walletService.settleDemand(order.demandId, Number(order.agreedPrice));
+
     await prisma.order.update({
       where: { id: orderId },
       data: { status: 'COMPLETED', completedAt: new Date() },
@@ -158,19 +178,18 @@ export const orderService = {
       data: { completedOrders: { increment: 1 } },
     });
 
-    // 退还该需求关联的押金
-    const depositDemand = await prisma.depositDemand.findFirst({
+    // 兼容：旧 Deposit/DepositDemand 表仅记录位，不作为主路径。
+    const oldDeposit = await prisma.depositDemand.findFirst({
       where: {
         demandId: order.demandId,
         deposit: { userId: order.requesterId, status: 'PENDING' },
       },
-      include: { deposit: true },
+      select: { id: true },
     });
-    if (depositDemand) {
-      await prisma.deposit.update({
-        where: { id: depositDemand.depositId },
-        data: { status: 'REFUNDED' },
-      });
+    if (oldDeposit) {
+      console.warn(
+        `[order.confirm] 检测到旧 Deposit/DepositDemand 记录（demandId=${order.demandId}），已过渡到 wallet 仓，请检查迁移脚本。`,
+      );
     }
 
     await prisma.message.create({
@@ -178,12 +197,12 @@ export const orderService = {
         fromUserId: userId,
         toUserId: order.providerId,
         orderId,
-        content: `订单已完成验收，¥${Number(order.agreedPrice)} 已结算`,
+        content: `订单已完成验收，¥${Number(order.agreedPrice)} 已结算。服务费 ¥${breakdown.serviceFee.toFixed(2)}。`,
         type: 'SYSTEM',
       },
     });
 
-    return { message: '订单已完成' };
+    return { message: '订单已完成', breakdown };
   },
 
   async cancel(orderId: string, userId: string) {
