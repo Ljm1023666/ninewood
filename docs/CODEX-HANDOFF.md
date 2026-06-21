@@ -5,30 +5,33 @@
 
 ---
 
-## 当前基线（2026-06-21 · Task 6 启动）
+## 当前基线（2026-06-21 · Task 6 已批准）
 
 | 项 | 状态 |
 |---|---|
-| Git（本地） | 含 card-pool 3D 画廊等 feat（见 `git log -5`） |
-| Server 测试 | 执行前自测 `pnpm --filter server test` |
-| Typecheck | 执行前自测 `pnpm typecheck` |
-| 开发指导 | `DEVELOPMENT-GUIDE.md` **v2.3** |
-| **活跃 Task** | **Task 6 — 虚假功能完整修复** |
+| Git（本地） | Task 6 主链 `34c5c85`…`fb87fc0` · Task 6.1 `cc9fa47` · Brain 补漏见最新 commit |
+| Server 测试 | `pnpm --filter server test` → **75/75**（12 文件） |
+| Typecheck | `pnpm typecheck` → clean |
+| 开发指导 | `DEVELOPMENT-GUIDE.md` **v2.4** |
+| **活跃 Task** | **无 — 待机** |
 
 ### 已合入里程碑
 
-| Stage | 交付 | 关键 commit / 测试 |
+| Stage / Task | 交付 | 关键 commit / 测试 |
 |---|---|---|
 | **0** | comm-close / demand-window / location-privacy | — |
 | **1.1** | autoReceive | 12 用例 |
 | **1.3** | timeLimit | 7 用例 |
 | **1.2** | 拨付 + 选奖 | `d00d7a5` · 9 用例 |
 | **1.5** | 私人圈单测 | `985e109` · 6 用例 |
-| **1.6** | claim↔comm | `7c5f3ee` · `welfare-claim-comm.test.ts` 7 用例 |
+| **1.6** | claim↔comm | `7c5f3ee` · 7 用例 |
+| **Task 6** | 虚假功能完整修复（27 项） | `34c5c85`…`fb87fc0` · 69/69 → 6.1 后 75/75 |
+| **Task 6.1** | Brain 终审返工 | `cc9fa47` |
+| **Task 6 收尾** | `orderApi.cancel` 前端补漏 | `bd3f200` |
 
-### 测试分布（67/67）
+### 测试分布（75/75）
 
-welfare 9 · **welfare-claim-comm 7** · comm-close 7 · auto-receive 12 · deposit 4 · order 7 · time-limit 7 · auth 3 · demand 2 · circle-private 6 · 其它 3
+welfare 9 · welfare-claim-comm 7 · comm-close 7 · auto-receive 12 · deposit 4 · **order 8** · **order-cancel 3** · **accept-applicant-order 6** · time-limit 7 · auth 3 · demand 2 · circle-private 6 · 其它 3
 
 ---
 
@@ -50,67 +53,38 @@ welfare 9 · **welfare-claim-comm 7** · comm-close 7 · auto-receive 12 · depo
 | 3 | Stage 1.5 私人圈 | `985e109` + `aef7170` | ✅ |
 | 4 | Stage 1.6 claim↔comm | `7c5f3ee` | ✅ |
 | 5 | Stage 1.6-doc | （doc commit） | ✅ |
+| 6 | 虚假功能完整修复 | `34c5c85`…`fb87fc0` | ✅ |
+| 6.1 | Brain 终审返工 | `cc9fa47` | ✅ |
+| 6+ | orderApi.cancel 补漏 | `bd3f200` | ✅ |
 
 ---
 
-## 🟢 当前状态：Task 6 执行中
+## 🟡 当前状态：待机
 
-**唯一任务来源**：`docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md`（v1.0）
+**无活跃 Codex 任务。** 下一项需 Brain 批准新 spec。
 
-按 Wave **P0 → P1 → P2 → P3 → P4** 顺序执行；每项勾选清单并 read-back commit。
+规格归档：`docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md`（§8 DoD 已全部勾选）
 
-### 批量执行模式（用户已授权 · 一次性跑完）
-
-**不要**每 Wave 停下来等 Brain 确认。在**同一会话内**连续完成清单 **FIX-P0-01 → FIX-P4-05 全部 27 项**，最后只交 **一次 read-back**。
-
-执行纪律：
-
-1. 顺序仍遵守 P0→P4；P0-01~04 必须连续（订单主链）。
-2. 中间可多次 commit（建议按 backlog §7 切分），**不要**等用户回复。
-3. 遇 spec 未覆盖的分歧：按 backlog §9「不在清单内」排除；**禁止**扩 Stage 2 / mobile / 删表。
-4. 全部完成后：
-   - 在 `FAKE-FEATURES-REPAIR-BACKLOG.md` 勾选所有 `[x]`
-   - 更新 `DEVELOPMENT-GUIDE.md` §3 差距（doc commit）
-   - 运行 `pnpm --filter server test` + `pnpm typecheck` + `pnpm --filter client-react run lint`（若有前端改动）
-5. **最终 read-back 模板**（一次性粘贴给用户/Cursor）：
-
-```markdown
-## Task 6 Read-back
-
-- Commits: <hash 列表>
-- Server test: <N/N>
-- Typecheck: pass/fail
-- 清单 §8 DoD: <逐项 ✅/❌>
-- 未做项及原因: <若有>
-- 手动验证备注: <申请→接受→支付→完成→确认 等>
-```
-
-**Brain（Cursor）** 在用户贴 read-back 后做终审核：对照清单逐项、跑测试、查 diff，不通过则列修复项交回 Codex。
-
-### 候选 backlog（Task 6 之后）
+### 候选 backlog
 
 | 项 | 说明 |
 |---|---|
 | **Stage 2 公开圈** | D4 后置；需 `STAGE-2-*.md` |
 | **#3 认证撤销防漏推** | §3 #3 未来项 |
-| **Google OAuth** | 若 Task 6 P3-01 仅隐藏按钮，可单独立项 |
+| **Google OAuth** | Task 6 已 disabled 按钮，可单独立项 |
 | **`Deposit/DepositDemand` 表清理** | 禁止删表 migration |
+| **order.cancel → wallet hold 释放** | 技术债：cancel 仍查旧 deposit 表 |
 
 ---
 
-## Task 6（已批准 · Codex 执行）
+## 下一任务（Brain 填写 · Codex 等待）
 
 ```markdown
-任务名: 虚假功能完整修复（Fake Features Repair）
-规格路径: docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md
+<!-- 启动 Task 7 时填写 -->
+任务名:
+规格路径:
 范围锁定:
-  - 必须修 P0 订单主链 + P1 前后端断连
-  - 禁止 Stage 2 / mobile / 删 Deposit 表 / socket 重构
-  - 开发期支付走 wallet 点数，不接真实渠道
 验收:
-  - 清单 §8 Definition of Done 全部勾选
-  - pnpm --filter server test 全绿 + pnpm typecheck clean
-  - 手动：申请→接受→支付→完成→确认 可跑通
 ```
 
 ---
@@ -120,5 +94,6 @@ welfare 9 · **welfare-claim-comm 7** · comm-close 7 · auto-receive 12 · depo
 | 日期 | 变更 |
 |---|---|
 | 2026-06-19 | v4：Task 4/5 排期 |
-| 2026-06-19 | v5：Task 4–5 全部批准；基线 67/67；队列 → **待机** |
+| 2026-06-19 | v5：Task 4–5 全部批准；基线 67/67；队列 → 待机 |
 | 2026-06-21 | v6：Task 6 启动 — `FAKE-FEATURES-REPAIR-BACKLOG.md` |
+| 2026-06-21 | v7：Task 6 + 6.1 Brain 批准；基线 75/75；队列 → **待机** |
