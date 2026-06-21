@@ -22,6 +22,9 @@ export const orderApi = {
   dispute(id: string) {
     return api.post(`/orders/${id}/dispute`)
   },
+  cancel(id: string) {
+    return api.post(`/orders/${id}/cancel`)
+  },
   partial(id: string, newPrice: number, description: string) {
     return api.post(`/orders/${id}/partial`, { newPrice, description })
   },
