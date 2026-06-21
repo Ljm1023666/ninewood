@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { DemandDiscoveryList } from '@/components/demand/DemandDiscoveryList'
 import { toast } from '@/components/ui/confirm-dialog'
 import { HorizonHeroSection } from '@/components/ui/horizon-hero-section'
@@ -178,34 +178,7 @@ export default function Discover() {
           line2: '匿名检索，直达服务',
         },
         render: () => (
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-sm text-white/40 text-center">
-              输入服务标签，检索附近空闲的服务者
-            </p>
-            <input
-              type="text"
-              aria-label="输入服务标签搜索服务者"
-              placeholder="例如：出租车司机、平面设计..."
-              className="w-full max-w-md mx-auto rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none backdrop-blur-md"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const tag = (e.target as HTMLInputElement).value.trim()
-                  if (tag) {
-                    fetch(
-                      `/api/providers/search?tagName=${encodeURIComponent(tag)}&limit=10`,
-                    )
-                      .then((r) => r.json())
-                      .then((d) => {
-                        const count = d.data?.total || 0
-                        if (count > 0) toast(`${count} 位服务者在线`)
-                        else toast('暂无空闲服务者')
-                      })
-                      .catch(() => toast('搜索失败'))
-                  }
-                }
-              }}
-            />
-          </div>
+          <ProviderSearchPanel />
         ),
       },
     ],
@@ -248,6 +221,80 @@ export default function Discover() {
           </div>
         )}
       </HorizonHeroSection>
+    </div>
+  )
+}
+
+
+/**
+ * P1-06: 服务者检索面板
+ * - 输入服务标签后跳出可跳转的服务者列表
+ * - 点击跳转到 /profile/:userId
+ */
+function ProviderSearchPanel() {
+  const [tag, setTag] = useState('')
+  const [providers, setProviders] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+  const nav = useNavigate()
+  const [me, setMe] = useState<any>(null)
+
+  useEffect(() => {
+    // 获取当前用户，跳转个人主页时使用其 userId
+    fetch('/api/users/me', { headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` } })
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => setMe(d?.data || null))
+      .catch(() => {})
+  }, [])
+
+  async function search() {
+    const t = tag.trim()
+    if (!t) return
+    setLoading(true)
+    setSearched(true)
+    try {
+      const res = await fetch(`/api/providers/search?tagName=${encodeURIComponent(t)}&limit=10`)
+      const d = await res.json()
+      setProviders(d.data?.providers || [])
+    } catch {
+      setProviders([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-4 w-full">
+      <p className="text-sm text-white/40 text-center">输入服务标签，检索附近空闲的服务者</p>
+      <input
+        type="text"
+        value={tag}
+        onChange={(e) => setTag(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && search()}
+        placeholder="例如：出租车司机、平面设计..."
+        className="w-full max-w-md mx-auto rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white placeholder:text-white/40 outline-none backdrop-blur-md"
+      />
+      {loading && <p className="text-sm text-white/40">搜索中...</p>}
+      {searched && !loading && providers.length === 0 && (
+        <p className="text-sm text-white/40">暂无空闲服务者</p>
+      )}
+      {providers.length > 0 && (
+        <div className="grid w-full max-w-2xl grid-cols-1 gap-2 sm:grid-cols-2">
+          {providers.map((p) => (
+            <button
+              key={p.userId}
+              type="button"
+              onClick={() => nav(`/profile/${p.userId}`)}
+              className="rounded-xl border border-white/10 bg-white/5 p-3 text-left transition hover:bg-white/10"
+            >
+              <p className="text-sm font-medium text-white">{p.userId === me?.id ? '你本人' : `服务者 ${p.userId.slice(0, 8)}…`}</p>
+              <p className="mt-1 text-xs text-white/50">
+                标签：{p.tagName} · 评分：{(p.rating ?? 0).toFixed(1)} · 完成：{p.orderCount ?? 0}
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

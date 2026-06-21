@@ -307,6 +307,7 @@ function ServiceTagSection() {
       status: string
       certified: boolean
       orderCount: number
+      autoReceive?: boolean
     }[]
   >([])
   const [loading, setLoading] = useState(true)
@@ -346,6 +347,22 @@ function ServiceTagSection() {
     }
   }
 
+  async function handleAutoReceive(t: { tagName: string; autoReceive?: boolean }) {
+    setBusy((prev) => ({ ...prev, [t.tagName]: true }))
+    try {
+      const next = !t.autoReceive
+      await userTagApi.setAutoReceive(t.tagName, next)
+      setTags((prev) =>
+        prev.map((row) => (row.tagName === t.tagName ? { ...row, autoReceive: next } : row)),
+      )
+      toast(next ? '已开启自动接单' : '已关闭自动接单', 'success')
+    } catch (e: any) {
+      toast(e?.response?.data?.message || '操作失败', 'error')
+    } finally {
+      setBusy((prev) => ({ ...prev, [t.tagName]: false }))
+    }
+  }
+
   if (loading || tags.length === 0) return null
 
   const statusLabel: Record<string, string> = {
@@ -364,12 +381,26 @@ function ServiceTagSection() {
             description={`状态：${statusLabel[t.status] || t.status}`}
             last={i === tags.length - 1}
           >
-            <SettingsActionButton
-              onClick={() => handleToggle(t.tagName)}
-              disabled={busy[t.tagName] || t.status === 'BUSY'}
-            >
-              {t.status === 'HIDDEN' ? '上线' : '下线'}
-            </SettingsActionButton>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-text-muted">自动接单</span>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={!!t.autoReceive}
+                  onChange={() => handleAutoReceive(t)}
+                  disabled={busy[t.tagName]}
+                />
+                <span className="h-5 w-9 rounded-full bg-white/10 transition-colors peer-checked:bg-[var(--internal-accent)] peer-disabled:opacity-50" />
+                <span className="absolute left-0.5 top-0.5 size-4 rounded-full bg-white transition-transform peer-checked:translate-x-4" />
+              </label>
+              <SettingsActionButton
+                onClick={() => handleToggle(t.tagName)}
+                disabled={busy[t.tagName] || t.status === 'BUSY'}
+              >
+                {t.status === 'HIDDEN' ? '上线' : '下线'}
+              </SettingsActionButton>
+            </div>
           </SettingsRow>
         ))}
       </SettingsPanel>

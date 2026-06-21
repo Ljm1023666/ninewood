@@ -48,7 +48,7 @@ providerRouter.get('/search', async (req: Request, res: Response) => {
 
     success(res, {
       providers: providers.map((p) => ({
-        userId: anonymize(p.userId),
+        userId: p.userId, // P1-06: 不再匿名，供前端跳转个人主页
         tagName: p.tagName,
         status: 'IDLE',
         rating: p.rating,

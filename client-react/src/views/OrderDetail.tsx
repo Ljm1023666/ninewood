@@ -193,6 +193,16 @@ export default function OrderDetail() {
                 发起争议
               </AcetSecondaryButton>
             )}
+          {isRequester && s === 'IN_PROGRESS' && (
+            <AcetSecondaryButton
+              onClick={() =>
+                act(() => orderApi.cancel(order.id), '订单已取消')
+              }
+              className="w-full"
+            >
+              取消订单
+            </AcetSecondaryButton>
+          )}
           {isProvider && s === 'IN_PROGRESS' && (
             <AcetSecondaryButton
               onClick={() => setShowPartial(true)}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { userApi } from '@/api/user'
+import { certificationApi } from '@/api/certification'
 import { certLabel } from '@/constants/cert'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
@@ -10,8 +11,10 @@ import {
   SettingsPanel,
   SettingsRow,
   SettingsActionButton,
+  SettingsInput,
   StatusChip,
 } from '@/components/layout/internal-ui'
+import { toast } from '@/components/ui/confirm-dialog'
 
 const steps = [
   { level: 'NONE', label: '未认证', desc: '初始状态' },
@@ -97,12 +100,21 @@ export default function CertCenter() {
                 </SettingsRow>
                 <SettingsRow
                   label="本月抢单额度"
-                  description={`已用 ${certStatus.snatchCredits ?? 0} 次`}
+                  description={`已用 ${certStatus.snatchCredits ?? 0} 次（仅展示）`}
                 >
-                  <MsIcon name="chevron_right" size={16} className="text-text-muted" />
+                  <span className="font-mono text-sm text-text-primary">
+                    {certStatus.snatchCredits ?? 0}
+                  </span>
                 </SettingsRow>
-                <SettingsRow label="认证材料" description="查看已提交材料" last>
-                  <MsIcon name="chevron_right" size={16} className="text-text-muted" />
+                <SettingsRow
+                  label="认证材料"
+                  description="当前状态"
+                  last
+                >
+                  <StatusChip
+                    label={certStatus.certificationLevel === 'NONE' ? '未提交' : '已认证'}
+                    className="border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted"
+                  />
                 </SettingsRow>
               </>
             ) : (
@@ -130,7 +142,12 @@ export default function CertCenter() {
             </SettingsActionButton>
           )}
 
-          <InternalSection label="认证路径">
+    
+        {certStatus?.certificationLevel === 'NONE' && (
+          <RegisterProviderSection onRegistered={fetchStatus} />
+        )}
+
+      <InternalSection label="认证路径">
             <SettingsPanel>
               {steps.map((step, idx) => {
                 const done = idx <= currentIdx
@@ -158,5 +175,59 @@ export default function CertCenter() {
         </InternalContentBlock>
       )}
     </InternalPageShell>
+  )
+}
+
+
+function RegisterProviderSection({ onRegistered }: { onRegistered: () => void }) {
+  const [tags, setTags] = useState('')
+  const [regionId, setRegionId] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  async function submit() {
+    const list = tags.split(/[,,\s]+/).map((s) => s.trim()).filter(Boolean)
+    if (list.length === 0) {
+      toast('请至少输入一个服务标签', 'error')
+      return
+    }
+    setSubmitting(true)
+    try {
+      await certificationApi.register({
+        tags: list,
+        regionId: regionId ? Number(regionId) : undefined,
+      })
+      toast('认证注册已提交，请等待审核', 'success')
+      setTags('')
+      setRegionId('')
+      onRegistered()
+    } catch (e: any) {
+      toast(e?.response?.data?.message || '提交失败', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <SettingsPanel>
+      <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
+        <h3 className="font-semibold text-text-primary">注册为认证服务者</h3>
+        <p className="mt-1 text-xs text-text-muted">提交习想服务的标签后，平台审核通过即可享受抢单、推送优先等权益。</p>
+      </div>
+      <div className="flex flex-col gap-3 px-6 py-5">
+        <SettingsInput
+          value={tags}
+          onChange={setTags}
+          placeholder="服务标签（多个用逗号或者逗号分隔）"
+        />
+        <SettingsInput
+          value={regionId}
+          onChange={setRegionId}
+          placeholder="服务区域ID（可选）"
+        />
+        <SettingsActionButton onClick={submit} disabled={submitting} variant="primary" className="w-full">
+          {submitting ? '提交中…' : '提交认证申请'}
+        </SettingsActionButton>
+      </div>
+    </SettingsPanel>
   )
 }
