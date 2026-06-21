@@ -34,7 +34,16 @@ interface Props {
   activeItem?: string
 }
 
-export default function AdminOrdersTab({ data, loading }: Props) {
+// P2-03: activeItem 与 sidebar 子项对应：in-progress/pending/completed/disputes 走不同过滤
+const STATUS_FROM_ITEM: Record<string, string[]> = {
+  'all-orders': [],
+  'pending': ['PENDING'],
+  'in-progress': ['IN_PROGRESS', 'WAITING_REVIEW'],
+  'completed': ['COMPLETED'],
+  'disputes': ['DISPUTED'],
+}
+
+export default function AdminOrdersTab({ data, loading, activeItem }: Props) {
   if (loading) {
     return (
       <div className="space-y-6">
@@ -52,7 +61,11 @@ export default function AdminOrdersTab({ data, loading }: Props) {
   if (!data) return null
 
   const orders = data.recentOrders || []
-  const orderDist = Object.entries(data.orderDistribution || {}).map(
+  const allowed = STATUS_FROM_ITEM[activeItem || 'all-orders'] || []
+  const filteredOrders = allowed.length === 0 ? orders : orders.filter((o) => allowed.includes(o.status))
+  const orderDist = Object.entries(data.orderDistribution || {})
+    .filter(([k]) => allowed.length === 0 || allowed.includes(k))
+    .map(
     ([k, v]) => ({
       name: STATUS_LABELS[k] || k,
       value: v,
@@ -140,8 +153,8 @@ export default function AdminOrdersTab({ data, loading }: Props) {
       </AdminChartGrid>
 
       <AdminPanel
-        title="全部订单"
-        description={`共 ${orders.length} 条最近记录`}
+        title={activeItem && activeItem !== 'all-orders' ? `订单筛选：${activeItem}` : '全部订单'}
+        description={`共 ${filteredOrders.length} 条最近记录`}
         action={
           <span className="font-[family-name:var(--admin-mono)] text-[10px] text-[var(--admin-text-muted)]">
             按创建时间倒序
@@ -150,9 +163,9 @@ export default function AdminOrdersTab({ data, loading }: Props) {
         noPadding
         bodyClassName="p-0"
       >
-        {orders.length > 0 ? (
+        {filteredOrders.length > 0 ? (
           <AdminList>
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <AdminListRow
                 key={order.id}
                 icon={ShoppingCart}
@@ -174,7 +187,10 @@ export default function AdminOrdersTab({ data, loading }: Props) {
           </AdminList>
         ) : (
           <div className="p-5">
-            <AdminEmpty title="暂无订单数据" />
+            <AdminEmpty
+              title="暂无订单数据"
+              description={activeItem && activeItem !== 'all-orders' ? `当前筛选 (状态: ${allowed.join('/')}) 下无匹配订单` : undefined}
+            />
           </div>
         )}
       </AdminPanel>

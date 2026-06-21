@@ -138,6 +138,61 @@ adminRouter.get('/dashboard', async (_req: Request, res: Response) => {
 
 adminRouter.use(authMiddleware, adminMiddleware);
 
+// GET /api/admin/users — 以表格列出所有用户，支持按 nickname/phone 检索
+adminRouter.get('/users', async (req: Request, res: Response) => {
+  try {
+    const q = String(req.query.q || '').trim()
+    const role = String(req.query.role || '').trim()
+    const page = Number(req.query.page) || 1
+    const limit = 20
+
+    const where: any = {}
+    if (q) {
+      where.OR = [
+        { nickname: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q } },
+      ]
+    }
+    if (role === 'ADMIN') {
+      where.role = 'ADMIN'
+    } else if (role === 'USER') {
+      where.role = { not: 'ADMIN' }
+    }
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          phone: true,
+          nickname: true,
+          avatarUrl: true,
+          certificationLevel: true,
+          role: true,
+          isBusy: true,
+          points: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.user.count({ where }),
+    ])
+    success(res, {
+      items: users.map((u) => ({
+        ...u,
+        points: Number(u.points),
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    })
+  } catch (e: any) {
+    fail(res, e.message || 'server error', 500)
+  }
+})
+
 // GET /api/admin/stats
 adminRouter.get('/stats', async (_req: Request, res: Response) => {
   const [userCount, demandCount, circleCount, orderCount] = await Promise.all([

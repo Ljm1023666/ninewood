@@ -97,29 +97,22 @@ export default function TagStatsDashboard() {
     return baseData.slice(0, 14)
   }, [sortedStats])
 
-  // 动态计算高保真指标
-  const totalTags = useMemo(() => {
-    return (12400 + stats.length).toLocaleString()
-  }, [stats])
+  // P2-01: overview 走真实 API，去掉假基数
+  const [overview, setOverview] = useState<any>(null)
+  const fetchOverview = async () => {
+    try {
+      const r = await api.get('/tag-stats/overview')
+      setOverview(r.data?.data?.overview || null)
+    } catch {
+      setOverview(null)
+    }
+  }
+  useEffect(() => { fetchOverview() }, [])
 
-  const activeTags = useMemo(() => {
-    const activeCount = stats.filter(
-      (s) => (s.totalCards || 0) > 0 || (s.activeProviders || 0) > 0,
-    ).length
-    return (3880 + activeCount).toLocaleString()
-  }, [stats])
-
-  const newTagsThisWeek = useMemo(() => {
-    return `+${140 + stats.length}`
-  }, [stats])
-
-  const relatedDemandsCount = useMemo(() => {
-    const dbDemands = stats.reduce(
-      (sum, s) => sum + (s.totalCards || 0) + (s.activeDemands || 0),
-      0,
-    )
-    return (45000 + dbDemands).toLocaleString()
-  }, [stats])
+  const totalTags = overview?.totalTags ?? 0
+  const activeTags = overview?.activeTags ?? 0
+  const newTagsThisWeek = overview?.relatedDemands ?? 0
+  const relatedDemandsCount = overview?.relatedDemands ?? 0
 
   // 图表样式配置（根据深浅色动态切换）
   const chartGrid = {
@@ -644,7 +637,7 @@ export default function TagStatsDashboard() {
           {/* ==================== 选项卡 2: OVERVIEW (系统总览) ==================== */}
           {activeTab === 'overview' && (
             <>
-              {/* Overview Metrics */}
+              {/* Overview Metrics — P2-01: 走 /api/tag-stats/overview */}
               <section
                 className={`grid grid-cols-4 border divide-x transition-colors duration-200 ${
                   isDark
@@ -656,32 +649,32 @@ export default function TagStatsDashboard() {
                   <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>
                     总注册用户
                   </span>
-                  <span className="font-mono text-4xl font-semibold tracking-tight">
-                    12,408
+                  <span className="font-mono text-4xl font-semibold tracking-tight tabular-nums">
+                    {(overview?.userCount ?? 0).toLocaleString('zh-CN')}
                   </span>
                 </div>
                 <div className="p-6 flex flex-col justify-between h-[140px] hover:bg-black/[0.01] dark:hover:bg-white/[0.02] transition-colors">
                   <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                    活跃服务者
+                    总订单数
                   </span>
-                  <span className="font-mono text-4xl font-semibold tracking-tight">
-                    3,892
-                  </span>
-                </div>
-                <div className="p-6 flex flex-col justify-between h-[140px] hover:bg-black/[0.01] dark:hover:bg-white/[0.02] transition-colors">
-                  <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                    本周新增订单
-                  </span>
-                  <span className="font-mono text-4xl font-semibold tracking-tight text-[#3388FF]">
-                    +145
+                  <span className="font-mono text-4xl font-semibold tracking-tight tabular-nums">
+                    {(overview?.orderCount ?? 0).toLocaleString('zh-CN')}
                   </span>
                 </div>
                 <div className="p-6 flex flex-col justify-between h-[140px] hover:bg-black/[0.01] dark:hover:bg-white/[0.02] transition-colors">
                   <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                    总交易金额
+                    总交易额
                   </span>
-                  <span className="font-mono text-4xl font-semibold tracking-tight">
-                    ¥45,091
+                  <span className="font-mono text-4xl font-semibold tracking-tight text-[#3388FF] tabular-nums">
+                    ¥{(overview?.revenue ?? 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="p-6 flex flex-col justify-between h-[140px] hover:bg-black/[0.01] dark:hover:bg-white/[0.02] transition-colors">
+                  <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>
+                    总需求数
+                  </span>
+                  <span className="font-mono text-4xl font-semibold tracking-tight tabular-nums">
+                    {(overview?.demandCount ?? 0).toLocaleString('zh-CN')}
                   </span>
                 </div>
               </section>
@@ -701,45 +694,14 @@ export default function TagStatsDashboard() {
                   </span>
                 </header>
                 <div className="p-8">
-                  <div className="h-[320px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={[
-                          { name: '06-01', 交易额: 12 },
-                          { name: '06-03', 交易额: 18 },
-                          { name: '06-05', 交易额: 15 },
-                          { name: '06-07', 交易额: 26 },
-                          { name: '06-09', 交易额: 32 },
-                          { name: '06-11', 交易额: 28 },
-                          { name: '06-13', 交易额: 45 },
-                        ]}
+                  <div className={`h-[320px] w-full flex items-center justify-center font-mono text-sm ${isDark ? 'text-white/30' : 'text-black/30'}`}>
+                    暂无趋势数据，请先点击「重新计算」刷新
+                  </div>
                         margin={{ top: 8, right: 8, left: -10, bottom: 0 }}
                       >
                         <CartesianGrid vertical={false} {...chartGrid} />
                         <XAxis dataKey="name" {...chartAxis} />
-                        <YAxis {...chartAxis} />
-                        <Tooltip
-                          contentStyle={{
-                            background: isDark ? '#0c0d0d' : '#ffffff',
-                            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-                            borderRadius: 0,
-                            fontSize: 14,
-                            fontFamily: 'monospace',
-                            color: isDark ? '#ffffff' : '#000000',
-                          }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="交易额"
-                          stroke="#3388FF"
-                          strokeWidth={2}
-                          dot={{ r: 3, fill: '#3388FF' }}
-                          activeDot={{ r: 5 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+
               </section>
             </>
           )}
@@ -797,7 +759,7 @@ export default function TagStatsDashboard() {
                   系统操作日志
                 </span>
                 <span className="text-xs text-green-400">
-                  ● 实时监听中
+                  ● 近期记录
                 </span>
               </header>
               <div

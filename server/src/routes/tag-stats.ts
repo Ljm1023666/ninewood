@@ -45,6 +45,43 @@ tagStatsRouter.get('/', async (req: Request, res: Response) => {
   }
 })
 
+
+// GET /api/tag-stats/overview — 主要指标总览（P2-01）
+tagStatsRouter.get('/overview', async (_req: Request, res: Response) => {
+  try {
+    const [userCount, orderCount, demandCount, completedOrderAgg, allStats] = await Promise.all([
+      prisma.user.count(),
+      prisma.order.count(),
+      prisma.demand.count(),
+      prisma.order.aggregate({
+        where: { status: 'COMPLETED' },
+        _sum: { agreedPrice: true },
+        _count: { id: true },
+      }),
+      prisma.tagStats.findMany({ select: { totalCards: true, activeProviders: true, activeDemands: true } }),
+    ])
+    const totalTags = allStats.length
+    const activeTags = allStats.filter(
+      (s) => (s.totalCards || 0) > 0 || (s.activeProviders || 0) > 0,
+    ).length
+    const totalRevenue = Number(completedOrderAgg._sum.agreedPrice || 0)
+    success(res, {
+      overview: {
+        userCount,
+        orderCount,
+        demandCount,
+        revenue: totalRevenue,
+        totalTags,
+        activeTags,
+        completedOrders: completedOrderAgg._count.id,
+        relatedDemands: allStats.reduce((s, x) => s + (x.totalCards || 0) + (x.activeDemands || 0), 0),
+      },
+    })
+  } catch (e: any) {
+    fail(res, e.message || 'server error', 500)
+  }
+})
+
 // POST /api/tag-stats/refresh — 手动刷新统计
 tagStatsRouter.post('/refresh', async (_req: Request, res: Response) => {
   try {

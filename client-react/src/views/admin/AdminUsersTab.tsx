@@ -27,7 +27,40 @@ export interface AdminUsersTabProps {
   activeItem?: string
 }
 
+interface AdminUser {
+  id: string
+  phone: string
+  nickname: string
+  avatarUrl?: string | null
+  certificationLevel: string
+  role: string
+  isBusy: boolean
+  points: number
+  createdAt: string
+}
+
 export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
+  const [q, setQ] = useState('')
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'USER'>('ALL')
+
+  const loadUsers = async () => {
+    setUsersLoading(true)
+    try {
+      const params: any = {}
+      if (q.trim()) params.q = q.trim()
+      if (roleFilter !== 'ALL') params.role = roleFilter
+      const r = await api.get('/admin/users', { params })
+      setUsers((r.data as any)?.data?.items || [])
+    } catch (e: any) {
+      toast(e?.response?.data?.message || '加载用户失败', 'error')
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  useEffect(() => { loadUsers() }, [roleFilter])
   if (loading) {
     return (
       <div className="space-y-6">
@@ -59,12 +92,34 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
         用户管理
       </p>
 
-      <div className="relative max-w-[360px]">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--admin-text-muted)]" />
-        <AdminSearchInput
-          placeholder="搜索用户…"
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3 max-w-[600px]">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-[var(--admin-text-muted)]" />
+          <AdminSearchInput
+            placeholder="搜索用户（nickname / phone）"
+            className="pl-9"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && loadUsers()}
+          />
+        </div>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value as any)}
+          className="border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-3 py-2.5 text-sm text-[var(--admin-text)] outline-none"
+        >
+          <option value="ALL">全部角色</option>
+          <option value="USER">普通用户</option>
+          <option value="ADMIN">管理员</option>
+        </select>
+        <button
+          type="button"
+          onClick={loadUsers}
+          disabled={usersLoading}
+          className="border border-[var(--admin-hairline)] bg-white px-3 py-2.5 text-sm font-medium text-[var(--admin-text)] transition-colors hover:bg-black/[0.02] disabled:opacity-50"
+        >
+          {usersLoading ? '加载中' : '查询'}
+        </button>
       </div>
 
       <AdminMetricGrid cols={3}>
@@ -120,7 +175,17 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
           </div>
         </div>
 
-        <div id="admin-section-providers" className="min-h-[260px] bg-[var(--admin-card-bg)] p-5">
+        <div id="admin-section-demanders" className="min-h-[260px] bg-[var(--admin-card-bg)] p-5">
+          <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
+            需求者分布
+          </h3>
+          <div className="flex h-[180px] flex-col items-center justify-center font-mono text-sm text-[var(--admin-text-muted)]">
+            <span className="text-2xl text-[var(--admin-text)] tabular-nums">{demanders.toLocaleString('zh-CN')}</span>
+            <span className="mt-2 text-xs">需求者估算（总用户 - 服务者）</span>
+          </div>
+        </div>
+
+        <div id="admin-section-admins" className="min-h-[260px] bg-[var(--admin-card-bg)] p-5">
           <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
             用户增长曲线
           </h3>
@@ -152,11 +217,45 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
         </div>
       </div>
 
-      <AdminPanel title="用户列表" description="完整用户管理功能即将上线">
-        <AdminEmpty
-          title="用户管理功能开发中"
-          description="当前可查看上方汇总指标与分布图，详细列表敬请期待"
-        />
+      <AdminPanel
+        title="用户列表"
+        description={`共 ${users.length} 个结果（${roleFilter === 'ALL' ? '全部角色' : roleFilter}）`}
+        noPadding
+        bodyClassName="p-0"
+      >
+        {users.length === 0 ? (
+          <div className="p-5">
+            <AdminEmpty title="暂无匹配用户" description={q ? `关键字：${q}` : '请调整查询条件'} />
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--admin-hairline)]">
+            {users.map((u) => (
+              <div key={u.id} className="flex items-center gap-4 px-5 py-3">
+                <div className="flex size-8 shrink-0 items-center justify-center border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] font-mono text-xs">
+                  {u.avatarUrl ? (
+                    <img src={u.avatarUrl} alt="" className="size-full object-cover" />
+                  ) : (
+                    u.nickname?.charAt(0) || '?'
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--admin-text)]">
+                    {u.nickname}
+                    {u.role === 'ADMIN' && (
+                      <span className="ml-2 border border-amber-300 px-1.5 py-0.5 font-mono text-[10px] text-amber-600">ADMIN</span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-[var(--admin-text-muted)]">
+                    {u.phone} · {u.certificationLevel} · 点数 {u.points.toLocaleString('zh-CN')}
+                  </p>
+                </div>
+                <span className="font-mono text-[10px] text-[var(--admin-text-muted)]">
+                  {new Date(u.createdAt).toLocaleDateString('zh-CN')}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </AdminPanel>
     </div>
   )
