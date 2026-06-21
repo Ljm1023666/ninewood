@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-Hans"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/jerosoler/Geist-Font@v1.0.0/fonts/geist-font.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<title>Ninewood - 宁杭独立开发者</title>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#c7c6c6",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "on-primary-container": "#00285a",
+                        "outline-variant": "#414754",
+                        "primary": "#abc7ff",
+                        "on-primary": "#002f66",
+                        "surface-dim": "#10131a",
+                        "primary-fixed": "#d7e2ff",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "tertiary-fixed": "#ffdbc8",
+                        "surface-container-high": "#272a31",
+                        "primary-fixed-dim": "#abc7ff",
+                        "on-primary-fixed-variant": "#004590",
+                        "secondary-fixed": "#e3e2e2",
+                        "primary-container": "#458fff",
+                        "surface-container-low": "#181c23",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-secondary": "#2f3131",
+                        "surface-variant": "#32353c",
+                        "surface-bright": "#363941",
+                        "inverse-surface": "#e0e2ec",
+                        "tertiary-container": "#e4700c",
+                        "surface-container": "#1c2027",
+                        "on-surface-variant": "#c1c6d6",
+                        "on-primary-fixed": "#001b3f",
+                        "inverse-on-surface": "#2d3038",
+                        "surface": "#10131a",
+                        "on-secondary-container": "#b8b8b8",
+                        "on-tertiary": "#512300",
+                        "on-tertiary-fixed": "#321300",
+                        "surface-container-highest": "#32353c",
+                        "error": "#ffb4ab",
+                        "tertiary": "#ffb689",
+                        "surface-tint": "#abc7ff",
+                        "on-tertiary-container": "#471e00",
+                        "surface-container-lowest": "#0b0e15",
+                        "on-background": "#e0e2ec",
+                        "on-surface": "#e0e2ec",
+                        "on-secondary-fixed-variant": "#464747",
+                        "secondary-container": "#484949",
+                        "secondary-fixed-dim": "#c7c6c6",
+                        "outline": "#8b919f",
+                        "inverse-primary": "#005cbc",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "background": "#10131a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "content-column": "768px",
+                        "margin-page": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-caps": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #000;
+            color: #e0e2ec;
+            font-family: 'Geist', sans-serif;
+            overflow: hidden;
+        }
+
+        .cinematic-bg {
+            background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .bottom-sheet {
+            background: rgba(16, 19, 26, 0.7);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card-inner {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen relative cinematic-bg">
+<!-- Top Nav Bar: Minimalist & Transparent -->
+<header class="fixed top-0 left-0 w-full z-50 h-16 flex items-center px-margin-page bg-transparent">
+<div class="flex items-center justify-between max-w-container-max mx-auto w-full">
+<div class="flex items-center gap-stack-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md hover:bg-white/10 transition-all cursor-pointer active:scale-95 text-white" title="返回">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-white drop-shadow-md">宁杭独立开发者</h1>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md hover:bg-white/10 transition-all text-white"><span class="material-symbols-outlined">notifications</span></button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md hover:bg-white/10 transition-all text-white"><span class="material-symbols-outlined">settings</span></button>
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold">Q</div>
+</div>
+</div>
+</header>
+<!-- Bottom Sheet Container -->
+<div class="absolute inset-x-0 bottom-0 top-32 flex justify-center z-20">
+<div class="bottom-sheet w-full max-w-5xl rounded-t-[40px] flex flex-col overflow-hidden">
+<!-- Drag Indicator -->
+<div class="w-full flex justify-center pt-4 pb-2">
+<div class="w-12 h-1.5 rounded-full bg-white/20"></div>
+</div>
+<!-- Content Scroll Area -->
+<div class="flex-grow overflow-y-auto scrollbar-hide px-margin-page pb-stack-lg">
+<div class="max-w-4xl mx-auto space-y-stack-lg">
+<!-- Circle Details Section -->
+<section class="pt-stack-md flex flex-col md:flex-row gap-stack-lg items-start">
+<div class="w-28 h-28 rounded-3xl bg-primary/20 backdrop-blur-md flex items-center justify-center border border-white/10 flex-shrink-0 shadow-2xl">
+<span class="material-symbols-outlined text-5xl text-primary">diversity_3</span>
+</div>
+<div class="flex-grow space-y-stack-sm">
+<div class="flex items-center gap-stack-sm flex-wrap">
+<span class="px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-300 text-label-caps font-label-caps border border-emerald-500/20">活跃</span>
+<span class="px-3 py-1 rounded-full bg-white/10 text-white/70 text-label-caps font-label-caps border border-white/10">公开圈</span>
+</div>
+<h2 class="text-display-lg font-display-lg text-white">宁杭独立开发者</h2>
+<div class="flex items-center gap-stack-md text-white/70 font-body-md text-body-md">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>1 位成员</span>
+</div>
+<span class="opacity-30">•</span>
+<div class="flex items-center gap-1">
+<span>圈主</span>
+<span class="text-primary font-semibold">钱医生内科</span>
+</div>
+</div>
+<p class="text-white/80 font-body-lg text-body-lg leading-relaxed max-w-2xl">
+                                暂无圈子简介。致力于连接宁杭两地的独立开发者，共同交流、成长与创造价值。
+                            </p>
+<div class="flex flex-wrap gap-stack-md mt-6">
+<button class="bg-primary text-on-primary px-8 h-14 rounded-2xl font-bold hover:brightness-110 active:scale-95 transition-all flex items-center gap-3 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add_box</span>
+                                    在圈内发布需求
+                                </button>
+<div class="flex -space-x-3 items-center">
+<img alt="钱医生内科" class="w-12 h-12 rounded-full border-2 border-surface-container object-cover shadow-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbtfFIDVplee2fh2ruRRq1wVZnsyIBlWaEbCkmXJMJsj2CONhkp6nlaokGxvexlR_uX4I6jQXv2Z5YlbM3m5eR-_qFnKHg7OT29wEIpE2kAvaZC06GYuCYYv7JY2TvH3194aPOWQCvSUR2RoVGnE3mgdEL7mwq7f-9VGD8_5qTOX0oTdT8qFg4zIXUSCUIAOvC88uzHdNcjSS2itHu3od8e7EVO_Od6II9xCcNrqnTW9mcTMuuiSxub78jw1ugUd_e3Ynh-o0Qo80"/>
+<div class="w-12 h-12 rounded-full border-2 border-surface-container bg-white/10 flex items-center justify-center text-label-caps font-label-caps text-white/70 backdrop-blur-sm">
+                                        +0
+                                    </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Demand Section -->
+<section class="w-full pt-stack-lg border-t border-white/5">
+<div class="mb-stack-md flex justify-between items-end">
+<div>
+<h3 class="text-headline-md font-headline-md text-white">圈内需求</h3>
+<p class="text-white/60 font-body-md text-body-md mt-1">查看宁杭开发者们的最新协作动向</p>
+</div>
+</div>
+<!-- Empty State - Stylized -->
+<div class="glass-card-inner rounded-3xl p-16 flex flex-col items-center justify-center text-center gap-stack-md border-dashed">
+<div class="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-5xl text-white/30">inventory_2</span>
+</div>
+<h4 class="text-title-sm font-title-sm text-white">暂无圈内需求</h4>
+<p class="text-white/50 font-body-md text-body-md max-w-sm">
+                                这里还没有开发者发布需求。你是第一位吗？发布您的第一个需求来吸引合作伙伴。
+                            </p>
+<button class="mt-4 border border-white/20 text-white px-8 h-12 rounded-xl font-semibold hover:bg-white/5 active:scale-95 transition-all flex items-center gap-2 backdrop-blur-md">
+<span class="material-symbols-outlined">rocket_launch</span>
+                                立即发布
+                            </button>
+</div>
+</section>
+<!-- Footer Info/Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg pb-stack-lg">
+<div class="glass-card-inner rounded-2xl p-stack-md flex flex-col gap-stack-sm md:col-span-2">
+<span class="text-label-caps font-label-caps text-primary uppercase tracking-widest">最新动态</span>
+<div class="mt-2">
+<div class="p-stack-md rounded-xl bg-white/5 border border-white/5 flex gap-stack-md">
+<span class="material-symbols-outlined text-primary">info</span>
+<div>
+<p class="text-white font-body-md text-body-md">圈子 “宁杭独立开发者” 已成功创建</p>
+<span class="text-white/40 text-[12px]">刚刚</span>
+</div>
+</div>
+</div>
+</div>
+<div class="glass-card-inner rounded-2xl p-stack-md flex flex-col gap-stack-sm">
+<span class="text-label-caps font-label-caps text-white/50 uppercase tracking-widest">圈子统计</span>
+<div class="flex flex-col gap-stack-md mt-4">
+<div class="flex justify-between items-center border-b border-white/5 pb-2">
+<span class="text-white/60 text-body-md font-body-md">周活跃度</span>
+<span class="text-white font-title-sm font-bold">100%</span>
+</div>
+<div class="flex justify-between items-center border-b border-white/5 pb-2">
+<span class="text-white/60 text-body-md font-body-md">需求发布</span>
+<span class="text-white font-title-sm font-bold">0</span>
+</div>
+</div>
+<button class="mt-auto w-full py-2 text-label-caps font-label-caps text-white/40 hover:text-primary transition-colors flex items-center justify-center gap-2 group">
+<span>分享圈子</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">share</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Background Vignette/Overlay -->
+<div class="fixed inset-0 bg-black/20 pointer-events-none z-10"></div>
+<!-- Navigation Shell Placeholder logic (Mobile Bottom Nav hidden for cinematic view, SideNav also hidden) -->
+<!-- We keep the interaction logic -->
+<script>
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.classList.add('scale-95');
+            });
+            el.addEventListener('mouseup', () => {
+                el.classList.remove('scale-95');
+            });
+            el.addEventListener('mouseleave', () => {
+                el.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>

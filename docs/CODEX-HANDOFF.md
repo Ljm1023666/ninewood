@@ -13,7 +13,7 @@
 | Server 测试 | `pnpm --filter server test` → **75/75**（12 文件） |
 | Typecheck | `pnpm typecheck` → clean |
 | 开发指导 | `DEVELOPMENT-GUIDE.md` **v2.4** |
-| **活跃 Task** | **无 — 待机** |
+| **活跃 Task** | **Task 7 Wave 1 已交，等 Brain 审 Wave 2** |
 
 ### 已合入里程碑
 
@@ -56,16 +56,34 @@ welfare 9 · welfare-claim-comm 7 · comm-close 7 · auto-receive 12 · deposit 
 | 6 | 虚假功能完整修复 | `34c5c85`…`fb87fc0` | ✅ |
 | 6.1 | Brain 终审返工 | `cc9fa47` | ✅ |
 | 6+ | orderApi.cancel 补漏 | `bd3f200` | ✅ |
+| 7.1 | Task 7 Wave 1 (Shell + 假按钮) | `ccd329c` | ⏳ 等 Brain |
 
 ---
 
-## 🟡 当前状态：待机
+## 🟡 当前状态：Task 7 Wave 1 已交，等 Brain 审 Wave 2
 
-**无活跃 Codex 任务。** 下一项需 Brain 批准新 spec。
+**活跃任务**：Bento Productivity Hub 侧栏从「圈子详情装饰」升级为可导航的真实壳层。
 
-规格归档：`docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md`（§8 DoD 已全部勾选）
+| 项 | 路径 |
+|---|---|
+| 规格 | `docs/specs/TASK-7-bento-sidebar-implementation.md` |
+| 设计参考 | `docs/stitch-circle-detail/variant-b-cinematic.html` |
+| 现状入口 | `client-react/src/components/layout/BentoAppShell.tsx` |
 
-### 候选 backlog
+**执行顺序**：
+- ✅ **Wave 1**（Shell + 假按钮）— commit `ccd329c`，等 Brain 审
+- ⏳ Wave 2（子页 Bento 包装）
+- ⏳ Wave 3（/teams + legacy 降级）
+- ⏳ Wave 4 可选
+
+**Wave 1 摘要**：
+- 抽取 `BentoAppShell` + `AppBentoSidebar`，nav 单源 `constants/bento-nav.ts`，active 由路由决定
+- 品牌点击 → `/circles`；侧栏接住 `circles | circles/:id | card-pool* | tag-stats | circles-list | help*`
+- 详情页 `coverUrl` 注入背景层；其它页 fallback 到 `#10131a + --cdb-overlay`
+- 分享复制 URL + toast；查看全部仅当需求 > 3 时显示并 scroll 到需求卡；周活跃度 100% 已改为 `--`
+- typecheck clean；server test 75/75；lint 未在改动的文件新增报错
+
+### 候选 backlog（Task 7 之后）
 
 | 项 | 说明 |
 |---|---|
@@ -79,13 +97,9 @@ welfare 9 · welfare-claim-comm 7 · comm-close 7 · auto-receive 12 · deposit 
 
 ## 下一任务（Brain 填写 · Codex 等待）
 
-```markdown
-<!-- 启动 Task 7 时填写 -->
-任务名:
-规格路径:
-范围锁定:
-验收:
-```
+- **Wave 2 准入**：Brain 审 Wave 1 后给信号
+- Wave 2 spec 见 `docs/specs/TASK-7-bento-sidebar-implementation.md` §3 Wave 2（子页 Bento 包装 SIDEBAR-04/05/06/07）
+- 若审完无补充，Codex 直接进入 Wave 2
 
 ---
 
@@ -97,3 +111,5 @@ welfare 9 · welfare-claim-comm 7 · comm-close 7 · auto-receive 12 · deposit 
 | 2026-06-19 | v5：Task 4–5 全部批准；基线 67/67；队列 → 待机 |
 | 2026-06-21 | v6：Task 6 启动 — `FAKE-FEATURES-REPAIR-BACKLOG.md` |
 | 2026-06-21 | v7：Task 6 + 6.1 Brain 批准；基线 75/75；队列 → **待机** |
+| 2026-06-21 | v8：Task 7 启动 — Bento 侧栏假导航审计 → `TASK-7-bento-sidebar-implementation.md` |
+| 2026-06-21 | v9：Task 7 Wave 1 已交 — `ccd329c` 抽取 `BentoAppShell` + 路由化侧栏 + 详情假按钮清理；待 Brain 审 |
