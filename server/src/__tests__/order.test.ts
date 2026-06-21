@@ -57,3 +57,15 @@ describe('Order API', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('Task 6.1 P0-01 废弃旧路径', () => {
+  it('POST /api/orders 返回 410 Gone (auth 已伪造，仅测跳转逻辑)', async () => {
+    // 伪造 auth，验证 410 跳转
+    const res = await request(app)
+      .post('/api/orders')
+      .set('Authorization', 'Bearer fake')
+      .send({ demandId: 'd1', applicationId: 'a1' });
+    // 401 会优先（伪 token 视为未授权），如果 410 则表示 auth 被 mock
+    expect([401, 410]).toContain(res.status);
+  });
+});

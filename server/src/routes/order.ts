@@ -21,16 +21,13 @@ function emitOrderUpdate(req: Request, order: any) {
 }
 
 // POST /api/orders
-orderRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { demandId, applicationId } = req.body;
-    if (!demandId || !applicationId) return fail(res, '缺少demandId或applicationId', 400);
-    const order = await orderService.create(demandId, applicationId, req.user!.userId);
-    emitOrderUpdate(req, order);
-    success(res, order, '订单已创建', 201);
-  } catch (e: any) {
-    fail(res, e.message || '服务器错误', e.status || 500);
-  }
+// Task 6.1 P0-01: 废弃旧路径，请使用 acceptApplicant (V2) 同事务创建 Order
+orderRouter.post('/', authMiddleware, async (_req: Request, res: Response) => {
+  return fail(
+    res,
+    '该接口已废弃，请使用 POST /api/demands/:id/accept/:applicantId 代替（V2）',
+    410,
+  );
 });
 
 // GET /api/orders — list mine

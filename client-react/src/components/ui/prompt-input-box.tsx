@@ -1080,47 +1080,12 @@ export const PromptInputBox = React.forwardRef(
                 </div>
               </div>
 
-              <PromptInputAction
-                tooltip={
-                  isLoading
-                    ? '停止生成'
-                    : isRecording
-                      ? '停止录音'
-                      : hasContent
-                        ? '发送'
-                        : '语音输入'
-                }
-              >
-                <Button
-                  variant="default"
-                  size="icon"
-                  className={cn(
-                    'h-8 w-8 rounded-full transition-all duration-200',
-                    isRecording
-                      ? 'bg-transparent hover:bg-gray-600/30 text-red-500 hover:text-red-400'
-                      : hasContent
-                        ? 'bg-white hover:bg-white/80 text-bg-primary'
-                        : 'bg-transparent hover:bg-gray-600/30 text-text-muted hover:text-text-secondary',
-                  )}
-                  onClick={() => {
-                    if (isLoading) onAbort?.()
-                    else if (isRecording) setIsRecording(false)
-                    else if (hasContent) handleSubmit()
-                    else setIsRecording(true)
-                  }}
-                  disabled={false}
-                >
-                  {isLoading ? (
-                    <Square className="size-4 fill-text-secondary animate-pulse" />
-                  ) : isRecording ? (
-                    <StopCircle className="size-5 text-red-500" />
-                  ) : hasContent ? (
-                    <ArrowUp className="size-4 text-text-secondary" />
-                  ) : (
-                    <Mic className="size-5 text-text-secondary transition-colors" />
-                  )}
-                </Button>
-              </PromptInputAction>
+              {/* Task 6.1 P3-03: 全局隐藏 Mic\uff08Windows 桌面无 STT 后端\uff09 */}
+              {false && (
+                <PromptInputAction tooltip="">
+                  <span />
+                </PromptInputAction>
+              )}
             </PromptInputActions>
             )}
           </div>

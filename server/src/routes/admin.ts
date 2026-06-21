@@ -205,9 +205,10 @@ adminRouter.get('/stats', async (_req: Request, res: Response) => {
 });
 
 // GET /api/admin/disputes
+// Task 6.1: 争议列表统一模型 — 同时包含发起争议 (DISPUTED) 和等待验收 (WAITING_REVIEW)
 adminRouter.get('/disputes', async (_req: Request, res: Response) => {
   const disputes = await prisma.order.findMany({
-    where: { status: 'WAITING_REVIEW' },
+    where: { status: { in: ['DISPUTED', 'WAITING_REVIEW'] } },
     include: {
       provider: { select: { id: true, nickname: true } },
       requester: { select: { id: true, nickname: true } },

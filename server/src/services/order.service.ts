@@ -116,22 +116,39 @@ export const orderService = {
     const demand = await prisma.demand.findUnique({ where: { id: order.demandId } });
     if (!demand) throw { status: 404, message: '需求不存在' };
 
-    // P0-02: 按 pay-breakdown 逻辑扣除点数。
-    // 需求发布时已经按最低报价托管(仓 hold)，这里只需要记录 paidAt 作为已支付标志。
-    // 主链路点数流转在 confirm 时通过 wallet.settleDemand 完成。
-    // 不足额检查以 settleDemand 为准(其中含 5% 服务费 debit)。
-    const balance = await walletService.getBalance(userId);
-    const serviceFee = calculateSettlement(Number(demand.minPrice), Number(order.agreedPrice), Number(demand.minPrice)).serviceFee;
-    if (balance < serviceFee) {
-      throw { status: 400, message: `点数不足，需 ${serviceFee} 点才能支付` };
+    // Task 6.1 P0-02 修正：真实走 wallet.debit 扣服务费
+    // - 需求发布时已 hold 了 minPrice，这里只需提前扣取服务费(5%)。
+    // - 余额(finalPrice - minPrice)在 confirm 时一起扣，避免重复扣。
+    // - 不足额返回 400 + 明确 message。
+    const breakdown = calculateSettlement(
+      Number(demand.minPrice),
+      Number(order.agreedPrice),
+      Number(demand.minPrice),
+    )
+    const balance = await walletService.getBalance(userId)
+    if (balance < breakdown.serviceFee) {
+      throw { status: 400, message: `点数不足，需 ${breakdown.serviceFee} 点服务费` }
     }
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { paidAt: new Date() },
-    });
+    await prisma.$transaction(async (tx) => {
+      // 真实扣减服务费，走 wallet.ledger 可追溯
+      await walletService.debit(
+        userId,
+        breakdown.serviceFee,
+        {
+          referenceType: 'ORDER',
+          referenceId: orderId,
+          memo: 'prepay 服务费(5%)',
+        },
+        tx,
+      )
+      await tx.order.update({
+        where: { id: orderId },
+        data: { paidAt: new Date() },
+      })
+    })
 
-    return { message: '支付成功，点数已记录', amount: Number(order.agreedPrice) };
+    return { message: '点数已扣除，支付完成', amount: Number(order.agreedPrice), serviceFee: breakdown.serviceFee }
   },
 
   async complete(orderId: string, userId: string) {
