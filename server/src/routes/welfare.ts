@@ -69,6 +69,44 @@ welfareRouter.post('/demands', authMiddleware, async (req: Request, res: Respons
   }
 })
 
+// GET /api/welfare/demands — 列出可认领的公益需求
+welfareRouter.get('/demands', async (req: Request, res: Response) => {
+  try {
+    const page = Number(req.query.page) || 1
+    const limit = 20
+    const where: any = { isPublicWelfare: true, status: 'ACTIVE' }
+    const [demands, total] = await Promise.all([
+      prisma.demand.findMany({
+        where,
+        include: {
+          user: { select: { id: true, nickname: true, avatarUrl: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.demand.count({ where }),
+    ])
+    success(res, {
+      items: demands.map((d: any) => ({
+        id: d.id,
+        title: d.title,
+        description: d.description,
+        expectedOutcome: d.expectedOutcome,
+        minPrice: Number(d.minPrice),
+        regionId: d.regionId,
+        user: d.user,
+        createdAt: d.createdAt,
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    })
+  } catch (e: any) {
+    fail(res, e.message || 'server error', 500)
+  }
+})
+
 // GET /api/welfare/rewards — 我的公益奖励历史
 welfareRouter.get('/rewards', authMiddleware, async (req: Request, res: Response) => {
   try {

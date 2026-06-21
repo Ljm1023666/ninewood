@@ -1,0 +1,13 @@
+{
+  "name": "huawei-notepad-migrator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "把华为云空间备忘录迁移到 Obsidian（Markdown）",
+  "scripts": {
+    "migrate": "node migrate.js",
+    "migrate:debug": "node migrate.js --debug"
+  },
+  "dependencies": {
+    "playwright": "^1.45.0"
+  }
+}

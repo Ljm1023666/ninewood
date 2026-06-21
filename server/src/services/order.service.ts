@@ -1,6 +1,7 @@
 ﻿import { prisma } from '../lib/prisma.js';
 import { OrderStatus } from '@prisma/client';
 import { walletService } from './wallet.service.js';
+import { calculateSettlement } from './settlement.js';
 
 export const orderService = {
   async create(demandId: string, applicationId: string, userId: string) {
@@ -120,9 +121,7 @@ export const orderService = {
     // 主链路点数流转在 confirm 时通过 wallet.settleDemand 完成。
     // 不足额检查以 settleDemand 为准(其中含 5% 服务费 debit)。
     const balance = await walletService.getBalance(userId);
-    const serviceFee = walletService.calculateSettlement
-      ? walletService.calculateSettlement(Number(demand.minPrice), Number(order.agreedPrice), Number(demand.minPrice)).serviceFee
-      : 0;
+    const serviceFee = calculateSettlement(Number(demand.minPrice), Number(order.agreedPrice), Number(demand.minPrice)).serviceFee;
     if (balance < serviceFee) {
       throw { status: 400, message: `点数不足，需 ${serviceFee} 点才能支付` };
     }
@@ -184,7 +183,6 @@ export const orderService = {
         demandId: order.demandId,
         deposit: { userId: order.requesterId, status: 'PENDING' },
       },
-      select: { id: true },
     });
     if (oldDeposit) {
       console.warn(
