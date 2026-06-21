@@ -16,13 +16,20 @@ import {
   scopeTitle,
 } from '@/components/card-pool/scope'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
+import type { PackCardData } from '@/components/card-pool/search-params'
 import {
   fetchFirstDemandId,
   fetchPackContents,
   fetchTotalForScope,
   scopeToApiParams,
 } from '@/components/card-pool/search-params'
-import type { PackCardData } from '@/components/card-pool/search-params'
+import {
+  evictAllPackGalleries,
+  evictPackGallery,
+  getPackGalleryKey,
+  getPackGallerySnapshot,
+} from '@/utils/pack-gallery-cache'
+import { loadPackGalleryImages } from '@/utils/pack-gallery-bridge'
 import { cn } from '@/lib/utils'
 import {
   RootSummaryBlackCard,
@@ -30,6 +37,7 @@ import {
   AnimatedScopeCount,
 } from '@/components/card-pool/browse-black-cards'
 import { PackOpeningAnimation } from '@/components/card-pool/PackOpeningAnimation'
+import { PackGalleryProvider } from '@/components/card-pool/pack-gallery-runtime'
 import {
   dragSurfaceSelectNoneClass,
   preventCopyOnDragSurface,
@@ -79,9 +87,11 @@ export default function CardPool() {
   const rangeLabel = '同城 5 km'
   const [scopeTotal, setScopeTotal] = useState<number | null>(null)
   const [openingCarousel, setOpeningCarousel] = useState(false)
-  const [packOpeningCards, setPackOpeningCards] = useState<
-    PackCardData[] | null
-  >(null)
+  const [packOpening, setPackOpening] = useState<{
+    cards: PackCardData[]
+    cacheKey: string
+    scope: BlackScope
+  } | null>(null)
   const [desktopOpen, setDesktopOpen] = useState<{
     apiParams: Record<string, string>
     blackScope: BlackScope
@@ -123,6 +133,48 @@ export default function CardPool() {
   )
 
   const rootScopeInHand = handScopeKeys.has(scopeKey(focus))
+
+  const tryAddToHand = useCallback(
+    (scope: BlackScope) => addToHand(scope),
+    [addToHand],
+  )
+
+  useEffect(() => {
+    if (packOpening) return
+    for (const entry of hand) {
+      const key = getPackGalleryKey(entry.scope)
+      const snap = getPackGallerySnapshot(key)
+      if (snap.ready) loadPackGalleryImages(key, snap.items)
+    }
+  }, [hand, packOpening])
+
+  const tryRemoveHandEntry = useCallback(
+    (id: string) => {
+      const entry = hand.find((h) => h.id === id)
+      if (entry) evictPackGallery(entry.scope)
+      removeHandEntry(id)
+    },
+    [hand, removeHandEntry],
+  )
+
+  const tryDiscardHandEntry = useCallback(
+    (id: string) => {
+      const entry = hand.find((h) => h.id === id)
+      if (entry) evictPackGallery(entry.scope)
+      discardHandEntryById(id)
+    },
+    [hand, discardHandEntryById],
+  )
+
+  const tryClearHand = useCallback(() => {
+    evictAllPackGalleries(hand.map((entry) => entry.scope))
+    clearHand()
+  }, [clearHand, hand])
+
+  const tryRestoreCard = useCallback(
+    (scope: BlackScope) => restoreCard(scope),
+    [restoreCard],
+  )
 
   useEffect(() => {
     const key = scopeKey(focus)
@@ -224,24 +276,31 @@ export default function CardPool() {
   }, [mode, childrenNotInHand.length, childPage])
 
   function openHandDesktop(entry: HandEntry) {
+    const cacheKey = getPackGalleryKey(entry.scope)
+    const cached = getPackGallerySnapshot(cacheKey)
+
+    if (cached.cards.length > 0) {
+      setPackOpening({ cards: cached.cards, cacheKey, scope: entry.scope })
+      return
+    }
+
     setOpeningCarousel(true)
     void fetchPackContents(entry.scope)
       .then((cards) => {
-        setOpeningCarousel(false)
         if (cards.length === 0) {
           toast('当前范围内暂无需求', 'error')
           return
         }
-        setPackOpeningCards(cards)
+        setPackOpening({ cards, cacheKey, scope: entry.scope })
       })
       .catch((e: unknown) => {
-        setOpeningCarousel(false)
         const err = e as {
           response?: { data?: { message?: string } }
           message?: string
         }
         toast(err.response?.data?.message || err.message || '加载失败', 'error')
       })
+      .finally(() => setOpeningCarousel(false))
   }
 
   function renderBrowse() {
@@ -267,7 +326,7 @@ export default function CardPool() {
           onOpen={() => setRootBrowseExpanded(true)}
           onLongPressDropInHand={(at) => {
             celebrateBlackScopeDropRef.current?.(focus, at.clientX, at.clientY)
-            const added = addToHand(focus)
+            const added = tryAddToHand(focus)
             if (!added) toast('该范围已在手牌中', 'info')
           }}
           handDropZoneRef={handDropZoneRef}
@@ -324,7 +383,7 @@ export default function CardPool() {
           }}
           onLongPressDropScopeInHand={(s, at) => {
             celebrateBlackScopeDropRef.current?.(s, at.clientX, at.clientY)
-            const added = addToHand(s)
+            const added = tryAddToHand(s)
             if (!added) toast('该范围已在手牌中', 'info')
           }}
         />
@@ -415,6 +474,8 @@ export default function CardPool() {
   }
 
   return (
+    <PackGalleryProvider packOpening={!!packOpening}>
+    {!packOpening ? (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground">
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <BackButton compact />
@@ -527,27 +588,30 @@ export default function CardPool() {
           handTotals={handTotals}
           openingCarousel={openingCarousel}
           onOpenDesktop={openHandDesktop}
-          onRemove={removeHandEntry}
+          onRemove={tryRemoveHandEntry}
           onPin={pinToFront}
-          onDiscard={discardHandEntryById}
-          onRestore={restoreCard}
-          onClearHand={clearHand}
+          onDiscard={tryDiscardHandEntry}
+          onRestore={tryRestoreCard}
+          onClearHand={tryClearHand}
           onDropBlackScope={(scope) => {
-            const added = addToHand(scope)
+            const added = tryAddToHand(scope)
             if (!added) toast('该范围已在手牌中', 'info')
           }}
           celebrateBlackScopeDropRef={celebrateBlackScopeDropRef}
           pointerDropHighlight={pointerHandDropHover}
         />
       </div>
-
-      {/* 卡包开启动画 */}
-      {packOpeningCards && (
-        <PackOpeningAnimation
-          cards={packOpeningCards}
-          onClose={() => setPackOpeningCards(null)}
-        />
-      )}
     </div>
+    ) : null}
+
+    {packOpening ? (
+      <PackOpeningAnimation
+        cards={packOpening.cards}
+        galleryCacheKey={packOpening.cacheKey}
+        galleryScope={packOpening.scope}
+        onClose={() => setPackOpening(null)}
+      />
+    ) : null}
+    </PackGalleryProvider>
   )
 }

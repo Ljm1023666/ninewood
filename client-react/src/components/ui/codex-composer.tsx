@@ -44,6 +44,9 @@ export interface CodexComposerProps {
   /** 来自 /api/agent/provider；未传时使用兜底列表 */
   models?: ComposerModelOption[]
   defaultModelId?: string
+  /** 受控：当前选中模型 */
+  selectedModelId?: string
+  onSelectedModelChange?: (modelId: string) => void
 }
 
 interface AttachedFile {
@@ -66,13 +69,19 @@ export function CodexComposer({
   layout = 'docked',
   models: modelsProp,
   defaultModelId,
+  selectedModelId: selectedModelIdProp,
+  onSelectedModelChange,
 }: CodexComposerProps) {
   const models = modelsProp?.length ? modelsProp : FALLBACK_COMPOSER_MODELS
   const isLight = appearance === 'light'
   const [message, setMessage] = useState('')
   const [files, setFiles] = useState<AttachedFile[]>([])
-  const [selectedModelId, setSelectedModelId] = useState(
-    () => defaultModelId ?? models[0]?.id ?? FALLBACK_COMPOSER_MODELS[0].id,
+  const [internalModelId, setInternalModelId] = useState(
+    () =>
+      selectedModelIdProp ??
+      defaultModelId ??
+      models[0]?.id ??
+      FALLBACK_COMPOSER_MODELS[0].id,
   )
   const [reasoning, setReasoning] =
     useState<(typeof REASONING_LEVELS)[number]['id']>('mid')
@@ -89,6 +98,15 @@ export function CodexComposer({
     visibility: 'hidden',
   })
 
+  const selectedModelId = selectedModelIdProp ?? internalModelId
+
+  const setSelectedModelId = (id: string) => {
+    onSelectedModelChange?.(id)
+    if (selectedModelIdProp === undefined) {
+      setInternalModelId(id)
+    }
+  }
+
   const selectedModel =
     models.find((m) => m.id === selectedModelId) ?? models[0]
 
@@ -101,6 +119,13 @@ export function CodexComposer({
       setSelectedModelId(defaultModelId)
     }
   }, [defaultModelId, models])
+
+  useEffect(() => {
+    if (selectedModelIdProp === undefined) return
+    if (models.some((m) => m.id === selectedModelIdProp)) {
+      setInternalModelId(selectedModelIdProp)
+    }
+  }, [selectedModelIdProp, models])
 
   const preventInputBlur = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -152,36 +177,39 @@ export function CodexComposer({
 
       const rect = anchor.getBoundingClientRect()
       const gap = 8
-      const panelWidth = panel?.offsetWidth ?? 280
-      const panelHeight = panel?.offsetHeight ?? 220
+      const margin = 12
+      const panelWidth = panel?.offsetWidth ?? 320
+      const panelHeight = panel?.offsetHeight ?? 280
       const viewportWidth = window.innerWidth
       const viewportHeight = window.innerHeight
-      const margin = 12
+
+      const clampTop = (desired: number) =>
+        Math.min(
+          Math.max(margin, desired),
+          viewportHeight - panelHeight - margin,
+        )
 
       const rightSideLeft = rect.right + gap
       const fitsRight =
         rightSideLeft + panelWidth <= viewportWidth - margin
 
-      if (fitsRight) {
-        setTierPanelStyle({
-          position: 'fixed',
-          top: Math.max(margin, rect.bottom - panelHeight),
-          left: rightSideLeft,
-          zIndex: 10000,
-          visibility: 'visible',
-        })
-        return
-      }
+      let left: number
+      let top: number
 
-      const left = Math.min(
-        Math.max(margin, rect.right - panelWidth),
-        viewportWidth - panelWidth - margin,
-      )
-      const top = Math.max(margin, rect.top - gap - panelHeight)
+      if (fitsRight) {
+        left = rightSideLeft
+        top = clampTop(rect.top + rect.height / 2 - panelHeight / 2)
+      } else {
+        left = Math.min(
+          Math.max(margin, rect.right - panelWidth),
+          viewportWidth - panelWidth - margin,
+        )
+        top = clampTop(rect.top - gap - panelHeight)
+      }
 
       setTierPanelStyle({
         position: 'fixed',
-        top: Math.min(top, viewportHeight - panelHeight - margin),
+        top,
         left,
         zIndex: 10000,
         visibility: 'visible',
@@ -200,7 +228,7 @@ export function CodexComposer({
       window.removeEventListener('resize', updatePosition)
       window.removeEventListener('scroll', updatePosition, true)
     }
-  }, [tierOpen, reasoning, selectedModelId])
+  }, [tierOpen, reasoning, selectedModelId, models.length])
 
   useEffect(() => {
     if (!tierOpen) return
@@ -419,7 +447,7 @@ export function CodexComposer({
                 aria-expanded={tierOpen}
                 aria-haspopup="listbox"
               >
-                <span>
+                <span className="codex-composer__pill-text">
                   {selectedModel?.short ?? '模型'} {reasoningLabel}
                 </span>
                 <ChevronDown

@@ -1,5 +1,10 @@
 import { useMemo } from 'react'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import {
+  publisherUserCoverPreset,
+  toCardCoverThumbUrl,
+  toProfileCoverThumbUrl,
+} from '@/utils/user-cover-presets'
+import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
 import { useThemeStore } from '@/stores/theme'
 
 /** 全栏模糊封面 + 遮罩，作页面氛围背景（主内容区内 absolute 铺满）。优先用用户上传封面（如 /uploads/covers/…），否则预设图。 */
@@ -12,7 +17,12 @@ export function UserCoverAmbientBg({
 }) {
   const isDark = useThemeStore((s) => s.current.dark)
   const trimmed = typeof coverUrl === 'string' ? coverUrl.trim() : ''
-  const url = trimmed || publisherUserCoverPreset(userId)
+  const rawUrl = trimmed || publisherUserCoverPreset(userId)
+  const ambientSrc = trimmed.startsWith('/uploads/covers/')
+    ? toProfileCoverThumbUrl(trimmed)
+    : rawUrl.startsWith('/uploads/card-covers/')
+      ? toCardCoverThumbUrl(rawUrl)
+      : rawUrl
   const imageClass = useMemo(
     () =>
       isDark
@@ -26,7 +36,12 @@ export function UserCoverAmbientBg({
       aria-hidden
     >
       {/* 亮暗模式分支：浅色避免被 bg-primary 叠层“洗白” */}
-      <img src={url} alt="" className={imageClass} />
+      <DisplayCoverPicture
+        sources={ambientSrc}
+        alt=""
+        className={imageClass}
+        pictureClassName="absolute inset-0 block h-full w-full"
+      />
       <div
         className={
           isDark

@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, type CSSProperties, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { isRTL } from '@/lib/is-rtl'
+import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
 
 export interface InfoCardProps {
   image: string
@@ -167,11 +168,12 @@ export function InfoCard({
               className="block h-full w-full outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ic-card-bg,var(--bg-primary))] focus-visible:ring-white/40"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={image}
+              <DisplayCoverPicture
+                sources={image}
                 alt=""
                 decoding="async"
                 draggable={false}
+                pictureClassName="block h-full w-full"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -181,10 +183,11 @@ export function InfoCard({
               />
             </Link>
           ) : (
-            <img
-              src={image}
+            <DisplayCoverPicture
+              sources={image}
               alt={imageAlt ?? title}
               decoding="async"
+              pictureClassName="block h-full w-full"
               style={{
                 width: '100%',
                 height: '100%',

@@ -187,7 +187,7 @@ export default function Settings() {
                           background: `linear-gradient(135deg, ${cfg.primaryStart}, ${cfg.primaryEnd})`,
                         }}
                       />
-                      <span className="text-xs text-text-muted">
+                      <span className="text-base font-semibold text-text-primary">
                         {themeNames[name]}
                       </span>
                       {active ? (
@@ -292,7 +292,7 @@ export default function Settings() {
           </SettingsPanel>
         </InternalSection>
 
-        <p className="text-center font-mono text-xs text-text-muted">
+        <p className="text-center text-base font-medium text-text-secondary">
           九木平台 v1.0.0
         </p>
       </InternalContentBlock>

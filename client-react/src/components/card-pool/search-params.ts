@@ -1,12 +1,15 @@
 import { demandApi } from '@/api/demand'
 import type { BlackScope } from '@/components/card-pool/types'
 import { subtreeLeafIds } from '@/components/card-pool/taxonomy'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import { resolveDemandCardCoverDetailUrl, resolveDemandCardCoverThumbUrl } from '@/utils/user-cover-presets'
 
 /** 卡包开启动画用的卡片数据 */
 export interface PackCardData {
   id: string
+  /** 开包动画 thumb 档 */
   imageUrl: string
+  /** 与需求详情页 InteractiveProductCard 相同的 detail 封面 URL */
+  detailImageUrl: string
   title: string
   price: string
   description: string
@@ -86,12 +89,20 @@ export async function fetchPackContents(
       } | null
     }[]
   }
-  return (d.demands || []).map((item) => ({
-    id: item.id,
-    imageUrl:
-      item.user?.demandCardCoverUrl || publisherUserCoverPreset(item.user?.id),
-    title: item.title || '未命名需求',
-    price: item.minPrice != null ? `¥${item.minPrice}` : '',
-    description: item.descriptionPreview || '',
-  }))
+  return (d.demands || []).map((item) => {
+    const coverInput = {
+      coverImage: item.coverImage,
+      demandCardCoverUrl: item.user?.demandCardCoverUrl,
+      mediaUrls: item.mediaUrls,
+      userId: item.user?.id,
+    }
+    return {
+      id: item.id,
+      imageUrl: resolveDemandCardCoverThumbUrl(coverInput),
+      detailImageUrl: resolveDemandCardCoverDetailUrl(coverInput),
+      title: item.title || '未命名需求',
+      price: item.minPrice != null ? `¥${item.minPrice}` : '',
+      description: item.descriptionPreview || '',
+    }
+  })
 }

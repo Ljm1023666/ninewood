@@ -18,7 +18,8 @@ import {
 } from '@/api/agent'
 import {
   buildComposerModels,
-  formatActiveLlmLabel,
+  formatComposerModelLabel,
+  resolveDefaultComposerModelId,
 } from '@/constants/llm-providers'
 import {
   readStoredAccessMode,
@@ -95,6 +96,24 @@ export default function AgentChat() {
     () => (llmConfig ? buildComposerModels(llmConfig) : undefined),
     [llmConfig],
   )
+  const defaultComposerModelId = useMemo(
+    () =>
+      llmConfig && composerModels?.length
+        ? resolveDefaultComposerModelId(llmConfig, composerModels)
+        : undefined,
+    [llmConfig, composerModels],
+  )
+  const [selectedComposerModelId, setSelectedComposerModelId] = useState<
+    string | undefined
+  >()
+  const activeComposerModel = useMemo(() => {
+    if (!composerModels?.length) return undefined
+    const id =
+      selectedComposerModelId ??
+      defaultComposerModelId ??
+      composerModels[0]!.id
+    return composerModels.find((m) => m.id === id) ?? composerModels[0]
+  }, [composerModels, selectedComposerModelId, defaultComposerModelId])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<(() => void) | null>(null)
 
@@ -135,6 +154,12 @@ export default function AgentChat() {
         /* ignore */
       })
   }, [])
+
+  useEffect(() => {
+    if (defaultComposerModelId) {
+      setSelectedComposerModelId(defaultComposerModelId)
+    }
+  }, [defaultComposerModelId])
 
   useEffect(() => {
     try {
@@ -488,7 +513,9 @@ export default function AgentChat() {
       layout={isSessionStart ? 'start' : 'docked'}
       placeholder={loading ? '要求后续变更' : '随心输入'}
       models={composerModels}
-      defaultModelId={llmConfig?.model}
+      defaultModelId={defaultComposerModelId}
+      selectedModelId={selectedComposerModelId}
+      onSelectedModelChange={setSelectedComposerModelId}
       onSend={(msg, files, model) => {
         handleSend(msg, files, model)
       }}
@@ -648,9 +675,9 @@ export default function AgentChat() {
                 </button>
               ) : null}
               <h1 className="agent-codex-main__title">{activeTitle}</h1>
-              {llmConfig ? (
-                <span className="agent-codex-main__provider" title="当前默认模型">
-                  {formatActiveLlmLabel(llmConfig)}
+              {activeComposerModel ? (
+                <span className="agent-codex-main__provider" title="当前模型">
+                  {formatComposerModelLabel(activeComposerModel)}
                 </span>
               ) : null}
               {quota ? (
@@ -684,9 +711,9 @@ export default function AgentChat() {
             <h1 className="agent-codex-start__prompt">
               我们应该在九木中构建什么？
             </h1>
-            {llmConfig ? (
+            {activeComposerModel ? (
               <p className="agent-codex-start__provider">
-                {formatActiveLlmLabel(llmConfig)}
+                {formatComposerModelLabel(activeComposerModel)}
               </p>
             ) : null}
             <div className="agent-codex-start__composer">{composer}</div>

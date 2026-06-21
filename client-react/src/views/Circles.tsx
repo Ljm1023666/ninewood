@@ -12,12 +12,12 @@ import {
   InternalContentBlock,
   SegmentedFilter,
   SettingsInput,
-  SettingsActionButton,
   StatusChip,
 } from '@/components/layout/internal-ui'
 import { ListItemCard } from '@/components/ui/list-item-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { LoadingState } from '@/components/ui/loading-state'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 
 const roleLabel: Record<string, string> = {
@@ -173,27 +173,26 @@ export default function Circles() {
         subtitle="加入志同道合的圈子，交流经验、分享资源、找到合作机会"
         onBack="back"
         actions={
-          <>
-            <SettingsActionButton
+          <div className="flex items-center gap-3">
+            <LiquidMetalButton
+              viewMode="icon"
+              icon={
+                <MsIcon
+                  name="refresh"
+                  size={16}
+                  className={cn(loading && 'animate-spin')}
+                  aria-hidden
+                />
+              }
+              aria-label="刷新"
               disabled={loading}
               onClick={() => void fetchCircles()}
-            >
-              <MsIcon
-                name="refresh"
-                size={14}
-                className={cn('mr-1.5', loading && 'animate-spin')}
-                aria-hidden
-              />
-              刷新
-            </SettingsActionButton>
-            <SettingsActionButton
-              variant="primary"
+            />
+            <LiquidMetalButton
+              label="创建圈子"
               onClick={() => setShowCreate(true)}
-            >
-              <MsIcon name="add" size={14} className="mr-1.5" aria-hidden />
-              创建圈子
-            </SettingsActionButton>
-          </>
+            />
+          </div>
         }
       />
 
@@ -308,27 +307,17 @@ export default function Circles() {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 border-t border-[var(--internal-hairline)] px-6 py-4">
-              <SettingsActionButton
+            <div className="flex justify-end gap-3 border-t border-[var(--internal-hairline)] px-6 py-4">
+              <LiquidMetalButton
+                label="取消"
                 disabled={createBusy}
                 onClick={() => setShowCreate(false)}
-              >
-                取消
-              </SettingsActionButton>
-              <SettingsActionButton
-                variant="primary"
+              />
+              <LiquidMetalButton
+                label={createBusy ? '创建中…' : '创建'}
                 disabled={createBusy}
                 onClick={() => void createCircle()}
-              >
-                {createBusy ? (
-                  <>
-                    <MsIcon name="progress_activity" size={14} className="mr-1.5 animate-spin" aria-hidden />
-                    创建中...
-                  </>
-                ) : (
-                  '创建'
-                )}
-              </SettingsActionButton>
+              />
             </div>
           </div>
         </div>

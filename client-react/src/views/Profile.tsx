@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
@@ -11,12 +11,29 @@ import { ProfileEditDialog } from '@/components/ui/profile-edit-dialog'
 import { toast } from '@/components/ui/confirm-dialog'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  InternalPageShell,
   SettingsActionButton,
 } from '@/components/layout/internal-ui'
+import { MaterialSwitch } from '@/components/ui/material-switch'
 import { MsIcon } from '@/components/ui/ms-icon'
+import {
+  MoonIcon,
+  SunIcon,
+} from '@/components/ui/theme-toggle'
 import { STITCH_PROFILE_ICONS } from '@/constants/stitch-icons'
+import { useProfileCoverBg } from '@/hooks/use-profile-cover-bg'
+import { useThemeStore } from '@/stores/theme'
 
+/** 开屏：原图停留 → 渐隐开屏层 + 主页浮现 */
+const INTRO_HOLD_MS = 2400
+const INTRO_REVEAL_S = 1.65
+const INTRO_REVEAL_EASE = [0.32, 0.72, 0, 1] as const
+const COVER_CURTAIN_S = 0.72
+const COVER_BG_FADE_MS = 500
+/** 封面背景切换：先加速、后减速 */
+const COVER_BG_EASE_CSS = 'ease-in-out'
+const COVER_BG_EASE = [0.45, 0, 0.55, 1] as const
+
+type ProfileIntroPhase = 'hold' | 'reveal' | 'done'
 
 export default function Profile() {
   const { id } = useParams()
@@ -30,53 +47,60 @@ export default function Profile() {
   const displayUser = isMe ? myUser : user
   const profileIntroKey = isMe ? `me:${myUser?.id || ''}` : `user:${id || ''}`
   const level = displayUser?.certificationLevel || 'NONE'
+  const pageCoverUrl = useMemo(() => {
+    const trimmed =
+      typeof displayUser?.coverUrl === 'string'
+        ? displayUser.coverUrl.trim()
+        : ''
+    return trimmed || null
+  }, [displayUser?.coverUrl])
+  const { coverBgEnabled, setCoverBgEnabled } = useProfileCoverBg()
+  const showCoverBackground = coverBgEnabled && Boolean(pageCoverUrl)
+  const solidBg = useThemeStore((s) => s.current.bgPrimary)
+  const [coverCurtainPulse, setCoverCurtainPulse] = useState(0)
 
-  // ===== 封面开场动画（首帧即展示，避免闪出主页内容） =====
-  const [intro, setIntro] = useState({
-    show: true,
-    shrink: false,
-    entering: true,
-  })
+  function handleCoverBgToggle(next: boolean) {
+    if (next === coverBgEnabled) return
+    setCoverBgEnabled(next)
+    setCoverCurtainPulse((p) => p + 1)
+  }
+
+  // ===== 封面开场：停留原图 → 渐显主页 =====
+  const [introPhase, setIntroPhase] = useState<ProfileIntroPhase>('hold')
   useEffect(() => {
     // 切换他人主页时先清空旧用户，避免旧内容闪出
     if (!isMe) setUser(null)
   }, [id, isMe])
 
   useEffect(() => {
-    // 每次切换用户时重置动画状态
-    setIntro({ show: true, shrink: false, entering: true })
-    const t1 = setTimeout(
-      () => setIntro((p) => ({ ...p, entering: false })),
-      700,
-    )
-    const t2 = setTimeout(() => {
-      setIntro((p) => (p.show ? { ...p, shrink: true } : p))
-    }, 1700)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
+    // 仅切换用户 / 封面 URL 就绪时播放；封面开关走帷幕，不 replay 开屏
+    if (!pageCoverUrl || !coverBgEnabled) {
+      setIntroPhase('done')
+      return
     }
-  }, [profileIntroKey])
+    setIntroPhase('hold')
+    const revealTimer = window.setTimeout(() => {
+      setIntroPhase('reveal')
+    }, INTRO_HOLD_MS)
+    return () => window.clearTimeout(revealTimer)
+  }, [profileIntroKey, pageCoverUrl])
+
+  useEffect(() => {
+    if (!showCoverBackground) {
+      setIntroPhase('done')
+    }
+  }, [showCoverBackground])
+
+  function finishIntroReveal() {
+    setIntroPhase('done')
+  }
 
   function handleIntroClick() {
-    if (!intro.show) return
-    if (!intro.shrink) {
-      setIntro((p) => ({ ...p, shrink: true }))
-    } else {
-      hideIntro()
-    }
+    if (introPhase === 'hold') setIntroPhase('reveal')
+    else if (introPhase === 'reveal') finishIntroReveal()
   }
 
-  function hideIntro() {
-    setIntro({ show: false, shrink: false, entering: false })
-  }
-
-  // shrink 后 0.9s 自动隐藏
-  useEffect(() => {
-    if (!intro.shrink) return
-    const t = setTimeout(hideIntro, 900)
-    return () => clearTimeout(t)
-  }, [intro.shrink])
+  const introContentVisible = introPhase === 'reveal' || introPhase === 'done'
   const [followCounts, setFollowCounts] = useState({
     following: 0,
     followers: 0,
@@ -247,69 +271,70 @@ export default function Profile() {
 
   return (
     <>
-      {/* ===== 封面开场动画 Portal ===== */}
-      {createPortal(
-        <AnimatePresence>
-          {intro.show && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.22 } }}
-              onClick={handleIntroClick}
-              className="fixed inset-0 z-[var(--z-max)] cursor-pointer overflow-hidden bg-bg-primary"
-            >
-              {/* 封面大图 */}
+      {/* ===== 开屏原图层（无模糊；reveal 阶段渐隐，露出下方主页背景） ===== */}
+      {showCoverBackground &&
+        introPhase !== 'done' &&
+        createPortal(
+          <AnimatePresence>
+            {(introPhase === 'hold' || introPhase === 'reveal') && (
               <motion.div
-                initial={intro.entering ? { x: '8%', opacity: 0.7 } : false}
-                animate={
-                  intro.shrink
-                    ? {
-                        left: 0,
-                        width: '100vw',
-                        height: 'calc(100vw * 9 / 16)',
-                      }
-                    : { x: 0, opacity: 1 }
-                }
-                transition={
-                  intro.shrink
-                    ? { duration: 0.82, ease: [0.32, 0.72, 0, 1] }
-                    : { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }
-                }
-                className="absolute top-0 left-0 w-screen h-screen bg-cover bg-center shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
-                style={{
-                  backgroundImage: displayUser?.coverUrl
-                    ? `url(${displayUser.coverUrl})`
-                    : `linear-gradient(180deg, #3388FF44, #000000)`,
+                key="profile-intro-cover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: introPhase === 'hold' ? 1 : 0 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: introPhase === 'hold' ? 0.5 : INTRO_REVEAL_S,
+                  ease: INTRO_REVEAL_EASE,
                 }}
-              />
-
-              {/* 昵称 + 提示 */}
-              <motion.div
-                animate={
-                  intro.shrink ? { opacity: 0, y: 12 } : { opacity: 1, y: 0 }
-                }
-                transition={{ duration: 0.38 }}
-                className="absolute inset-x-4 z-10 text-center pointer-events-none bottom-[60%]"
+                onClick={introPhase === 'hold' ? handleIntroClick : undefined}
+                onAnimationComplete={() => {
+                  setIntroPhase((p) => (p === 'reveal' ? 'done' : p))
+                }}
+                className={cn(
+                  'fixed inset-0 z-[var(--z-max)] overflow-hidden bg-bg-primary',
+                  introPhase === 'hold'
+                    ? 'cursor-pointer'
+                    : 'pointer-events-none',
+                )}
               >
-                <p className="text-[26px] font-bold text-white/95 tracking-[4px] drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
-                  {displayUser?.nickname}
-                </p>
-                <p className="mt-3 text-[13px] font-medium tracking-[3px] text-white/55">
-                  轻触收起
-                </p>
+                <img
+                  src={pageCoverUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  aria-hidden
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{
+                    opacity: introPhase === 'hold' ? 1 : 0,
+                    y: introPhase === 'hold' ? 0 : 14,
+                  }}
+                  transition={{ duration: 0.55, ease: INTRO_REVEAL_EASE }}
+                  className="pointer-events-none absolute inset-x-4 bottom-[60%] z-10 text-center"
+                >
+                  <p className="text-[30px] font-bold tracking-[4px] text-white/95 drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
+                    {displayUser?.nickname}
+                  </p>
+                  <p className="mt-3 text-[15px] font-semibold tracking-[3px] text-white/55">
+                    轻触继续
+                  </p>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )}
-
-      <div
-        className={cn(
-          'flex min-h-0 flex-1 flex-col',
-          'transition-opacity duration-200',
-          intro.show && !intro.shrink ? 'opacity-0' : 'opacity-100',
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
+
+      <motion.div
+        className="flex min-h-0 flex-1 flex-col"
+        initial={false}
+        animate={{ opacity: showCoverBackground && introPhase === 'hold' ? 0 : 1 }}
+        transition={{
+          duration: INTRO_REVEAL_S,
+          ease: INTRO_REVEAL_EASE,
+          delay: introContentVisible ? 0.12 : 0,
+        }}
+        style={{ pointerEvents: introPhase === 'hold' ? 'none' : undefined }}
       >
         {isMe ? (
           <>
@@ -338,18 +363,69 @@ export default function Profile() {
           </>
         ) : null}
 
-        <InternalPageShell
-          width="profile"
-          className="min-h-0 flex-1"
-          contentClassName="min-h-0"
-        >
-          <PageHeader
-            title={displayUser?.nickname || '个人主页'}
-            onBack="back"
-            divider={false}
-          />
+        <div className="internal-shell relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
+              {pageCoverUrl ? (
+            <>
+              <img
+                src={pageCoverUrl}
+                alt=""
+                className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover transition-opacity"
+                style={{
+                  opacity: showCoverBackground ? 1 : 0,
+                  transitionDuration: `${COVER_BG_FADE_MS}ms`,
+                  transitionTimingFunction: COVER_BG_EASE_CSS,
+                }}
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-0 z-0 transition-opacity"
+                style={{
+                  opacity: showCoverBackground ? 0 : 1,
+                  background: 'var(--internal-bg)',
+                  transitionDuration: `${COVER_BG_FADE_MS}ms`,
+                  transitionTimingFunction: COVER_BG_EASE_CSS,
+                }}
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/15 via-background/50 to-background transition-opacity"
+                style={{
+                  opacity: showCoverBackground ? 1 : 0,
+                  transitionDuration: `${COVER_BG_FADE_MS}ms`,
+                  transitionTimingFunction: COVER_BG_EASE_CSS,
+                }}
+                aria-hidden
+              />
+              {coverCurtainPulse > 0 ? (
+                <motion.div
+                  key={coverCurtainPulse}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: [0, 1, 0] }}
+                  transition={{
+                    duration: COVER_CURTAIN_S,
+                    times: [0, 0.42, 1],
+                    ease: [COVER_BG_EASE, COVER_BG_EASE],
+                  }}
+                  className="pointer-events-none absolute inset-0 z-[2] origin-top"
+                  style={{ background: solidBg }}
+                  aria-hidden
+                />
+              ) : null}
+            </>
+          ) : (
+            <div
+              className="pointer-events-none absolute inset-0 z-0 bg-[var(--internal-bg)]"
+              aria-hidden
+            />
+          )}
+          <div className="internal-profile-shell relative z-10 box-border flex min-h-full w-full max-w-[1000px] shrink-0 flex-col self-center px-4 pb-16 pt-2 sm:px-6">
+            <PageHeader
+              title="主页"
+              onBack="back"
+              divider={false}
+            />
 
-          <div className="internal-profile-page">
+            <div className="internal-profile-page">
             <section className="internal-profile-hero">
               <div className="internal-profile-hero__head">
                 {isMe ? (
@@ -394,13 +470,13 @@ export default function Profile() {
               </p>
               {(displayUser?.ipRegion || displayUser?.cityCode) && (
                 <p className="internal-profile-hero__meta">
-                  <MsIcon name={STITCH_PROFILE_ICONS.location} size={14} className="shrink-0" />
+                  <MsIcon name={STITCH_PROFILE_ICONS.location} size={16} className="shrink-0" />
                   IP 属地：{displayUser.ipRegion || displayUser.cityCode}
                 </p>
               )}
               {displayUser?.birthday && (
                 <p className="internal-profile-hero__meta">
-                  <MsIcon name="cake" size={14} className="shrink-0" />
+                  <MsIcon name="cake" size={16} className="shrink-0" />
                   {new Date(displayUser.birthday).toLocaleDateString('zh-CN', {
                     year: 'numeric',
                     month: 'long',
@@ -413,15 +489,47 @@ export default function Profile() {
                 {isMe ? (
                   <>
                     <SettingsActionButton onClick={() => setEditDialogOpen(true)}>
-                      <MsIcon name={STITCH_PROFILE_ICONS.edit} size={14} className="mr-1.5 inline" />
+                      <MsIcon name={STITCH_PROFILE_ICONS.edit} size={16} className="mr-1.5 inline" />
                       编辑资料
                     </SettingsActionButton>
-                    <SettingsActionButton
-                      onClick={() => coverInputRef.current?.click()}
-                      disabled={uploadingKind !== null}
+                    <div
+                      className={
+                        pageCoverUrl
+                          ? 'internal-profile-hero__cover-action internal-profile-hero__cover-action--with-switch'
+                          : 'internal-profile-hero__cover-action'
+                      }
                     >
-                      {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
-                    </SettingsActionButton>
+                      <SettingsActionButton
+                        onClick={() => coverInputRef.current?.click()}
+                        disabled={uploadingKind !== null}
+                      >
+                        {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
+                      </SettingsActionButton>
+                      {pageCoverUrl ? (
+                        <div
+                          className={`internal-profile-hero__cover-switch transition-opacity${
+                            coverBgEnabled
+                              ? ' opacity-100'
+                              : ' opacity-40'
+                          }`}
+                          style={{
+                            transitionDuration: `${COVER_BG_FADE_MS}ms`,
+                            transitionTimingFunction: COVER_BG_EASE_CSS,
+                          }}
+                        >
+                          <MaterialSwitch
+                            checked={coverBgEnabled}
+                            onCheckedChange={handleCoverBgToggle}
+                            size="sm"
+                            showIcons
+                            checkedIcon={<SunIcon />}
+                            uncheckedIcon={<MoonIcon />}
+                            haptic="light"
+                            aria-label={coverBgEnabled ? '关闭封面背景' : '开启封面背景'}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -432,12 +540,12 @@ export default function Profile() {
                     >
                       {isFollowing ? (
                         <>
-                          <MsIcon name="how_to_reg" size={14} className="mr-1.5 inline" />
+                          <MsIcon name="how_to_reg" size={16} className="mr-1.5 inline" />
                           已关注
                         </>
                       ) : (
                         <>
-                          <MsIcon name="person_add" size={14} className="mr-1.5 inline" />
+                          <MsIcon name="person_add" size={16} className="mr-1.5 inline" />
                           关注
                         </>
                       )}
@@ -446,7 +554,7 @@ export default function Profile() {
                       onClick={() => navigate(`/messages/${displayUser?.id}`)}
                       aria-label="发消息"
                     >
-                      <MsIcon name={STITCH_PROFILE_ICONS.message} size={14} />
+                      <MsIcon name={STITCH_PROFILE_ICONS.message} size={16} />
                     </SettingsActionButton>
                   </>
                 )}
@@ -475,7 +583,7 @@ export default function Profile() {
                 <span className="internal-profile-metrics-row__label">粉丝</span>
               </button>
               <div className="internal-profile-metrics-row__cell">
-                <MsIcon name={STITCH_PROFILE_ICONS.verified} size={20} className="text-text-secondary" />
+                <MsIcon name={STITCH_PROFILE_ICONS.verified} size={22} className="text-text-primary" />
                 <span className="internal-profile-metrics-row__label">
                   {certLabel[level]}
                 </span>
@@ -519,7 +627,7 @@ export default function Profile() {
               ].map((item, i) => (
                 <div key={i} className="internal-profile-grid__cell">
                   <div className="internal-profile-grid__icon">
-                    <MsIcon name={item.icon} size={16} />
+                    <MsIcon name={item.icon} size={18} />
                   </div>
                   <div className="min-w-0">
                     <p className="internal-profile-grid__label">{item.label}</p>
@@ -547,7 +655,7 @@ export default function Profile() {
                     }
                     className="internal-profile-dock__btn"
                   >
-                    <MsIcon name={item.icon} size={20} aria-hidden />
+                    <MsIcon name={item.icon} size={22} aria-hidden />
                     <span>{item.label}</span>
                   </button>
                 ))}
@@ -560,7 +668,7 @@ export default function Profile() {
                   <SettingsActionButton onClick={() => setContentTab('profile')}>
                     ← 返回
                   </SettingsActionButton>
-                  <span className="text-sm font-medium text-text-primary">
+                  <span className="text-base font-bold text-text-primary">
                     我的收藏
                   </span>
                 </div>
@@ -569,7 +677,7 @@ export default function Profile() {
                     <span className="loader" />
                   </div>
                 ) : favoriteDemands.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-text-muted">
+                  <div className="py-8 text-center text-base font-semibold text-text-muted">
                     暂无收藏
                   </div>
                 ) : (
@@ -583,10 +691,10 @@ export default function Profile() {
                               onClick={() => navigate(`/demands/${demand.id}`)}
                               className="min-w-0 flex-1 text-left"
                             >
-                              <p className="truncate text-sm font-medium text-[#e2e2e2]">
+                              <p className="truncate text-base font-bold text-[#e2e2e2]">
                                 {demand.title}
                               </p>
-                              <p className="mt-0.5 font-mono text-xs text-text-muted">
+                              <p className="mt-0.5 font-mono text-sm font-semibold text-text-muted">
                                 ¥{demand.minPrice} · {demand.category}
                               </p>
                             </button>
@@ -618,7 +726,7 @@ export default function Profile() {
                             type="button"
                             onClick={() => loadFavPage(page)}
                             className={cn(
-                              'h-8 w-8 border font-mono text-xs',
+                              'h-9 w-9 border font-mono text-sm font-bold',
                               page === favPage
                                 ? 'border-[var(--internal-accent)] bg-[var(--internal-accent)]/10 text-text-primary'
                                 : 'border-[var(--internal-hairline)] text-text-muted hover:text-text-primary',
@@ -633,9 +741,10 @@ export default function Profile() {
                 )}
               </div>
             ) : null}
+            </div>
           </div>
-        </InternalPageShell>
-      </div>
+        </div>
+      </motion.div>
 
       <ProfileEditDialog
         open={editDialogOpen}

@@ -63,6 +63,35 @@ function metaFor(modelId: string, provider: LlmProviderId): Omit<ComposerModelOp
 }
 
 /** 从 /api/agent/provider 构建 Composer 模型列表（仅已配置 Key 的提供商） */
+export function inferProviderFromModelId(modelId: string): LlmProviderId {
+  const known = MODEL_META[modelId]
+  if (known) return known.provider
+  const m = modelId.toLowerCase()
+  if (m.startsWith('deepseek')) return 'deepseek'
+  if (m.startsWith('qwen')) return 'qwen'
+  return 'minimax'
+}
+
+/** 与 Composer 列表对齐的默认模型（避免 AI_PROVIDER 与 AI_MODEL 错配） */
+export function resolveDefaultComposerModelId(
+  info: AgentProvider,
+  models: ComposerModelOption[],
+): string {
+  if (!models.length) return info.model
+  const fromProvider = info.providers[info.provider]?.defaultModel
+  if (fromProvider && models.some((m) => m.id === fromProvider)) {
+    return fromProvider
+  }
+  if (models.some((m) => m.id === info.model)) {
+    return info.model
+  }
+  return models[0]!.id
+}
+
+export function formatComposerModelLabel(model: ComposerModelOption): string {
+  return `${LLM_PROVIDER_LABELS[model.provider]} · ${model.name}`
+}
+
 export function buildComposerModels(info: AgentProvider): ComposerModelOption[] {
   const providerOrder: LlmProviderId[] = [
     info.provider,
@@ -94,6 +123,18 @@ export function buildComposerModels(info: AgentProvider): ComposerModelOption[] 
   return result
 }
 
-export function formatActiveLlmLabel(info: AgentProvider): string {
-  return `${LLM_PROVIDER_LABELS[info.provider]} · ${info.model}`
+export function formatActiveLlmLabel(
+  info: AgentProvider,
+  modelId?: string,
+): string {
+  const models = buildComposerModels(info)
+  const id = modelId ?? resolveDefaultComposerModelId(info, models)
+  const fromList = models.find((m) => m.id === id)
+  if (fromList) return formatComposerModelLabel(fromList)
+  const meta = MODEL_META[id]
+  if (meta) {
+    return `${LLM_PROVIDER_LABELS[meta.provider]} · ${meta.name}`
+  }
+  const provider = inferProviderFromModelId(id)
+  return `${LLM_PROVIDER_LABELS[provider]} · ${id}`
 }

@@ -9,7 +9,8 @@
   --codex-workspace: #1a1a1a;
   --codex-workspace-border: rgba(255, 255, 255, 0.06);
   --codex-text: #ececec;
-  --codex-text-muted: #8a8a8a;
+  --codex-text-secondary: #d0d0d0;
+  --codex-text-muted: #a8a8a8;
   --codex-hairline: rgba(255, 255, 255, 0.06);
   --codex-user-bubble: #3a3a3a;
   --codex-composer-bg: #2b2b2b;
@@ -303,16 +304,19 @@
 .agent-codex-main__provider {
   margin-left: 12px;
   font-family: var(--font-mono);
-  font-size: 15px;
-  color: var(--codex-text-muted);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--codex-text-secondary);
   white-space: nowrap;
 }
 
 .agent-codex-start__provider {
   margin: -8px 0 20px;
   font-family: var(--font-mono);
-  font-size: 16px;
-  color: var(--codex-text-muted);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 26px;
+  color: var(--codex-text-secondary);
   text-align: center;
 }
 
@@ -510,7 +514,8 @@
 /* ── Codex Composer（自带主题令牌，下拉不依赖 Portal） ── */
 .codex-composer--dark {
   --codex-text: #ececec;
-  --codex-text-muted: #8a8a8a;
+  --codex-text-secondary: #d0d0d0;
+  --codex-text-muted: #a8a8a8;
   --codex-hairline: rgba(255, 255, 255, 0.06);
   --codex-composer-border: rgba(255, 255, 255, 0.06);
   --codex-composer-bg: #2b2b2b;
@@ -524,6 +529,7 @@
 
 .codex-composer--light {
   --codex-text: #111111;
+  --codex-text-secondary: #444444;
   --codex-text-muted: #6b6b6b;
   --codex-hairline: rgba(0, 0, 0, 0.08);
   --codex-composer-border: rgba(0, 0, 0, 0.08);
@@ -699,12 +705,24 @@
   transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
+.codex-composer__pill-btn.codex-composer__tier-btn {
+  max-width: min(240px, 100%);
+  padding: 6px 12px;
+  color: var(--codex-text);
+}
+
 .codex-composer__pill-text {
   overflow: hidden;
   min-width: 0;
   white-space: nowrap;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 10px);
-  mask-image: linear-gradient(to right, transparent, #000 10px);
+  text-overflow: ellipsis;
+}
+
+.codex-composer__tier-btn .codex-composer__pill-text {
+  overflow: visible;
+  text-overflow: clip;
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .codex-composer__pill-btn:hover {
@@ -771,13 +789,28 @@
   gap: 16px;
 }
 
+.codex-composer__tier-section .codex-composer__menu-item {
+  align-items: flex-start;
+  white-space: normal;
+}
+
+.codex-composer__tier-section .codex-composer__menu-item span {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 22px;
+}
+
 /* 推理 + 模型双列面板 */
 .codex-composer__tier-panel {
   display: flex;
   flex-direction: row;
   align-items: stretch;
   width: max-content;
-  min-width: 280px;
+  min-width: 320px;
+  max-height: min(480px, calc(100dvh - 24px));
   overflow: hidden;
   border: 1px solid var(--codex-menu-border);
   border-radius: 12px;
@@ -794,24 +827,30 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
-  min-width: 132px;
+  min-width: 152px;
+  max-height: min(480px, calc(100dvh - 24px));
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 4px;
+  scrollbar-width: thin;
 }
 
 .codex-composer__tier-divider {
   width: 1px;
   flex-shrink: 0;
+  align-self: stretch;
   background: var(--codex-hairline);
 }
 
 .codex-composer__tier-label {
   margin: 0;
-  padding: 6px 10px 4px;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.2;
+  padding: 8px 10px 6px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--codex-text-muted);
+  color: var(--codex-text-secondary);
   white-space: nowrap;
+  flex-shrink: 0;
 }

@@ -15,7 +15,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { InteractiveProductCard } from '@/components/ui/interactive-product-card'
 import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import {
+  resolveDemandCardCoverDetailUrl,
+  resolveDemandCardCoverThumbUrl,
+} from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { useUserStore } from '@/stores/user'
 import { MsIcon } from '@/components/ui/ms-icon'
@@ -57,9 +60,9 @@ function collectDemandImageUrls(d: {
   mediaUrls?: string[]
 }) {
   const urls: string[] = []
-  urls.push(publisherUserCoverPreset(d.userId))
+  urls.push(resolveDemandCardCoverDetailUrl({ userId: d.userId, demandCardCoverUrl: d.user?.demandCardCoverUrl, mediaUrls: d.mediaUrls }))
   const demandCover = d.user?.demandCardCoverUrl
-  if (demandCover?.trim()) urls.push(demandCover.trim())
+  if (demandCover?.trim()) urls.push(resolveDemandCardCoverDetailUrl({ demandCardCoverUrl: demandCover, userId: d.userId }))
   const cv = d.user?.coverUrl
   if (cv?.trim()) urls.push(cv.trim())
   const av = d.user?.avatarUrl
@@ -151,10 +154,23 @@ export default function DemandDetail() {
   const demand = allDemands[currentIdx] || null
 
   const publisherCoverUrl = useMemo(() => {
-    if (!demand) return publisherUserCoverPreset(undefined)
-    return (
-      demand.user?.demandCardCoverUrl || publisherUserCoverPreset(demand.userId)
-    )
+    if (!demand) return resolveDemandCardCoverDetailUrl({})
+    return resolveDemandCardCoverDetailUrl({
+      coverImage: demand.coverImage,
+      demandCardCoverUrl: demand.user?.demandCardCoverUrl,
+      mediaUrls: demand.mediaUrls,
+      userId: demand.userId,
+    })
+  }, [demand])
+
+  const publisherAmbientCoverUrl = useMemo(() => {
+    if (!demand) return resolveDemandCardCoverThumbUrl({})
+    return resolveDemandCardCoverThumbUrl({
+      coverImage: demand.coverImage,
+      demandCardCoverUrl: demand.user?.demandCardCoverUrl,
+      mediaUrls: demand.mediaUrls,
+      userId: demand.userId,
+    })
   }, [demand])
 
   const imageAttachmentCount = useMemo(
@@ -391,7 +407,7 @@ export default function DemandDetail() {
           className="mb-0"
         />
       </div>
-      <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherCoverUrl} />
+      <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherAmbientCoverUrl} />
 
       {/* 不用 overflow-y-auto 包住卡片：会与 x 轴合成 auto，横向裁掉 3D 翻面/倾斜溢出；整页滚动交给外层 layout */}
       <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col items-stretch justify-center overflow-visible py-6">

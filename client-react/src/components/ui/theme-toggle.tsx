@@ -3,10 +3,12 @@ import { useThemeStore } from '@/stores/theme'
 import { MaterialSwitch } from '@/components/ui/material-switch'
 
 type CurtainPhase = 'idle' | 'falling' | 'rising'
+type CurtainScope = 'viewport' | 'background'
 
 const CURTAIN_DURATION = 400
 
-export function useThemeCurtain() {
+/** @param scope viewport=全屏（主题切换）；background=仅铺满父级背景层，不遮内容 */
+export function useThemeCurtain(scope: CurtainScope = 'viewport') {
   const [phase, setPhase] = useState<CurtainPhase>('idle')
   const curtainColorRef = useRef('')
   const callbackRef = useRef<(() => void) | null>(null)
@@ -49,7 +51,7 @@ export function useThemeCurtain() {
       data-curtain
       onTransitionEnd={handleTransitionEnd}
       style={{
-        position: 'fixed',
+        position: scope === 'viewport' ? 'fixed' : 'absolute',
         inset: 0,
         background: curtainColorRef.current,
         transformOrigin: 'top',
@@ -58,7 +60,7 @@ export function useThemeCurtain() {
           phase !== 'idle'
             ? `transform ${CURTAIN_DURATION}ms cubic-bezier(0.76,0,0.24,1)`
             : 'none',
-        zIndex: 'var(--z-max)',
+        zIndex: scope === 'viewport' ? 'var(--z-max)' : 2,
         pointerEvents: 'none',
         willChange: 'transform',
       }}
@@ -68,7 +70,7 @@ export function useThemeCurtain() {
   return { triggerCurtain, curtainElement }
 }
 
-function MoonIcon() {
+export function MoonIcon() {
   return (
     <svg
       width="15"
@@ -85,7 +87,7 @@ function MoonIcon() {
   )
 }
 
-function SunIcon() {
+export function SunIcon() {
   return (
     <svg
       width="15"

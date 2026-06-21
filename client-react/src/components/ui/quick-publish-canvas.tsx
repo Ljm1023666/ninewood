@@ -5,7 +5,10 @@ import { toast } from './confirm-dialog'
 import { useThemeStore } from '@/stores/theme'
 import { cn } from '@/lib/utils'
 import { InfoCard } from '@/components/ui/info-card'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import {
+  publisherUserCoverPreset,
+  resolveProfileBackCoverUrl,
+} from '@/utils/user-cover-presets'
 
 interface ParsedFields {
   title: string
@@ -409,7 +412,7 @@ function DemandCardBack({ data }: { data: ParsedFields; isDark: boolean }) {
         fillContainer
         descriptionMode="scroll"
         shellBorderRadius="1.5rem"
-        image={publisherUserCoverPreset(undefined)}
+        image={resolveProfileBackCoverUrl(publisherUserCoverPreset(undefined))}
         imageAlt={displayTitle}
         title={displayTitle}
         description={displayDesc}

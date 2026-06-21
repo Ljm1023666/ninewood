@@ -62,9 +62,11 @@ agentRouter.get('/skills', (_req: Request, res: Response) => {
 /** 获取 AI 供应商信息 */
 agentRouter.get('/provider', (_req: Request, res: Response) => {
   const { minimax, deepseek, qwen } = config.providers;
+  const primary = config.providers[config.aiProvider];
+  const resolvedModel = primary?.defaultModel || config.aiModel;
   res.json({
     provider: config.aiProvider,
-    model: config.aiModel,
+    model: resolvedModel,
     thinkModel: config.aiThinkModel || config.aiModel,
     fastModel: config.aiFastModel || config.aiModel,
     platformConfigured: listConfiguredLlmProviders(),

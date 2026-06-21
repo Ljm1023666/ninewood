@@ -1,6 +1,7 @@
 import { type ReactNode, type KeyboardEvent, type RefObject } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { BackButton } from '@/components/ui/back-button'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { ListItemCard } from '@/components/ui/list-item-card'
@@ -88,7 +89,7 @@ export function SectionLabel({
   return (
     <p
       className={cn(
-        'mb-2 font-mono text-xs font-medium uppercase tracking-[0.12em] text-text-muted',
+        'mb-2 font-mono text-sm font-semibold uppercase tracking-[0.1em] text-text-secondary',
         className,
       )}
     >
@@ -172,33 +173,62 @@ export function SegmentedFilter<T extends string>({
   value,
   onChange,
   className,
+  variant = 'liquid-metal',
 }: {
   options: SegmentedOption<T>[]
   value: T
   onChange: (v: T) => void
   className?: string
+  variant?: 'liquid-metal' | 'classic'
 }) {
+  if (variant === 'classic') {
+    return (
+      <div
+        className={cn('internal-segmented', className)}
+        role="tablist"
+      >
+        {options.map((opt) => {
+          const active = value === opt.value
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => onChange(opt.value)}
+              className={cn(
+                'internal-segmented__tab',
+                active && 'internal-segmented__tab--active',
+              )}
+            >
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div
-      className={cn('internal-segmented', className)}
+      className={cn('internal-segmented internal-segmented--liquid-metal', className)}
       role="tablist"
     >
       {options.map((opt) => {
         const active = value === opt.value
         return (
-          <button
+          <LiquidMetalButton
             key={opt.value}
-            type="button"
+            label={opt.label}
+            height={36}
+            fullWidth
+            active={active}
+            metalGlow={active}
+            className="flex-1"
             role="tab"
             aria-selected={active}
             onClick={() => onChange(opt.value)}
-            className={cn(
-              'internal-segmented__tab',
-              active && 'internal-segmented__tab--active',
-            )}
-          >
-            {opt.label}
-          </button>
+          />
         )
       })}
     </div>
@@ -261,7 +291,7 @@ export function StatusChip({
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center rounded-[6px] border px-2 py-1 font-mono text-xs font-medium',
+        'internal-status-chip inline-flex shrink-0 items-center rounded-[6px] border font-mono font-semibold',
         theme,
         className,
       )}
@@ -428,7 +458,7 @@ export function SettingsLinkRow({
           <p className="settings-row__desc">{description}</p>
         ) : null}
       </div>
-      <MsIcon name="chevron_right" size={16} className="shrink-0 text-[#5A5A5A]" />
+      <MsIcon name="chevron_right" size={16} className="shrink-0 text-text-secondary" />
     </button>
   )
 }

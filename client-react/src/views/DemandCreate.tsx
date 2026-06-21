@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
@@ -11,7 +11,12 @@ import { WorkspaceTools } from '@/components/demand/WorkspaceTools'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { useUserStore } from '@/stores/user'
 import { InfoCard } from '@/components/ui/info-card'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
+import {
+  publisherUserCoverPreset,
+  resolveDemandCardCoverDetailUrl,
+  resolveProfileBackCoverUrl,
+} from '@/utils/user-cover-presets'
 import { BackButton } from '@/components/ui/back-button'
 import {
   Sparkles,
@@ -1283,6 +1288,12 @@ function CanvasCardBack({
   const currentUser = useUserStore((s) => s.user)
   const coverUrl =
     currentUser?.coverUrl || publisherUserCoverPreset(currentUser?.id)
+  const frontCoverSrc = resolveDemandCardCoverDetailUrl({
+    userId: currentUser?.id,
+  })
+  const backCoverSrc = coverUrl.startsWith('/uploads/covers/')
+    ? resolveProfileBackCoverUrl(coverUrl)
+    : resolveDemandCardCoverDetailUrl({ userId: currentUser?.id })
   const title = fields.title || '标题待写入…'
   const description = fields.description || '描述内容将随输入同步写入卡牌背面…'
   const budgetNum = parseBudgetStr(fields.budget)
@@ -1317,10 +1328,11 @@ function CanvasCardBack({
             transform: 'rotateY(0deg) translateZ(0)',
           }}
         >
-          <img
-            src={publisherUserCoverPreset(undefined)}
+          <DisplayCoverPicture
+            sources={frontCoverSrc}
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
+            pictureClassName="absolute inset-0 block h-full w-full"
           />
           <div className="absolute inset-0 z-10 flex min-h-0 flex-col pt-16">
             <div
@@ -1363,7 +1375,7 @@ function CanvasCardBack({
             fillContainer
             descriptionMode="scroll"
             shellBorderRadius="1.5rem"
-            image={coverUrl || publisherUserCoverPreset(undefined)}
+            image={backCoverSrc}
             imageAlt={title}
             title={title}
             description={description}

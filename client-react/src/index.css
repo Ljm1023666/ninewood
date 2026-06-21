@@ -44,8 +44,8 @@
 
   /* ── 文字层级 ── */
   --text-primary: #FFFFFF;
-  --text-secondary: #9A9A9A;
-  --text-muted: #5A5A5A;
+  --text-secondary: #C8C8C8;
+  --text-muted: #ADADAD;
 
   /* ── 边框 ── */
   --border-color: #2A2A2A;
@@ -841,9 +841,9 @@ html[data-appearance="dark"] {
 .internal-shell {
   --internal-accent: #3388FF;
   --internal-bg: #000000;
-  --internal-text: #e2e2e2;
-  --internal-text-secondary: #c1c6d6;
-  --internal-text-muted: #5a5a5a;
+  --internal-text: #f0f0f0;
+  --internal-text-secondary: #d8dce6;
+  --internal-text-muted: #b8b8b8;
   --internal-hairline: rgba(255, 255, 255, 0.06);
   --internal-card: #0F0F0F;
   --internal-card-hover: #151515;
@@ -871,15 +871,15 @@ html[data-appearance="dark"] {
 
   background-color: var(--internal-bg);
   color: var(--internal-text);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   min-height: 100%;
 }
 
 html[data-appearance="light"] .internal-shell {
   --internal-bg: #f5f5f5;
   --internal-text: #111111;
-  --internal-text-secondary: #555555;
-  --internal-text-muted: #888888;
+  --internal-text-secondary: #2a2a2a;
+  --internal-text-muted: #333333;
   --internal-hairline: rgba(0, 0, 0, 0.08);
   --internal-card: #ffffff;
   --internal-card-hover: #fafafa;
@@ -897,8 +897,9 @@ html[data-appearance="light"] .internal-shell {
 /* Portal 弹窗：始终深色 OLED，与 Stitch 稿一致（不随全局浅色切换） */
 .profile-edit-dialog {
   --internal-accent: #3388ff;
-  --internal-text: #e2e2e2;
-  --internal-text-muted: #5a5a5a;
+  --internal-text: #f0f0f0;
+  --internal-text-secondary: #d8dce6;
+  --internal-text-muted: #b8b8b8;
   --internal-hairline: rgba(255, 255, 255, 0.06);
   --internal-card: #0f0f0f;
   --internal-surface-hover: #282a2b;
@@ -943,8 +944,9 @@ html[data-appearance="light"] .internal-shell {
   margin: 4px 0 0;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 16px;
-  line-height: 18px;
-  color: var(--internal-text-muted);
+  font-weight: 500;
+  line-height: 22px;
+  color: var(--internal-text-secondary);
 }
 
 .profile-edit-dialog__body {
@@ -977,8 +979,9 @@ html[data-appearance="light"] .internal-shell {
   margin: 0;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 16px;
-  line-height: 18px;
-  color: var(--internal-text-muted);
+  font-weight: 500;
+  line-height: 22px;
+  color: var(--internal-text-secondary);
 }
 
 .profile-edit-dialog__form {
@@ -996,10 +999,10 @@ html[data-appearance="light"] .internal-shell {
   margin: 0 0 8px;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 18px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--internal-text-muted);
+  color: var(--internal-text-secondary);
 }
 
 .profile-edit-dialog__label-row {
@@ -1024,8 +1027,9 @@ html[data-appearance="light"] .internal-shell {
   flex-shrink: 0;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 16px;
-  line-height: 18px;
-  color: var(--internal-text-muted);
+  font-weight: 500;
+  line-height: 22px;
+  color: var(--internal-text-secondary);
 }
 
 .profile-edit-dialog__input,
@@ -1256,6 +1260,38 @@ html[data-appearance="light"] .internal-shell {
   background: var(--internal-accent);
 }
 
+.internal-segmented--liquid-metal {
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--internal-hairline);
+  background: var(--internal-surface);
+}
+
+/* 液态金属按钮：深/浅色内填 token（光效由 shader 负责） */
+.liquid-metal-button {
+  --lm-inner-top: #202020;
+  --lm-inner-bottom: #000000;
+  --lm-inner-top-active: #2a2a2a;
+  --lm-inner-bottom-active: #101010;
+  --lm-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --lm-icon-drop: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  --lm-ripple: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+html[data-appearance='light'] .liquid-metal-button {
+  --lm-inner-top: #ffffff;
+  --lm-inner-bottom: #ececec;
+  --lm-inner-top-active: #ffffff;
+  --lm-inner-bottom-active: #f5f5f5;
+  --lm-text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+  --lm-icon-drop: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
+  --lm-ripple: radial-gradient(circle, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.liquid-metal-button--flat {
+  opacity: 1;
+}
+
 /* ── A 类设置页 Stitch PRO Settings ── */
 .internal-settings-section {
   margin-bottom: 48px;
@@ -1270,12 +1306,30 @@ html[data-appearance="light"] .internal-shell {
   padding-bottom: 8px;
   border-bottom: 1px solid var(--internal-hairline);
   font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
-  letter-spacing: 0.12em;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--internal-text-muted);
+  color: var(--internal-text);
+}
+
+.internal-eyebrow-label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--internal-text-secondary);
+}
+
+.internal-status-chip {
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .settings-panel {
@@ -1324,17 +1378,19 @@ html[data-appearance="light"] .internal-shell {
 
 .settings-row__label {
   margin: 0;
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
   color: var(--internal-text);
 }
 
 .settings-row__desc {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--internal-text-muted);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 26px;
+  color: var(--internal-text-secondary);
 }
 
 .settings-row__control {
@@ -1382,14 +1438,14 @@ html[data-appearance="light"] .internal-shell {
 
 .settings-appearance-segment__btn {
   border: none;
-  padding: 8px 24px;
+  padding: 10px 28px;
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 400;
-  letter-spacing: 0.06em;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  color: var(--internal-text-muted);
+  color: var(--internal-text-secondary);
   background: transparent;
   cursor: pointer;
   transition: color 0.15s ease, background-color 0.15s ease;
@@ -1409,16 +1465,18 @@ html[data-appearance="light"] .internal-shell {
   min-width: 0;
   border: 1px solid var(--internal-hairline);
   background: transparent;
-  padding: 8px 12px;
-  font-size: 15px;
-  line-height: 22px;
+  padding: 10px 14px;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 26px;
   color: var(--internal-text);
   outline: none;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .settings-input::placeholder {
-  color: var(--internal-text-muted);
+  color: var(--internal-text-secondary);
+  font-weight: 500;
 }
 
 .settings-input:focus {
@@ -1429,11 +1487,12 @@ html[data-appearance="light"] .internal-shell {
 .settings-action-btn {
   border: 1px solid var(--internal-hairline);
   background: transparent;
-  padding: 8px 16px;
+  padding: 10px 18px;
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.04em;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: 0.01em;
   text-transform: none;
   white-space: nowrap;
   color: var(--internal-text);
@@ -1494,12 +1553,14 @@ html[data-appearance="light"] .internal-shell {
 .settings-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: 1px solid var(--internal-hairline);
   border-radius: 0;
-  padding: 4px 8px;
+  padding: 8px 12px;
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
   color: var(--internal-text-secondary);
 }
 
@@ -1557,12 +1618,12 @@ html[data-appearance="light"] .internal-shell {
 .settings-pro-sidebar__subtitle {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 18px;
-  letter-spacing: 0.12em;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--internal-text-muted);
+  color: var(--internal-text-secondary);
 }
 
 .settings-pro-sidebar__nav {
@@ -1584,16 +1645,16 @@ html[data-appearance="light"] .internal-shell {
   border: none;
   border-radius: 2px;
   background: transparent;
-  padding: 10px 12px;
+  padding: 12px 12px;
   font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  letter-spacing: 0.04em;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: 0.01em;
   text-transform: none;
-  color: var(--internal-text-muted);
+  color: var(--internal-text-secondary);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .settings-pro-sidebar__link:hover {
@@ -1603,11 +1664,7 @@ html[data-appearance="light"] .internal-shell {
 
 .settings-pro-sidebar__link--active {
   color: var(--internal-accent);
-  opacity: 1;
-}
-
-.settings-pro-sidebar__link:not(.settings-pro-sidebar__link--active) {
-  opacity: 0.6;
+  font-weight: 700;
 }
 
 .settings-pro-sidebar__profile {
@@ -1657,17 +1714,19 @@ html[data-appearance="light"] .internal-shell {
 
 .settings-section-intro__title {
   margin: 0;
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
   color: var(--internal-text);
 }
 
 .settings-section-intro__desc {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--internal-text-muted);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 26px;
+  color: var(--internal-text-secondary);
 }
 
 .settings-account-grid {
@@ -1734,17 +1793,19 @@ html[data-appearance="light"] .internal-shell {
 .settings-account-card__email {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 26px;
   color: var(--internal-text);
   word-break: break-all;
 }
 
 .settings-account-card__role {
-  margin: 4px 0 0;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--internal-text-muted);
+  margin: 8px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 26px;
+  color: var(--internal-text-secondary);
 }
 
 .settings-account-card__actions {
@@ -1759,6 +1820,110 @@ html[data-appearance="light"] .internal-shell {
   width: 100%;
   flex-direction: column;
   gap: 48px;
+}
+
+/* 个人主页：整体放大加粗（仅 /profile） */
+.internal-profile-shell .internal-display-title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .internal-profile-shell .internal-display-title {
+    font-size: 48px;
+  }
+}
+
+.internal-profile-shell .internal-profile-hero__avatar {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.internal-profile-shell .internal-profile-hero__name {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.internal-profile-shell .internal-profile-hero__badge {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.internal-profile-shell .internal-profile-hero__bio {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.internal-profile-shell .internal-profile-hero__meta {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.internal-profile-shell .settings-action-btn {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 8px 14px;
+}
+
+.internal-profile-shell .internal-profile-hero__actions {
+  gap: 6px;
+}
+
+.internal-profile-shell .internal-profile-metrics-row__value {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.internal-profile-shell .internal-profile-metrics-row__label {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.internal-profile-shell .internal-profile-grid__label {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.internal-profile-shell .internal-profile-grid__value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.internal-profile-shell .internal-profile-dock__btn {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.internal-profile-shell .internal-profile-dock__btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* 浅色个人主页：禁用灰字 */
+html[data-appearance='light'] .internal-profile-shell {
+  --internal-text-secondary: #141414;
+  --internal-text-muted: #1a1a1a;
+  --text-secondary: var(--internal-text);
+  --text-muted: var(--internal-text);
+}
+
+html[data-appearance='light'] .internal-profile-shell .internal-profile-hero__badge,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-hero__bio,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-hero__meta,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-metrics-row__label,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-grid__label,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-grid__icon,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-dock__btn,
+html[data-appearance='light'] .internal-profile-shell .internal-profile-dock__btn svg {
+  color: var(--internal-text);
 }
 
 .internal-profile-hero {
@@ -1831,10 +1996,32 @@ html[data-appearance="light"] .internal-shell {
 }
 
 .internal-profile-hero__actions {
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.internal-profile-hero__cover-action {
+  position: relative;
+  display: inline-flex;
+}
+
+.internal-profile-hero__cover-action--with-switch {
+  padding-bottom: 26px;
+}
+
+.internal-profile-hero__cover-switch {
+  position: absolute;
+  top: calc(100% - 10px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.internal-profile-hero__cover-action label.group {
+  min-width: 0;
+  min-height: 0;
 }
 
 /* 关注 / 粉丝 / 认证：单面板三列 */
@@ -1915,7 +2102,7 @@ button.internal-profile-metrics-row__cell:hover {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--internal-hairline);
-  color: #c1c6d6;
+  color: var(--internal-text-secondary);
 }
 
 .internal-profile-grid__label {
@@ -1935,9 +2122,12 @@ button.internal-profile-metrics-row__cell:hover {
   color: var(--internal-text);
 }
 
-/* 底部导航：横向可滑动（窄宽时） */
+/* 底部导航：内容宽度内居中，避免宽屏把按钮拉散 */
 .internal-profile-dock {
   display: flex;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
   overflow-x: auto;
   border: 1px solid var(--internal-hairline);
   background: rgba(255, 255, 255, 0.01);
@@ -1946,14 +2136,14 @@ button.internal-profile-metrics-row__cell:hover {
 
 .internal-profile-dock__btn {
   display: flex;
-  flex: 1 0 108px;
-  min-width: 108px;
+  flex: 0 0 auto;
+  min-width: 88px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 80px;
-  padding: 16px 8px;
+  gap: 6px;
+  min-height: 68px;
+  padding: 12px 10px;
   border: none;
   border-right: 1px solid var(--internal-hairline);
   background: transparent;
@@ -1998,7 +2188,7 @@ button.internal-profile-metrics-row__cell:hover {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--internal-hairline);
-  color: #c1c6d6;
+  color: var(--internal-text-secondary);
 }
 
 .internal-profile-nav-btn {

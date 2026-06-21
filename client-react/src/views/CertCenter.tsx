@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import {
   InternalPageShell,
   InternalContentBlock,
+  InternalSection,
   SettingsPanel,
   SettingsRow,
   SettingsActionButton,
@@ -67,14 +68,12 @@ export default function CertCenter() {
               <MsIcon name="verified_user" size={40} className="text-[var(--internal-accent)]" />
             </div>
             <div>
-              <p className="font-mono text-xs uppercase tracking-wider text-text-muted">
-                当前等级
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold text-text-primary">
+              <p className="internal-eyebrow-label">当前等级</p>
+              <h2 className="mt-2 text-2xl font-semibold text-text-primary">
                 {certLabel[certStatus.certificationLevel] ||
                   certStatus.certificationLevel}
               </h2>
-              <p className="mt-2 text-sm text-text-secondary">
+              <p className="settings-section-intro__desc mt-2">
                 信誉积分 {certStatus.creditScore} · 完成订单{' '}
                 {certStatus.completedOrders}
               </p>
@@ -131,10 +130,7 @@ export default function CertCenter() {
             </SettingsActionButton>
           )}
 
-          <section>
-            <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.12em] text-text-muted">
-              认证路径
-            </h2>
+          <InternalSection label="认证路径">
             <SettingsPanel>
               {steps.map((step, idx) => {
                 const done = idx <= currentIdx
@@ -158,7 +154,7 @@ export default function CertCenter() {
                 )
               })}
             </SettingsPanel>
-          </section>
+          </InternalSection>
         </InternalContentBlock>
       )}
     </InternalPageShell>

@@ -17,7 +17,11 @@ import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
 import { InfoCard } from '@/components/ui/info-card'
-import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
+import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
+import {
+  publisherUserCoverPreset,
+  resolveProfileBackCoverUrl,
+} from '@/utils/user-cover-presets'
 import {
   getImageAvgLuminance,
   LIGHT_IMAGE_LUMINANCE_THRESHOLD,
@@ -252,9 +256,10 @@ export function InteractiveProductCard({
   const safeActive = Math.min(Math.max(activeDotIndex, 0), safeDots - 1)
 
   const isFlipLayout = flipDescription && description.trim().length > 0
-  const profileBackImageUrl =
+  const profileBackImageUrl = resolveProfileBackCoverUrl(
     profileCoverUrl?.trim() ||
-    publisherUserCoverPreset(publisherUserId ?? undefined)
+      publisherUserCoverPreset(publisherUserId ?? undefined),
+  )
   const numericPrice = parsePriceNumber(price)
   /** 翻面标题色条：按价格档次选用 CSS shimmer 类（绿/蓝/紫/橙/红/金/虹彩） */
   const titleBarShimmerVariant = cn(
@@ -337,13 +342,14 @@ export function InteractiveProductCard({
               className="absolute inset-0 z-[1] overflow-hidden rounded-3xl [backface-visibility:hidden] [transform-style:preserve-3d]"
               style={{ transform: 'rotateY(0deg) translateZ(0)' }}
             >
-              <img
-                src={imageSrc}
+              <DisplayCoverPicture
+                sources={imageSrc}
                 alt={title}
                 decoding="async"
                 fetchPriority="high"
                 onError={() => setImageSrc(fallbackCover)}
                 className="absolute inset-0 h-full w-full rounded-3xl object-cover [backface-visibility:hidden]"
+                pictureClassName="absolute inset-0 block h-full w-full rounded-3xl [backface-visibility:hidden]"
                 style={{ transform: 'translateZ(0) scale(1)' }}
               />
 
@@ -505,13 +511,14 @@ export function InteractiveProductCard({
         </div>
       ) : (
         <>
-          <img
-            src={imageSrc}
+          <DisplayCoverPicture
+            sources={imageSrc}
             alt={title}
             decoding="async"
             fetchPriority="high"
             onError={() => setImageSrc(fallbackCover)}
             className="absolute inset-0 h-full w-full object-cover [backface-visibility:hidden]"
+            pictureClassName="absolute inset-0 block h-full w-full [backface-visibility:hidden]"
             style={{ transform: 'translateZ(0) scale(1)' }}
           />
 
