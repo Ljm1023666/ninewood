@@ -5,14 +5,15 @@
 
 ---
 
-## 当前基线（2026-06-19 · Task 1–5 已全部落地）
+## 当前基线（2026-06-21 · Task 6 启动）
 
 | 项 | 状态 |
 |---|---|
-| Git（本地） | Task 4 `7c5f3ee` · Task 5 doc（见最新 commit） |
-| Server 测试 | `pnpm --filter server test` → **67/67**（10 文件） |
-| Typecheck | `pnpm typecheck` → clean |
+| Git（本地） | 含 card-pool 3D 画廊等 feat（见 `git log -5`） |
+| Server 测试 | 执行前自测 `pnpm --filter server test` |
+| Typecheck | 执行前自测 `pnpm typecheck` |
 | 开发指导 | `DEVELOPMENT-GUIDE.md` **v2.3** |
+| **活跃 Task** | **Task 6 — 虚假功能完整修复** |
 
 ### 已合入里程碑
 
@@ -52,30 +53,64 @@ welfare 9 · **welfare-claim-comm 7** · comm-close 7 · auto-receive 12 · depo
 
 ---
 
-## 🟡 当前状态：待机
+## 🟢 当前状态：Task 6 执行中
 
-**无活跃 Codex 任务。** 下一项需 Brain 批准新 spec。
+**唯一任务来源**：`docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md`（v1.0）
 
-### 候选 backlog
+按 Wave **P0 → P1 → P2 → P3 → P4** 顺序执行；每项勾选清单并 read-back commit。
+
+### 批量执行模式（用户已授权 · 一次性跑完）
+
+**不要**每 Wave 停下来等 Brain 确认。在**同一会话内**连续完成清单 **FIX-P0-01 → FIX-P4-05 全部 27 项**，最后只交 **一次 read-back**。
+
+执行纪律：
+
+1. 顺序仍遵守 P0→P4；P0-01~04 必须连续（订单主链）。
+2. 中间可多次 commit（建议按 backlog §7 切分），**不要**等用户回复。
+3. 遇 spec 未覆盖的分歧：按 backlog §9「不在清单内」排除；**禁止**扩 Stage 2 / mobile / 删表。
+4. 全部完成后：
+   - 在 `FAKE-FEATURES-REPAIR-BACKLOG.md` 勾选所有 `[x]`
+   - 更新 `DEVELOPMENT-GUIDE.md` §3 差距（doc commit）
+   - 运行 `pnpm --filter server test` + `pnpm typecheck` + `pnpm --filter client-react run lint`（若有前端改动）
+5. **最终 read-back 模板**（一次性粘贴给用户/Cursor）：
+
+```markdown
+## Task 6 Read-back
+
+- Commits: <hash 列表>
+- Server test: <N/N>
+- Typecheck: pass/fail
+- 清单 §8 DoD: <逐项 ✅/❌>
+- 未做项及原因: <若有>
+- 手动验证备注: <申请→接受→支付→完成→确认 等>
+```
+
+**Brain（Cursor）** 在用户贴 read-back 后做终审核：对照清单逐项、跑测试、查 diff，不通过则列修复项交回 Codex。
+
+### 候选 backlog（Task 6 之后）
 
 | 项 | 说明 |
 |---|---|
 | **Stage 2 公开圈** | D4 后置；需 `STAGE-2-*.md` |
 | **#3 认证撤销防漏推** | §3 #3 未来项 |
-| **#2c socket 广播切断** | 非初期 |
-| **#12 活跃度 cron smoke** | Stage 1.5 可选项 |
+| **Google OAuth** | 若 Task 6 P3-01 仅隐藏按钮，可单独立项 |
 | **`Deposit/DepositDemand` 表清理** | 禁止删表 migration |
 
 ---
 
-## 下一任务（Brain 填写 · Codex 等待）
+## Task 6（已批准 · Codex 执行）
 
 ```markdown
-<!-- 启动 Task 6 时填写 -->
-任务名:
-规格路径:
+任务名: 虚假功能完整修复（Fake Features Repair）
+规格路径: docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md
 范围锁定:
+  - 必须修 P0 订单主链 + P1 前后端断连
+  - 禁止 Stage 2 / mobile / 删 Deposit 表 / socket 重构
+  - 开发期支付走 wallet 点数，不接真实渠道
 验收:
+  - 清单 §8 Definition of Done 全部勾选
+  - pnpm --filter server test 全绿 + pnpm typecheck clean
+  - 手动：申请→接受→支付→完成→确认 可跑通
 ```
 
 ---
@@ -86,3 +121,4 @@ welfare 9 · **welfare-claim-comm 7** · comm-close 7 · auto-receive 12 · depo
 |---|---|
 | 2026-06-19 | v4：Task 4/5 排期 |
 | 2026-06-19 | v5：Task 4–5 全部批准；基线 67/67；队列 → **待机** |
+| 2026-06-21 | v6：Task 6 启动 — `FAKE-FEATURES-REPAIR-BACKLOG.md` |

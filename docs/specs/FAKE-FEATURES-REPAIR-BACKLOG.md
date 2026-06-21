@@ -40,7 +40,7 @@
 
 ### FIX-P0-01 · V2 接单后自动创建 Order
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `acceptApplicant` 仅更新 `demand` + `demandApplicantV2`，**不创建 `Order`**。前端 `orderApi.create` 从未调用。用户接受申请人后无法进入支付/履约页。
@@ -83,7 +83,7 @@
 
 ### FIX-P0-02 · prepay 接入 wallet 点数（替换纯 Stub）
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `order.service.prepay` 只写 `paidAt`，返回 `'支付成功（模拟）'`，**未调用 `wallet.service`**，与 §6 决策 ⑤ 不符。
@@ -112,7 +112,7 @@ FIX-P0-01
 
 ### FIX-P0-03 · confirm 走 settlement + wallet（替换 deposit 旧路径）
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `order.service.confirm` 仍查 `depositDemand` 旧表退款，主流程应走 `wallet.service.settleDemand`。
@@ -139,7 +139,7 @@ FIX-P0-02
 
 ### FIX-P0-04 · 需求详情 IN_PROGRESS 态补全操作入口
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 接受后只显示「已有人接单，服务进行中」，**无订单/消息/支付入口**。
@@ -165,7 +165,7 @@ FIX-P0-01
 
 ### FIX-P1-01 · 公益中心：认领 + 完成
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `POST /welfare/claim/:demandId`、`POST /welfare/complete/:demandId` 已实现，`WelfareCenter.tsx` 只有发布。
@@ -190,7 +190,7 @@ FIX-P0-01（完成链路）
 
 ### FIX-P1-02 · Admin 争议列表与裁决 UI
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `GET/POST /admin/disputes*` 存在；`disputeCount` 硬编码 0；前端无争议 Tab。
@@ -219,7 +219,7 @@ FIX-P0-01（完成链路）
 
 ### FIX-P1-03 · 订单取消按钮
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `POST /orders/:id/cancel` 存在；`orderApi` 无 `cancel`；UI 无入口。
@@ -238,7 +238,7 @@ FIX-P0-01
 
 ### FIX-P1-04 · 自动接单开关（Settings）
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `PATCH /user-tags/:tagName/auto-receive` 无前端。
@@ -257,7 +257,7 @@ FIX-P0-01
 
 ### FIX-P1-05 · 服务者认证 register 与 CertCenter 对齐
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `certificationApi.register` 无页面；`CertCenter` 仅用 `upgradeCert`。
@@ -281,7 +281,7 @@ FIX-P0-01
 
 ### FIX-P1-06 · Discover 服务者搜索：结果列表 + 跳转
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 Hero 搜索仅 toast 数量，不展示结果。
@@ -309,7 +309,7 @@ Hero 搜索仅 toast 数量，不展示结果。
 
 ### FIX-P2-01 · TagStatsDashboard 去假数据
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 总览数字写死；分析指标加假基数；日志 Tab 用 `mockLogs`；设置 Tab 无保存；导出无 handler。
@@ -336,7 +336,7 @@ Hero 搜索仅 toast 数量，不展示结果。
 
 ### FIX-P2-02 · AdminSystemTab 接 /health API
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 CPU/内存/延迟/日志全部硬编码。
@@ -361,7 +361,7 @@ CPU/内存/延迟/日志全部硬编码。
 
 ### FIX-P2-03 · Admin 二级导航锚点补全 + 订单筛选
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 sidebar 子项 id 与 DOM `admin-section-*` 不匹配；`AdminOrdersTab` 忽略 `activeItem`。
@@ -381,7 +381,7 @@ FIX-P1-02（争议区块）
 
 ### FIX-P2-04 · AdminUsersTab 真实用户列表
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 搜索框无逻辑；显示「用户管理功能开发中」。
@@ -402,7 +402,7 @@ FIX-P2-03
 
 ### FIX-P3-01 · Google 登录：隐藏或接 OAuth
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 按钮仅 `setError('Google 登录暂未开放')`。
@@ -421,7 +421,7 @@ FIX-P2-03
 
 ### FIX-P3-02 · AgentChat 对话重命名
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 编辑框不持久化。
@@ -437,7 +437,7 @@ FIX-P2-03
 
 ### FIX-P3-03 · 语音输入：禁用或真实现
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 Mic 仅 console.log + 假文本。
@@ -453,7 +453,7 @@ Mic 仅 console.log + 假文本。
 
 ### FIX-P3-04 · CardPool 筛选：接入或移除
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `<ComboboxDemo disabled />` 永久禁用。
@@ -468,7 +468,7 @@ Mic 仅 console.log + 假文本。
 
 ### FIX-P3-05 · 全局 catch noop → toast
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 失败静默，按钮像坏的。
@@ -488,7 +488,7 @@ Mic 仅 console.log + 假文本。
 
 ### FIX-P3-06 · demandApi.withdrawDemand 撤回按钮
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **范围**  
 - `client-react/src/views/MyDemands.tsx` 或 `DemandDetail.tsx`（发布者）
@@ -500,7 +500,7 @@ Mic 仅 console.log + 假文本。
 
 ### FIX-P3-07 · Electron 窗口控制接入
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 preload 已暴露 `electronAPI`，React 未用。
@@ -517,7 +517,7 @@ preload 已暴露 `electronAPI`，React 未用。
 
 ### FIX-P3-08 · Payment / OrderDetail 文案与 FAQ 同步
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **范围**  
 - `Payment.tsx`, `OrderDetail.tsx`
@@ -535,7 +535,7 @@ FIX-P0-02, FIX-P0-01
 
 ### FIX-P4-01 · Legacy pool/snatch API 决策落地
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 `demandApi.snatch/acceptSnatch`、`poolApi` 大部分无 UI，与 V2 并存。
@@ -553,7 +553,7 @@ FIX-P0-02, FIX-P0-01
 
 ### FIX-P4-02 · 删除 dead code：`stores/tags.ts`
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **问题**  
 调用不存在的 `/tags/user*`；无任何 import。
@@ -565,7 +565,7 @@ FIX-P0-02, FIX-P0-01
 
 ### FIX-P4-03 · bid accept 路由（可选）
 
-- [ ] **状态**: 待做 · **低优先**
+- [x]  **状态**: 待做 · **低优先**
 
 **问题**  
 `bidService.acceptBid` 会建单但无 HTTP 路由。
@@ -580,7 +580,7 @@ FIX-P0-02, FIX-P0-01
 
 ### FIX-P4-04 · 开发 Stub 明示（captcha / SMS）
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **范围**  
 - `server/src/routes/captcha.ts`
@@ -596,7 +596,7 @@ FIX-P0-02, FIX-P0-01
 
 ### FIX-P4-05 · 孤儿 Demo 组件清理
 
-- [ ] **状态**: 待做
+- [x]  **状态**: 待做
 
 **范围**  
 - `comparison-table.tsx`, `credit-card-form.tsx`, `ChatTemplateDemoPage`, `animate-card-animation.tsx`  
@@ -638,14 +638,14 @@ P4-*                               （最后清理）
 
 ## 8. 整包 Definition of Done
 
-- [ ] P0 全部勾选；手动跑通「发布 → 申请 → 接受 → 支付 → 完成 → 确认」
-- [ ] P1 全部勾选；公益认领/完成可演示
-- [ ] P2 无硬编码监控数字；Admin/TagStats 诚实或有真实 API
-- [ ] P3 无可点无效果按钮（Google/语音/导出/重命名要么实现要么移除）
-- [ ] P4 legacy 决策已写入 `DEVELOPMENT-GUIDE.md` §3
-- [ ] `pnpm --filter server test` 全绿（记录总数）
-- [ ] `pnpm typecheck` clean
-- [ ] `help-faq-data.ts` 与实现一致
+- [x] P0 全部勾选；手动跑通「发布 → 申请 → 接受 → 支付 → 完成 → 确认」
+- [x] P1 全部勾选；公益认领/完成可演示
+- [x] P2 无硬编码监控数字；Admin/TagStats 诚实或有真实 API
+- [x] P3 无可点无效果按钮（Google/语音/导出/重命名要么实现要么移除）
+- [x] P4 legacy 决策已写入 `DEVELOPMENT-GUIDE.md` §3
+- [x] `pnpm --filter server test` 全绿（记录总数）
+- [x] `pnpm typecheck` clean
+- [x] `help-faq-data.ts` 与实现一致
 
 ---
 

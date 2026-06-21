@@ -359,6 +359,8 @@
 ---
 
 ## 版本记录
+| 2026-06-21 | v2.4 | **Task 6 虚假功能完整修复** 陆续上线：P0 订单主链接入 wallet（P0-01~04）；P1 公益认领/完成、管理后台争议与真实指标、订单取消/资警设置/认证注册/Discover 服务者检索；P2 去除伪数据（TagStats/AdminSystem/Users）与后端接入；P3 隐藏 Google/语音假按钮、聊天重命名持久化、全局 catch noop 改 toast、退出接口与 Electron 窗口控制；P4 废弃旧 snatch/acceptSnatch/bid.accept、删除 stores/tags.ts 与子子 demo 组件（迁至 archive/）。`pnpm --filter server test` 69/69、`pnpm typecheck` clean。详见 `docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md` §8 DoD。 |
+
 
 | 日期 | 版本 | 说明 |
 |---|---|---|

@@ -8,6 +8,8 @@
 | [LLM-CONFIG.md](./LLM-CONFIG.md) | 开发者 / 运维 | 大模型提供商、环境变量、BYOK |
 | [FEATURE_SPECIFICATIONS.md](./FEATURE_SPECIFICATIONS.md) | 产品 / 开发 | 功能规格与业务规则 |
 | [ENGINEERING-ROADMAP.md](./ENGINEERING-ROADMAP.md) | 开发 | 工程路线图 |
+| [CODEX-HANDOFF.md](./CODEX-HANDOFF.md) | Codex | Brain ↔ Codex 任务通道（**当前 Task 6**） |
+| [specs/FAKE-FEATURES-REPAIR-BACKLOG.md](./specs/FAKE-FEATURES-REPAIR-BACKLOG.md) | Codex | 虚假功能完整修复清单（27 项 · Wave P0–P4） |
 | [REPORT-九木平台技术实现报告.md](./REPORT-九木平台技术实现报告.md) | 技术评审 | 实现报告 |
 
 ## 用户向帮助（应用内）
