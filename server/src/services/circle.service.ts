@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import crypto from 'crypto';
+import { circleHubService } from './circle-hub.service.js';
 
 const CIRCLE_PRIORITY_WINDOW_MS = 15 * 60 * 1000; // 15 min
 
@@ -19,6 +20,7 @@ export const circleService = {
     const circle = await prisma.circle.create({
       data: {
         name: data.name,
+        description: data.description || null,
         coverUrl: user.coverUrl || null,
         type: 'PRIVATE',
         ownerId: userId,
@@ -47,6 +49,10 @@ export const circleService = {
 
     await prisma.circleMember.create({ data: { circleId, userId, role: 'MEMBER' } });
     await prisma.circle.update({ where: { id: circleId }, data: { memberCount: { increment: 1 } } });
+    await circleHubService.recordActivity({
+      circleId, actorId: userId, type: 'MEMBER_JOIN',
+      title: '新成员加入',
+    });
     return { success: true };
   },
 
@@ -65,6 +71,10 @@ export const circleService = {
     await prisma.circle.update({
       where: { id: circle.id },
       data: { memberCount: { increment: 1 } },
+    });
+    await circleHubService.recordActivity({
+      circleId: circle.id, actorId: userId, type: 'MEMBER_JOIN',
+      title: '新成员加入',
     });
 
     return { message: '已加入圈子', circle };
@@ -154,6 +164,7 @@ export const circleService = {
     const circle = await prisma.circle.create({
       data: {
         name: data.name,
+        description: data.description || null,
         coverUrl: user.coverUrl || null,
         type: 'PUBLIC',
         ownerId: userId,

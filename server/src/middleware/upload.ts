@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
 });
 
 // 扩展名白名单
-const allowedExts = /\.(jpg|jpeg|png|gif|webp|mp3|wav|ogg|mp4|mov|avi|webm|mkv)$/i;
+const allowedExts = /\.(jpg|jpeg|png|gif|webp|mp3|wav|ogg|mp4|mov|avi|webm|mkv|pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|7z|tar|gz|fig|sketch|psd|ai|epub|md|txt|csv|json|xml|html|js|ts|tsx|jsx|css|scss|less)$/i;
 
 const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (allowedExts.test(path.extname(file.originalname))) {

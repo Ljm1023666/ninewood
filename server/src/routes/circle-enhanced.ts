@@ -8,6 +8,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import { z } from 'zod'
 import { success, fail } from '../utils/response.js'
 import { prisma } from '../lib/prisma.js'
+import { circleHubService } from '../services/circle-hub.service.js'
 
 export const circleEnhancedRouter = Router()
 
@@ -147,6 +148,15 @@ circleEnhancedRouter.post('/:id/publish-demand', authMiddleware, async (req: Req
         circleId: circle.id,
         demandId: demand.id,
       },
+    })
+
+    await circleHubService.recordActivity({
+      circleId: circle.id,
+      actorId: req.user!.userId,
+      type: 'DEMAND',
+      title: '发布新需求',
+      summary: title,
+      refId: demand.id,
     })
 
     success(res, { demand, circle }, '发布成功', 201)

@@ -1,5 +1,48 @@
 import api from './index'
 
+export type CircleActivityItem = {
+  id: string;
+  type: string;
+  actor: { id: string; nickname: string } | null;
+  title: string;
+  summary: string | null;
+  refId: string | null;
+  createdAt: string;
+};
+
+export type CircleResourceItem = {
+  id: string;
+  name: string;
+  fileUrl: string;
+  mimeType: string | null;
+  sizeBytes: number;
+  sizeLabel: string;
+  category: string;
+  uploader: { id: string; nickname: string; avatarUrl: string | null };
+  createdAt: string;
+};
+
+export type CircleMemberItem = {
+  userId: string;
+  role: 'OWNER' | 'ADMIN' | 'MEMBER';
+  joinedAt: string;
+  lastSeenAt: string | null;
+  lastActiveLabel: string;
+  user: { id: string; nickname: string; avatarUrl: string | null; bio?: string | null };
+};
+
+export type CircleInviteItem = {
+  id: string;
+  email: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REVOKED' | 'EXPIRED';
+  statusLabel: string;
+  invitedBy: { id: string; nickname: string };
+  createdAt: string;
+  expiresAt: string | null;
+};
+
+
+
 export const circleApi = {
   list() {
     return api.get('/circles/public')
@@ -21,6 +64,56 @@ export const circleApi = {
   },
   getDemands(circleId: string, page = 1) {
     return api.get(`/circles/${circleId}/demands`, { params: { page } })
+  },
+  // Task 8 / Wave B-E
+  getHubHome(circleId: string) {
+    return api.get(`/circles/${circleId}/hub/home`)
+  },
+  getHubActivities(circleId: string, page = 1) {
+    return api.get(`/circles/${circleId}/hub/activities`, { params: { page } })
+  },
+  postAnnouncement(circleId: string, data: { title: string; body: string; pinned?: boolean }) {
+    return api.post(`/circles/${circleId}/hub/announcements`, data)
+  },
+
+  getResources(circleId: string, params?: { category?: string; q?: string; page?: number; limit?: number }) {
+    return api.get(`/circles/${circleId}/resources`, { params })
+  },
+  uploadResource(circleId: string, file: File, category?: string) {
+    const fd = new FormData()
+    fd.append('file', file)
+    if (category) fd.append('category', category)
+    return api.post(`/circles/${circleId}/resources`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  deleteResource(circleId: string, resourceId: string) {
+    return api.delete(`/circles/${circleId}/resources/${resourceId}`)
+  },
+
+  getAnalytics(circleId: string, range: '30d' | '7d' = '30d') {
+    return api.get(`/circles/${circleId}/analytics`, { params: { range } })
+  },
+
+  getMembers(circleId: string, params?: { q?: string; page?: number; limit?: number }) {
+    return api.get(`/circles/${circleId}/members`, { params })
+  },
+
+  listInvites(circleId: string) {
+    return api.get(`/circles/${circleId}/invites`)
+  },
+  createInvite(circleId: string, email: string) {
+    return api.post(`/circles/${circleId}/invites`, { email })
+  },
+  resendInvite(circleId: string, inviteId: string) {
+    return api.post(`/circles/${circleId}/invites/${inviteId}/resend`)
+  },
+  revokeInvite(circleId: string, inviteId: string) {
+    return api.delete(`/circles/${circleId}/invites/${inviteId}`)
+  },
+
+  postHeartbeat(circleId: string) {
+    return api.post(`/circles/${circleId}/hub/heartbeat`)
   },
   join(circleId: string) {
     return api.post(`/circles/${circleId}/join`)

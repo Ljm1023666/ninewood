@@ -144,6 +144,30 @@ enum WalletHoldStatus {
   CONSUMED
 }
 
+// Wave A / Task 8 circle hub enums
+enum CircleResourceCategory {
+  DOC
+  DESIGN
+  CODE
+  VIDEO
+  OTHER
+}
+
+enum CircleActivityType {
+  DISCUSSION
+  DEMAND
+  MEMBER_JOIN
+  RESOURCE
+  ANNOUNCEMENT
+}
+
+enum CircleInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
 enum TagCategory {
   service
   demand
@@ -183,6 +207,10 @@ model User {
   requesterOrders     Order[]     @relation("Requester")
   ownedCircles        Circle[]    @relation("CircleOwner")
   memberships         CircleMember[]
+  circleAnnouncements CircleAnnouncement[]
+  circleActivities    CircleActivity[]
+  circleResources     CircleResource[]
+  circleInvitesSent   CircleInvite[]   @relation("CircleInvitesSent")
   deposits            Deposit[]
   sentComplaints      Complaint[] @relation("Complainant")
   receivedComplaints  Complaint[] @relation("Respondent")
@@ -331,6 +359,7 @@ model Order {
 model Circle {
   id          String       @id @default(uuid())
   name        String
+  description String?
   type        CircleType
   ownerId     String
   owner       User         @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
@@ -342,9 +371,13 @@ model Circle {
   status      CircleStatus @default(ACTIVE)
   createdAt   DateTime     @default(now())
 
-  members CircleMember[]
-  demands Demand[]
-  circleDemands CircleDemand[]
+  members        CircleMember[]
+  demands        Demand[]
+  circleDemands  CircleDemand[]
+  announcements  CircleAnnouncement[]
+  activities     CircleActivity[]
+  resources      CircleResource[]
+  invites        CircleInvite[]
 
   @@index([ownerId])
   @@index([cityCode])
@@ -352,16 +385,18 @@ model Circle {
 }
 
 model CircleMember {
-  circleId String
-  circle   Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role     MemberRole @default(MEMBER)
-  joinedAt DateTime   @default(now())
+  circleId   String
+  circle     Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       MemberRole @default(MEMBER)
+  joinedAt   DateTime   @default(now())
+  lastSeenAt DateTime?
 
   @@id([circleId, userId])
   @@index([circleId])
   @@index([userId])
+  @@index([circleId, lastSeenAt])
 }
 
 model Deposit {
@@ -769,4 +804,72 @@ model TagStats {
 
   @@unique([tagName, regionId, periodStart])
   @@index([tagName, regionId])
+}
+
+
+// Wave A / Task 8 circle hub tables
+
+model CircleAnnouncement {
+  id        String   @id @default(uuid())
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  pinned    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([circleId, pinned])
+  @@index([circleId, createdAt])
+}
+
+model CircleActivity {
+  id        String             @id @default(uuid())
+  circleId  String
+  circle    Circle             @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actor     User?              @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  type      CircleActivityType
+  title     String
+  summary   String?
+  refId     String?
+  createdAt DateTime           @default(now())
+
+  @@index([circleId, createdAt])
+  @@index([circleId, type])
+}
+
+model CircleResource {
+  id         String                 @id @default(uuid())
+  circleId   String
+  circle     Circle                 @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  uploaderId String
+  uploader   User                   @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  name       String
+  fileUrl    String
+  mimeType   String?
+  sizeBytes  Int
+  category   CircleResourceCategory @default(OTHER)
+  createdAt  DateTime               @default(now())
+
+  @@index([circleId, createdAt])
+  @@index([circleId, category])
+}
+
+model CircleInvite {
+  id          String             @id @default(uuid())
+  circleId    String
+  circle      Circle             @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  email       String
+  invitedById String
+  invitedBy   User               @relation("CircleInvitesSent", fields: [invitedById], references: [id], onDelete: Cascade)
+  status      CircleInviteStatus @default(PENDING)
+  createdAt   DateTime           @default(now())
+  expiresAt   DateTime?
+
+  @@unique([circleId, email, status])
+  @@index([circleId, status])
+  @@index([circleId, createdAt])
 }
