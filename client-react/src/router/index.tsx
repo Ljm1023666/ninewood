@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Layout from '@/components/layout/Layout'
+import { BentoAppShell } from '@/components/layout/BentoAppShell'
 import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
@@ -76,7 +77,7 @@ function GuestGuard() {
 }
 
 export const router = createBrowserRouter([
-  /* ── 首页（发现页，公开访问） ── */
+  /* 闂佸啿鍘滈崑鎾绘煃閸忓浜?婵☆偓绲鹃悧鐘诲Υ婢舵劖鏅柛顐ｇ箓缁叉椽鏌ｅ鈧崡鎶藉Υ婢舵劖鏅悘鐐舵瑜板棛鈧鍠掗崑鎾绘偣娴ｅ憡鍋ユ俊顐㈢埣閺?闂佸啿鍘滈崑鎾绘煃閸忓浜?*/
   {
     path: '/',
     element: (
@@ -85,7 +86,7 @@ export const router = createBrowserRouter([
       </LazyLoad>
     ),
   },
-  /* ── 需要登录的路由 ── */
+  /* 闂佸啿鍘滈崑鎾绘煃閸忓浜?闂傚倸娲犻崑鎾绘偡閺囨俺鍏屾繛鍛劥閵囨劙寮撮悩宕囨殸闁荤姳璀﹂崹鎶藉极?闂佸啿鍘滈崑鎾绘煃閸忓浜?*/
   {
     element: <AuthGuard />,
     children: [
@@ -98,12 +99,12 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        element: <Layout />,
+        /* ---- Productivity Hub (TASK-7 SIDEBAR-01) ----
+         * 璺敱缁勶細circles, circles/:id, card-pool*, tag-stats, circles-list, help*
+         * 澹冲眰鐢?BentoAppShell 鎻愪緵锛堣儗鏅眰 + 渚ф爮 + Outlet锛?         * Wave 1锛氫粎鎶藉３ + active 璺敱鍖?+ 鍋囨寜閽竻鐞嗭紱
+         * Wave 2 璧烽€愰〉鎶婂唴瀹瑰尯瀵归綈 bento 瑙嗚銆?         */
+        element: <BentoAppShell />,
         children: [
-          {
-            path: 'discover',
-            element: <Navigate to="/" replace />,
-          },
           {
             path: 'card-pool/explorer',
             element: (
@@ -127,6 +128,63 @@ export const router = createBrowserRouter([
                 <CardPool />
               </LazyLoad>
             ),
+          },
+          {
+            path: 'tag-stats',
+            element: (
+              <LazyLoad>
+                <TagStatsDashboard />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'circles-list',
+            element: (
+              <LazyLoad>
+                <CircleList />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'circles',
+            element: (
+              <LazyLoad>
+                <Circles />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'circles/:id',
+            element: (
+              <LazyLoad>
+                <CircleDetail />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'help/docs',
+            element: (
+              <LazyLoad>
+                <HelpDocs />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'help',
+            element: (
+              <LazyLoad>
+                <Help />
+              </LazyLoad>
+            ),
+          },
+        ],
+      },
+      {
+        element: <Layout />,
+        children: [
+          {
+            path: 'discover',
+            element: <Navigate to="/" replace />,
           },
           { path: 'profile/:id?', element: <Profile /> },
           {
@@ -175,22 +233,6 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <TransactionHistory />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'circles-list',
-            element: (
-              <LazyLoad>
-                <CircleList />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'tag-stats',
-            element: (
-              <LazyLoad>
-                <TagStatsDashboard />
               </LazyLoad>
             ),
           },
@@ -275,22 +317,6 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'circles',
-            element: (
-              <LazyLoad>
-                <Circles />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'circles/:id',
-            element: (
-              <LazyLoad>
-                <CircleDetail />
-              </LazyLoad>
-            ),
-          },
-          {
             path: 'messages',
             element: (
               <LazyLoad>
@@ -353,22 +379,6 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <CertIntro />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'help',
-            element: (
-              <LazyLoad>
-                <Help />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'help/docs',
-            element: (
-              <LazyLoad>
-                <HelpDocs />
               </LazyLoad>
             ),
           },
