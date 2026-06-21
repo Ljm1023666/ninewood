@@ -60,18 +60,20 @@ export default function CircleHubLayout() {
     return () => setAmbientCoverUrl(null)
   }, [circle?.coverUrl, setAmbientCoverUrl])
 
-  // Heartbeat on mount (best-effort)
+
+
+  const isMember = Boolean(circle?.members?.some((m) => m.userId === userId))
+
+  // Heartbeat on mount (best-effort) - depends on isMember above
   useEffect(() => {
     if (!circleId || !isMember) return
     circleApi.postHeartbeat(circleId).catch(() => undefined)
-    // every 5 minutes while mounted
     const t = setInterval(() => {
       circleApi.postHeartbeat(circleId).catch(() => undefined)
     }, 5 * 60 * 1000)
     return () => clearInterval(t)
   }, [circleId, isMember])
 
-  const isMember = Boolean(circle?.members?.some((m) => m.userId === userId))
   const isPublic = circle?.type === 'PUBLIC'
   const canJoin = Boolean(
     circleId && isPublic && !isMember && circle?.status !== 'DEFUNCT',
