@@ -7,8 +7,16 @@ import { addMessage, truncateTitle } from './conversation.js';
 import type { ToolResult } from './tool-registry.js';
 import {
   normalizeAccessMode,
+  canUseWebSearch,
   type AgentAccessMode,
 } from './access-mode.js';
+import {
+  filterToolsForAccessMode,
+  type StoredToolCall,
+} from './tool-narration.js';
+import { inferFollowUpTools } from './follow-up-tools.js';
+import { processToolInvocations } from './tool-runner.js';
+import { matchForbidden } from './capability-matcher.js';
 
 // ─── 工具调用限流 ──────────────────────────────────────────────────────────
 // 同一会话内，单次用户消息最多触发 MAX_TOOL_CALLS 次工具调用
@@ -84,7 +92,22 @@ function buildSystemPrompt(
     context?: Record<string, unknown>;
   },
 ): string {
-  let prompt = '你是九木平台的智能助手。你可以和用户闲聊、解答问题，也可以在用户需要时帮助发布需求或搜索服务。当用户表达"去/跳转/打开某个页面"的意图时，调用 navigate_to 工具帮 TA 跳转。';
+  let prompt = '你是九木平台的智能助手。你可以和用户闲聊、解答问题，也可以在用户需要时帮助发布需求或搜索服务。';
+
+  prompt += `
+
+【平台数据权限 — 默认开放】
+- 你拥有九木平台所有「可公开」数据的读取权限：公开需求详情、标签、用户公开资料、知识库、本人订单/需求/申请等
+- 服务者找需求、需求者找服务是平台核心场景：应主动调用 search_demands、get_demand_detail 等工具拉取真实数据，不要凭空猜测
+- 可串联多个只读工具：搜索 → 查看详情 → 跳转页面 → 文字总结
+
+【页面跳转】
+- 用户说「去/打开/跳转 XX 页面」时，调用 navigate_to 工具；跳转前用一句话说明目的
+- 查完数据后若用户需要亲自操作，可建议跳转到对应页面
+
+【操作过程展示】
+- 每次调用工具前后，用简短中文说明正在做什么、得到了什么（系统也会展示步骤卡片）
+- 多步任务按顺序说明：先搜、再看、再跳转或再执行`;
 
   if (options.context?.page === 'demand-create') {
     prompt += ' 用户当前在"发布需求"页面。如果用户明确想发布需求，帮 TA 分析整理；如果用户只是随便聊聊，就正常聊天，但心里记住聊天中透露的信息（兴趣、偏好、状态等），后续如果 TA 转向需求讨论时，可以结合之前的聊天内容来更好地理解 TA。';
@@ -104,22 +127,22 @@ function buildSystemPrompt(
     prompt += `
 
 【只读建议模式】
-- 你不能调用任何工具，也不能声称已替用户执行操作
-- 仅提供分析、步骤说明与操作建议
-- 如需实际执行，提示用户切换到「请求批准」或「完全访问」`;
+- 可调用所有查询/搜索/跳转类工具，读取平台公开数据并 navigate_to 跳转
+- 不可执行发布、修改、下架、申请、接受/拒绝等写操作；若用户需要，给出清晰步骤并提示切换到「请求批准」或「完全访问」
+- 不要声称已替用户完成写操作`;
   } else if (options.accessMode === 'approval') {
     prompt += `
 
-【请求批准模式】
-- 查询、搜索、跳转等只读工具可直接调用
-- 发布/修改/下架/申请/接受/拒绝等写操作会提交给用户批准，批准前不要声称已完成
-- 不要使用联网搜索`;
+【请求批准模式 — 默认】
+- 所有只读/查询/跳转工具可直接调用，用于获取公开数据与页面导航
+- 写操作（发布/修改/下架/申请/接受/拒绝）会弹出批准卡片，批准前不要声称已完成
+- 不使用联网搜索（平台内数据已足够）`;
   } else {
     prompt += `
 
 【完全访问模式】
-- 你已获授权直接调用工具完成操作（含写操作）
-- 必要时可使用联网搜索补充信息`;
+- 写操作可直接执行；必要时可使用联网搜索补充站外信息
+- 仍应对每一步操作给出简短文字说明`;
   }
 
   if (options.useTools) {
@@ -146,7 +169,8 @@ function buildSystemPrompt(
 【执行规则】
 - 只读工具（search, list, get, read）：可直接调用，无需先问用户
 - 写操作工具（create, update, withdraw, apply, accept, reject）：必须先向用户解释清楚要做什么、影响什么，确认后再调用
-- 多工具可串联：用户说"搜王者荣耀需求，然后看第一个的详情" → 先 search_demands，再用第一个结果的 id 调 get_demand_detail
+- 多工具可串联：用户说"搜PPT需求并打开第一个" → 先 search_demands，再 navigate_to path=/demands/{第一个id}（必须实际调用跳转工具，不要只在文字里说已打开）
+- 用户明确要求「打开/跳转/查看详情」时，必须调用 navigate_to 或 get_demand_detail，禁止只口头描述
 - 一次说清所有操作：如果需要执行多个步骤，一次性列出计划让用户确认，不要来回确认
 - 工具调用失败时，根据错误信息引导用户修正，不要直接放弃`;
   }
@@ -201,8 +225,10 @@ export async function executeAgent(
 
   const accessMode = normalizeAccessMode(accessModeInput);
   const availableTools = toolRegistry.listAll();
-  const useTools = accessMode !== 'readonly' && availableTools.length > 0;
-  const useWebSearch = accessMode === 'full' && webSearch !== false;
+  const toolFilter = filterToolsForAccessMode(accessMode);
+  const enabledTools = availableTools.filter(toolFilter);
+  const useTools = enabledTools.length > 0;
+  const useWebSearch = canUseWebSearch(accessMode) && webSearch !== false;
 
   // 系统提示
   const systemPrompt = buildSystemPrompt(
@@ -213,6 +239,32 @@ export async function executeAgent(
   const messages = buildMessages(systemPrompt, message, history);
 
   try {
+    // L2 拦截：禁区信号 → SSE forbidden + 提前结束，不调用 LLM
+    const forbiddenHit = matchForbidden(message);
+    if (forbiddenHit) {
+      await addMessage({
+        conversationId,
+        role: 'user',
+        content: message,
+      });
+      await truncateTitle(conversationId, message);
+      send('forbidden', {
+        id: forbiddenHit.entry.id,
+        matchedSignal: forbiddenHit.matchedSignal,
+        message: forbiddenHit.entry.message,
+        redirect: forbiddenHit.entry.redirect,
+        redirectPattern: forbiddenHit.entry.redirect_pattern,
+        fallbackPage: forbiddenHit.entry.fallback_page,
+      });
+      await addMessage({
+        conversationId,
+        role: 'assistant',
+        content: forbiddenHit.entry.message,
+      });
+      send('done', 'ok');
+      return;
+    }
+
     // 保存用户消息
     await addMessage({
       conversationId,
@@ -251,7 +303,7 @@ export async function executeAgent(
     }
 
     if (useTools) {
-      body.tools = toolRegistry.toOpenAITools();
+      body.tools = toolRegistry.toOpenAITools(toolFilter);
       body.tool_choice = 'auto';
     }
 
@@ -329,53 +381,25 @@ export async function executeAgent(
     const limitedToolCalls = allToolCalls.slice(0, MAX_TOOL_CALLS);
 
     // 批量处理工具调用
-    const toolResults: ToolResult[] = [];
-    for (const tc of limitedToolCalls) {
-      if (!tc.name) continue;
-
+    const initialInvocations = limitedToolCalls.map((tc) => {
       let args: Record<string, unknown> = {};
       try { args = JSON.parse(tc.arguments); } catch { /* use empty */ }
+      return { name: tc.name, arguments: args };
+    });
 
-      send('tool_call', { name: tc.name, arguments: args });
+    const toolCtx = { userId, conversationId, accessMode, send };
+    let { storedCalls, toolResults, executed } = await processToolInvocations(
+      initialInvocations,
+      toolCtx,
+    );
 
-      const needsApproval =
-        accessMode === 'approval' && toolRegistry.requiresConfirmation(tc.name);
-
-      if (needsApproval) {
-        const pendingMessage = `操作「${tc.name}」已提交批准，等待用户确认后再执行。`;
-        send('tool_pending', {
-          name: tc.name,
-          arguments: args,
-          message: pendingMessage,
-        });
-        toolResults.push({
-          success: false,
-          message: pendingMessage,
-          data: { pending: true, name: tc.name, arguments: args },
-        });
-        send('tool_result', {
-          name: tc.name,
-          success: false,
-          data: { pending: true, arguments: args },
-          message: pendingMessage,
-        });
-        continue;
-      }
-
-      const result = await toolRegistry.execute(tc.name, args, {
-        userId,
-        conversationId,
-      });
-
-      toolResults.push(result);
-
-      send('tool_result', {
-        name: tc.name,
-        success: result.success,
-        data: result.data,
-        error: result.error,
-        message: result.message,
-      });
+    // 意图跟进：如「搜索并打开第一个」在只搜完后自动跳转
+    const followUps = inferFollowUpTools(message, executed);
+    if (followUps.length > 0) {
+      const extra = await processToolInvocations(followUps, toolCtx);
+      storedCalls = [...storedCalls, ...extra.storedCalls];
+      toolResults = [...toolResults, ...extra.toolResults];
+      executed = [...executed, ...extra.executed];
     }
 
     // 如果工具调用数超过限制，追加一条说明
@@ -385,11 +409,14 @@ export async function executeAgent(
       });
     }
 
-    // 如果有工具调用结果，做一次批量总结
-    if (toolResults.length > 0) {
+    // 如果有非 pending 的工具结果，做一次批量总结
+    const summarizable = toolResults.filter(
+      (r) => !(r.data && typeof r.data === 'object' && (r.data as { pending?: boolean }).pending),
+    );
+    if (summarizable.length > 0) {
       await continueWithToolResults(
         messages,
-        toolResults,
+        summarizable,
         conversationId,
         model,
         thinking,
@@ -403,23 +430,24 @@ export async function executeAgent(
 
     const cleanedContent = thinking ? fullContent : fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
 
-    // 保存 assistant 消息
+    // 保存 assistant 消息（含工具步骤与 pending 状态）
     await addMessage({
       conversationId,
       role: 'assistant',
       content: cleanedContent,
       thinking: reasoningContent || undefined,
       toolCalls:
-        toolResults.length > 0
-          ? toolResults.map((r, i) => {
-              const tc = Array.from(toolCallsMap.values())[i];
-              return {
-                name: tc?.name || 'unknown',
-                arguments: tc ? safeParseArgs(tc.arguments) : {},
-                result: r.message,
-                data: r.data,
-              };
-            })
+        storedCalls.length > 0
+          ? storedCalls.map((c) => ({
+              id: c.id,
+              name: c.name,
+              arguments: c.arguments,
+              status: c.status,
+              steps: c.steps,
+              result: c.result,
+              data: c.data,
+              success: c.success,
+            }))
           : undefined,
     });
 
@@ -428,10 +456,6 @@ export async function executeAgent(
     console.error('[Agent] executor error:', e.message);
     send('error', { message: e.message || 'Agent 执行异常' });
   }
-}
-
-function safeParseArgs(raw: string): Record<string, unknown> {
-  try { return JSON.parse(raw); } catch { return {}; }
 }
 
 /** 工具执行后一次性总结所有结果（单次 AI 调用） */
@@ -463,7 +487,8 @@ async function continueWithToolResults(
 
   messages.push({
     role: 'user',
-    content: '请根据以上工具执行结果，用自然语言向用户总结发生了什么。保持简洁友好，使用简体中文。',
+    content:
+      '请根据以上工具执行结果，用自然语言向用户总结发生了什么。若已跳转页面则说明正在打开；若未能完成跳转不要声称已打开。保持简洁友好，使用简体中文。',
   });
 
   const selectedModel = model || config.aiModel
