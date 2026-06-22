@@ -35,6 +35,8 @@ import { AgentToolCallCard } from '@/components/agent/agent-tool-call-card'
 import { AgentForbiddenCard, type AgentForbiddenCardData } from '@/components/agent/agent-forbidden-card'
 import { AgentPlanCard, type AgentPlanCardData } from '@/components/agent/agent-plan-card'
 import { AgentExecutionReportCard, type AgentReportData } from '@/components/agent/agent-execution-report-card'
+import { AgentTaskDraftCard, type AgentTaskDraftData } from '@/components/agent/agent-task-draft-card'
+import { AgentMarkdown } from '@/components/agent/agent-markdown'
 import { classifyIntent } from '@/services/intent-classifier'
 import { useThemeStore } from '@/stores/theme'
 import { cn } from '@/lib/utils'
@@ -85,6 +87,7 @@ export default function AgentChat() {
   const [forbiddenCards, setForbiddenCards] = useState<AgentForbiddenCardData[]>([])
   const [planCards, setPlanCards] = useState<AgentPlanCardData[]>([])
   const [reportCards, setReportCards] = useState<AgentReportData[]>([])
+  const [taskDrafts, setTaskDrafts] = useState<AgentTaskDraftData[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [threadSearch, setThreadSearch] = useState('')
   const [historyExpanded, setHistoryExpanded] = useState(false)
@@ -331,6 +334,7 @@ export default function AgentChat() {
       setToolCalls([])
       setPlanCards([])
       setReportCards([])
+      setTaskDrafts([])
       setThinking(false)
       const stream = streamMessage(
         convId,
@@ -368,6 +372,10 @@ export default function AgentChat() {
       stream.onEvent('report', (d: unknown) => {
         const x = d as AgentReportData
         setReportCards((prev) => [...prev, x])
+      })
+      stream.onEvent('task_draft', (d: unknown) => {
+        // Task 10：自动化任务草稿卡（spec §7.3）
+        setTaskDrafts((prev) => [...prev, d as AgentTaskDraftData])
       })
       stream.onEvent('tool_call', (d: unknown) => {
         const x = d as { id?: string; name: string; arguments: Record<string, unknown> }
@@ -809,6 +817,16 @@ export default function AgentChat() {
           <div className="agent-codex-main__bar-spacer" />
           <button
             type="button"
+            onClick={() => navigate('/agent/tasks')}
+            className="agent-codex-icon-btn"
+            aria-label="自动化任务"
+            title="自动化任务"
+            data-testid="agent-automation-nav"
+          >
+            <MsIcon name="schedule" size={16} aria-hidden />
+          </button>
+          <button
+            type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="agent-codex-icon-btn"
             aria-label={sidebarOpen ? '收起侧栏' : '展开侧栏'}
@@ -875,9 +893,13 @@ export default function AgentChat() {
                               </div>
                             </details>
                           ) : null}
-                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                            {msg.content}
-                          </div>
+                          {msg.role === 'user' ? (
+                            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                              {msg.content}
+                            </div>
+                          ) : (
+                            <AgentMarkdown content={msg.content} />
+                          )}
                           {msg.toolCalls?.map((raw, i) => {
                             const tc = normalizeToolCall(raw)
                             return (
@@ -973,6 +995,20 @@ export default function AgentChat() {
                   onNavigate={handleAgentNavigate}
                 />
               ))}
+              {taskDrafts.map((td, i) => (
+                <AgentTaskDraftCard
+                  key={td.draftId ?? i}
+                  draft={td}
+                  className="mb-3 max-w-[85%]"
+                  onConfirmed={() => {
+                    // 创建后仅移除草稿卡（任务列表通过 /agent/tasks 拉取）
+                    setTaskDrafts(prev => prev.filter(x => x.draftId !== td.draftId))
+                  }}
+                  onCancelled={() => {
+                    setTaskDrafts(prev => prev.filter(x => x.draftId !== td.draftId))
+                  }}
+                />
+              ))}
               {toolCalls.map((raw, i) => (
                 <AgentToolCallCard
                   key={raw.id ?? i}
@@ -996,8 +1032,8 @@ export default function AgentChat() {
               ) : null}
               {streamText ? (
                 <div className="flex justify-start">
-                  <div className="agent-codex-msg agent-codex-msg--ai whitespace-pre-wrap">
-                    {streamText}
+                  <div className="agent-codex-msg agent-codex-msg--ai">
+                    <AgentMarkdown content={streamText} />
                   </div>
                 </div>
               ) : null}

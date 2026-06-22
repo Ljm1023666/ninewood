@@ -12,7 +12,13 @@ const MessagesIndexPlaceholder = lazy(
   () => import('@/views/MessagesIndexPlaceholder'),
 )
 const Circles = lazy(() => import('@/views/Circles'))
-const CircleDetail = lazy(() => import('@/views/CircleDetail'))
+const CircleHubLayout = lazy(() => import('@/views/circle-hub/CircleHubLayout'))
+const CircleHubHome = lazy(() => import('@/views/circle-hub/CircleHubHome'))
+const CircleHubCommunity = lazy(() => import('@/views/circle-hub/CircleHubCommunity'))
+const CircleHubResources = lazy(() => import('@/views/circle-hub/CircleHubResources'))
+const CircleHubAnalytics = lazy(() => import('@/views/circle-hub/CircleHubAnalytics'))
+const CircleHubTeams = lazy(() => import('@/views/circle-hub/CircleHubTeams'))
+const CircleHubHelp = lazy(() => import('@/views/circle-hub/CircleHubHelp'))
 const Search = lazy(() => import('@/views/Search'))
 const CertCenter = lazy(() => import('@/views/CertCenter'))
 const CertIntro = lazy(() => import('@/views/CertIntro'))
@@ -35,6 +41,8 @@ const MyBids = lazy(() => import('@/views/MyBids'))
 const Help = lazy(() => import('@/views/Help'))
 const HelpDocs = lazy(() => import('@/views/HelpDocs'))
 const AgentChat = lazy(() => import('@/views/AgentChat'))
+const AgentTasksPage = lazy(() => import('@/views/agent/AgentTasksPage'))
+const AgentTasksPage = lazy(() => import('@/views/agent/AgentTasksPage'))
 const Privacy = lazy(() => import('@/views/Privacy'))
 const Terms = lazy(() => import('@/views/Terms'))
 const Licenses = lazy(() => import('@/views/Licenses'))
@@ -99,12 +107,77 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        /* ---- Productivity Hub (TASK-7 SIDEBAR-01) ----
-         * 璺敱缁勶細circles, circles/:id, card-pool*, tag-stats, circles-list, help*
-         * 澹冲眰鐢?BentoAppShell 鎻愪緵锛堣儗鏅眰 + 渚ф爮 + Outlet锛?         * Wave 1锛氫粎鎶藉３ + active 璺敱鍖?+ 鍋囨寜閽竻鐞嗭紱
-         * Wave 2 璧烽€愰〉鎶婂唴瀹瑰尯瀵归綈 bento 瑙嗚銆?         */
+        /* 圈子详情：唯一带 Stitch 侧栏 + Bento 背景的页面 */
         element: <BentoAppShell />,
         children: [
+          {
+            path: 'circles/:id',
+            element: (
+              <LazyLoad>
+                <CircleHubLayout />
+              </LazyLoad>
+            ),
+            children: [
+              { index: true, element: <Navigate to="community" replace /> },
+              {
+                path: 'home',
+                element: (
+                  <LazyLoad>
+                    <CircleHubHome />
+                  </LazyLoad>
+                ),
+              },
+              {
+                path: 'community',
+                element: (
+                  <LazyLoad>
+                    <CircleHubCommunity />
+                  </LazyLoad>
+                ),
+              },
+              {
+                path: 'resources',
+                element: (
+                  <LazyLoad>
+                    <CircleHubResources />
+                  </LazyLoad>
+                ),
+              },
+              {
+                path: 'analytics',
+                element: (
+                  <LazyLoad>
+                    <CircleHubAnalytics />
+                  </LazyLoad>
+                ),
+              },
+              {
+                path: 'teams',
+                element: (
+                  <LazyLoad>
+                    <CircleHubTeams />
+                  </LazyLoad>
+                ),
+              },
+              {
+                path: 'help',
+                element: (
+                  <LazyLoad>
+                    <CircleHubHelp />
+                  </LazyLoad>
+                ),
+              },
+            ],
+          },
+        ],
+      },
+      {
+        element: <Layout />,
+        children: [
+          {
+            path: 'discover',
+            element: <Navigate to="/" replace />,
+          },
           {
             path: 'card-pool/explorer',
             element: (
@@ -154,14 +227,6 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'circles/:id',
-            element: (
-              <LazyLoad>
-                <CircleDetail />
-              </LazyLoad>
-            ),
-          },
-          {
             path: 'help/docs',
             element: (
               <LazyLoad>
@@ -176,15 +241,6 @@ export const router = createBrowserRouter([
                 <Help />
               </LazyLoad>
             ),
-          },
-        ],
-      },
-      {
-        element: <Layout />,
-        children: [
-          {
-            path: 'discover',
-            element: <Navigate to="/" replace />,
           },
           { path: 'profile/:id?', element: <Profile /> },
           {
@@ -395,6 +451,14 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <AgentChat />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'agent/tasks',
+            element: (
+              <LazyLoad>
+                <AgentTasksPage />
               </LazyLoad>
             ),
           },
