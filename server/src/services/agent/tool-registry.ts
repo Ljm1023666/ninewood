@@ -4,12 +4,18 @@ import type { ToolDefinition } from '../ai/types.js';
 export interface ToolContext {
   userId: string;
   conversationId?: string;
+  /**
+   * 可选：SSE 事件发送器。
+   * tool-runner 注入；纯单元测试可不传。
+   * 用途：tool_draft / plan / report 等需要向前端推送额外事件的工具。
+   */
+  send?: (event: string, data: unknown) => void;
 }
 
 /** 工具注册项：定义 + 执行函数 */
 export interface RegisteredTool {
   definition: ToolDefinition;
-  category: 'demand' | 'order' | 'user' | 'system' | 'skill';
+  category: 'demand' | 'order' | 'user' | 'system' | 'skill' | 'automation';
   /** 是否需要思考确认后才执行（默认 true） */
   requiresConfirmation: boolean;
   handler: (args: Record<string, unknown>, ctx: ToolContext) => Promise<ToolResult>;

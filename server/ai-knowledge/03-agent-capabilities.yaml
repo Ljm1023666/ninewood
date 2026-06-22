@@ -1,0 +1,330 @@
+# ============================================================================
+# 九木 Agent 能力矩阵 — 操作层 + 交付层
+# Agent L2/L3/L4 匹配本文件；FAQ 02 负责概念与 manual 步骤
+# 规格说明: docs/specs/AGENT-CAPABILITIES-YAML.md
+# ============================================================================
+
+meta:
+  version: "1.0"
+  updated: "2026-06-21"
+  platform_constitution:
+    - "公开需求、标签、用户公开资料默认可读，Agent 可直接查询"
+    - "读操作与页面跳转无需计划确认，但必须执行直播（步骤可见）"
+    - "写操作完成后必须交付 verification 链接，禁止仅在文字中声称已完成"
+    - "支付、注销、权限变更等禁区永不自动执行"
+
+# ── 禁区（L1 P1 → 拒绝 + 跳转）────────────────────────────────────────────
+
+forbidden:
+  - id: payment
+    signals: [支付, 付款, 转账, 扫码付, 确认支付]
+    message: "支付涉及资金安全，我无法代你完成，请在订单页手动支付。"
+    redirect_pattern: "/payment/{orderId}"
+    fallback_page: /orders
+
+  - id: account_delete
+    signals: [注销账号, 删除账号, 销户]
+    message: "账号注销不可恢复，请前往设置手动操作。"
+    redirect: /settings
+
+  - id: privilege_change
+    signals: [改权限, 设为管理员, 提升权限]
+    message: "权限变更只能由管理员在后台处理。"
+    redirect: /dashboard
+
+# ── 可执行能力 ──────────────────────────────────────────────────────────────
+
+capabilities:
+
+  # ─── Phase 1：只读 + 导航 ───
+
+  - id: read_knowledge
+    layer: operational
+    tool: read_knowledge
+    risk: read
+    side_effect: none
+    intent_signals: [怎么, 如何, 什么是, 为什么, 有什么用, 功能]
+    requires_confirm: false
+    est_duration: "< 2s"
+    delivery:
+      summary_template: "已查阅平台知识库：{query}"
+    fallback_faq: null
+    notes: "咨询意图 P5 优先；无写操作"
+
+  - id: navigate_page
+    layer: operational
+    tool: navigate_to
+    risk: read
+    side_effect: navigate
+    intent_signals: [去, 打开, 跳转, 前往, 带到, 进入]
+    requires_confirm: false
+    est_duration: "< 1s"
+    delivery:
+      summary_template: "正在前往{title}"
+      verification:
+        path: "{path}"
+        label: "打开页面"
+      auto_navigate: true
+
+  - id: search_demands
+    layer: operational
+    tool: search_demands
+    risk: read
+    side_effect: none
+    intent_signals: [搜需求, 搜索需求, 找需求, 查需求, 有没有.*需求]
+    requires_confirm: false
+    batchable: false
+    est_duration: "< 3s"
+    delivery:
+      summary_template: "找到 {count} 个相关需求"
+    notes: "返回列表含 id，供后续 open 使用"
+
+  - id: get_demand_detail
+    layer: operational
+    tool: get_demand_detail
+    risk: read
+    side_effect: none
+    intent_signals: [需求详情, 看看这个需求, 第一条需求, 详情]
+    requires_confirm: false
+    est_duration: "< 2s"
+    delivery:
+      summary_template: "已读取需求「{title}」"
+      verification:
+        path: "/demands/{id}"
+        label: "查看需求详情"
+
+  - id: search_and_open_first
+    layer: operational
+    tool: null
+    risk: read
+    side_effect: navigate
+    intent_signals: [打开第一个, 并打开第一个, 打开第一条, 看第一个, 并打开]
+    requires_confirm: false
+    plan_template: null
+    composite_chain:
+      - tool: search_demands
+        params_from: user
+      - tool: navigate_to
+        params:
+          path: "/demands/{firstId}"
+        when: "search.result.count > 0"
+    delivery:
+      summary_template: "已找到相关需求并打开第一条"
+      verification:
+        path: "/demands/{firstId}"
+        label: "查看需求详情"
+      auto_navigate: true
+    notes: "复合意图；executor follow-up 已实现 search→navigate"
+
+  - id: list_my_demands
+    layer: operational
+    tool: list_my_demands
+    risk: read
+    side_effect: none
+    intent_signals: [我的需求, 我发的需求, 我发布的需求]
+    requires_confirm: false
+    delivery:
+      summary_template: "已获取你的需求列表"
+      verification:
+        path: /my-demands
+        label: "前往我的需求"
+
+  - id: list_my_orders
+    layer: operational
+    tool: list_my_orders
+    risk: read
+    side_effect: none
+    intent_signals: [我的订单, 订单列表, 进行中的订单]
+    requires_confirm: false
+    delivery:
+      summary_template: "已获取你的订单"
+      verification:
+        path: /orders
+        label: "前往订单"
+
+  - id: list_my_applications
+    layer: operational
+    tool: list_my_applications
+    risk: read
+    side_effect: none
+    intent_signals: [我的申请, 我申请的, 接单申请]
+    requires_confirm: false
+    delivery:
+      summary_template: "已获取你的申请记录"
+
+  - id: get_user_profile
+    layer: operational
+    tool: get_user_profile
+    risk: read
+    side_effect: none
+    intent_signals: [用户资料, 看谁, 这个人是谁]
+    requires_confirm: false
+    delivery:
+      summary_template: "已查看用户公开资料"
+      verification:
+        path: "/profile/{userId}"
+        label: "查看个人主页"
+
+  - id: search_users
+    layer: operational
+    tool: search_users
+    risk: read
+    side_effect: none
+    intent_signals: [找人, 搜索用户, 找服务者]
+    requires_confirm: false
+    delivery:
+      summary_template: "找到 {count} 位相关用户"
+      verification:
+        path: /search
+        label: "前往找人"
+
+  # ─── Phase 2：写操作（计划公示 + 确认/批准）───
+
+  - id: create_demand
+    layer: operational
+    tool: create_demand
+    risk: medium
+    side_effect: write_once
+    intent_signals: [发布需求, 发需求, 创建一个需求, 帮我发]
+    plan_template: how-to-publish
+    rule_ids:
+      - PUBLISH_REQUIRES_VERIFIED
+      - PUBLISH_REQUIRES_NO_FROZEN
+      - TITLE_LENGTH
+      - DESCRIPTION_LENGTH
+      - BUDGET_RANGE
+      - EXPIRE_DAYS
+    requires_confirm: true
+    est_duration: "< 5s"
+    delivery:
+      summary_template: "需求 #{id} 已创建并提交审核"
+      verification:
+        path: "/demands/{id}"
+        label: "查看需求详情"
+      rollback:
+        hint: "审核通过前可说「撤回需求 #{id}」"
+        utterance: "撤回需求 {id}"
+        tool: withdraw_demand
+
+  - id: update_demand
+    layer: operational
+    tool: update_demand
+    risk: medium
+    side_effect: write_once
+    intent_signals: [修改需求, 改需求, 更新需求, 改标题, 改预算]
+    requires_confirm: true
+    delivery:
+      summary_template: "需求 #{id} 已更新"
+      verification:
+        path: "/demands/{id}"
+        label: "查看更新后的需求"
+
+  - id: withdraw_demand
+    layer: operational
+    tool: withdraw_demand
+    risk: medium
+    side_effect: write_once
+    intent_signals: [下架需求, 撤回需求, 取消需求, 删除需求]
+    plan_template: how-to-cancel
+    requires_confirm: true
+    delivery:
+      summary_template: "需求 #{id} 已下架"
+      verification:
+        path: /my-demands
+        label: "前往我的需求"
+
+  - id: apply_for_demand
+    layer: operational
+    tool: apply_for_demand
+    risk: medium
+    side_effect: write_once
+    intent_signals: [申请接单, 接单, 我要接这个单]
+    rule_ids:
+      - SNATCH_REQUIRES_CERT
+      - SNATCH_REQUIRES_CREDITS
+      - SELF_APPLY_FORBIDDEN
+      - CERTIFIED_ONLY_APPLY
+    requires_confirm: true
+    delivery:
+      summary_template: "已向需求 #{demandId} 提交申请"
+      verification:
+        path: "/demands/{demandId}"
+        label: "查看需求详情"
+
+  - id: accept_applicant
+    layer: operational
+    tool: accept_applicant
+    risk: high
+    side_effect: write_once
+    intent_signals: [接受申请, 接受.*的申请, 选这个服务者]
+    requires_confirm: true
+    delivery:
+      summary_template: "已接受申请人，订单已创建"
+      verification:
+        path: /orders
+        label: "前往订单"
+
+  - id: reject_applicant
+    layer: operational
+    tool: reject_applicant
+    risk: medium
+    side_effect: write_once
+    intent_signals: [拒绝申请, 拒绝.*的申请]
+    requires_confirm: true
+    delivery:
+      summary_template: "已拒绝该申请"
+
+  # ─── Phase 3：批量（规格预留）───
+
+  - id: batch_withdraw_demands
+    layer: operational
+    tool: withdraw_demand
+    risk: high
+    side_effect: write_batch
+    intent_signals: [全部下架, 批量下架, 所有.*下架]
+    requires_confirm: true
+    batchable: true
+    batch_limit: 20
+    delivery:
+      summary_template: "已批量下架 {count} 个需求"
+      verification:
+        path: /my-demands
+        label: "前往我的需求"
+    notes: "需先 list_my_demands 评估范围；Phase 3 实现"
+
+  # ─── Phase 4：自动化（Task 10 落地） ───
+  # 平台宪法：自动化只读 + 只推送；创建必经 Task Draft Card 用户确认（spec §0.1/§7.2）
+  # 此能力是 L1（自动执行），不需要 requires_confirm 二次确认——草稿卡本身就是确认环节
+  # 禁止在 capability layer 加任何写工具；详见 spec §0.1
+
+  - id: schedule_demand_digest
+    layer: operational
+    tool: draft_automation_task
+    risk: read
+    side_effect: none
+    intent_signals: [每天, 每周, 每小时, 定时, 早上.*筛选, 自动.*筛, 定时任务, 自动筛, 需求推送]
+    requires_confirm: false
+    est_duration: "< 3s"
+    delivery:
+      summary_template: "定时任务「{taskName}」已创建"
+      verification:
+        path: /agent/tasks
+        label: "管理我的任务"
+      auto_navigate: false
+    notes: "Task 10；仅查询+推送；确认走 Task Draft Card；频率 HOURLY/DAILY/WEEKLY"
+
+# ── 交付模板片段（可选引用）────────────────────────────────────────────────
+
+delivery_templates:
+  demand_link:
+    verification:
+      path: "/demands/{id}"
+      label: "查看需求详情"
+  my_demands_link:
+    verification:
+      path: /my-demands
+      label: "前往我的需求"
+  orders_link:
+    verification:
+      path: /orders
+      label: "前往订单"

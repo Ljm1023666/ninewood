@@ -918,4 +918,140 @@ export function registerNinewoodTools(): void {
   registerUserTools();
   registerKnowledgeTools();
   registerNavigateTool();
+  registerAutomationTools();
+}
+
+// ─── Task 10 · 自动化任务工具 ────────────────────────────────────────────────
+//
+// 平台宪法（不可违反，spec §0.1）：
+//   - 调度器只读 + 只推送；此工具仅产草稿（side_effect: none），不直接创建任务
+//   - 创建必经 Task Draft Card 用户确认
+//
+// draft_automation_task:
+//   - L1（自动执行，不需确认）
+//   - handler 校验 filters，渲染人类可读时刻/筛选条件
+//   - 通过 ctx.send('task_draft', ...) 推到前端
+//   - 不进入写操作 plan 流；不发 report 卡
+
+function registerAutomationTools(): void {
+  toolRegistry.register({
+    definition: {
+      name: 'draft_automation_task',
+      description:
+        '根据用户自然语言起草一个自动化任务（定时筛选 + 推送摘要）。只产草稿，不直接创建；由 Task Draft Card 用户确认后再 POST /api/agent/tasks。',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: '任务名（1-50 字）' },
+          type: { type: 'string', enum: ['DEMAND_DIGEST'], description: '任务类型；MVP 仅 DEMAND_DIGEST' },
+          frequency: { type: 'string', enum: ['HOURLY', 'DAILY', 'WEEKLY'], description: '运行频率' },
+          atHour: { type: 'number', description: 'DAILY/WEEKLY 时的小时（0-23）' },
+          atMinute: { type: 'number', description: '分钟（0-59），HOURLY 时即每小时 :atMinute' },
+          weekday: { type: 'number', description: 'WEEKLY 时的星期（1=周一 ... 7=周日）' },
+          filters: { type: 'object', description: '类型私有参数（对齐 DEMAND_DIGEST 白名单）' },
+          deliveryChannels: {
+            type: 'array',
+            items: { type: 'string', enum: ['MESSAGE', 'AGENT_INBOX'] },
+            description: '投递通道；默认 [MESSAGE, AGENT_INBOX]',
+          },
+        },
+        required: ['name', 'type', 'frequency', 'filters'],
+      },
+    },
+    category: 'automation',
+    requiresConfirmation: false, // 草稿卡自身就是确认环节
+    handler: async (args, ctx) => {
+      const name = String(args.name ?? '').trim()
+      const type = String(args.type ?? '')
+      const frequency = String(args.frequency ?? '')
+      const filters = (args.filters ?? {}) as Record<string, unknown>
+
+      if (!name || name.length > 50) return fail('NAME_INVALID', 'name 必须为 1-50 字符串')
+      if (type !== 'DEMAND_DIGEST') return fail('TYPE_INVALID', 'type 必须是 DEMAND_DIGEST')
+      if (!['HOURLY', 'DAILY', 'WEEKLY'].includes(frequency)) {
+        return fail('FREQUENCY_INVALID', 'frequency 必须是 HOURLY/DAILY/WEEKLY')
+      }
+
+      // 频率字段合法性
+      let atHour: number | null = null
+      let atMinute = 0
+      let weekday: number | null = null
+      if (frequency === 'DAILY' || frequency === 'WEEKLY') {
+        if (typeof args.atHour !== 'number') return fail('AT_HOUR_INVALID', 'DAILY/WEEKLY 必须传 atHour')
+        atHour = args.atHour
+      }
+      if (frequency === 'WEEKLY') {
+        if (typeof args.weekday !== 'number') return fail('WEEKDAY_INVALID', 'WEEKLY 必须传 weekday (1-7)')
+        weekday = args.weekday
+      }
+      if (typeof args.atMinute === 'number') atMinute = args.atMinute
+
+      // filters 通过注册表 validate
+      const { getTaskType } = await import('./task-types/index.js')
+      const t = getTaskType(type)
+      if (!t) return fail('TYPE_NOT_FOUND', `未知任务类型: ${type}`)
+      const v = t.validateFilters(filters)
+      if (!v.ok) return fail('FILTERS_INVALID', v.error || 'filters 不合法')
+      const normalized = v.normalized!
+
+      // deliveryChannels 默认两者
+      let deliveryChannels: ('MESSAGE' | 'AGENT_INBOX')[]
+      if (Array.isArray(args.deliveryChannels)) {
+        const allowed = new Set(['MESSAGE', 'AGENT_INBOX'])
+        deliveryChannels = args.deliveryChannels.filter(
+          (c): c is 'MESSAGE' | 'AGENT_INBOX' => typeof c === 'string' && allowed.has(c),
+        )
+        if (deliveryChannels.length === 0) deliveryChannels = ['MESSAGE', 'AGENT_INBOX']
+      } else {
+        deliveryChannels = ['MESSAGE', 'AGENT_INBOX']
+      }
+
+      // 人类可读时刻/筛选（import 是动态；schema 已在 schema)
+      const { describeSchedule } = await import('./task-schedule.js')
+      const humanSchedule = describeSchedule({ frequency: frequency as 'HOURLY' | 'DAILY' | 'WEEKLY', atHour, atMinute, weekday })
+      const humanFilters = describeFilters(type, normalized)
+
+      const draftId = `draft_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+
+      const draft = {
+        draftId,
+        name,
+        type,
+        frequency,
+        atHour,
+        atMinute,
+        weekday,
+        filters: normalized,
+        deliveryChannels,
+        humanSchedule,
+        humanFilters,
+      }
+
+      // 推送 SSE task_draft 事件（spec §7.3）
+      if (ctx.send) {
+        try {
+          ctx.send('task_draft', draft)
+        } catch {
+          // 推送失败不阻塞草稿返回
+        }
+      }
+
+      return ok(draft, `已生成自动化任务草稿：${name}（${humanSchedule}）`)
+    },
+  })
+}
+
+function describeFilters(type: string, filters: Record<string, unknown>): string {
+  if (type !== 'DEMAND_DIGEST') return JSON.stringify(filters)
+  const parts: string[] = []
+  if (typeof filters.keyword === 'string' && filters.keyword) parts.push(`关键词「${filters.keyword}」`)
+  if (typeof filters.category === 'string' && filters.category) parts.push(`分类「${filters.category}」`)
+  if (typeof filters.tagName === 'string' && filters.tagName) parts.push(`标签「${filters.tagName}」`)
+  if (filters.serviceType === 'ONLINE') parts.push('线上')
+  else if (filters.serviceType === 'OFFLINE') parts.push('线下')
+  if (typeof filters.cityCode === 'string' && filters.cityCode) parts.push(`城市 ${filters.cityCode}`)
+  if (typeof filters.minPrice === 'number') parts.push(`最低 ¥${filters.minPrice}`)
+  if (typeof filters.maxPrice === 'number') parts.push(`最高 ¥${filters.maxPrice}`)
+  if (typeof filters.createdWithinHours === 'number') parts.push(`近 ${filters.createdWithinHours} 小时内发布`)
+  return parts.length > 0 ? parts.join('，') : '无筛选条件'
 }

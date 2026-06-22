@@ -12,6 +12,7 @@ import type { ExecutedTool } from './follow-up-tools.js'
 import { extractNavigatePath } from './follow-up-tools.js'
 import { renderDeliveryForTool } from './delivery-template.js'
 import { getCapabilityByTool } from './capability-matcher.js'
+import { shouldEmitToolReport } from './agent-tool-synthesis.js'
 
 type EventSender = (event: string, data: unknown) => void
 
@@ -151,6 +152,8 @@ export async function processToolInvocations(
     const result = await toolRegistry.execute(name, args, {
       userId: ctx.userId,
       conversationId: ctx.conversationId,
+      // Task 10：注入 SSE 发送器，draft_automation_task 用它推 task_draft 事件
+      send: ctx.send,
     })
     const doneStep = describeToolDone(name, result.message, false)
     stored = {
@@ -176,21 +179,24 @@ export async function processToolInvocations(
       message: result.message,
     })
 
-    // Wave C：执行完成后发 report（写操作或含 verification 的能力）
+    // Wave C：写操作 / 导航链才发 report；纯查阅（read_knowledge 等）不发「全部完成」卡
     if (result.success) {
-      const delivery = renderDeliveryForTool(name, {
-        ...args,
-        ...((result.data as Record<string, unknown>) ?? {}),
-      })
-      if (delivery && (delivery.summary || delivery.verification || delivery.rollback)) {
-        ctx.send('report', {
-          toolCallId,
-          name,
-          summary: delivery.summary,
-          verification: delivery.verification,
-          rollback: delivery.rollback,
-          autoNavigate: delivery.autoNavigate,
+      const cap = getCapabilityByTool(name)
+      if (shouldEmitToolReport(cap?.side_effect)) {
+        const delivery = renderDeliveryForTool(name, {
+          ...args,
+          ...((result.data as Record<string, unknown>) ?? {}),
         })
+        if (delivery && (delivery.summary || delivery.verification || delivery.rollback)) {
+          ctx.send('report', {
+            toolCallId,
+            name,
+            summary: delivery.summary,
+            verification: delivery.verification,
+            rollback: delivery.rollback,
+            autoNavigate: delivery.autoNavigate,
+          })
+        }
       }
     }
 
