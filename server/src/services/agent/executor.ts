@@ -1,6 +1,6 @@
 import { config, resolveLlmCredentials } from '../../config.js';
 import { readSSEStream } from '../ai/client.js';
-import { toolRegistry, type ToolContext } from './tool-registry.js';
+import { toolRegistry, type ToolContext, type RegisteredTool } from './tool-registry.js';
 import { loadAllSkills, buildSkillPrompt } from './skill-loader.js';
 import { buildKnowledgeIndex } from './knowledge-loader.js';
 import { addMessage, truncateTitle } from './conversation.js';
@@ -14,7 +14,7 @@ import {
   filterToolsForAccessMode,
   type StoredToolCall,
 } from './tool-narration.js';
-import { inferFollowUpTools } from './follow-up-tools.js';
+import { inferFollowUpTools, type ExecutedTool } from './follow-up-tools.js';
 import { processToolInvocations } from './tool-runner.js';
 import { matchForbidden } from './capability-matcher.js';
 
@@ -273,146 +273,114 @@ export async function executeAgent(
     });
     await truncateTitle(conversationId, message);
 
-    // 构建请求体
-    const selectedModel = model || config.aiModel
-    const body: Record<string, unknown> = {
-      model: selectedModel,
-      max_tokens: 4096,
-      temperature: 0.1,
-      stream: true,
-      messages,
-    };
-
-    const { baseUrl: apiBaseUrl, apiKey } = resolveLlmCredentials(selectedModel)
-    const isDeepSeek = selectedModel.startsWith('deepseek')
-
-    if (thinking) {
-      // DeepSeek V4+ 用 thinking_mode，旧模型用 thinking
-      if (selectedModel.startsWith('deepseek-v4')) {
-        body.thinking_mode = 'thinking'
-      } else {
-        body.thinking = { type: 'enabled' }
-      }
-    } else if (selectedModel.startsWith('deepseek-v4')) {
-      // DeepSeek V4 默认开启思考，关闭时必须显式指定 non-thinking
-      body.thinking_mode = 'non-thinking'
-    }
-
-    if (useWebSearch) {
-      body.web_search = isDeepSeek ? { enable: true } : true
-    }
-
-    if (useTools) {
-      body.tools = toolRegistry.toOpenAITools(toolFilter);
-      body.tool_choice = 'auto';
-    }
-
-    // 流式调用
-    const aiRes = await fetch(`${apiBaseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!aiRes.ok) {
-      const errText = await aiRes.text().catch(() => '');
-      send('error', { message: `AI API ${aiRes.status}: ${errText}` });
-      return;
-    }
-
-    const reader = aiRes.body?.getReader();
-    if (!reader) {
-      send('error', { message: '无法读取 AI 流' });
-      return;
-    }
-
-    // 工具调用累积
-    const toolCallsMap = new Map<
-      number,
-      { id: string; name: string; arguments: string }
-    >();
-
-    // 非思考模式下：过滤 MiniMax 自带的 <think> 标签
-    const thinkStripper = thinking ? null : createThinkStripper()
-
-    // 使用共享 SSE 流读取器
-    const { fullContent, reasoningContent, thinkLinesSent } = await readSSEStream(
-      reader,
-      {
-        onTextDelta: (delta) => {
-          if (thinkStripper) {
-            const cleaned = thinkStripper.feed(delta)
-            if (cleaned) send('text', { delta: cleaned })
-          } else {
-            send('text', { delta })
-          }
-        },
-        onThinkLine: thinking ? (line) => {
-          send('think', { line });
-        } : undefined,
-        onReasoningLine: thinking ? (line) => {
-          send('think', { line });
-        } : undefined,
-        onToolCallDelta: (deltas) => {
-          for (const tc of deltas) {
-            const idx = tc.index ?? 0;
-            if (!toolCallsMap.has(idx)) {
-              toolCallsMap.set(idx, { id: tc.id || '', name: '', arguments: '' });
-            }
-            const acc = toolCallsMap.get(idx)!;
-            if (tc.id) acc.id = tc.id;
-            if (tc.function?.name) acc.name += tc.function.name;
-            if (tc.function?.arguments) acc.arguments += tc.function.arguments;
-          }
-        },
-      },
-    );
-
-    if (thinkLinesSent > 0) {
-      send('think-end', 'ok');
-    }
-
-    // 限流：截断超过上限的工具调用
-    const allToolCalls = Array.from(toolCallsMap.values()).filter((tc) => tc.name);
-    const exceeded = allToolCalls.length > MAX_TOOL_CALLS;
-    const limitedToolCalls = allToolCalls.slice(0, MAX_TOOL_CALLS);
-
-    // 批量处理工具调用
-    const initialInvocations = limitedToolCalls.map((tc) => {
-      let args: Record<string, unknown> = {};
-      try { args = JSON.parse(tc.arguments); } catch { /* use empty */ }
-      return { name: tc.name, arguments: args };
-    });
-
+    // ── 多轮 tool loop（Wave D）：最多 MAX_CHAIN_DEPTH 轮 tool_use 循环 ──
+    const selectedModel = model || config.aiModel;
     const toolCtx = { userId, conversationId, accessMode, send };
-    let { storedCalls, toolResults, executed } = await processToolInvocations(
-      initialInvocations,
-      toolCtx,
-    );
+    const allStoredCalls: StoredToolCall[] = [];
+    const allExecuted: ExecutedTool[] = [];
+    let lastRoundHadTools = false;
+    let thinkStripper: ReturnType<typeof createThinkStripper> | null = null;
 
-    // 意图跟进：如「搜索并打开第一个」在只搜完后自动跳转
-    const followUps = inferFollowUpTools(message, executed);
-    if (followUps.length > 0) {
-      const extra = await processToolInvocations(followUps, toolCtx);
-      storedCalls = [...storedCalls, ...extra.storedCalls];
-      toolResults = [...toolResults, ...extra.toolResults];
-      executed = [...executed, ...extra.executed];
-    }
+    for (let chainDepth = 0; chainDepth <= MAX_CHAIN_DEPTH; chainDepth++) {
+      if (!thinking && thinkStripper === null) {
+        thinkStripper = createThinkStripper();
+      }
 
-    // 如果工具调用数超过限制，追加一条说明
-    if (exceeded) {
-      send('text', {
-        delta: `\n\n（提示：一次执行的操作较多，已自动限制为前 ${MAX_TOOL_CALLS} 项。如有需要可以分多次告诉我。）`,
+      const round = await runAgentRound({
+        messages,
+        model: selectedModel,
+        thinking,
+        webSearch: useWebSearch,
+        useTools,
+        toolFilter,
+        thinkStripper,
+        send,
       });
+
+      if (round.error) {
+        send('error', { message: round.error });
+        return;
+      }
+
+      const exceeded = round.toolCalls.length > MAX_TOOL_CALLS;
+      const limitedToolCalls = round.toolCalls.slice(0, MAX_TOOL_CALLS);
+
+      if (limitedToolCalls.length === 0) {
+        lastRoundHadTools = false;
+        break;
+      }
+      lastRoundHadTools = true;
+
+      // 追加 assistant 消息（带 tool_calls 元数据）供下一轮 LLM 引用
+      messages.push({
+        role: 'assistant',
+        content: round.content || '',
+        ...({ tool_calls: limitedToolCalls } as unknown as Record<string, unknown>),
+      });
+
+      // 执行工具
+      const invocations = limitedToolCalls.map((tc) => {
+        let args: Record<string, unknown> = {};
+        try { args = JSON.parse(tc.arguments); } catch { /* use empty */ }
+        return { name: tc.name, arguments: args };
+      });
+
+      const { storedCalls, toolResults, executed } = await processToolInvocations(
+        invocations,
+        toolCtx,
+      );
+
+      // 首轮意图跟进（如「搜索并打开第一个」）
+      let followUpExtras: Awaited<ReturnType<typeof processToolInvocations>> | null = null;
+      if (chainDepth === 0) {
+        const followUps = inferFollowUpTools(message, executed);
+        if (followUps.length > 0) {
+          followUpExtras = await processToolInvocations(followUps, toolCtx);
+        }
+      }
+
+      const combined = {
+        storedCalls: [...storedCalls, ...(followUpExtras?.storedCalls ?? [])],
+        toolResults: [...toolResults, ...(followUpExtras?.toolResults ?? [])],
+        executed: [...executed, ...(followUpExtras?.executed ?? [])],
+      };
+      allStoredCalls.push(...combined.storedCalls);
+      allExecuted.push(...combined.executed);
+
+      // 追加 tool 消息（OpenAI 格式）
+      for (let i = 0; i < combined.toolResults.length; i++) {
+        const tr = combined.toolResults[i]!;
+        const tc = limitedToolCalls[i];
+        messages.push({
+          role: 'tool',
+          content: JSON.stringify({
+            success: tr.success,
+            data: tr.data,
+            error: tr.error,
+            message: tr.message,
+          }),
+          ...({ tool_call_id: tc?.id } as unknown as Record<string, unknown>),
+        });
+      }
+
+      // pending（等待用户批准）→ 终止循环
+      const hasPending = combined.toolResults.some(
+        (r) => r.data && typeof r.data === 'object' && (r.data as { pending?: boolean }).pending,
+      );
+      if (hasPending) break;
+
+      if (exceeded) {
+        send('text', {
+          delta: `\n\n（提示：一次执行的操作较多，已自动限制为前 ${MAX_TOOL_CALLS} 项。如有需要可以分多次告诉我。）`,
+        });
+        break;
+      }
     }
 
-    // 如果有非 pending 的工具结果，做一次批量总结
-    const summarizable = toolResults.filter(
-      (r) => !(r.data && typeof r.data === 'object' && (r.data as { pending?: boolean }).pending),
-    );
+    // 最后一轮：批量总结（无 tools）
+    const summarizable = allExecuted
+      .map((e) => e.result)
+      .filter((r) => !(r.data && typeof r.data === 'object' && (r.data as { pending?: boolean }).pending));
     if (summarizable.length > 0) {
       await continueWithToolResults(
         messages,
@@ -424,21 +392,19 @@ export async function executeAgent(
       );
     }
 
-    // 非思考模式下冲洗残留缓冲 + 清理 fullContent
+    // 非思考模式下冲洗残留缓冲
     const flushed = thinkStripper?.flush()
     if (flushed) send('text', { delta: flushed })
-
-    const cleanedContent = thinking ? fullContent : fullContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
 
     // 保存 assistant 消息（含工具步骤与 pending 状态）
     await addMessage({
       conversationId,
       role: 'assistant',
-      content: cleanedContent,
-      thinking: reasoningContent || undefined,
+      content: '',  // 多轮循环下 content 已实时流式推送，不重复落库
+      thinking: undefined,
       toolCalls:
-        storedCalls.length > 0
-          ? storedCalls.map((c) => ({
+        allStoredCalls.length > 0
+          ? allStoredCalls.map((c) => ({
               id: c.id,
               name: c.name,
               arguments: c.arguments,
@@ -456,6 +422,116 @@ export async function executeAgent(
     console.error('[Agent] executor error:', e.message);
     send('error', { message: e.message || 'Agent 执行异常' });
   }
+}
+
+/** 单轮 LLM 调用（流式），返回累积 content + toolCalls */
+async function runAgentRound(opts: {
+  messages: { role: string; content: string }[]
+  model: string
+  thinking: boolean
+  webSearch: boolean
+  useTools: boolean
+  toolFilter: (t: RegisteredTool) => boolean
+  thinkStripper: ReturnType<typeof createThinkStripper> | null
+  send: EventSender
+}): Promise<{
+  content: string
+  toolCalls: Array<{ id: string; name: string; arguments: string }>
+  error?: string
+}> {
+  const { messages, model, thinking, webSearch, useTools, toolFilter, thinkStripper, send } = opts
+  const isDeepSeek = model.startsWith('deepseek')
+
+  const body: Record<string, unknown> = {
+    model,
+    max_tokens: 4096,
+    temperature: 0.1,
+    stream: true,
+    messages,
+  }
+
+  if (thinking) {
+    if (model.startsWith('deepseek-v4')) {
+      body.thinking_mode = 'thinking'
+    } else {
+      body.thinking = { type: 'enabled' }
+    }
+  } else if (model.startsWith('deepseek-v4')) {
+    body.thinking_mode = 'non-thinking'
+  }
+
+  if (webSearch) {
+    body.web_search = isDeepSeek ? { enable: true } : true
+  }
+
+  if (useTools) {
+    body.tools = toolRegistry.toOpenAITools(toolFilter)
+    body.tool_choice = 'auto'
+  }
+
+  let apiBaseUrl: string
+  let apiKey: string
+  try {
+    const creds = resolveLlmCredentials(model)
+    apiBaseUrl = creds.baseUrl
+    apiKey = creds.apiKey
+  } catch (e: any) {
+    return { content: '', toolCalls: [], error: e.message }
+  }
+
+  const aiRes = await fetch(`${apiBaseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!aiRes.ok) {
+    const errText = await aiRes.text().catch(() => '')
+    return { content: '', toolCalls: [], error: `AI API ${aiRes.status}: ${errText}` }
+  }
+
+  const reader = aiRes.body?.getReader()
+  if (!reader) {
+    return { content: '', toolCalls: [], error: '无法读取 AI 流' }
+  }
+
+  const toolCallsMap = new Map<
+    number,
+    { id: string; name: string; arguments: string }
+  >()
+
+  const { fullContent, thinkLinesSent } = await readSSEStream(reader, {
+    onTextDelta: (delta) => {
+      if (thinkStripper) {
+        const cleaned = thinkStripper.feed(delta)
+        if (cleaned) send('text', { delta: cleaned })
+      } else {
+        send('text', { delta })
+      }
+    },
+    onThinkLine: thinking ? (line) => send('think', { line }) : undefined,
+    onReasoningLine: thinking ? (line) => send('think', { line }) : undefined,
+    onToolCallDelta: (deltas) => {
+      for (const tc of deltas) {
+        const idx = tc.index ?? 0
+        if (!toolCallsMap.has(idx)) {
+          toolCallsMap.set(idx, { id: tc.id || '', name: '', arguments: '' })
+        }
+        const acc = toolCallsMap.get(idx)!
+        if (tc.id) acc.id = tc.id
+        if (tc.function?.name) acc.name += tc.function.name
+        if (tc.function?.arguments) acc.arguments += tc.function.arguments
+      }
+    },
+  })
+
+  if (thinkLinesSent > 0) send('think-end', 'ok')
+
+  const toolCalls = Array.from(toolCallsMap.values()).filter((tc) => tc.name)
+  return { content: fullContent, toolCalls }
 }
 
 /** 工具执行后一次性总结所有结果（单次 AI 调用） */
