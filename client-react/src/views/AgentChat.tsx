@@ -25,9 +25,16 @@ import {
 import {
   readStoredAccessMode,
   AGENT_ACCESS_STORAGE_KEY,
-  AGENT_TOOL_LABELS,
   type AgentAccessMode,
 } from '@/types/agent-access'
+import {
+  normalizeToolCall,
+  type AgentToolCall,
+} from '@/types/agent-tool-call'
+import { AgentToolCallCard } from '@/components/agent/agent-tool-call-card'
+import { AgentForbiddenCard, type AgentForbiddenCardData } from '@/components/agent/agent-forbidden-card'
+import { AgentPlanCard, type AgentPlanCardData } from '@/components/agent/agent-plan-card'
+import { AgentExecutionReportCard, type AgentReportData } from '@/components/agent/agent-execution-report-card'
 import { classifyIntent } from '@/services/intent-classifier'
 import { useThemeStore } from '@/stores/theme'
 import { cn } from '@/lib/utils'
@@ -58,14 +65,7 @@ function preloadRoute(path: string) {
   match?.[1]()?.catch(() => {})
 }
 
-interface ToolCallDisplay {
-  name: string
-  arguments: Record<string, unknown>
-  result?: string
-  data?: Record<string, unknown>
-  success?: boolean
-  pending?: boolean
-}
+interface ToolCallDisplay extends AgentToolCall {}
 
 export default function AgentChat() {
   const navigate = useNavigate()
@@ -82,6 +82,9 @@ export default function AgentChat() {
   const [thinkingLines, setThinkingLines] = useState<string[]>([])
   const [thinkingCollapsed, setThinkingCollapsed] = useState(false)
   const [toolCalls, setToolCalls] = useState<ToolCallDisplay[]>([])
+  const [forbiddenCards, setForbiddenCards] = useState<AgentForbiddenCardData[]>([])
+  const [planCards, setPlanCards] = useState<AgentPlanCardData[]>([])
+  const [reportCards, setReportCards] = useState<AgentReportData[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [threadSearch, setThreadSearch] = useState('')
   const [historyExpanded, setHistoryExpanded] = useState(false)
@@ -228,6 +231,14 @@ export default function AgentChat() {
     [activeId, loadConversations],
   )
 
+  const handleAgentNavigate = useCallback(
+    (path: string) => {
+      preloadRoute(path)
+      setTimeout(() => navigate(path), 600)
+    },
+    [navigate],
+  )
+
   const navigateWithDelay = useCallback(
     async (path: string, title: string, userText?: string) => {
       if (userText) {
@@ -318,6 +329,8 @@ export default function AgentChat() {
       setStreamText('')
       setThinkingLines([])
       setToolCalls([])
+      setPlanCards([])
+      setReportCards([])
       setThinking(false)
       const stream = streamMessage(
         convId,
@@ -344,36 +357,103 @@ export default function AgentChat() {
         ft += (d as any).delta
         setStreamText((p) => p + (d as any).delta)
       })
+      stream.onEvent('forbidden', (d: unknown) => {
+        const x = d as AgentForbiddenCardData
+        setForbiddenCards((prev) => [...prev, x])
+      })
+      stream.onEvent('plan', (d: unknown) => {
+        const x = d as AgentPlanCardData
+        setPlanCards((prev) => [...prev, x])
+      })
+      stream.onEvent('report', (d: unknown) => {
+        const x = d as AgentReportData
+        setReportCards((prev) => [...prev, x])
+      })
       stream.onEvent('tool_call', (d: unknown) => {
-        const x = d as any
-        tc = [...tc, { name: x.name, arguments: x.arguments }]
+        const x = d as { id?: string; name: string; arguments: Record<string, unknown> }
+        tc = [
+          ...tc,
+          {
+            id: x.id,
+            name: x.name,
+            arguments: x.arguments,
+            status: 'running',
+            steps: [],
+          },
+        ]
+        setToolCalls([...tc])
+      })
+      stream.onEvent('tool_step', (d: unknown) => {
+        const x = d as { id?: string; text: string }
+        tc = tc.map((t) =>
+          x.id
+            ? t.id === x.id
+              ? { ...t, steps: [...(t.steps ?? []), x.text] }
+              : t
+            : { ...t, steps: [...(t.steps ?? []), x.text] },
+        )
+        setToolCalls([...tc])
+      })
+      stream.onEvent('navigate', (d: unknown) => {
+        const path = (d as { path?: string }).path
+        if (path) handleAgentNavigate(path)
+      })
+      stream.onEvent('tool_pending', (d: unknown) => {
+        const x = d as {
+          id?: string
+          name: string
+          arguments: Record<string, unknown>
+          message?: string
+        }
+        tc = tc.map((t) =>
+          t.name === x.name && (t.status === 'running' || !t.result)
+            ? {
+                ...t,
+                id: x.id ?? t.id,
+                status: 'pending' as const,
+                result: x.message,
+                data: { pending: true, ...(t.data ?? {}) },
+              }
+            : t,
+        )
         setToolCalls([...tc])
       })
       stream.onEvent('tool_result', (d: unknown) => {
         const x = d as {
+          id?: string
           name: string
           message?: string
           data?: Record<string, unknown>
           success?: boolean
         }
-        const idx = tc.findIndex((t) => t.name === x.name && !t.result)
+        const idx = tc.findIndex(
+          (t) =>
+            (x.id && t.id === x.id) ||
+            (t.name === x.name && (t.status === 'running' || !t.result)),
+        )
         if (idx >= 0) {
+          const pending = x.data?.pending === true
           tc = tc.map((t, i) =>
             i === idx
               ? {
                   ...t,
+                  id: x.id ?? t.id,
+                  status: pending ? ('pending' as const) : ('executed' as const),
                   result: x.message,
                   data: x.data,
                   success: x.success,
-                  pending: x.data?.pending === true,
                 }
               : t,
           )
           setToolCalls([...tc])
         }
-        if (x.name === 'navigate_to' && x.success && x.data?.path) {
-          preloadRoute(x.data.path as string)
-          setTimeout(() => navigate(x.data.path as string), 1000)
+        if (
+          x.name === 'navigate_to' &&
+          x.success &&
+          x.data?.path &&
+          x.data.pending !== true
+        ) {
+          handleAgentNavigate(x.data.path as string)
         }
       })
       stream.onEvent('think-end', () => setThinking(false))
@@ -388,10 +468,14 @@ export default function AgentChat() {
               thinking: ct.length ? ct.join('\n') : undefined,
               toolCalls: tc.length
                 ? tc.map((t) => ({
+                    id: t.id,
                     name: t.name,
                     arguments: t.arguments,
+                    status: t.status,
+                    steps: t.steps,
                     result: t.result,
                     data: t.data,
+                    success: t.success,
                   }))
                 : undefined,
               createdAt: new Date().toISOString(),
@@ -429,7 +513,7 @@ export default function AgentChat() {
       loadConversations,
       loadQuota,
       navigateWithDelay,
-      navigate,
+      handleAgentNavigate,
     ],
   )
 
@@ -447,35 +531,48 @@ export default function AgentChat() {
     async (convId: string, tool: ToolCallDisplay, approved: boolean) => {
       try {
         const res = await approveAgentTool(convId, {
+          toolCallId: tool.id,
           toolName: tool.name,
           arguments: tool.arguments,
           approved,
         })
+        const patch = {
+          status: (approved ? 'executed' : 'rejected') as AgentToolCall['status'],
+          result: res.message,
+          success: res.success,
+          data:
+            res.data && typeof res.data === 'object'
+              ? (res.data as Record<string, unknown>)
+              : tool.data,
+          steps: [...(tool.steps ?? []), res.message],
+        }
         setToolCalls((prev) =>
           prev.map((t) =>
-            t.name === tool.name && t.pending
-              ? {
-                  ...t,
-                  pending: false,
-                  result: res.message,
-                  success: res.success,
-                  data:
-                    res.data && typeof res.data === 'object'
-                      ? (res.data as Record<string, unknown>)
-                      : t.data,
-                }
+            (tool.id && t.id === tool.id) ||
+            (!tool.id && t.name === tool.name && t.status === 'pending')
+              ? { ...t, ...patch }
               : t,
           ),
         )
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `a-${Date.now().toString(36)}`,
-            role: 'assistant',
-            content: res.message,
-            createdAt: new Date().toISOString(),
-          },
-        ])
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (!msg.toolCalls?.length) return msg
+            const nextCalls = msg.toolCalls.map((tc) => {
+              const n = normalizeToolCall(tc)
+              if (
+                (tool.id && n.id === tool.id) ||
+                (!tool.id &&
+                  n.name === tool.name &&
+                  n.status === 'pending')
+              ) {
+                return { ...tc, ...patch }
+              }
+              return tc
+            })
+            const changed = nextCalls.some((c, i) => c !== msg.toolCalls![i])
+            return changed ? { ...msg, toolCalls: nextCalls } : msg
+          }),
+        )
         if (
           approved &&
           tool.name === 'navigate_to' &&
@@ -484,15 +581,13 @@ export default function AgentChat() {
           'path' in res.data &&
           typeof (res.data as { path?: string }).path === 'string'
         ) {
-          const path = (res.data as { path: string }).path
-          preloadRoute(path)
-          setTimeout(() => navigate(path), 1000)
+          handleAgentNavigate((res.data as { path: string }).path)
         }
       } catch (e) {
         console.error('[Agent] 批准工具失败:', e)
       }
     },
-    [navigate],
+    [handleAgentNavigate],
   )
 
 
@@ -783,37 +878,29 @@ export default function AgentChat() {
                           <div className="whitespace-pre-wrap text-sm leading-relaxed">
                             {msg.content}
                           </div>
-                          {msg.toolCalls?.map((tc, i) => (
-                            <div
-                              key={i}
-                              className="agent-codex-tool-card mt-3"
-                            >
-                              <div className="text-xs font-medium text-text-primary">
-                                <MsIcon name="build" size={12} className="mr-1 inline" />
-                                {tc.name}
-                              </div>
-                              {tc.result && (
-                                <div className="mt-1 text-xs text-emerald-400/80">
-                                  <MsIcon name="check" size={12} className="mr-1 inline" />
-                                  {String(tc.result)}
-                                </div>
-                              )}
-                              {(tc.name === 'create_demand' ||
-                                tc.name === 'get_demand_detail') &&
-                                tc.data?.id && (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      navigate(`/demands/${tc.data!.id}`)
-                                    }
-                                    className="mt-2 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[var(--internal-accent)] transition-colors hover:opacity-80"
-                                  >
-                                    查看需求卡片{' '}
-                                    <MsIcon name="chevron_right" size={12} />
-                                  </button>
-                                )}
-                            </div>
-                          ))}
+                          {msg.toolCalls?.map((raw, i) => {
+                            const tc = normalizeToolCall(raw)
+                            return (
+                              <AgentToolCallCard
+                                key={tc.id ?? i}
+                                tool={tc}
+                                className="mt-3"
+                                onNavigate={handleAgentNavigate}
+                                onApprove={
+                                  tc.status === 'pending' && activeId
+                                    ? () =>
+                                        handleToolApproval(activeId, tc, true)
+                                    : undefined
+                                }
+                                onReject={
+                                  tc.status === 'pending' && activeId
+                                    ? () =>
+                                        handleToolApproval(activeId, tc, false)
+                                    : undefined
+                                }
+                              />
+                            )
+                          })}
                         </div>
                       </div>
                     ))}
@@ -842,67 +929,67 @@ export default function AgentChat() {
                   ) : null}
                 </div>
               ) : null}
-              {toolCalls.map((tc, i) => (
-                <div key={i} className="agent-codex-tool-card mb-3 max-w-[85%]">
-                  <div className="flex items-center gap-2 px-3 py-2">
-                    <MsIcon name="build" size={14} className="shrink-0 text-[var(--internal-text-muted)]" />
-                    <span className="text-xs font-medium text-text-primary">
-                      {AGENT_TOOL_LABELS[tc.name] ?? tc.name}
-                    </span>
-                    <span className="flex-1" />
-                    {tc.pending ? (
-                      <span className="text-xs text-amber-500">待批准</span>
-                    ) : tc.result ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                        <MsIcon name="check" size={12} />
-                        完成
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-xs text-text-muted">
-                        <span className="size-1.5 animate-pulse rounded-full bg-[var(--internal-accent)]" />
-                        执行中
-                      </span>
-                    )}
-                  </div>
-                  {tc.result ? (
-                    <div className="border-t border-[var(--internal-hairline)] px-3 pb-2.5 pt-0">
-                      <div className="mt-1.5 text-xs leading-relaxed text-text-muted">
-                        {tc.result}
-                      </div>
-                    </div>
-                  ) : null}
-                  {tc.pending && activeId ? (
-                    <div className="agent-codex-tool-approval">
-                      <button
-                        type="button"
-                        className="agent-codex-tool-approval__btn agent-codex-tool-approval__btn--approve"
-                        onClick={() => handleToolApproval(activeId, tc, true)}
-                      >
-                        批准
-                      </button>
-                      <button
-                        type="button"
-                        className="agent-codex-tool-approval__btn agent-codex-tool-approval__btn--reject"
-                        onClick={() => handleToolApproval(activeId, tc, false)}
-                      >
-                        拒绝
-                      </button>
-                    </div>
-                  ) : null}
-                  {(tc.name === 'create_demand' ||
-                    tc.name === 'get_demand_detail') &&
-                    tc.data?.id && (
-                      <div className="px-3 pb-2.5">
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/demands/${tc.data!.id}`)}
-                          className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[var(--internal-accent)] transition-opacity hover:opacity-80"
-                        >
-                          查看详情 <MsIcon name="chevron_right" size={12} />
-                        </button>
-                      </div>
-                    )}
-                </div>
+              {forbiddenCards.map((fc, i) => (
+                <AgentForbiddenCard
+                  key={i}
+                  data={fc}
+                  className="mb-3 max-w-[85%]"
+                  onNavigate={handleAgentNavigate}
+                />
+              ))}
+              {planCards.map((pc, i) => (
+                <AgentPlanCard
+                  key={pc.planId ?? i}
+                  data={pc}
+                  className="mb-3 max-w-[85%]"
+                  onConfirm={
+                    pc.toolCallId && activeId
+                      ? () => {
+                          // 查找当前 pending toolCall 并批准
+                          const pending = toolCalls.find(
+                            (t) => t.id === pc.toolCallId && t.status === 'pending',
+                          )
+                          if (pending) handleToolApproval(activeId, pending, true)
+                        }
+                      : undefined
+                  }
+                  onCancel={
+                    pc.toolCallId && activeId
+                      ? () => {
+                          const pending = toolCalls.find(
+                            (t) => t.id === pc.toolCallId && t.status === 'pending',
+                          )
+                          if (pending) handleToolApproval(activeId, pending, false)
+                        }
+                      : undefined
+                  }
+                />
+              ))}
+              {reportCards.map((rc, i) => (
+                <AgentExecutionReportCard
+                  key={rc.toolCallId ?? i}
+                  data={rc}
+                  className="mb-3 max-w-[85%]"
+                  onNavigate={handleAgentNavigate}
+                />
+              ))}
+              {toolCalls.map((raw, i) => (
+                <AgentToolCallCard
+                  key={raw.id ?? i}
+                  tool={raw}
+                  className="mb-3 max-w-[85%]"
+                  onNavigate={handleAgentNavigate}
+                  onApprove={
+                    raw.status === 'pending' && activeId
+                      ? () => handleToolApproval(activeId, raw, true)
+                      : undefined
+                  }
+                  onReject={
+                    raw.status === 'pending' && activeId
+                      ? () => handleToolApproval(activeId, raw, false)
+                      : undefined
+                  }
+                />
               ))}
               {loading && !streamText && toolCalls.length === 0 && !thinking ? (
                 <p className="agent-codex-thinking__label">正在思考</p>

@@ -495,6 +495,209 @@
   color: var(--codex-text);
 }
 
+/* Plan Card — 仪式一 */
+.agent-codex-plan {
+  overflow: hidden;
+  border: 1px solid var(--codex-hairline);
+  border-left: 3px solid rgba(51, 136, 255, 0.55);
+  border-radius: 10px;
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-codex-plan__head,
+.agent-codex-report__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--codex-hairline);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.agent-codex-plan__icon,
+.agent-codex-report__icon {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(51, 136, 255, 0.85);
+}
+
+.agent-codex-plan__body {
+  padding: 10px 14px 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--codex-text);
+}
+
+.agent-codex-plan__steps {
+  list-style: none;
+  margin: 0;
+  padding: 6px 14px 12px;
+}
+
+.agent-codex-plan__step {
+  display: flex;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+  color: var(--codex-text-muted);
+}
+
+.agent-codex-plan__step-idx {
+  flex-shrink: 0;
+  font-family: var(--codex-font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: var(--codex-text-secondary);
+}
+
+.agent-codex-plan__actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 12px;
+}
+
+.agent-codex-plan__btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--codex-hairline);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+  background: transparent;
+  color: var(--codex-text);
+}
+
+.agent-codex-plan__btn--confirm {
+  border-color: rgba(51, 136, 255, 0.45);
+  background: rgba(51, 136, 255, 0.1);
+}
+
+.agent-codex-plan__btn--confirm:hover {
+  background: rgba(51, 136, 255, 0.18);
+}
+
+.agent-codex-plan__btn--cancel:hover {
+  background: var(--codex-sidebar-hover);
+}
+
+/* Report Card — 仪式三 */
+.agent-codex-report {
+  overflow: hidden;
+  border: 1px solid var(--codex-hairline);
+  border-left: 3px solid rgba(16, 185, 129, 0.6);
+  border-radius: 10px;
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-codex-report__icon {
+  color: rgba(16, 185, 129, 0.95);
+}
+
+.agent-codex-report__section {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--codex-hairline);
+}
+
+.agent-codex-report__section:last-child {
+  border-bottom: none;
+}
+
+.agent-codex-report__label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--codex-text-secondary);
+}
+
+.agent-codex-report__summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--codex-text);
+}
+
+.agent-codex-report__rollback {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--codex-text-muted);
+}
+
+.agent-codex-report__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(51, 136, 255, 0.95);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.agent-codex-report__btn:hover {
+  opacity: 0.8;
+}
+
+/* Forbidden Card — 仪式 §8.2（与 report 同色族，红色） */
+.agent-codex-forbidden {
+  overflow: hidden;
+  border: 1px solid var(--codex-hairline);
+  border-left: 3px solid rgba(220, 90, 90, 0.7);
+  border-radius: 10px;
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-codex-forbidden__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--codex-hairline);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.agent-codex-forbidden__icon {
+  display: inline-flex;
+  align-items: center;
+  color: rgba(220, 90, 90, 0.95);
+}
+
+.agent-codex-forbidden__body {
+  padding: 10px 14px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--codex-text);
+}
+
+.agent-codex-forbidden__action {
+  padding: 0 14px 12px;
+}
+
+.agent-codex-forbidden__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(51, 136, 255, 0.95);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.agent-codex-forbidden__btn:hover {
+  opacity: 0.8;
+}
+
 .agent-codex-composer {
   display: flex;
   flex-shrink: 0;
