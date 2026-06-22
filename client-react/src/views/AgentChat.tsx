@@ -658,7 +658,12 @@ export default function AgentChat() {
             <MsIcon name="search" size={16} className="shrink-0 opacity-70" aria-hidden />
             搜索
           </button>
-          <button type="button" className="agent-codex-sidebar__nav-item">
+          <button
+            type="button"
+            className="agent-codex-sidebar__nav-item"
+            onClick={() => navigate('/agent/tasks')}
+            data-testid="agent-automation-sidebar"
+          >
             <MsIcon name="account_tree" size={16} className="shrink-0 opacity-70" aria-hidden />
             自动化
           </button>
