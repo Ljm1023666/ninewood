@@ -822,16 +822,6 @@ export default function AgentChat() {
           <div className="agent-codex-main__bar-spacer" />
           <button
             type="button"
-            onClick={() => navigate('/agent/tasks')}
-            className="agent-codex-icon-btn"
-            aria-label="自动化任务"
-            title="自动化任务"
-            data-testid="agent-automation-nav"
-          >
-            <MsIcon name="schedule" size={16} aria-hidden />
-          </button>
-          <button
-            type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="agent-codex-icon-btn"
             aria-label={sidebarOpen ? '收起侧栏' : '展开侧栏'}
