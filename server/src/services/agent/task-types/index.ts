@@ -12,6 +12,8 @@
  * 详见 docs/specs/TASK-10-agent-automation.md §3
  */
 
+import { searchDemands, DEMAND_SEARCH_AUTOMATION_LIMIT, type DemandSearchItem } from '../demand-search.js'
+
 export interface AgentTaskRunResult {
   /** 命中的条目数（0 = EMPTY） */
   count: number
@@ -164,11 +166,8 @@ registerTaskType({
     /筛选.*摘要|需求.*推送/i,
   ],
   validateFilters: validateDemandDigestFilters,
-  // run 在 Wave B 通过 registerTaskType({...DEMAND_DIGEST, run: ...}) 覆盖；
-  // 此处留 stub 避免调度器提前误调。Stub 抛错等同于"未实现"。
-  run: async () => {
-    throw new Error(`[task-types] ${DEMAND_DIGEST_ID}.run not implemented yet (Wave B)`)
-  },
+  // run 在 Wave B 实现：调用共享的 demand-search；不调 LLM，不写库。
+  run: async (_userId, filters) => runDemandDigest(filters),
 })
 
 // ─── 预留类型：PRICE_WATCH ─────────────────────────────────────────────────
@@ -183,3 +182,75 @@ registerTaskType({
     throw new Error('PRICE_WATCH not implemented yet (Task 11+)')
   },
 })
+
+// ─── DEMAND_DIGEST.run 实现（Wave B） ──────────────────────────────────────
+
+interface DemandDigestFiltersInput {
+  keyword?: string
+  category?: string
+  serviceType?: 'ONLINE' | 'OFFLINE'
+  cityCode?: string
+  tagName?: string
+  minPrice?: number
+  maxPrice?: number
+  limit?: number
+  createdWithinHours?: number
+}
+
+async function runDemandDigest(filters: Record<string, unknown>): Promise<AgentTaskRunResult> {
+  // run 入口不再二次校验（validateFilters 已在 create API / draft 阶段完成）；
+  // 此处假设 filters 已通过 validateDemandDigestFilters。
+  const f = filters as DemandDigestFiltersInput
+  const list = await searchDemands(
+    {
+      keyword: f.keyword,
+      category: f.category,
+      serviceType: f.serviceType,
+      cityCode: f.cityCode,
+      tagName: f.tagName,
+      minPrice: f.minPrice,
+      maxPrice: f.maxPrice,
+      limit: f.limit,
+      createdWithinHours: f.createdWithinHours,
+    },
+    { limitMax: DEMAND_SEARCH_AUTOMATION_LIMIT },
+  )
+  return {
+    count: list.length,
+    summary: renderDemandDigestSummary(list, describeDigestFilters(f)),
+    payload: list.map(d => ({
+      id: d.id,
+      title: d.title,
+      category: d.category,
+      price: d.price,
+      city: d.city,
+      type: d.type,
+      isWelfare: d.isWelfare,
+      path: `/demand/${d.id}`,
+    })),
+  }
+}
+
+function describeDigestFilters(f: DemandDigestFiltersInput): string {
+  const parts: string[] = []
+  if (f.keyword) parts.push(`关键词「${f.keyword}」`)
+  if (f.category) parts.push(`分类「${f.category}」`)
+  if (f.tagName) parts.push(`标签「${f.tagName}」`)
+  if (f.serviceType) parts.push(`服务类型 ${f.serviceType === 'ONLINE' ? '线上' : '线下'}`)
+  if (f.cityCode) parts.push(`城市 ${f.cityCode}`)
+  if (typeof f.minPrice === 'number') parts.push(`最低 ¥${f.minPrice}`)
+  if (typeof f.maxPrice === 'number') parts.push(`最高 ¥${f.maxPrice}`)
+  if (f.createdWithinHours) parts.push(`近 ${f.createdWithinHours} 小时内发布`)
+  return parts.length > 0 ? parts.join('，') : '无筛选条件'
+}
+
+function renderDemandDigestSummary(list: DemandSearchItem[], filterDesc: string): string {
+  if (list.length === 0) {
+    return `本次未找到匹配需求，筛选条件：${filterDesc}`
+  }
+  const lines = list.map((d, i) => {
+    const welfare = d.isWelfare ? ' 🧡公益' : ''
+    return `${i + 1}. **${d.title}** — ¥${d.price} 起 · ${d.category}${welfare}\n   链接: /demand/${d.id}`
+  })
+  return `共找到 **${list.length}** 条匹配需求（筛选：${filterDesc}）：\n\n${lines.join('\n\n')}`
+}

@@ -159,13 +159,6 @@ describe('DEMAND_DIGEST.validateFilters · invalid input', () => {
   })
 })
 
-describe('DEMAND_DIGEST.run · stub until Wave B', () => {
-  it('throws "not implemented yet (Wave B)"', async () => {
-    const t = getTaskType(DEMAND_DIGEST_ID)!
-    await expect(t.run('u1', {})).rejects.toThrow(/Wave B/)
-  })
-})
-
 describe('intentSignals · DEMAND_DIGEST', () => {
   it('matches common automate phrasings', () => {
     const t = getTaskType(DEMAND_DIGEST_ID)!

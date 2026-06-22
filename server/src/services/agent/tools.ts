@@ -2,6 +2,7 @@ import { toolRegistry, type ToolContext, type ToolResult } from './tool-registry
 import { prisma } from '../../lib/prisma.js';
 import { searchKnowledge } from './knowledge-loader.js';
 import { checkRulesForTool } from './rule-engine.js';
+import { searchDemands, DEMAND_SEARCH_AGENT_LIMIT } from './demand-search.js';
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
@@ -42,68 +43,27 @@ function registerDemandTools(): void {
     category: 'demand',
     requiresConfirmation: false,
     handler: async (args, _ctx) => {
-      const keyword = (args.keyword as string) || '';
-      const category = (args.category as string) || '';
-      const serviceType = args.serviceType as 'ONLINE' | 'OFFLINE' | undefined;
-      const cityCode = (args.cityCode as string) || '';
-      const tagName = (args.tagName as string) || '';
-      const minPrice = args.minPrice as number | undefined;
-      const maxPrice = args.maxPrice as number | undefined;
-      const limit = Math.min((args.limit as number) || 10, 20);
-
-      const where: Record<string, unknown> = { isPublic: true, status: 'ACTIVE' };
-      if (keyword) {
-        where.OR = [
-          { title: { contains: keyword } },
-          { description: { contains: keyword } },
-        ];
-      }
-      if (category) where.category = { contains: category };
-      if (serviceType) where.serviceType = serviceType;
-      if (cityCode) where.cityCode = cityCode;
-      if (tagName) where.tagName = tagName;
-      if (minPrice !== undefined || maxPrice !== undefined) {
-        const p: Record<string, unknown> = {};
-        if (minPrice !== undefined) p.gte = minPrice;
-        if (maxPrice !== undefined) p.lte = maxPrice;
-        where.minPrice = p;
+      const filters = {
+        keyword: (args.keyword as string) || undefined,
+        category: (args.category as string) || undefined,
+        serviceType: args.serviceType as 'ONLINE' | 'OFFLINE' | undefined,
+        cityCode: (args.cityCode as string) || undefined,
+        tagName: (args.tagName as string) || undefined,
+        minPrice: args.minPrice as number | undefined,
+        maxPrice: args.maxPrice as number | undefined,
+        limit: typeof args.limit === 'number' ? args.limit : DEMAND_SEARCH_AGENT_LIMIT,
       }
 
-      const demands = await safePrisma(() =>
-        prisma.demand.findMany({
-          where,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true, title: true, category: true,
-            serviceType: true, minPrice: true, cityCode: true,
-            applicantCount: true, createdAt: true, expireAt: true,
-            isPublicWelfare: true,
-          },
-        }),
-      );
-
-      const list = demands.map((d) => ({
-        id: d.id,
-        title: d.title,
-        category: d.category,
-        type: d.serviceType,
-        price: Number(d.minPrice),
-        city: d.cityCode,
-        applicants: d.applicantCount,
-        createdAt: d.createdAt,
-        expireAt: d.expireAt,
-        isWelfare: d.isPublicWelfare,
-      }));
+      const list = await safePrisma(() => searchDemands(filters, { limitMax: DEMAND_SEARCH_AGENT_LIMIT }))
 
       if (list.length === 0) {
-        return ok([], '没有找到匹配的需求，试试调整搜索条件？');
+        return ok([], '没有找到匹配的需求，试试调整搜索条件？')
       }
 
       return ok(
         list,
         `找到 ${list.length} 个相关需求：\n${list.map((d) => `- ${d.title}（${d.category}）¥${d.price}起`).join('\n')}`,
-      );
+      )
     },
   });
 
