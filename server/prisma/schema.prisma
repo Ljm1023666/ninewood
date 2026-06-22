@@ -224,6 +224,7 @@ model User {
   mergeMemberships    ConversationMergeMember[]
   reviewsGiven        Review[]         @relation("Reviewer")
   reviewsReceived     Review[]         @relation("Reviewee")
+  agentTasks          AgentTask[]
 
   // ── AI 2.5 ──
   userTags           UserTag[]
@@ -872,4 +873,48 @@ model CircleInvite {
   @@unique([circleId, email, status])
   @@index([circleId, status])
   @@index([circleId, createdAt])
+}
+
+// ── Task 10 · Agent 自动化任务 ──
+// 平台宪法：调度器只读 + 只推送；详见 docs/specs/TASK-10-agent-automation.md §0.1
+
+model AgentTask {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  type             String   // 注册表键；MVP: "DEMAND_DIGEST"
+  enabled          Boolean  @default(true)
+  frequency        String   // HOURLY | DAILY | WEEKLY
+  atHour           Int?     // DAILY/WEEKLY: 0-23
+  atMinute         Int      @default(0)
+  weekday          Int?     // WEEKLY: 1-7 (周一=1)
+  filters          Json     // 类型私有参数（DEMAND_DIGEST: keyword/category/...）
+  deliveryChannels Json     // ["MESSAGE","AGENT_INBOX"] — JSON 数组
+  lastRunAt        DateTime?
+  nextRunAt        DateTime
+  lastSummary      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  runs AgentTaskRun[]
+
+  @@index([userId])
+  @@index([enabled, nextRunAt])
+}
+
+model AgentTaskRun {
+  id          String    @id @default(uuid())
+  taskId      String
+  task        AgentTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  runAt       DateTime  @default(now())
+  status      String    // SUCCESS | EMPTY | ERROR
+  resultCount Int       @default(0)
+  summary     String    // Markdown 摘要
+  payload     Json?     // 结构化结果 [{ id, title, path, price, ... }]
+  readAt      DateTime? // AGENT_INBOX 已读时间（null=未读）
+  createdAt   DateTime  @default(now())
+
+  @@index([taskId, runAt])
+  @@index([taskId, readAt])
 }
