@@ -5,6 +5,7 @@ import { startCleanupMessagesCron } from './cleanup-messages.js';
 import { runCompressionScheduler } from './compression-scheduler.js';
 import { startDemandWindowCron } from './demand-window.js';
 import { startTimeLimitReminderCron } from './time-limit-reminder.js';
+import { startAgentTaskScheduler } from './agent-task-scheduler.js';
 import { runLifecycleCron } from '../services/card-lifecycle.js';
 
 export function startAllCronJobs() {
@@ -16,6 +17,8 @@ export function startAllCronJobs() {
   // Stage 1.3: 服务时限到期一次性提醒(60s,DB 站内消息,不做 socket)
   // processTimeLimitReminders: 扫描 IN_PROGRESS + timeLimit<=now + 关联 order IN_PROGRESS,幂等发送 SYSTEM 消息
   startTimeLimitReminderCron();
+  // Task 10: Agent 自动化任务调度器（60s 扫描，只读 + 只推送，spec §0.1/§4.2）
+  startAgentTaskScheduler();
   // AI 2.8: 卡池生命周期 — 每 6 小时
   setInterval(() => {
     runLifecycleCron().catch(err => console.error('[Cron] Lifecycle failed:', err));
