@@ -1,6 +1,7 @@
 import { toolRegistry, type ToolContext, type ToolResult } from './tool-registry.js';
 import { prisma } from '../../lib/prisma.js';
 import { searchKnowledge } from './knowledge-loader.js';
+import { checkRulesForTool } from './rule-engine.js';
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,15 @@ function registerDemandTools(): void {
       const cityCode = (args.cityCode as string) || undefined;
       const tagName = (args.tagName as string) || undefined;
 
+      // 业务规则前置校验（Wave B：03 yaml rule_ids 落地）
+      const ruleCheck = await checkRulesForTool('create_demand', {
+        userId: ctx.userId,
+        toolArgs: args as Record<string, unknown>,
+      });
+      if (!ruleCheck.ok) {
+        return fail(ruleCheck.code || ruleCheck.failedRuleId || 'RULE_FAILED', ruleCheck.error || '规则校验未通过');
+      }
+
       // 校验
       if (title.length < 2 || title.length > 100) return fail('标题长度不符', '标题需要 2-100 字');
       if (description.length < 2 || description.length > 2000) return fail('描述长度不符', '描述需要 2-2000 字');
@@ -205,9 +215,16 @@ function registerDemandTools(): void {
         }),
       );
       if (!demand) return fail('需求不存在', '未找到该需求');
+      if (
+        demand.userId !== ctx.userId &&
+        (!demand.isPublic || demand.status !== 'ACTIVE')
+      ) {
+        return fail('无权限', '该需求未公开或已下架');
+      }
 
       return ok({
         id: demand.id,
+        path: `/demands/${demand.id}`,
         title: demand.title,
         description: demand.description,
         category: demand.category,
@@ -417,6 +434,15 @@ function registerApplicationTools(): void {
       const demandId = args.demandId as string;
       const message = String(args.message || '').trim();
       if (!message) return fail('申请理由为空', '请填写申请理由');
+
+      // 业务规则前置校验（Wave B：SELF_APPLY_FORBIDDEN 等）
+      const ruleCheck = await checkRulesForTool('apply_for_demand', {
+        userId: ctx.userId,
+        toolArgs: args as Record<string, unknown>,
+      });
+      if (!ruleCheck.ok) {
+        return fail(ruleCheck.code || ruleCheck.failedRuleId || 'RULE_FAILED', ruleCheck.error || '规则校验未通过');
+      }
 
       const demand = await safePrisma(() =>
         prisma.demand.findUnique({
@@ -893,21 +919,29 @@ function registerNavigateTool() {
   toolRegistry.register({
     definition: {
       name: 'navigate_to',
-      description: `跳转到指定页面。当用户说"去XX""跳转XX""打开XX""帮我打开XX"等意图时调用此工具。
+      description: `跳转到指定页面。当用户说"去XX""跳转XX""打开XX"或需要带用户查看某页面时调用。
 
-已知页面: ${Object.keys(KNOWN_ROUTES).join('、')}`,
+已知页面: ${Object.keys(KNOWN_ROUTES).join('、')}
+
+也可传 path 直接跳转（如 /demands/xxx、/orders/xxx）`,
       parameters: {
         type: 'object',
         properties: {
-          page: { type: 'string', description: `目标页面名称，必须是已知页面之一` },
+          page: { type: 'string', description: '目标页面名称（已知页面之一）' },
+          path: { type: 'string', description: '可选：直接路由路径，如 /demands/uuid' },
         },
-        required: ['page'],
       },
     },
     category: 'system',
     requiresConfirmation: false,
     handler: async (args) => {
+      const directPath = String(args.path || '').trim()
+      if (directPath.startsWith('/')) {
+        const title = directPath.split('/').filter(Boolean).pop() ?? '目标页'
+        return ok({ path: directPath, title }, `正在前往${directPath}`)
+      }
       const page = String(args.page || '').trim()
+      if (!page) return fail('缺少目标', '请提供 page 或 path')
       const route = KNOWN_ROUTES[page]
       if (!route) return fail('未知页面', `未知页面"${page}"，已知页面: ${Object.keys(KNOWN_ROUTES).join('、')}`)
       return ok(route, `正在前往${route.title}`)
