@@ -33,6 +33,7 @@ import { complaintRouter } from './routes/complaint.js';
 import { adminRouter } from './routes/admin.js';
 import { aiRouter } from './routes/ai.js';
 import { agentRouter } from './routes/agent.js';
+import { agentTasksRouter } from './routes/agent-tasks.js';
 import { reviewRouter } from './routes/review.js';
 import { captchaRouter } from './routes/captcha.js';
 import { regionRouter } from './routes/region.js';
@@ -101,6 +102,7 @@ app.use('/api/complaints', complaintRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/agent', agentRouter);
+app.use('/api/agent/tasks', agentTasksRouter);
 app.use('/api/reviews', reviewRouter);
 app.use('/api/captcha', captchaRouter);
 
