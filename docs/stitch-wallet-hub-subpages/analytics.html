@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood | 分析数据 - Elite Technical Authority</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Geist:wght@100;400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#27438a",
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "accent-error": "#F87171",
+                        "surface": "#16130b",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#4f4628",
+                        "on-secondary-fixed": "#221b03",
+                        "gold-bright": "#F4D03F",
+                        "on-surface-variant": "#d0c5af",
+                        "on-primary-fixed": "#241a00",
+                        "surface-container-low": "#1f1b13",
+                        "on-secondary": "#383013",
+                        "secondary-fixed-dim": "#d3c69e",
+                        "on-tertiary-container": "#254188",
+                        "surface-glass": "rgba(16, 20, 31, 0.6)",
+                        "on-secondary-container": "#c4b891",
+                        "on-tertiary-fixed": "#00174b",
+                        "inverse-surface": "#eae1d4",
+                        "surface-variant": "#38342b",
+                        "accent-success": "#10B981",
+                        "background": "#16130b",
+                        "border-white": "rgba(255, 255, 255, 0.05)",
+                        "inverse-on-surface": "#343027",
+                        "tertiary-container": "#97b0ff",
+                        "on-background": "#eae1d4",
+                        "on-primary": "#3c2f00",
+                        "surface-container-lowest": "#110e07",
+                        "outline": "#99907c",
+                        "primary": "#f2ca50",
+                        "primary-container": "#d4af37",
+                        "secondary-container": "#51492a",
+                        "surface-dim": "#16130b",
+                        "primary-fixed": "#ffe088",
+                        "tertiary-fixed": "#dbe1ff",
+                        "on-primary-container": "#554300",
+                        "outline-variant": "#4d4635",
+                        "secondary": "#d3c69e",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "surface-container": "#231f17",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "on-tertiary": "#082b72",
+                        "background-deep": "#0A0E17",
+                        "border-gold": "rgba(212, 175, 55, 0.15)",
+                        "primary-fixed-dim": "#e9c349",
+                        "surface-tint": "#e9c349",
+                        "on-primary-fixed-variant": "#574500",
+                        "inverse-primary": "#735c00",
+                        "surface-bright": "#3d392f",
+                        "secondary-fixed": "#f0e2b8",
+                        "on-error": "#690005",
+                        "tertiary": "#bfcdff",
+                        "on-surface": "#eae1d4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "margin-page": "48px",
+                        "stack-lg": "32px",
+                        "sidebar-width": "280px",
+                        "container-max": "1100px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Geist"],
+                        "display-xl": ["Playfair Display"],
+                        "data-mono": ["Geist"],
+                        "title-md": ["Geist"],
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Geist"],
+                        "headline-lg-mobile": ["Playfair Display"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}],
+                        "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                        "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0A0E17;
+            color: #eae1d4;
+            font-family: 'Geist', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(16, 20, 31, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-panel-highlight {
+            background: rgba(16, 20, 31, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .radial-glow {
+            background: radial-gradient(circle at center, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="dark selection:bg-primary/30">
+<!-- Radial Background Glows -->
+<div class="fixed top-0 left-0 w-[800px] h-[800px] radial-glow -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+<div class="fixed bottom-0 right-0 w-[600px] h-[600px] radial-glow translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
+<!-- Sidebar (SideNavBar Component) -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-glass backdrop-blur-24 border-r border-white shadow-2xl flex flex-col p-stack-lg z-50">
+<div class="mb-12 px-2">
+<h1 class="font-headline-lg text-headline-lg text-primary-container tracking-tight">Ninewood</h1>
+<p class="font-body-md text-body-md text-on-surface-variant/50">Elite Technical Authority</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">home</span>
+<span class="font-body-md">首页</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">groups</span>
+<span class="font-body-md">圈子社区</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">folder</span>
+<span class="font-body-md">资源文件</span>
+</a>
+<!-- ACTIVE TAB: 分析数据 -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary font-bold rounded-xl transition-all duration-300 scale-[1.02] group" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-body-md">分析数据</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">group_add</span>
+<span class="font-body-md">我的团队</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">account_balance_wallet</span>
+<span class="font-body-md">点数钱包</span>
+</a>
+</nav>
+<div class="mt-auto pt-8 border-t border-white/5 space-y-2">
+<div class="flex items-center gap-3 px-4 mb-6">
+<div class="w-10 h-10 rounded-full border border-gold overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A portrait of a sophisticated high-end user, professional and calm lighting, cinematic sharp focus, subtle gold background glow, photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHrOHjfPf46IMSUk56WVef0uTgIHxV7eAmfv9u-0fMqyLDx3s_i55lUjRyZf1bHLBhCq2um7ysb12ZO9ntEquEqDv1nyCISC31IFgaQXSsfwT4YXxrXF5J5bHAPk_7jucdwMdsE4nUc5ZbeqVD1nlufmOHIMpJkgTZqAL9ykzM1AAfncbnV69_Se2uphdkTfgkubUiFQdC9wEAZNG-v3Qj0sVFrxrwSyOaAK_kGnsCZqCj5HXso0u4U7v2gEZkN1afIFZiDJH3LB4"/>
+</div>
+<div>
+<p class="font-title-md text-sm text-on-surface">Ninewood Elite</p>
+<p class="text-[10px] text-primary uppercase tracking-[0.2em] font-black">Level 5 Member</p>
+</div>
+</div>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant/70 hover:text-primary transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+<span class="font-body-md">帮助中心</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant/70 hover:text-accent-error transition-colors group" href="#">
+<span class="material-symbols-outlined text-xl">logout</span>
+<span class="font-body-md">退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] p-margin-page min-h-screen">
+<div class="max-w-[1100px] mx-auto space-y-stack-lg">
+<!-- Header Section -->
+<header class="flex justify-between items-end pb-4 border-b border-white/5">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">分析数据</h2>
+<p class="font-body-md text-on-surface-variant/60">实时监控社区技术动态与资源流转效率</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center px-4 py-2 bg-white/5 border border-white/10 rounded-full hover:border-primary/40 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-primary text-sm mr-2">calendar_today</span>
+<span class="font-body-md text-on-surface-variant">最近30天</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm ml-2 group-hover:rotate-180 transition-transform">expand_more</span>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2.5 rounded-full font-bold shadow-[0_10px_20px_-5px_rgba(212,175,55,0.3)] hover:scale-105 active:scale-95 transition-all">
+                        导出报告
+                    </button>
+</div>
+</header>
+<!-- KPI Cards (Row 1) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="glass-panel-highlight p-stack-md rounded-xl group hover:bg-white/5 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">analytics</span>
+<span class="text-accent-success text-xs font-bold flex items-center">+12% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant/50 mb-1">圈内需求总量</p>
+<p class="font-display-xl text-3xl text-on-surface tracking-tight">1,284</p>
+</div>
+<div class="glass-panel p-stack-md rounded-xl group hover:bg-white/5 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">payments</span>
+<span class="text-accent-success text-xs font-bold flex items-center">+8.5% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant/50 mb-1">成交总额</p>
+<p class="font-display-xl text-3xl text-on-surface tracking-tight">¥856,400</p>
+</div>
+<div class="glass-panel p-stack-md rounded-xl group hover:bg-white/5 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">person_celebrate</span>
+<span class="text-primary-container text-xs font-bold flex items-center">92% <span class="ml-1 font-normal opacity-60">活跃度</span></span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant/50 mb-1">活跃成员</p>
+<p class="font-display-xl text-3xl text-on-surface tracking-tight">456</p>
+</div>
+<div class="glass-panel p-stack-md rounded-xl group hover:bg-white/5 transition-all">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">avg_pace</span>
+<span class="text-accent-success text-xs font-bold flex items-center">-15% <span class="material-symbols-outlined text-xs rotate-180">trending_up</span></span>
+</div>
+<p class="font-label-caps text-label-caps text-on-surface-variant/50 mb-1">平均响应时间</p>
+<p class="font-display-xl text-3xl text-on-surface tracking-tight">2.4 <span class="text-sm font-body-md opacity-60">小时</span></p>
+</div>
+</section>
+<!-- Row 2: Trend and Distribution -->
+<section class="grid grid-cols-12 gap-gutter">
+<!-- Trend Analysis -->
+<div class="col-span-12 lg:col-span-8 glass-panel p-stack-lg rounded-2xl relative overflow-hidden">
+<div class="flex justify-between items-center mb-8 relative z-10">
+<h3 class="font-title-md text-on-surface">趋势分析</h3>
+<div class="flex gap-4">
+<span class="flex items-center gap-1.5 text-xs text-on-surface-variant/70"><span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span> 成交额</span>
+<span class="flex items-center gap-1.5 text-xs text-on-surface-variant/70"><span class="w-2.5 h-2.5 rounded-full bg-primary/30"></span> 需求量</span>
+</div>
+</div>
+<div class="h-64 relative z-10">
+
+<!-- Chart Mockup -->
+<div class="absolute inset-0 flex items-end justify-between px-2">
+<div class="w-[8%] h-2/5 bg-primary/5 rounded-t-lg relative group transition-all hover:bg-primary/20">
+<div class="absolute inset-x-0 bottom-0 h-1/2 bg-primary-container/40 rounded-t-lg"></div>
+</div>
+<div class="w-[8%] h-3/5 bg-primary/5 rounded-t-lg relative group transition-all hover:bg-primary/20">
+<div class="absolute inset-x-0 bottom-0 h-2/3 bg-primary-container/40 rounded-t-lg"></div>
+</div>
+<div class="w-[8%] h-4/5 bg-primary/5 rounded-t-lg relative group transition-all hover:bg-primary/20">
+<div class="absolute inset-x-0 bottom-0 h-3/4 bg-primary-container/40 rounded-t-lg"></div>
+</div>
+<div class="w-[8%] h-2/3 bg-primary/5 rounded-t-lg relative group transition-all hover:bg-primary/20 border-x-2 border-primary-container/50">
+<div class="absolute inset-x-0 bottom-0 h-4/5 bg-primary-container/60 rounded-t-lg shadow-[0_0_20px_rgba(212,175,55,0.4)]"></div>
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary-container text-[10px] px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">峰值: ¥142k</div>
+</div>
+<div class="w-[8%] h-3/4 bg-primary/5 rounded-t-lg relative group transition-all hover:bg-primary/20">
+<div class="absolute inset-x-0 bottom-0 h-1/2 bg-primary-container/40 rounded-t-lg"></div>
+</div>
+<div class="w-[8%] h-full bg-primary/5 rounded-t-lg relative group transition-all hover:bg-primary/20">
+<div class="absolute inset-x-0 bottom-0 h-2/3 bg-primary-container/40 rounded-t-lg"></div>
+</div>
+</div>
+<div class="absolute bottom-0 inset-x-0 h-px bg-white/10"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] font-label-caps text-on-surface-variant/40 px-2 uppercase tracking-widest">
+<span>WK 01</span>
+<span>WK 02</span>
+<span>WK 03</span>
+<span>WK 04</span>
+<span>WK 05</span>
+<span>WK 06</span>
+</div>
+</div>
+<!-- Requirement Category Distribution -->
+<div class="col-span-12 lg:col-span-4 glass-panel p-stack-lg rounded-2xl flex flex-col">
+<h3 class="font-title-md text-on-surface mb-6">需求类别分布</h3>
+<div class="flex-1 flex flex-col justify-center items-center relative">
+<!-- Donut Chart Placeholder -->
+<div class="relative w-40 h-40">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="transparent" r="45" stroke="rgba(255,255,255,0.05)" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="transparent" r="45" stroke="#d4af37" stroke-dasharray="210 283" stroke-linecap="round" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="transparent" r="45" stroke="#f2ca50" stroke-dasharray="50 283" stroke-dashoffset="-215" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-display-xl text-on-surface">74%</span>
+<span class="text-[10px] font-label-caps text-on-surface-variant/50">核心技术</span>
+</div>
+</div>
+<div class="w-full mt-8 space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-xs text-on-surface-variant/80 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary-container"></span> 全栈开发</span>
+<span class="text-xs font-data-mono">42.8%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-on-surface-variant/80 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span> 智能合约</span>
+<span class="text-xs font-data-mono">31.2%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs text-on-surface-variant/80 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-white/10"></span> 架构咨询</span>
+<span class="text-xs font-data-mono">26.0%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Row 3: Heatmap and Engagement -->
+<section class="grid grid-cols-12 gap-gutter pb-12">
+<!-- Tag Heatmap -->
+<div class="col-span-12 lg:col-span-6 glass-panel p-stack-lg rounded-2xl">
+<h3 class="font-title-md text-on-surface mb-6 flex justify-between">
+                        标签热力图
+                        <span class="material-symbols-outlined text-primary/50 text-sm">local_fire_department</span>
+</h3>
+<div class="flex flex-wrap gap-3">
+<span class="px-6 py-3 bg-primary-container text-on-primary-container rounded-full text-lg font-bold shadow-lg">Web3</span>
+<span class="px-5 py-2 bg-primary/20 text-primary rounded-full text-md border border-primary/20">Zero Knowledge</span>
+<span class="px-4 py-2 bg-white/5 text-on-surface-variant rounded-full text-sm">React Native</span>
+<span class="px-6 py-4 bg-primary-container/80 text-on-primary-container rounded-full text-xl font-black italic">Rust</span>
+<span class="px-4 py-2 bg-white/5 text-on-surface-variant rounded-full text-sm">Cloud Native</span>
+<span class="px-5 py-3 bg-primary/10 text-primary rounded-full text-md">AI Agent</span>
+<span class="px-3 py-1 bg-white/5 text-on-surface-variant rounded-full text-xs">Vue 3</span>
+<span class="px-5 py-2.5 bg-primary-container/30 text-on-surface rounded-full text-sm font-bold">Smart Contract</span>
+<span class="px-4 py-2 bg-white/5 text-on-surface-variant rounded-full text-sm">Solidity</span>
+<span class="px-3 py-1.5 bg-white/5 text-on-surface-variant rounded-full text-xs">GraphQL</span>
+<span class="px-5 py-2 bg-primary/40 text-on-surface rounded-full text-md">High Fidelity</span>
+</div>
+</div>
+<!-- Engagement Distribution -->
+<div class="col-span-12 lg:col-span-6 glass-panel p-stack-lg rounded-2xl">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-md text-on-surface">活跃度分布</h3>
+<div class="flex gap-2">
+<button class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-xs">chevron_left</span>
+</button>
+<button class="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex items-end justify-between h-48 px-4">
+<!-- Monday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[40%] group-hover:h-[45%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant/40">MON</span>
+</div>
+<!-- Tuesday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[65%] group-hover:h-[70%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant/40">TUE</span>
+</div>
+<!-- Wednesday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[90%] group-hover:h-[95%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container to-primary/40 shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
+</div>
+<span class="text-[10px] font-label-caps text-primary font-bold">WED</span>
+</div>
+<!-- Thursday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[75%] group-hover:h-[80%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant/40">THU</span>
+</div>
+<!-- Friday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[85%] group-hover:h-[90%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant/40">FRI</span>
+</div>
+<!-- Saturday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[30%] group-hover:h-[35%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant/40">SAT</span>
+</div>
+<!-- Sunday -->
+<div class="flex flex-col items-center gap-3 w-[10%] group">
+<div class="w-full bg-white/5 rounded-t-md relative h-[25%] group-hover:h-[30%] transition-all duration-500 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+</div>
+<span class="text-[10px] font-label-caps text-on-surface-variant/40">SUN</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Atmosphere Micro-Interactions -->
+<script>
+        // Simple micro-interaction for KPI cards to simulate a living dashboard
+        document.querySelectorAll('.glass-panel-highlight, .glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

@@ -71,6 +71,41 @@ export const walletService = {
     return Number(user.points)
   },
 
+  /** 余额概览：可用余额、托管中、本月收支 */
+  async getSummary(userId: string) {
+    const [balance, heldAgg, ledgerRows] = await Promise.all([
+      walletService.getBalance(userId),
+      prisma.walletHold.aggregate({
+        where: { userId, status: 'HELD' },
+        _sum: { amount: true },
+      }),
+      prisma.walletLedger.findMany({
+        where: {
+          userId,
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+        select: { amount: true },
+      }),
+    ])
+
+    let monthlyIncome = 0
+    let monthlyExpense = 0
+    for (const row of ledgerRows) {
+      const amt = Number(row.amount)
+      if (amt > 0) monthlyIncome += amt
+      else monthlyExpense += Math.abs(amt)
+    }
+
+    return {
+      balance: roundPoints(balance),
+      held: roundPoints(Number(heldAgg._sum.amount ?? 0)),
+      monthlyIncome: roundPoints(monthlyIncome),
+      monthlyExpense: roundPoints(monthlyExpense),
+    }
+  },
+
   async getLedger(userId: string, page = 1, limit = 20) {
     const [items, total] = await Promise.all([
       prisma.walletLedger.findMany({

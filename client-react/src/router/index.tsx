@@ -34,6 +34,7 @@ const UserTagsManage = lazy(() => import('@/views/UserTagsManage'))
 const PushSettings = lazy(() => import('@/views/PushSettings'))
 const WelfareCenter = lazy(() => import('@/views/WelfareCenter'))
 const TransactionHistory = lazy(() => import('@/views/TransactionHistory'))
+const Wallet = lazy(() => import('@/views/Wallet'))
 const CircleList = lazy(() => import('@/views/CircleList'))
 const TagStatsDashboard = lazy(() => import('@/views/TagStatsDashboard'))
 const CertifiedSearch = lazy(() => import('@/views/CertifiedSearch'))
@@ -41,7 +42,6 @@ const MyBids = lazy(() => import('@/views/MyBids'))
 const Help = lazy(() => import('@/views/Help'))
 const HelpDocs = lazy(() => import('@/views/HelpDocs'))
 const AgentChat = lazy(() => import('@/views/AgentChat'))
-const AgentTasksPage = lazy(() => import('@/views/agent/AgentTasksPage'))
 const AgentTasksPage = lazy(() => import('@/views/agent/AgentTasksPage'))
 const Privacy = lazy(() => import('@/views/Privacy'))
 const Terms = lazy(() => import('@/views/Terms'))
@@ -293,6 +293,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'wallet',
+            element: (
+              <LazyLoad>
+                <Wallet />
+              </LazyLoad>
+            ),
+          },
+          {
             path: 'discover/certified',
             element: (
               <LazyLoad>
@@ -447,18 +455,18 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'agent/:id',
-            element: (
-              <LazyLoad>
-                <AgentChat />
-              </LazyLoad>
-            ),
-          },
-          {
             path: 'agent/tasks',
             element: (
               <LazyLoad>
                 <AgentTasksPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'agent/:id',
+            element: (
+              <LazyLoad>
+                <AgentChat />
               </LazyLoad>
             ),
           },

@@ -1,0 +1,42 @@
+[
+  {
+    "slug": "variant-a",
+    "file": "variant-a.html",
+    "title": "Points Wallet - Dark Glass Variant",
+    "screenId": "04b6a5e3972747299e748cb43790dca4",
+    "style": "暗色玻璃 · 品牌默认",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvGlna3Wjn2isASbNdqBXsbItuBKUeC7GFDM5TzaNnVGb9sIBgp8CMSiXNBXJwAo8B5UKh8sfRkf7Gz9MBAihS0tX1Y3nwzgXx3o1BbRIQHKhkwjM4T89IM0TYKdUp-hXw2fT_JYpDeazUe9o7BJq5OYpBloLmKCBVAnWbsogkKSXrkB88NVz3V6l8GqQwWHYbgsVtkuuo7zn8Bwa7dT1fU6JQwbgM6ZuBUUXxY8nuldyq0XoAqZz_-zRk"
+  },
+  {
+    "slug": "variant-b",
+    "file": "variant-b.html",
+    "title": "Points Wallet - Bento Dashboard Variant",
+    "screenId": "3d49cdf66c584a49b4d2cec0bcc598b1",
+    "style": "Bento 仪表盘",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvzBf-4XfGytNn40MUQxpT-gEQnI_cp3D7MgCdxQKzZ3sMYRkzittrmkM90lgccg9nVyeNi9SlFggI8_zgZOWioHV86v7VwoFWwrLkdKINOOp-DaWTZYJzKYa-941deMz9eeMRcYOOiTaAT8doPOz_9pSRQVnMJbi8wUhn5tXXBLpt3MgPg-CSDp9FVPH6wB4Nfh3_K47ayy1ePACjyGUuKPskZRALMZCXx-JZLpKJICCm58_bYluzw6og"
+  },
+  {
+    "slug": "variant-c",
+    "file": "variant-c.html",
+    "title": "Points Wallet - Split Ledger Variant",
+    "screenId": "d63021c4e6ea4a218fdc2a163269449d",
+    "style": "左右分栏 · 流水账",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtMDbYc4EfUosn1ItY657PqMvJn_oniy2atr2QkcevydAJKLnmxTMhzcGWiY2MlwY7As6H35L5aE_fLgzIff165xsXlB4s_a_japJZNSi-0RoJF2Bu68pyUwo5dHkQ_K-CwcmIVvRuloTJdcbDnHRspRlm9bftkXZ0HjZfxba7JZ51SR97cO9p1KgnqQ05D_GVgMLjOQOUEUC9XIfhGnEZ0KMYl0BQIaJ9u7w_iR5gSTKIIaFsQySN8Mg"
+  },
+  {
+    "slug": "variant-d",
+    "file": "variant-d.html",
+    "title": "Points Wallet - Warm Luxury Variant",
+    "screenId": "a352636672d64c2cada743f594941c70",
+    "style": "暖金奢华 · 金融感",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLurQDP7RwpRXgRxFpbMKgvlMOD7aGvUfMgcNpeCNd4wARta8IqC5_HDtt2aATqlA0VG43S7j_KMefCXk3jLlrNrKsUzKo0W4zES82MobVk9L3hd_pWcGQ8b9MK7dl80qNlbiuHkhvzEUznNJLU9mEDCDIlNg6NZweu5m4-692v05CXgRRDJsy7HJ7Vrqg3YaWwwYi2PhhW4-ntQ0tO4x6qscgWp8M60WAk-hXMUx46tQ0LzJyUszteN_A"
+  },
+  {
+    "slug": "variant-e",
+    "file": "variant-e.html",
+    "title": "Points Wallet - Terminal Brutalist Variant",
+    "screenId": "8b8d811b32c344cfb056cbd34f16e725",
+    "style": "终端风 · 硬核数据",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLt8ciN9gTKrfoipXzAApkD0ArVQtbsKdEXooEfzEJlFLeE2gKTeGkl-wbEmwH28MOQY0k6TPGCDzYxfJNKtNnneJhggfNicY-Rumu2PzlLwxp4Wkrlf0A304x7zzx5GUGe_l7VAaC4N8tK2gxPe4NPu2xlkjdQh8OrqcED73NCBrQbNQD8vckWFifsIRReiz2CNaqgFjxRlcMhP5pd7_LtdZ0M5VgiLjm4j1b4sEt1E7ivx4Xjhkb1TLg"
+  }
+]

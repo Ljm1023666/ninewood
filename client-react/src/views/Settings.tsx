@@ -129,6 +129,9 @@ export default function Settings() {
                 </div>
               </div>
               <div className="settings-account-card__actions flex shrink-0 flex-wrap gap-2">
+                <SettingsActionButton onClick={() => navigate('/wallet')}>
+                  点数钱包
+                </SettingsActionButton>
                 <SettingsActionButton onClick={() => navigate('/profile')}>
                   个人主页
                 </SettingsActionButton>

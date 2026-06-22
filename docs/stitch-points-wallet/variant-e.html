@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - [TERMINAL_SYSTEM_v1.0]</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background-color: #000000;
+            color: #00FF00;
+            overflow-x: hidden;
+            text-transform: uppercase; /* Brutalist aesthetic */
+        }
+
+        /* Brutalist reset: Zero border radius */
+        * {
+            border-radius: 0 !important;
+        }
+
+        .terminal-border {
+            border: 2px solid #00FF00;
+        }
+
+        .terminal-border-thin {
+            border: 1px solid #00FF00;
+        }
+
+        .terminal-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0, 255, 0, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+        }
+
+        .terminal-scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #000;
+            border-left: 1px solid #00FF00;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #00FF00;
+        }
+
+        input::placeholder {
+            color: rgba(0, 255, 0, 0.4);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#00FF00",
+                      "on-primary": "#000000",
+                      "background": "#000000",
+                      "surface": "#000000",
+                      "on-surface": "#00FF00",
+                      "outline": "#00FF00",
+                      "error": "#00FF00" /* Monochromatic brutalism */
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "gutter": "24px",
+                      "margin-page": "32px",
+                      "stack-lg": "24px",
+                      "container-max": "1280px",
+                      "stack-sm": "8px",
+                      "content-column": "768px"
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background min-h-screen terminal-grid">
+<div class="terminal-scanline"></div>
+<!-- SideNavBar -->
+<aside class="w-[280px] h-screen fixed left-0 top-0 z-50 bg-black border-r-2 border-primary flex flex-col p-4">
+<div class="flex items-center gap-3 px-2 mb-12">
+<div class="w-12 h-12 border-2 border-primary flex items-center justify-center bg-primary">
+<span class="material-symbols-outlined text-black text-[32px]">terminal</span>
+</div>
+<div>
+<h1 class="text-[20px] font-bold text-primary leading-tight">NINEWOOD</h1>
+<p class="text-[10px] tracking-tighter text-primary/70">[DEV_WKSP_SYS]</p>
+</div>
+</div>
+<nav class="flex-1 space-y-0">
+<a class="flex items-center gap-3 px-4 py-4 text-primary hover:bg-primary hover:text-black transition-none border-b border-primary/20" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>DASHBOARD</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-4 text-primary hover:bg-primary hover:text-black transition-none border-b border-primary/20" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span>COMMUNITIES</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-4 text-primary hover:bg-primary hover:text-black transition-none border-b border-primary/20" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<span>PROJECTS</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-4 py-4 text-black bg-primary transition-none border-b border-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span>WALLET</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-4 text-primary hover:bg-primary hover:text-black transition-none border-b border-primary/20" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>SETTINGS</span>
+</a>
+</nav>
+<div class="pt-6 border-t-2 border-primary space-y-2">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-black py-4 font-bold hover:invert transition-none">
+<span class="material-symbols-outlined">add</span>
+<span>CREATE_PROJ</span>
+</button>
+<div class="grid grid-cols-2 gap-0">
+<a class="flex items-center justify-center py-4 border border-primary/40 text-primary hover:bg-primary hover:text-black" href="#">HELP</a>
+<a class="flex items-center justify-center py-4 border border-primary/40 text-primary hover:bg-primary hover:text-black" href="#">LOGOUT</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="w-full sticky top-0 z-40 bg-black border-b-2 border-primary flex justify-between items-center px-gutter h-16">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary">chevron_right</span>
+<input class="w-full bg-black border-2 border-primary py-2 pl-10 pr-4 text-primary focus:ring-0 focus:outline-none placeholder:text-primary/30" placeholder="EXECUTE_SEARCH..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<button class="text-primary hover:bg-primary hover:text-black p-2 transition-none">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-3 cursor-pointer group">
+<span class="text-primary font-bold group-hover:underline">DEVUSER_99</span>
+<div class="w-8 h-8 border-2 border-primary bg-primary p-0.5 overflow-hidden">
+<img class="w-full h-full object-cover grayscale brightness-50 contrast-150" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH0YJby1nNiU3mPjs2xtYdqKzZ2_DUDw_GpvM6G6tCYQc5GVSLRkFQER-AofizjJ2RKtRh5FztESeSy7GKUTKQH83qEINQ8NsUUqmaDmax4VDdFm_Z4ojiQd879Xq4Ttf8OIAT-bsQYabcHK3pZIJ6cYXo-TZUIZ41xEOdoQU5Ptzocd12zPhzklufuOmvON_lijkhDghVGhg9hSdI6BDTLxnxGcx5qdUnsBM8skHEVM7WYpcU5gx9r_UFPamFwDTZ-laS-7lScQQ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 px-margin-page py-stack-lg max-w-container-max mx-auto w-full custom-scrollbar">
+<!-- Header Section -->
+<div class="mb-12 border-l-4 border-primary pl-6">
+<h2 class="text-[48px] font-bold text-primary leading-none">点数钱包</h2>
+<p class="text-primary/70 mt-2 tracking-widest">&gt; 开发期模拟货币 · 1 点 = 1 元</p>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Hero Balance Card -->
+<div class="col-span-12 lg:col-span-8 border-2 border-primary p-10 flex flex-col justify-between h-[320px] bg-black relative overflow-hidden">
+<div class="absolute -bottom-8 -right-8 opacity-10">
+<span class="material-symbols-outlined text-[240px]">account_balance_wallet</span>
+</div>
+<div class="relative z-10">
+<p class="text-primary/60 text-[12px] mb-4">可用余额 // AVAILABLE_BALANCE</p>
+<div class="flex items-baseline gap-4">
+<span class="text-[84px] font-bold text-primary leading-none">986,420.50</span>
+<span class="text-[24px] text-primary">PTS</span>
+</div>
+</div>
+<div class="flex gap-0 relative z-10 border-t-2 border-primary pt-8">
+<button class="flex items-center gap-3 bg-primary text-black px-10 py-4 font-bold hover:bg-black hover:text-primary border-2 border-primary transition-none">
+<span class="material-symbols-outlined">add_circle</span>
+                        充值点数 (开发)
+                    </button>
+<button class="flex items-center gap-3 bg-black text-primary px-10 py-4 font-bold hover:bg-primary hover:text-black border-2 border-l-0 border-primary transition-none">
+<span class="material-symbols-outlined">receipt_long</span>
+                        查看订单
+                    </button>
+</div>
+</div>
+<!-- Quick Stats Column -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-0 border-t border-primary">
+<div class="border-2 border-t-0 border-primary p-6 flex items-center justify-between group hover:bg-primary hover:text-black">
+<div>
+<p class="text-[10px] mb-1">托管中 // ESCROW</p>
+<h3 class="text-[28px] font-bold">1,200 <span class="text-[14px]">PTS</span></h3>
+</div>
+<span class="material-symbols-outlined text-[32px]">lock</span>
+</div>
+<div class="border-2 border-t-0 border-primary p-6 flex items-center justify-between group hover:bg-primary hover:text-black">
+<div>
+<p class="text-[10px] mb-1">本月支出 // EXPENSE</p>
+<h3 class="text-[28px] font-bold">3,580 <span class="text-[14px]">PTS</span></h3>
+</div>
+<span class="material-symbols-outlined text-[32px]">trending_down</span>
+</div>
+<div class="border-2 border-t-0 border-primary p-6 flex items-center justify-between group hover:bg-primary hover:text-black">
+<div>
+<p class="text-[10px] mb-1">本月收入 // INCOME</p>
+<h3 class="text-[28px] font-bold">12,000 <span class="text-[14px]">PTS</span></h3>
+</div>
+<span class="material-symbols-outlined text-[32px]">trending_up</span>
+</div>
+</div>
+<!-- Transaction Table -->
+<div class="col-span-12 border-2 border-primary">
+<div class="px-8 py-5 border-b-2 border-primary flex justify-between items-center bg-primary text-black">
+<h3 class="font-bold tracking-widest">TRANSACTION_LOG.DB</h3>
+<div class="flex gap-4">
+<span class="material-symbols-outlined cursor-pointer hover:invert transition-none">filter_list</span>
+<span class="material-symbols-outlined cursor-pointer hover:invert transition-none">download</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-primary">
+<th class="px-8 py-4 font-bold border-r border-primary">TIMESTAMP</th>
+<th class="px-8 py-4 font-bold border-r border-primary">TYPE</th>
+<th class="px-8 py-4 font-bold border-r border-primary text-right">VAL</th>
+<th class="px-8 py-4 font-bold border-r border-primary text-right">BAL</th>
+<th class="px-8 py-4 font-bold">REMARK</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/40">
+<tr class="hover:bg-primary hover:text-black transition-none group">
+<td class="px-8 py-4 border-r border-primary/40">2023-10-27</td>
+<td class="px-8 py-4 border-r border-primary/40">
+<span class="font-bold underline decoration-2">扣款</span>
+</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right font-bold">-500.00</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right opacity-70">986,420.50</td>
+<td class="px-8 py-4">订阅 API 服务</td>
+</tr>
+<tr class="hover:bg-primary hover:text-black transition-none group">
+<td class="px-8 py-4 border-r border-primary/40">2023-10-26</td>
+<td class="px-8 py-4 border-r border-primary/40">
+<span class="font-bold underline decoration-2">托管</span>
+</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right font-bold">-1,200.00</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right opacity-70">986,920.50</td>
+<td class="px-8 py-4">需求发包意向金</td>
+</tr>
+<tr class="hover:bg-primary hover:text-black transition-none group">
+<td class="px-8 py-4 border-r border-primary/40">2023-10-25</td>
+<td class="px-8 py-4 border-r border-primary/40">
+<span class="font-bold underline decoration-2">结算</span>
+</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right font-bold">+2,000.00</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right opacity-70">988,120.50</td>
+<td class="px-8 py-4">任务完成结算</td>
+</tr>
+<tr class="hover:bg-primary hover:text-black transition-none group">
+<td class="px-8 py-4 border-r border-primary/40">2023-10-24</td>
+<td class="px-8 py-4 border-r border-primary/40">
+<span class="font-bold underline decoration-2">退款</span>
+</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right font-bold">+300.00</td>
+<td class="px-8 py-4 border-r border-primary/40 text-right opacity-70">986,120.50</td>
+<td class="px-8 py-4">资源下载取消</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer Disclaimer -->
+<div class="col-span-12 flex justify-center py-8 mt-12 border-t border-primary/20">
+<p class="text-primary/40 text-[10px] flex items-center gap-2 tracking-[0.2em]">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                    SYS_NOTE: 上线前将替换为真实支付渠道 [VERSION_PROD_PENDING]
+                </p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

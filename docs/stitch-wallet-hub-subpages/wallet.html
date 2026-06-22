@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - 点数钱包</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Playfair+Display:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #0A0E17;
+            color: #E2E8F0;
+            overflow-x: hidden;
+        }
+
+        .serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .glass-card {
+            background: rgba(16, 20, 31, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .luxury-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+        }
+
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .gold-text {
+            color: #D4AF37;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0A0E17;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #1C2333;
+            border-radius: 10px;
+        }
+
+        .bg-luxury-glow {
+            background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05) 0%, transparent 40%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#D4AF37",
+                      "on-primary": "#1A1400",
+                      "surface-container": "#111622",
+                      "background": "#0A0E17",
+                      "on-surface": "#E2E8F0",
+                      "on-surface-variant": "#94A3B8"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.5rem",
+                      "xl": "1rem",
+                      "2xl": "1.5rem"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "gutter": "24px",
+                      "margin-page": "48px",
+                      "stack-lg": "32px",
+                      "container-max": "1100px"
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-luxury-glow min-h-screen selection:bg-primary/30 selection:text-white">
+<!-- SideNavBar -->
+<aside class="w-[280px] h-screen fixed left-0 top-0 z-50 bg-[#0A0E17]/90 backdrop-blur-xl border-r border-white/5 flex flex-col p-6">
+<div class="flex items-center gap-3 px-2 mb-12">
+<div class="w-10 h-10 rounded-xl luxury-gradient flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-on-primary">terminal</span>
+</div>
+<div>
+<h1 class="text-xl font-bold gold-text tracking-tight">Ninewood</h1>
+<p class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant/70 font-bold">Developer Workspace</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+<span class="text-sm font-medium">Communities</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<span class="text-sm font-medium">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary/10 rounded-xl gold-border" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="text-sm font-semibold">Wallet</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-white/5 transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="pt-6 border-t border-white/5 space-y-2">
+<button class="w-full flex items-center justify-center gap-2 luxury-gradient text-on-primary py-3.5 rounded-xl font-bold text-sm shadow-xl shadow-primary/10 hover:brightness-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Create Project</span>
+</button>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="text-sm font-medium">Help</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-error transition-all rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="text-sm font-medium">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-[280px] min-h-screen flex flex-col items-center">
+<!-- TopNavBar -->
+<header class="w-full sticky top-0 z-40 bg-[#0A0E17]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-margin-page py-3 h-16 max-w-[1400px] mx-auto">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-sm">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-[18px]">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-xs focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-on-surface-variant/40 transition-all" placeholder="Search assets..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<button class="text-on-surface-variant/60 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right">
+<p class="text-xs font-bold group-hover:gold-text transition-colors">DevUser_99</p>
+<p class="text-[10px] text-on-surface-variant/60">Pro Account</p>
+</div>
+<div class="w-9 h-9 rounded-full border border-primary/30 p-0.5 overflow-hidden transition-transform group-hover:scale-105">
+<img class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH0YJby1nNiU3mPjs2xtYdqKzZ2_DUDw_GpvM6G6tCYQc5GVSLRkFQER-AofizjJ2RKtRh5FztESeSy7GKUTKQH83qEINQ8NsUUqmaDmax4VDdFm_Z4ojiQd879Xq4Ttf8OIAT-bsQYabcHK3pZIJ6cYXo-TZUIZ41xEOdoQU5Ptzocd12zPhzklufuOmvON_lijkhDghVGhg9hSdI6BDTLxnxGcx5qdUnsBM8skHEVM7WYpcU5gx9r_UFPamFwDTZ-laS-7lScQQ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 px-margin-page py-stack-lg max-w-container-max w-full">
+<!-- Page Header -->
+<div class="mb-12 text-center">
+<h2 class="serif-display text-5xl gold-text font-bold mb-2 tracking-tight">点数钱包</h2>
+<div class="flex items-center justify-center gap-2">
+<span class="h-px w-8 bg-primary/30"></span>
+<p class="text-xs uppercase tracking-[0.3em] text-on-surface-variant/80 font-bold">开发期模拟货币 · 1 点 = 1 元</p>
+<span class="h-px w-8 bg-primary/30"></span>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-8">
+<!-- Hero Balance Card -->
+<div class="col-span-12 glass-card p-12 rounded-2xl flex flex-col justify-center items-center h-[340px] relative overflow-hidden group">
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(212,175,55,0.1),transparent_70%)]"></div>
+<div class="absolute bottom-[-10%] right-[-5%] opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[280px] gold-text" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<div class="relative z-10 text-center mb-8">
+<p class="text-[11px] uppercase tracking-[0.4em] text-primary/80 font-bold mb-4">可用余额 Available Balance</p>
+<div class="flex items-baseline justify-center gap-4">
+<span class="serif-display text-[84px] font-bold text-white tracking-tight leading-none">986,420.50</span>
+<span class="text-xl gold-text font-bold serif-display">点</span>
+</div>
+</div>
+<div class="flex gap-6 relative z-10">
+<button class="flex items-center gap-2 luxury-gradient text-on-primary px-10 py-3.5 rounded-full font-bold text-sm shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                        充值点数（开发）
+                    </button>
+<button class="flex items-center gap-2 bg-white/5 gold-border text-on-surface px-10 py-3.5 rounded-full font-bold text-sm hover:bg-white/10 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                        查看订单
+                    </button>
+</div>
+</div>
+<!-- Stats Row -->
+<div class="col-span-12 grid grid-cols-3 gap-6">
+<div class="glass-card p-8 rounded-2xl border-white/5">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">托管中 Escrow</span>
+<span class="material-symbols-outlined text-primary/60 text-xl">lock</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="serif-display text-3xl font-bold text-white">1,200</span>
+<span class="text-xs gold-text">点</span>
+</div>
+</div>
+<div class="glass-card p-8 rounded-2xl border-white/5">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">本月支出 Expenses</span>
+<span class="material-symbols-outlined text-red-400/60 text-xl">trending_down</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="serif-display text-3xl font-bold text-white">3,580</span>
+<span class="text-xs text-red-400/80">点</span>
+</div>
+</div>
+<div class="glass-card p-8 rounded-2xl border-white/5">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">本月收入 Income</span>
+<span class="material-symbols-outlined text-emerald-400/60 text-xl">trending_up</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="serif-display text-3xl font-bold text-white">12,000</span>
+<span class="text-xs text-emerald-400/80">点</span>
+</div>
+</div>
+</div>
+<!-- Transaction Table -->
+<div class="col-span-12 glass-card rounded-2xl overflow-hidden mb-12">
+<div class="px-10 py-8 border-b border-white/5 flex justify-between items-center">
+<div>
+<h3 class="text-lg font-bold text-white mb-1">最近交易记录</h3>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Recent Transactions History</p>
+</div>
+<div class="flex gap-4">
+<button class="w-10 h-10 rounded-full gold-border flex items-center justify-center hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[18px] text-primary">filter_list</span>
+</button>
+<button class="w-10 h-10 rounded-full gold-border flex items-center justify-center hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[18px] text-primary">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-white/2 border-b border-white/5">
+<th class="px-10 py-5 text-[10px] uppercase tracking-[0.15em] text-on-surface-variant font-black">时间</th>
+<th class="px-10 py-5 text-[10px] uppercase tracking-[0.15em] text-on-surface-variant font-black">类型</th>
+<th class="px-10 py-5 text-[10px] uppercase tracking-[0.15em] text-on-surface-variant font-black text-right">金额</th>
+<th class="px-10 py-5 text-[10px] uppercase tracking-[0.15em] text-on-surface-variant font-black text-right">余额</th>
+<th class="px-10 py-5 text-[10px] uppercase tracking-[0.15em] text-on-surface-variant font-black">备注</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/[0.03] transition-colors cursor-pointer group">
+<td class="px-10 py-6 text-sm text-on-surface-variant/80">2023-10-27</td>
+<td class="px-10 py-6">
+<span class="px-4 py-1.5 rounded-full bg-red-500/10 text-red-400 text-[11px] font-bold border border-red-500/20">扣款</span>
+</td>
+<td class="px-10 py-6 serif-display text-lg text-right text-red-400 font-bold">-500.00</td>
+<td class="px-10 py-6 serif-display text-sm text-right text-on-surface-variant">986,420.50</td>
+<td class="px-10 py-6 text-sm text-on-surface/80">订阅 API 服务</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors cursor-pointer group">
+<td class="px-10 py-6 text-sm text-on-surface-variant/80">2023-10-26</td>
+<td class="px-10 py-6">
+<span class="px-4 py-1.5 rounded-full bg-primary/10 gold-text text-[11px] font-bold gold-border">托管</span>
+</td>
+<td class="px-10 py-6 serif-display text-lg text-right gold-text font-bold">-1,200.00</td>
+<td class="px-10 py-6 serif-display text-sm text-right text-on-surface-variant">986,920.50</td>
+<td class="px-10 py-6 text-sm text-on-surface/80">需求发包意向金</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors cursor-pointer group">
+<td class="px-10 py-6 text-sm text-on-surface-variant/80">2023-10-25</td>
+<td class="px-10 py-6">
+<span class="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] font-bold border border-emerald-500/20">结算</span>
+</td>
+<td class="px-10 py-6 serif-display text-lg text-right text-emerald-400 font-bold">+2,000.00</td>
+<td class="px-10 py-6 serif-display text-sm text-right text-on-surface-variant">988,120.50</td>
+<td class="px-10 py-6 text-sm text-on-surface/80">任务完成结算</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors cursor-pointer group">
+<td class="px-10 py-6 text-sm text-on-surface-variant/80">2023-10-24</td>
+<td class="px-10 py-6">
+<span class="px-4 py-1.5 rounded-full bg-white/5 text-on-surface-variant text-[11px] font-bold border border-white/10">退款</span>
+</td>
+<td class="px-10 py-6 serif-display text-lg text-right text-emerald-400 font-bold">+300.00</td>
+<td class="px-10 py-6 serif-display text-sm text-right text-on-surface-variant">986,120.50</td>
+<td class="px-10 py-6 text-sm text-on-surface/80">资源下载取消</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Disclaimer -->
+<div class="col-span-12 flex flex-col items-center py-12">
+<div class="h-px w-24 bg-white/10 mb-6"></div>
+<p class="text-on-surface-variant/30 text-[10px] tracking-[0.2em] flex items-center gap-2 font-bold uppercase">
+<span class="material-symbols-outlined text-[14px]">verified_user</span>
+                    SECURE SIMULATED ENVIRONMENT · 上线前将替换为真实支付渠道
+                </p>
+</div>
+</div>
+</div>
+</main>
+<script>
+    // Interaction logic
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('mousedown', () => {
+            btn.style.transform = 'scale(0.97)';
+        });
+        btn.addEventListener('mouseup', () => {
+            btn.style.transform = '';
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = '';
+        });
+    });
+
+    const searchInput = document.querySelector('input');
+    searchInput.addEventListener('focus', () => {
+        searchInput.parentElement.classList.add('ring-1', 'ring-primary/40');
+    });
+    searchInput.addEventListener('blur', () => {
+        searchInput.parentElement.classList.remove('ring-1', 'ring-primary/40');
+    });
+</script>
+</body></html>

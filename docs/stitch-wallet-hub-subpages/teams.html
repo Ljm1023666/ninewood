@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - 我的团队</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&amp;family=Playfair+Display:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#231f17",
+                      "tertiary-container": "#97b0ff",
+                      "primary": "#f2ca50",
+                      "border-white": "rgba(255, 255, 255, 0.05)",
+                      "tertiary-fixed-dim": "#b4c5ff",
+                      "surface-tint": "#e9c349",
+                      "inverse-surface": "#eae1d4",
+                      "on-secondary-container": "#c4b891",
+                      "on-secondary": "#383013",
+                      "accent-success": "#10B981",
+                      "outline-variant": "#4d4635",
+                      "error-container": "#93000a",
+                      "on-primary-container": "#554300",
+                      "background-deep": "#0A0E17",
+                      "surface-bright": "#3d392f",
+                      "on-primary-fixed": "#241a00",
+                      "border-gold": "rgba(212, 175, 55, 0.15)",
+                      "outline": "#99907c",
+                      "secondary": "#d3c69e",
+                      "on-secondary-fixed-variant": "#4f4628",
+                      "on-background": "#eae1d4",
+                      "secondary-fixed-dim": "#d3c69e",
+                      "surface-container-low": "#1f1b13",
+                      "surface-glass": "rgba(16, 20, 31, 0.6)",
+                      "on-error-container": "#ffdad6",
+                      "on-error": "#690005",
+                      "secondary-fixed": "#f0e2b8",
+                      "surface": "#16130b",
+                      "surface-variant": "#38342b",
+                      "surface-container-highest": "#38342b",
+                      "on-tertiary": "#082b72",
+                      "on-primary-fixed-variant": "#574500",
+                      "on-tertiary-fixed": "#00174b",
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed": "#221b03",
+                      "inverse-on-surface": "#343027",
+                      "tertiary": "#bfcdff",
+                      "primary-fixed-dim": "#e9c349",
+                      "surface-container-high": "#2d2a21",
+                      "surface-dim": "#16130b",
+                      "tertiary-fixed": "#dbe1ff",
+                      "on-tertiary-container": "#254188",
+                      "primary-fixed": "#ffe088",
+                      "background": "#16130b",
+                      "on-primary": "#3c2f00",
+                      "accent-error": "#F87171",
+                      "on-surface-variant": "#d0c5af",
+                      "on-surface": "#eae1d4",
+                      "secondary-container": "#51492a",
+                      "surface-container-lowest": "#110e07",
+                      "primary-container": "#d4af37",
+                      "on-tertiary-fixed-variant": "#27438a",
+                      "gold-bright": "#F4D03F",
+                      "inverse-primary": "#735c00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sidebar-width": "280px",
+                      "margin-page": "48px",
+                      "stack-md": "16px",
+                      "stack-lg": "32px",
+                      "container-max": "1100px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "label-caps": [
+                              "Geist"
+                      ],
+                      "headline-lg": [
+                              "Playfair Display"
+                      ],
+                      "headline-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "display-xl": [
+                              "Playfair Display"
+                      ],
+                      "data-mono": [
+                              "Geist"
+                      ],
+                      "body-md": [
+                              "Geist"
+                      ],
+                      "title-md": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "label-caps": [
+                              "10px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.3em",
+                                      "fontWeight": "900"
+                              }
+                      ],
+                      "headline-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-xl": [
+                              "84px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "data-mono": [
+                              "18px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        .bg-gradient-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+        }
+        .glow-shadow-primary {
+            box-shadow: 0 8px 32px -8px rgba(212, 175, 55, 0.4);
+        }
+        .bg-layer-overlay {
+            background-color: rgba(10, 14, 23, 0.85); /* Deep navy overlay */
+        }
+        .glass-card {
+            background-color: rgba(16, 20, 31, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-background-deep text-on-surface font-body-md text-body-md antialiased min-h-screen overflow-hidden selection:bg-primary/30 selection:text-primary">
+<!-- Ambient Background Wrapper -->
+<div class="fixed inset-0 z-0 pointer-events-none">
+<div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU')"></div>
+<div class="absolute inset-0 bg-layer-overlay"></div>
+<!-- Ambient radial glow -->
+<div class="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] mix-blend-screen opacity-50 transform translate-x-1/3 -translate-y-1/3"></div>
+<div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] mix-blend-screen opacity-50 transform -translate-x-1/3 translate-y-1/3"></div>
+</div>
+<div class="relative z-10 flex h-screen w-full">
+<!-- SideNavBar -->
+<nav class="w-[280px] h-screen fixed left-0 top-0 bg-surface dark:bg-surface border-r border-border-gold shadow-2xl flex flex-col p-stack-md z-50">
+<!-- Header Brand -->
+<div class="mb-stack-lg px-4 pt-6">
+<h1 class="font-headline-lg text-headline-lg-mobile text-primary tracking-tight mb-2">Elite Technical Workspace</h1>
+<div class="flex items-center gap-3">
+<img alt="User profile circular avatar" class="w-10 h-10 rounded-full border border-border-gold object-cover" data-alt="A highly detailed close-up of a minimalist circular avatar graphic in a luxury digital interface. The avatar features a sleek, abstract geometric design using a deep obsidian black background with fine, metallic gold linework forming a subtle monogram or structural pattern. The lighting is soft and studio-like, emphasizing the pristine, high-end quality of the design. The overall mood is sophisticated, technical, and exclusive, perfectly suited for an elite developer workspace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbk4RT2NMM_qSLfO4OSrYgxH8tKFymkD0yWzddjYyV-vCuLHt3vKvXQ9X8yLlb1f4mwTcGScdeJOm5tDJTRzD5F25Qq6JulCdXD809Wj50sxKus4qrWa1W9OU6Z3aPzdWSJKVi7iDRg596bKpiC66sDSzRqBS34W4dhU6juYM0w56KP6u6wvzIOl0xfyKYyven6RVy0xgydjdeC-pcam0p-VgRnNMjKrssL0pcvDB1dXFSJt7amHxZ9J8Rwhu3pvoFTZkqXlqPbm8"/>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Ninewood</p>
+<p class="text-on-surface-variant/70 text-xs">Verified Member</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant/70 font-body-md hover:bg-surface-bright hover:text-primary transition-all duration-300 scale-102 active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">home</span>
+                    首页
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant/70 font-body-md hover:bg-surface-bright hover:text-primary transition-all duration-300 scale-102 active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">hub</span>
+                    圈子社区
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant/70 font-body-md hover:bg-surface-bright hover:text-primary transition-all duration-300 scale-102 active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">folder_open</span>
+                    资源文件
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant/70 font-body-md hover:bg-surface-bright hover:text-primary transition-all duration-300 scale-102 active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">analytics</span>
+                    分析数据
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary font-bold scale-102 active:scale-98 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+                    我的团队
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant/70 font-body-md hover:bg-surface-bright hover:text-primary transition-all duration-300 scale-102 active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">help</span>
+                    帮助中心
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant/70 font-body-md hover:bg-surface-bright hover:text-primary transition-all duration-300 scale-102 active:scale-98" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+                    点数钱包
+                </a>
+</div>
+<!-- Footer Actions -->
+<div class="mt-auto pt-stack-md border-t border-border-gold/30 space-y-2">
+<button class="w-full py-3 px-4 rounded-full bg-gradient-gold text-on-primary font-title-md glow-shadow-primary hover:brightness-110 transition-all duration-300 mb-4">
+                    Upgrade to VIP
+                </button>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant/70 hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant/70 hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Sign Out
+                </a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] flex-1 h-screen overflow-y-auto px-margin-page py-10 custom-scrollbar">
+<div class="max-w-container-max mx-auto space-y-stack-lg">
+<!-- 1. Header -->
+<header class="space-y-2">
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">我的团队</h2>
+<p class="font-body-md text-on-surface-variant text-lg">管理圈子成员与协作角色</p>
+</header>
+<!-- 2. Stats Row (Glass Cards) -->
+<section class="grid grid-cols-3 gap-gutter">
+<div class="glass-card border border-border-white rounded-xl p-6 relative overflow-hidden group hover:border-border-gold transition-colors duration-300">
+<div class="absolute top-0 right-0 -mt-4 -mr-4 text-white/5 group-hover:text-primary/5 transition-colors duration-500">
+<span class="material-symbols-outlined text-8xl">group</span>
+</div>
+<p class="text-on-surface-variant font-body-md mb-2">成员</p>
+<p class="font-data-mono text-4xl text-on-surface">12</p>
+</div>
+<div class="glass-card border border-border-white rounded-xl p-6 relative overflow-hidden group hover:border-border-gold transition-colors duration-300">
+<div class="absolute top-0 right-0 -mt-4 -mr-4 text-white/5 group-hover:text-primary/5 transition-colors duration-500">
+<span class="material-symbols-outlined text-8xl">bolt</span>
+</div>
+<p class="text-on-surface-variant font-body-md mb-2">在线</p>
+<div class="flex items-center gap-3">
+<p class="font-data-mono text-4xl text-on-surface">5</p>
+<span class="flex w-3 h-3 rounded-full bg-accent-success shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+</div>
+</div>
+<div class="glass-card border border-border-white rounded-xl p-6 relative overflow-hidden group hover:border-border-gold transition-colors duration-300">
+<div class="absolute top-0 right-0 -mt-4 -mr-4 text-white/5 group-hover:text-primary/5 transition-colors duration-500">
+<span class="material-symbols-outlined text-8xl">pending_actions</span>
+</div>
+<p class="text-on-surface-variant font-body-md mb-2">待审核</p>
+<p class="font-data-mono text-4xl text-primary">2</p>
+</div>
+</section>
+<!-- 3. Action Bar -->
+<section class="flex justify-between items-center bg-white/5 rounded-2xl p-2 border border-border-white">
+<div class="flex items-center gap-4 flex-1 pl-4">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-transparent border-none text-on-surface placeholder:text-on-surface-variant focus:ring-0 pl-10 py-2 font-body-md" placeholder="搜索成员..." type="text"/>
+</div>
+<div class="h-6 w-px bg-border-white"></div>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
+<span class="material-symbols-outlined">filter_list</span>
+                            角色筛选
+                            <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<button class="flex items-center gap-2 bg-gradient-gold text-on-primary px-6 py-2.5 rounded-xl font-title-md text-title-md glow-shadow-primary hover:brightness-110 transition-all duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 600;">add</span>
+                        邀请成员
+                    </button>
+</section>
+<!-- 4. Member Table -->
+<section class="glass-card rounded-2xl border border-border-gold overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-white/5">
+<th class="font-title-md text-title-md text-on-surface-variant py-5 px-6 font-normal">成员</th>
+<th class="font-title-md text-title-md text-on-surface-variant py-5 px-6 font-normal">角色</th>
+<th class="font-title-md text-title-md text-on-surface-variant py-5 px-6 font-normal">加入时间</th>
+<th class="font-title-md text-title-md text-on-surface-variant py-5 px-6 font-normal text-right">贡献</th>
+<th class="font-title-md text-title-md text-on-surface-variant py-5 px-6 font-normal text-right">操作</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-on-surface">
+<tr class="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<img alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-border-white" data-alt="A high-quality, professional headshot avatar of a male developer in a dark luxury setting. The lighting is cinematic, featuring deep shadows with a subtle warm gold rim light on the edge of the face. The background is a clean, dark obsidian gray. The man has a confident, relaxed expression, wearing a stylish, minimalist dark turtleneck, fitting the elite technical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-53sQPoq0i9HypnAI3Y_1k0Y-lsONAQzDV0wu7RZmtbMxyJX3r1s3m6ZWE4MfIIyYYWApdQc6OL1yZ41EVg2Jc1wP85GMEuBiYz34XgDxVMsznjwdbLsnu8mj18msMAbRW_TFyQmxx_jBRuBVE5Vo7g9lJXT5wX4UTIQirWPDWdkw_jxWvub9NcX9EcKIAk9bMhXBKnOjV0QdSeWx4VpFDMPb9XcfSU5718PVxThVqOTaA-1UR0AejFPXKYXQrnvAhXybzJM-lag"/>
+<span class="font-title-md text-on-surface">张三</span>
+</div>
+</td>
+<td class="py-4 px-6"><span class="px-3 py-1 bg-primary/20 text-primary border border-primary/30 rounded-full text-xs tracking-wider">圈主</span></td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-on-surface-variant">2023-01-15</td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-right">1,250 pts</td>
+<td class="py-4 px-6 text-right">
+<button class="text-primary hover:text-gold-bright transition-colors text-sm font-title-md">编辑 / 管理</button>
+</td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<img alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-border-white" data-alt="A high-quality, professional headshot avatar of a female software engineer in a dark luxury setting. The lighting is cinematic, featuring deep shadows with a subtle warm gold rim light on the edge of the face. The background is a clean, dark obsidian gray. The woman has a focused, intelligent expression, wearing a stylish, minimalist dark blazer, fitting the elite technical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCajsHr96qWPloxi-_r4cxTdXdlkXdQJqz8DWEEHodWC1rQbRJKwR_YUcrrDZftyspcxRhYEn1bQaR7VlnctXlZiCs48vxZOkpEOYXQdo9WU4uRhusyBBBH_4rhhaBS2pvsDFJajEA4YW7mGM1-gqu99crZg7jxjyJL6WIn9VwFDDyMLBJwLFe1B9csiIHVZXBjyvUN-iNpniLY6ZHvdIFWEPoJcBGnJSRkbLWMUusy10sv4vAFahhS6vW-DBMVhGGepJJQCmF0sPE"/>
+<span class="font-title-md text-on-surface">李四</span>
+</div>
+</td>
+<td class="py-4 px-6"><span class="px-3 py-1 bg-tertiary/20 text-tertiary border border-tertiary/30 rounded-full text-xs tracking-wider">管理员</span></td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-on-surface-variant">2023-02-10</td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-right">850 pts</td>
+<td class="py-4 px-6 text-right">
+<button class="text-primary hover:text-gold-bright transition-colors text-sm font-title-md">编辑 / 管理</button>
+</td>
+</tr>
+<tr class="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center border border-border-white text-on-surface-variant font-title-md">王</div>
+<span class="font-title-md text-on-surface">王五</span>
+</div>
+</td>
+<td class="py-4 px-6"><span class="px-3 py-1 bg-white/10 text-on-surface-variant border border-white/10 rounded-full text-xs tracking-wider">成员</span></td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-on-surface-variant">2023-03-05</td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-right">420 pts</td>
+<td class="py-4 px-6 text-right">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors text-sm font-title-md">管理</button>
+</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center border border-border-white text-on-surface-variant font-title-md">赵</div>
+<span class="font-title-md text-on-surface">赵六</span>
+</div>
+</td>
+<td class="py-4 px-6"><span class="px-3 py-1 bg-white/10 text-on-surface-variant border border-white/10 rounded-full text-xs tracking-wider">成员</span></td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-on-surface-variant">2023-03-20</td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-right">150 pts</td>
+<td class="py-4 px-6 text-right">
+<button class="text-on-surface-variant hover:text-on-surface transition-colors text-sm font-title-md">管理</button>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<!-- 5. Bottom Section: Role Descriptions -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-card border border-border-white rounded-2xl p-6 hover:border-primary/30 transition-colors">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">stars</span>
+<h3 class="font-title-md text-title-md text-on-surface">圈主 (Circle Owner)</h3>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm leading-relaxed">
+                            拥有最高权限。可以管理整个团队的设置、账单、全局安全策略，以及转移圈主权限。
+                        </p>
+</div>
+<div class="glass-card border border-border-white rounded-2xl p-6 hover:border-tertiary/30 transition-colors">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-tertiary text-2xl">admin_panel_settings</span>
+<h3 class="font-title-md text-title-md text-on-surface">管理员 (Admin)</h3>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm leading-relaxed">
+                            可以邀请/移除普通成员，管理项目资源，分配任务，但无法访问账单和底层安全设置。
+                        </p>
+</div>
+<div class="glass-card border border-border-white rounded-2xl p-6 hover:border-white/30 transition-colors">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-on-surface-variant text-2xl">person</span>
+<h3 class="font-title-md text-title-md text-on-surface">成员 (Member)</h3>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm leading-relaxed">
+                            标准访问权限。可以参与项目协作、贡献代码和文档，查看自己被分配的任务和基础统计。
+                        </p>
+</div>
+</section>
+<!-- Spacer for scrolling -->
+<div class="h-12"></div>
+</div>
+</main>
+</div>
+</body></html>

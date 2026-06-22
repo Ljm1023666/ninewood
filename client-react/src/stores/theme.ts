@@ -80,10 +80,52 @@ function applyTheme(config: ThemeConfig) {
     root.style.setProperty('--price-foreground', '#fbbf24')
     root.style.setProperty('--price-surface', 'rgba(251, 191, 36, 0.12)')
     root.style.setProperty('--price-border', 'rgba(251, 191, 36, 0.32)')
+    root.style.setProperty('--wallet-panel-bg', 'rgba(255, 255, 255, 0.04)')
+    root.style.setProperty('--wallet-row-hover', 'rgba(255, 255, 255, 0.03)')
+    root.style.setProperty('--wallet-glass-bg', 'color-mix(in srgb, var(--bg-card) 68%, transparent)')
+    root.style.setProperty('--wallet-glass-border', 'color-mix(in srgb, var(--price-foreground) 22%, var(--border-color))')
+    root.style.setProperty('--wallet-glow-a', 'color-mix(in srgb, var(--price-foreground) 11%, transparent)')
+    root.style.setProperty('--wallet-glow-b', 'color-mix(in srgb, var(--price-foreground) 6%, transparent)')
+    root.style.setProperty(
+      '--wallet-hero-radial',
+      'radial-gradient(ellipse 85% 65% at 50% -15%, var(--wallet-glow-a), transparent 72%)',
+    )
+    root.style.setProperty(
+      '--wallet-accent-gradient',
+      'linear-gradient(135deg, var(--price-foreground), color-mix(in srgb, var(--price-foreground) 72%, white))',
+    )
+    root.style.setProperty('--wallet-on-accent', '#1a1400')
+    root.style.setProperty('--wallet-watermark-opacity', '0.07')
+    root.style.setProperty('--wallet-stat-icon', 'color-mix(in srgb, var(--price-foreground) 58%, transparent)')
+    root.style.setProperty('--wallet-btn-ghost-bg', 'color-mix(in srgb, var(--text-primary) 5%, transparent)')
+    root.style.setProperty('--wallet-divider', 'color-mix(in srgb, var(--text-primary) 6%, transparent)')
+    root.style.setProperty('--wallet-table-head-bg', 'color-mix(in srgb, var(--text-primary) 2%, transparent)')
+    root.style.setProperty('--wallet-serif', "'Playfair Display', Georgia, 'Times New Roman', serif")
   } else {
     root.style.setProperty('--price-foreground', '#b45309')
     root.style.setProperty('--price-surface', 'rgba(180, 83, 9, 0.1)')
     root.style.setProperty('--price-border', 'rgba(180, 83, 9, 0.28)')
+    root.style.setProperty('--wallet-panel-bg', 'rgba(0, 0, 0, 0.03)')
+    root.style.setProperty('--wallet-row-hover', 'rgba(0, 0, 0, 0.04)')
+    root.style.setProperty('--wallet-glass-bg', 'color-mix(in srgb, var(--bg-card) 92%, var(--price-foreground) 2%)')
+    root.style.setProperty('--wallet-glass-border', 'color-mix(in srgb, var(--price-foreground) 24%, var(--border-color))')
+    root.style.setProperty('--wallet-glow-a', 'color-mix(in srgb, var(--price-foreground) 14%, transparent)')
+    root.style.setProperty('--wallet-glow-b', 'color-mix(in srgb, var(--price-foreground) 8%, transparent)')
+    root.style.setProperty(
+      '--wallet-hero-radial',
+      'radial-gradient(ellipse 85% 65% at 50% -15%, var(--wallet-glow-a), transparent 72%)',
+    )
+    root.style.setProperty(
+      '--wallet-accent-gradient',
+      'linear-gradient(135deg, var(--price-foreground), color-mix(in srgb, var(--price-foreground) 55%, #f4d03f))',
+    )
+    root.style.setProperty('--wallet-on-accent', '#fffef8')
+    root.style.setProperty('--wallet-watermark-opacity', '0.09')
+    root.style.setProperty('--wallet-stat-icon', 'color-mix(in srgb, var(--price-foreground) 65%, transparent)')
+    root.style.setProperty('--wallet-btn-ghost-bg', 'color-mix(in srgb, var(--text-primary) 4%, transparent)')
+    root.style.setProperty('--wallet-divider', 'color-mix(in srgb, var(--text-primary) 8%, transparent)')
+    root.style.setProperty('--wallet-table-head-bg', 'color-mix(in srgb, var(--price-foreground) 4%, var(--bg-card))')
+    root.style.setProperty('--wallet-serif', "'Playfair Display', Georgia, 'Times New Roman', serif")
   }
 }
 

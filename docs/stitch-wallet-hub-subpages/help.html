@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Geist:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            backdrop-filter: blur(24px);
+            background: rgba(22, 19, 11, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card-gold {
+            backdrop-filter: blur(24px);
+            background: rgba(22, 19, 11, 0.7);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        body {
+            background-color: #0A0E17;
+            background-image: radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent 600px),
+                              radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.03), transparent 600px);
+            color: #eae1d4;
+        }
+        .faq-accordion[open] .faq-icon {
+            transform: rotate(180deg);
+        }
+        .faq-accordion summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary": "#d3c69e",
+                      "accent-error": "#F87171",
+                      "on-tertiary-fixed": "#00174b",
+                      "on-background": "#eae1d4",
+                      "on-primary": "#3c2f00",
+                      "on-primary-fixed": "#241a00",
+                      "error-container": "#93000a",
+                      "border-gold": "rgba(212, 175, 55, 0.15)",
+                      "surface-variant": "#38342b",
+                      "surface-dim": "#16130b",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#e9c349",
+                      "background-deep": "#0A0E17",
+                      "tertiary": "#bfcdff",
+                      "surface": "#16130b",
+                      "secondary-fixed": "#f0e2b8",
+                      "secondary-container": "#51492a",
+                      "accent-success": "#10B981",
+                      "on-surface": "#eae1d4",
+                      "on-secondary-container": "#c4b891",
+                      "surface-container-lowest": "#110e07",
+                      "on-tertiary-container": "#254188",
+                      "primary-fixed": "#ffe088",
+                      "on-secondary-fixed": "#221b03",
+                      "background": "#16130b",
+                      "tertiary-container": "#97b0ff",
+                      "primary": "#f2ca50",
+                      "secondary-fixed-dim": "#d3c69e",
+                      "on-tertiary": "#082b72",
+                      "surface-container": "#231f17",
+                      "surface-tint": "#e9c349",
+                      "outline-variant": "#4d4635",
+                      "error": "#ffb4ab",
+                      "surface-glass": "rgba(16, 20, 31, 0.6)",
+                      "surface-container-highest": "#38342b",
+                      "inverse-primary": "#735c00",
+                      "gold-bright": "#F4D03F",
+                      "on-secondary-fixed-variant": "#4f4628",
+                      "surface-container-high": "#2d2a21",
+                      "outline": "#99907c",
+                      "surface-container-low": "#1f1b13",
+                      "surface-bright": "#3d392f",
+                      "on-secondary": "#383013",
+                      "inverse-on-surface": "#343027",
+                      "on-primary-container": "#554300",
+                      "on-primary-fixed-variant": "#574500",
+                      "inverse-surface": "#eae1d4",
+                      "primary-container": "#d4af37",
+                      "on-tertiary-fixed-variant": "#27438a",
+                      "tertiary-fixed": "#dbe1ff",
+                      "on-surface-variant": "#d0c5af",
+                      "border-white": "rgba(255, 255, 255, 0.05)",
+                      "tertiary-fixed-dim": "#b4c5ff",
+                      "on-error": "#690005"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-lg": "32px",
+                      "sidebar-width": "280px",
+                      "container-max": "1100px",
+                      "stack-md": "16px",
+                      "margin-page": "48px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "label-caps": ["Geist"],
+                      "headline-lg": ["Playfair Display"],
+                      "body-md": ["Geist"],
+                      "data-mono": ["Geist"],
+                      "display-xl": ["Playfair Display"],
+                      "title-md": ["Geist"]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="flex min-h-screen">
+<!-- Sidebar (Shared Component) -->
+<nav class="fixed left-0 top-0 h-full w-sidebar-width bg-surface-dim flex flex-col p-6 gap-stack-md backdrop-blur-24px border-r border-border-gold z-50">
+<!-- Brand Header -->
+<div class="flex flex-col gap-1 mb-6">
+<span class="font-headline-lg text-headline-lg text-primary tracking-tight">Ninewood</span>
+<span class="font-body-md text-body-md text-on-surface-variant opacity-70">Elite Technical Authority</span>
+</div>
+<!-- Main Navigation -->
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span>Home</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Communities</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span>Resources</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Team</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span>Wallet</span>
+</a>
+</div>
+<!-- Footer Navigation -->
+<div class="flex flex-col gap-2 pt-6 border-t border-border-white">
+<a class="flex items-center gap-3 p-3 bg-primary/10 text-primary rounded-xl font-bold font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help Center</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-on-surface-variant opacity-70 hover:bg-white/5 hover:opacity-100 rounded-xl transition-all font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-sidebar-width flex-1 px-margin-page py-12 flex flex-col items-center">
+<div class="w-full max-w-container-max flex flex-col gap-stack-lg">
+<!-- Header Section -->
+<header class="flex flex-col gap-2">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">帮助中心</h1>
+<p class="font-title-md text-title-md text-on-surface-variant opacity-80">为您解答关于 Ninewood 的一切疑问</p>
+</header>
+<!-- Search Section -->
+<div class="relative w-full">
+<div class="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-primary" data-icon="search">search</span>
+</div>
+<input class="w-full h-16 pl-16 pr-6 bg-white/5 border border-white/10 rounded-full focus:ring-2 focus:ring-primary/40 focus:border-primary/40 text-on-surface font-body-md text-body-md transition-all outline-none placeholder:text-on-surface-variant/50" placeholder="搜索常见问题、规则或指南..." type="text"/>
+</div>
+<!-- Categories Section -->
+<div class="flex flex-wrap gap-4">
+<button class="px-6 py-2 rounded-full border border-primary text-primary font-body-md text-body-md bg-primary/5 hover:bg-primary/10 transition-all">全部分类</button>
+<button class="px-6 py-2 rounded-full border border-white/10 text-on-surface-variant font-body-md text-body-md hover:border-primary/40 hover:text-primary transition-all">账户安全</button>
+<button class="px-6 py-2 rounded-full border border-white/10 text-on-surface-variant font-body-md text-body-md hover:border-primary/40 hover:text-primary transition-all">点数钱包</button>
+<button class="px-6 py-2 rounded-full border border-white/10 text-on-surface-variant font-body-md text-body-md hover:border-primary/40 hover:text-primary transition-all">担保交易</button>
+<button class="px-6 py-2 rounded-full border border-white/10 text-on-surface-variant font-body-md text-body-md hover:border-primary/40 hover:text-primary transition-all">圈子规则</button>
+</div>
+<!-- Main Grid: FAQ & Contact -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- FAQ Section -->
+<section class="col-span-12 lg:col-span-8 flex flex-col gap-4">
+<div class="glass-card rounded-2xl overflow-hidden divide-y divide-white/5">
+<!-- FAQ 1 -->
+<details class="faq-accordion group">
+<summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-white/5 transition-colors">
+<span class="font-title-md text-title-md text-on-surface">什么是点数钱包？</span>
+<span class="material-symbols-outlined faq-icon transition-transform duration-300 text-primary" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                                Ninewood 的虚拟点数系统，1 点 = 1 元，用于支付服务和项目结算。用户可以通过法币充值或在平台完成项目获得点数。
+                            </div>
+</details>
+<!-- FAQ 2 -->
+<details class="faq-accordion group">
+<summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-white/5 transition-colors">
+<span class="font-title-md text-title-md text-on-surface">担保交易如何保证安全？</span>
+<span class="material-symbols-outlined faq-icon transition-transform duration-300 text-primary" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                                资金由平台托管，在项目验收完成后经双方确认才释放给开发者。如果产生纠纷，Ninewood 官方仲裁团队将介入，根据提交的交付物进行评定，确保每一分资金的安全。
+                            </div>
+</details>
+<!-- FAQ 3 -->
+<details class="faq-accordion group">
+<summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-white/5 transition-colors">
+<span class="font-title-md text-title-md text-on-surface">平台收取的服务费标准是多少？</span>
+<span class="material-symbols-outlined faq-icon transition-transform duration-300 text-primary" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                                我们仅收取交易额的 5% 作为平台运营费，用于维护开发者社区生态。对于长期合作的 Elite 级别开发者，该比例可进一步降低。
+                            </div>
+</details>
+<!-- FAQ 4 -->
+<details class="faq-accordion group">
+<summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-white/5 transition-colors">
+<span class="font-title-md text-title-md text-on-surface">如何加入或创建开发者圈子？</span>
+<span class="material-symbols-outlined faq-icon transition-transform duration-300 text-primary" data-icon="expand_more">expand_more</span>
+</summary>
+<div class="px-6 pb-6 pt-2 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                                您可以在圈子列表页浏览感兴趣的技术方向，并点击“申请加入”。若想创建专属圈子，您需要达到 Elite 等级并提交圈子愿景和运营计划。
+                            </div>
+</details>
+</div>
+</section>
+<!-- Sidebar / Support Card -->
+<aside class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<!-- Contact Card -->
+<div class="glass-card-gold rounded-2xl p-8 flex flex-col gap-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500"></div>
+<div class="flex flex-col gap-2">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="support_agent">support_agent</span>
+<h3 class="font-headline-lg text-title-md text-on-surface">联系专家</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">如果您无法在 FAQ 中找到答案，我们的客服专家将为您提供 1 对 1 的专业咨询服务。</p>
+</div>
+<ul class="flex flex-col gap-3 font-body-md text-body-md text-on-surface-variant">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle">check_circle</span>
+                                响应时间 &lt; 5 分钟
+                            </li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle">check_circle</span>
+                                7x24 小时在线
+                            </li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="check_circle">check_circle</span>
+                                专业技术顾问
+                            </li>
+</ul>
+<button class="w-full py-4 bg-gradient-to-r from-primary-container to-gold-bright text-on-primary font-title-md text-body-md rounded-full shadow-primary/20 shadow-xl hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                            在线咨询
+                        </button>
+</div>
+<!-- Visual Accent Card -->
+<div class="glass-card rounded-2xl p-8 flex flex-col gap-4">
+<h4 class="font-label-caps text-label-caps text-primary uppercase tracking-widest">社区准则</h4>
+<p class="font-body-md text-body-md text-on-surface-variant italic opacity-60">"在 Ninewood，我们追求极致的技术精确与卓越的交付质量。"</p>
+<a class="text-primary hover:underline font-body-md text-body-md flex items-center gap-1" href="#">
+                            查看完整准则
+                            <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</aside>
+</div>
+<!-- Visual Atmosphere Divider -->
+<div class="w-full h-px bg-gradient-to-r from-transparent via-border-gold to-transparent my-stack-md"></div>
+<!-- Bottom Quick Links -->
+<footer class="grid grid-cols-1 md:grid-cols-3 gap-stack-md mb-stack-lg">
+<div class="flex flex-col gap-4 p-6 glass-card rounded-xl hover:border-primary/20 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-primary" data-icon="terminal">terminal</span>
+<div>
+<h5 class="font-title-md text-body-md text-on-surface mb-1">开发者文档</h5>
+<p class="text-xs text-on-surface-variant opacity-70">集成 SDK 与 API 调用指南</p>
+</div>
+</div>
+<div class="flex flex-col gap-4 p-6 glass-card rounded-xl hover:border-primary/20 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-primary" data-icon="gavel">gavel</span>
+<div>
+<h5 class="font-title-md text-body-md text-on-surface mb-1">法律合规</h5>
+<p class="text-xs text-on-surface-variant opacity-70">服务协议与隐私政策条款</p>
+</div>
+</div>
+<div class="flex flex-col gap-4 p-6 glass-card rounded-xl hover:border-primary/20 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<div>
+<h5 class="font-title-md text-body-md text-on-surface mb-1">认证体系</h5>
+<p class="text-xs text-on-surface-variant opacity-70">如何获得 Elite 高级开发者标识</p>
+</div>
+</div>
+</footer>
+</div>
+</main>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[10%] right-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[20%] left-[20%] w-[300px] h-[300px] bg-primary/3 rounded-full blur-[100px]"></div>
+</div>
+</body></html>

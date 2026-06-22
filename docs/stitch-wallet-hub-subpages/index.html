@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>圈子 Hub 侧栏子页 · 暖金奢华方案 D</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #0A0E17;
+      color: #eae1d4;
+      margin: 0;
+      padding: 32px 40px 64px;
+    }
+    h1 { font-family: Georgia, "Playfair Display", serif; font-size: 28px; margin: 0 0 8px; color: #f2ca50; }
+    .sub { color: #d0c5af; margin-bottom: 12px; line-height: 1.6; max-width: 960px; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #3c2f00;
+      background: linear-gradient(135deg, #D4AF37, #F4D03F);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 28px;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    a.card {
+      display: block;
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(16, 20, 31, 0.6);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .15s, transform .15s;
+    }
+    a.card:hover { border-color: rgba(212, 175, 55, 0.45); transform: translateY(-2px); }
+    img {
+      width: 100%;
+      aspect-ratio: 16/10;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      background: #10141f;
+    }
+    .meta { padding: 14px 16px; }
+    .tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: #D4AF37; }
+    .title { font-size: 14px; margin-top: 6px; line-height: 1.4; }
+    .route { font-size: 11px; color: #99907c; margin-top: 4px; font-family: ui-monospace, monospace; }
+    footer { margin-top: 40px; font-size: 12px; color: #99907c; }
+    footer a { color: #D4AF37; }
+  </style>
+</head>
+<body>
+  <h1>圈子 Hub 侧栏子页 · 暖金奢华</h1>
+  <p class="sub">
+    基于方案 <strong>D（暖金奢华）</strong> 统一生成的 Bento Productivity Hub 子页。
+    左侧 280px 侧栏保持一致，仅右侧主内容区随路由变化。路由均在 <code>/circles/:id/*</code> 下。
+  </p>
+  <div class="badge">已选定方案 D</div>
+
+  <div class="grid">
+    <a class="card" href="home.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLvRxAVN7HdulQ5cx61dh6qO-1GUt7ngb7hsNknEMi4rC5ww9Mm3iYL113sKB8UlWWWHTbmYjeiZdDPW9cNlgjt5mVOrK8H7qaJ6hiFo4ouF19mRxg1SYbz7erYWPLADn2XqQL8cnTLZqiinRg-vWIg0MHhZY5qx1G7Ao8tVrSInQRQeG9dRZyU-8xSlRCNERyjOi4_BQ4to5aifabp7G3s57tgPqSQg-vOLmzQ28DYLK5WPFADfEZJSNg" alt="首页" loading="lazy" />
+      <div class="meta"><div class="tag">首页</div><div class="title">首页 - Warm Luxury Variant</div><div class="route">/circles/:id/home</div></div>
+    </a>
+    <a class="card" href="community.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLtLBYkHLP3DLqSODhhsZLXm_fJTsXVzddZ8TWTYrK0bLV3KRpYcTaOhYF1NnFCjxGDceFr4RPY3uWu1O8eI97VtnG6oAfmMSztKSrHt8FgAL42ZuTz-I1NgxkDDNhRKXPA9Pd24gM1aQ6vX_WXlxSbJzyqMETj6FkWHL7uLtxsr6YjZy8U4lYEkY0hQbbgIR_xqUxKkT5hPEMlDi3enZN-KIvNuuAY557d5vYCCXG5GfWS_eK8CJil1HIo" alt="圈子社区" loading="lazy" />
+      <div class="meta"><div class="tag">圈子社区</div><div class="title">圈子社区 - Warm Luxury Variant</div><div class="route">/circles/:id/community</div></div>
+    </a>
+    <a class="card" href="resources.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLv7jTA1iHYntJWxz1SC9l1YdDsEmaHn7FFeF92VdL1WrVD1i-kLTk-schbRiDvwQ_vqisB_7FLn0SYLDeAcxRBCOeys9SDLS1uQMqpBZ6y-kV4sU3iVQZtlN7jv_S-N1aatQk-VkH86r6tNCWnR5NHZfrKqd5Gs9pKmw1xlmUECNCNcSrkwCgvWEES4wqAixKB9Ul4z-oRAM7GLdd4-PoIGhmavAieSijHpgkyk35Ue9h81xO66tGNXO5E" alt="资源文件" loading="lazy" />
+      <div class="meta"><div class="tag">资源文件</div><div class="title">资源文件 - Warm Luxury Variant</div><div class="route">/circles/:id/resources</div></div>
+    </a>
+    <a class="card" href="analytics.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLvHcJYq87NdFBCphcAiGi-GAbZI0T9kYae0kDb8NBLAqlvz83_sRxijMMPS_kH3YU0CUQ1Qy18y_Wj2CxxZDPhPvw1LAtbMIyt1Nz_RuR6FXeiSbTIHRAiFsK-4BirJfz1aWVDM1MeMroVjoO5hmarWaXv3e1zQK42XQUWb1esg1ftYuznYUR2Gnxe9V0Lsav4Lm2Q6sPRF0eA1nIJNuejHdqXmtCG0GzEtSF3e1w8AvYkK4Vhgw-KssEk" alt="分析数据" loading="lazy" />
+      <div class="meta"><div class="tag">分析数据</div><div class="title">分析数据 - Warm Luxury Variant</div><div class="route">/circles/:id/analytics</div></div>
+    </a>
+    <a class="card" href="teams.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLumVZLXq7-R9yFEo_jjPq2pFERHeaYp-SI48-MWHlhWbGBUHdzbzLznpLiLjdmFzRphKO-Tayl3MVnA6pteCHKf94ESE03UOnoU918TUgdhRBRSN-7sJ-o7TsIoSx_UT14Nq14uRY_5sERrbHaV8ks57DqEsxmzye4p7vILVlWGvSqRQEgp09MiU6HAU14me0rEhwMym0sD242sAxMznUqXCtD0LFaus4YNr3b--xUl8ntnY51BOv0PbPU" alt="我的团队" loading="lazy" />
+      <div class="meta"><div class="tag">我的团队</div><div class="title">我的团队 - Warm Luxury Variant</div><div class="route">/circles/:id/teams</div></div>
+    </a>
+    <a class="card" href="help.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLsc0fNs2SDSutjyTfFahDydcemEwAm6AtYQYuLWXvZmTOJPlJwTrmgN_XbaDzV0mv7tB7oKSZgSbM3Mbx4kFMXEYgsqovqxkJgza9xQYDmKUlC34kVoXiVrDdTQuj2PYpAtfyGyaCjHlWSgShBcTEg4QHzmq7sLqKbGVHym8V8o-u3lW0c-ugL00PMw661gUlW9MDtBOMkjRLsOiZ-g06O6BsCfoGk8nG77n9ow2iosa0EmqC2FnDvuezg" alt="帮助中心" loading="lazy" />
+      <div class="meta"><div class="tag">帮助中心</div><div class="title">帮助中心 - Warm Luxury Variant</div><div class="route">/circles/:id/help</div></div>
+    </a>
+  </div>
+
+  <footer>
+    点数钱包为独立路由 <code>/wallet</code>（非圈子侧栏子页），设计稿见
+    <a href="../stitch-points-wallet/variant-d.html" target="_blank">stitch-points-wallet/variant-d.html</a> ·
+    Stitch 项目：Ninewood Circle Detail UI
+  </footer>
+</body>
+</html>

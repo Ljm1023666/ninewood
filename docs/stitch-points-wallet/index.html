@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>点数钱包 UI 方案 · Ninewood</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", system-ui, sans-serif; background: #0b0e15; color: #e0e2ec; margin: 0; padding: 32px 40px 64px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .sub { color: #c1c6d6; margin-bottom: 32px; line-height: 1.6; max-width: 720px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    a.card { display: block; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; overflow: hidden; background: rgba(28,32,39,.75); text-decoration: none; color: inherit; transition: border-color .15s; }
+    a.card:hover { border-color: rgba(212, 175, 55, .55); }
+    a.card.selected { border-color: rgba(212, 175, 55, .65); box-shadow: 0 0 0 1px rgba(212, 175, 55, .25); }
+    img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; display: block; background: #10131a; }
+    .meta { padding: 14px 16px; }
+    .tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: #3388ff; }
+    .tag.gold { color: #D4AF37; }
+    .title { font-size: 14px; margin-top: 6px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <h1>点数钱包 UI 方案</h1>
+  <p class="sub">Stitch 为九木「点数钱包」生成的 5 套桌面端 HTML 预览（1 点 = 1 元，含余额、托管、流水）。<strong>已选定方案 D</strong>，Hub 子页见 <a href="../stitch-wallet-hub-subpages/index.html" style="color:#D4AF37">stitch-wallet-hub-subpages</a>。</p>
+  <div class="grid">
+    <a class="card" href="variant-a.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLvGlna3Wjn2isASbNdqBXsbItuBKUeC7GFDM5TzaNnVGb9sIBgp8CMSiXNBXJwAo8B5UKh8sfRkf7Gz9MBAihS0tX1Y3nwzgXx3o1BbRIQHKhkwjM4T89IM0TYKdUp-hXw2fT_JYpDeazUe9o7BJq5OYpBloLmKCBVAnWbsogkKSXrkB88NVz3V6l8GqQwWHYbgsVtkuuo7zn8Bwa7dT1fU6JQwbgM6ZuBUUXxY8nuldyq0XoAqZz_-zRk" alt="Points Wallet - Dark Glass Variant" loading="lazy" />
+      <div class="meta"><div class="tag">方案 A</div><div class="title">暗色玻璃 · 品牌默认</div></div>
+    </a>
+    <a class="card" href="variant-b.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLvzBf-4XfGytNn40MUQxpT-gEQnI_cp3D7MgCdxQKzZ3sMYRkzittrmkM90lgccg9nVyeNi9SlFggI8_zgZOWioHV86v7VwoFWwrLkdKINOOp-DaWTZYJzKYa-941deMz9eeMRcYOOiTaAT8doPOz_9pSRQVnMJbi8wUhn5tXXBLpt3MgPg-CSDp9FVPH6wB4Nfh3_K47ayy1ePACjyGUuKPskZRALMZCXx-JZLpKJICCm58_bYluzw6og" alt="Points Wallet - Bento Dashboard Variant" loading="lazy" />
+      <div class="meta"><div class="tag">方案 B</div><div class="title">Bento 仪表盘</div></div>
+    </a>
+    <a class="card" href="variant-c.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLtMDbYc4EfUosn1ItY657PqMvJn_oniy2atr2QkcevydAJKLnmxTMhzcGWiY2MlwY7As6H35L5aE_fLgzIff165xsXlB4s_a_japJZNSi-0RoJF2Bu68pyUwo5dHkQ_K-CwcmIVvRuloTJdcbDnHRspRlm9bftkXZ0HjZfxba7JZ51SR97cO9p1KgnqQ05D_GVgMLjOQOUEUC9XIfhGnEZ0KMYl0BQIaJ9u7w_iR5gSTKIIaFsQySN8Mg" alt="Points Wallet - Split Ledger Variant" loading="lazy" />
+      <div class="meta"><div class="tag">方案 C</div><div class="title">左右分栏 · 流水账</div></div>
+    </a>
+    <a class="card selected" href="variant-d.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLurQDP7RwpRXgRxFpbMKgvlMOD7aGvUfMgcNpeCNd4wARta8IqC5_HDtt2aATqlA0VG43S7j_KMefCXk3jLlrNrKsUzKo0W4zES82MobVk9L3hd_pWcGQ8b9MK7dl80qNlbiuHkhvzEUznNJLU9mEDCDIlNg6NZweu5m4-692v05CXgRRDJsy7HJ7Vrqg3YaWwwYi2PhhW4-ntQ0tO4x6qscgWp8M60WAk-hXMUx46tQ0LzJyUszteN_A" alt="Points Wallet - Warm Luxury Variant" loading="lazy" />
+      <div class="meta"><div class="tag gold">方案 D · 已选定</div><div class="title">暖金奢华 · 金融感</div></div>
+    </a>
+    <a class="card" href="variant-e.html" target="_blank">
+      <img src="https://lh3.googleusercontent.com/aida/AP1WRLt8ciN9gTKrfoipXzAApkD0ArVQtbsKdEXooEfzEJlFLeE2gKTeGkl-wbEmwH28MOQY0k6TPGCDzYxfJNKtNnneJhggfNicY-Rumu2PzlLwxp4Wkrlf0A304x7zzx5GUGe_l7VAaC4N8tK2gxPe4NPu2xlkjdQh8OrqcED73NCBrQbNQD8vckWFifsIRReiz2CNaqgFjxRlcMhP5pd7_LtdZ0M5VgiLjm4j1b4sEt1E7ivx4Xjhkb1TLg" alt="Points Wallet - Terminal Brutalist Variant" loading="lazy" />
+      <div class="meta"><div class="tag">方案 E</div><div class="title">终端风 · 硬核数据</div></div>
+    </a>
+  </div>
+</body>
+</html>

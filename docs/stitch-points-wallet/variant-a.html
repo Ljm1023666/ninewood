@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - 点数钱包</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: #10131a;
+            color: #e0e2ec;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(28, 32, 39, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card-hover:hover {
+            background: rgba(28, 32, 39, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .bg-beach-overlay {
+            background: linear-gradient(to bottom, rgba(16, 19, 26, 0.7) 0%, rgba(16, 19, 26, 0.95) 100%), url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(16, 19, 26, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .glow-accent {
+            position: relative;
+        }
+        .glow-accent::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(51, 136, 255, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed": "#321300",
+                      "on-secondary-fixed": "#1a1c1c",
+                      "error-container": "#93000a",
+                      "surface-container-low": "#181c23",
+                      "surface-container-highest": "#32353c",
+                      "primary-container": "#458fff",
+                      "primary-fixed-dim": "#abc7ff",
+                      "surface-dim": "#10131a",
+                      "on-secondary": "#2f3131",
+                      "on-tertiary-container": "#471e00",
+                      "secondary-container": "#484949",
+                      "tertiary-container": "#e4700c",
+                      "secondary": "#c7c6c6",
+                      "tertiary-fixed": "#ffdbc8",
+                      "outline-variant": "#414754",
+                      "on-surface": "#e0e2ec",
+                      "on-primary-fixed": "#001b3f",
+                      "on-background": "#e0e2ec",
+                      "tertiary-fixed-dim": "#ffb689",
+                      "secondary-fixed-dim": "#c7c6c6",
+                      "outline": "#8b919f",
+                      "tertiary": "#ffb689",
+                      "surface-tint": "#abc7ff",
+                      "surface-container": "#1c2027",
+                      "surface": "#10131a",
+                      "secondary-fixed": "#e3e2e2",
+                      "on-surface-variant": "#c1c6d6",
+                      "on-primary-fixed-variant": "#004590",
+                      "on-secondary-container": "#b8b8b8",
+                      "on-error": "#690005",
+                      "background": "#10131a",
+                      "surface-bright": "#363941",
+                      "inverse-surface": "#e0e2ec",
+                      "inverse-primary": "#005cbc",
+                      "primary-fixed": "#d7e2ff",
+                      "on-error-container": "#ffdad6",
+                      "on-primary-container": "#00285a",
+                      "inverse-on-surface": "#2d3038",
+                      "surface-container-lowest": "#0b0e15",
+                      "surface-container-high": "#272a31",
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed-variant": "#464747",
+                      "primary": "#3388FF",
+                      "on-primary": "#ffffff",
+                      "on-tertiary": "#512300",
+                      "on-tertiary-fixed-variant": "#743500",
+                      "surface-variant": "#32353c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "gutter": "24px",
+                      "margin-page": "32px",
+                      "stack-lg": "24px",
+                      "container-max": "1280px",
+                      "stack-sm": "8px",
+                      "content-column": "768px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Geist"],
+                      "body-lg": ["Geist"],
+                      "title-sm": ["Geist"],
+                      "label-caps": ["Geist"],
+                      "headline-md": ["Geist"],
+                      "body-md": ["Geist"]
+              },
+              "fontSize": {
+                      "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-beach-overlay min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="w-[280px] h-screen fixed left-0 top-0 z-50 bg-[#0b0e15]/90 backdrop-blur-xl border-r border-white/5 flex flex-col p-stack-md">
+<div class="flex items-center gap-3 px-4 mb-10">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white">terminal</span>
+</div>
+<div>
+<h1 class="font-display-lg text-title-sm font-bold text-white leading-tight">Ninewood</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/70 font-semibold">Developer Workspace</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-white/5 transition-all active:scale-98 rounded-xl font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-white/5 transition-all active:scale-98 rounded-xl font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span>Communities</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-white/5 transition-all active:scale-98 rounded-xl font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span>Projects</span>
+</a>
+<!-- Active Tab: Wallet -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary bg-primary/10 transition-all active:scale-98 rounded-xl font-title-sm text-title-sm relative overflow-hidden" href="#">
+<div class="absolute inset-0 bg-primary/5 blur-xl"></div>
+<span class="material-symbols-outlined relative z-10" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="relative z-10">Wallet</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-white/5 transition-all active:scale-98 rounded-xl font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="pt-6 border-t border-white/5 space-y-1">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-white py-3 rounded-xl font-title-sm hover:brightness-110 transition-all active:scale-95 mb-4 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Create Project</span>
+</button>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-white/5 transition-all rounded-xl font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-white hover:bg-white/5 transition-all rounded-xl font-title-sm text-title-sm" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] min-h-screen flex flex-col">
+<!-- TopNavBar (Shared Component) -->
+<header class="w-full sticky top-0 z-40 bg-[#10131a]/80 backdrop-blur-xl border-b border-white/5 flex justify-between items-center px-gutter py-stack-sm h-16">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-body-md focus:outline-none focus:border-primary/50 placeholder:text-on-surface-variant/50 transition-all focus:bg-white/10" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-white hover:bg-white/5 p-2 rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1 pr-3 rounded-full transition-colors active:scale-95">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-white/20 overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a software developer with a clean, high-tech background. The lighting is moody and cinematic with blue and cyan highlights, fitting a dark developer workspace theme. The expression is focused and calm." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH0YJby1nNiU3mPjs2xtYdqKzZ2_DUDw_GpvM6G6tCYQc5GVSLRkFQER-AofizjJ2RKtRh5FztESeSy7GKUTKQH83qEINQ8NsUUqmaDmax4VDdFm_Z4ojiQd879Xq4Ttf8OIAT-bsQYabcHK3pZIJ6cYXo-TZUIZ41xEOdoQU5Ptzocd12zPhzklufuOmvON_lijkhDghVGhg9hSdI6BDTLxnxGcx5qdUnsBM8skHEVM7WYpcU5gx9r_UFPamFwDTZ-laS-7lScQQ"/>
+</div>
+<span class="font-body-md text-on-surface font-medium">DevUser_99</span>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 px-margin-page py-stack-lg max-w-container-max mx-auto w-full custom-scrollbar">
+<!-- Header Section -->
+<div class="mb-8">
+<h2 class="font-display-lg text-display-lg text-white">点数钱包</h2>
+<p class="font-body-lg text-on-surface-variant/80 mt-1">开发期模拟货币 · 1 点 = 1 元</p>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Hero Balance Card -->
+<div class="col-span-12 lg:col-span-8 glass-card p-8 rounded-2xl flex flex-col justify-between h-[300px] relative overflow-hidden group glow-accent">
+<div class="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
+<span class="material-symbols-outlined text-[240px]" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<div class="relative z-10">
+<p class="font-label-caps text-on-surface-variant uppercase tracking-widest mb-2 opacity-80">可用余额</p>
+<div class="flex items-baseline gap-3">
+<span class="font-display-lg text-[64px] font-bold text-white tracking-tight">986,420.50</span>
+<span class="font-headline-md text-primary font-bold">点</span>
+</div>
+</div>
+<div class="flex gap-4 relative z-10">
+<button class="flex items-center gap-2 bg-primary text-white px-8 py-3.5 rounded-xl font-title-sm hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined">add_circle</span>
+                            充值点数（开发）
+                        </button>
+<button class="flex items-center gap-2 bg-white/5 border border-white/10 text-on-surface px-8 py-3.5 rounded-xl font-title-sm hover:bg-white/10 active:scale-95 transition-all backdrop-blur-md">
+<span class="material-symbols-outlined">receipt_long</span>
+                            查看订单
+                        </button>
+</div>
+</div>
+<!-- Quick Stats Column -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
+<div class="glass-card glass-card-hover p-6 rounded-2xl flex items-center justify-between transition-all duration-300">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">托管中</p>
+<h3 class="font-headline-md text-white font-bold">1,200 <span class="text-body-md font-normal text-on-surface-variant ml-1">点</span></h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-tertiary-container/10 border border-tertiary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+</div>
+<div class="glass-card glass-card-hover p-6 rounded-2xl flex items-center justify-between transition-all duration-300">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">本月支出</p>
+<h3 class="font-headline-md text-white font-bold">3,580 <span class="text-body-md font-normal text-on-surface-variant ml-1">点</span></h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-error-container/10 border border-error-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-error">trending_down</span>
+</div>
+</div>
+<div class="glass-card glass-card-hover p-6 rounded-2xl flex items-center justify-between transition-all duration-300">
+<div>
+<p class="font-label-caps text-on-surface-variant mb-1">本月收入</p>
+<h3 class="font-headline-md text-white font-bold">12,000 <span class="text-body-md font-normal text-on-surface-variant ml-1">点</span></h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+</div>
+</div>
+</div>
+<!-- Transaction Table -->
+<div class="col-span-12 glass-card rounded-2xl overflow-hidden mt-2">
+<div class="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+<h3 class="font-title-sm text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">history</span>
+                            最近交易记录
+                        </h3>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-white/10 text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[20px]">filter_list</span></button>
+<button class="p-2 rounded-lg hover:bg-white/10 text-on-surface-variant transition-colors"><span class="material-symbols-outlined text-[20px]">download</span></button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-white/[0.03]">
+<th class="px-8 py-4 font-label-caps text-on-surface-variant/70 border-b border-white/5">时间</th>
+<th class="px-8 py-4 font-label-caps text-on-surface-variant/70 border-b border-white/5">类型</th>
+<th class="px-8 py-4 font-label-caps text-on-surface-variant/70 text-right border-b border-white/5">金额</th>
+<th class="px-8 py-4 font-label-caps text-on-surface-variant/70 text-right border-b border-white/5">余额</th>
+<th class="px-8 py-4 font-label-caps text-on-surface-variant/70 border-b border-white/5">备注</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/[0.04] transition-colors cursor-pointer group">
+<td class="px-8 py-5 font-body-md text-on-surface/80 group-hover:text-white">2023-10-27</td>
+<td class="px-8 py-5 font-body-md">
+<span class="px-3 py-1 rounded-full bg-error-container/10 text-error border border-error/20 text-[11px] font-bold tracking-wider">扣款</span>
+</td>
+<td class="px-8 py-5 font-title-sm text-right text-error">-500.00</td>
+<td class="px-8 py-5 font-body-md text-right text-on-surface-variant">986,420.50</td>
+<td class="px-8 py-5 font-body-md text-on-surface-variant/80">订阅 API 服务</td>
+</tr>
+<tr class="hover:bg-white/[0.04] transition-colors cursor-pointer group">
+<td class="px-8 py-5 font-body-md text-on-surface/80 group-hover:text-white">2023-10-26</td>
+<td class="px-8 py-5 font-body-md">
+<span class="px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary border border-tertiary/20 text-[11px] font-bold tracking-wider">托管</span>
+</td>
+<td class="px-8 py-5 font-title-sm text-right text-tertiary">-1,200.00</td>
+<td class="px-8 py-5 font-body-md text-right text-on-surface-variant">986,920.50</td>
+<td class="px-8 py-5 font-body-md text-on-surface-variant/80">需求发包意向金</td>
+</tr>
+<tr class="hover:bg-white/[0.04] transition-colors cursor-pointer group">
+<td class="px-8 py-5 font-body-md text-on-surface/80 group-hover:text-white">2023-10-25</td>
+<td class="px-8 py-5 font-body-md">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-[11px] font-bold tracking-wider">结算</span>
+</td>
+<td class="px-8 py-5 font-title-sm text-right text-primary">+2,000.00</td>
+<td class="px-8 py-5 font-body-md text-right text-on-surface-variant">988,120.50</td>
+<td class="px-8 py-5 font-body-md text-on-surface-variant/80">任务完成结算</td>
+</tr>
+<tr class="hover:bg-white/[0.04] transition-colors cursor-pointer group">
+<td class="px-8 py-5 font-body-md text-on-surface/80 group-hover:text-white">2023-10-24</td>
+<td class="px-8 py-5 font-body-md">
+<span class="px-3 py-1 rounded-full bg-white/10 text-on-surface/70 border border-white/10 text-[11px] font-bold tracking-wider">退款</span>
+</td>
+<td class="px-8 py-5 font-title-sm text-right text-primary">+300.00</td>
+<td class="px-8 py-5 font-body-md text-right text-on-surface-variant">986,120.50</td>
+<td class="px-8 py-5 font-body-md text-on-surface-variant/80">资源下载取消</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer Disclaimer -->
+<div class="col-span-12 flex justify-center py-stack-md mt-4">
+<div class="px-6 py-2 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-sm">
+<p class="text-on-surface-variant/40 text-[12px] flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">info</span>
+                            上线前将替换为真实支付渠道
+                        </p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Interactive state for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.96)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = '';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = '';
+            });
+        });
+
+        // Search bar focus effect enhancement
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+</body></html>

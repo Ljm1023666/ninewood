@@ -59,6 +59,7 @@ function preloadRoute(path: string) {
     '/welfare': () => import('@/views/WelfareCenter'),
     '/tag-stats': () => import('@/views/TagStatsDashboard'),
     '/transactions': () => import('@/views/TransactionHistory'),
+    '/wallet': () => import('@/views/Wallet'),
     '/search': () => import('@/views/Search'),
     '/profile': () => import('@/views/Profile'),
     '/dashboard': () => import('@/views/Dashboard'),

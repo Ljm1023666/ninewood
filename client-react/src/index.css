@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import "./styles/agent-codex.css";
+@import "./styles/agent-tasks.css";
 @import "./styles/demand-workspace.css";
 @import "./styles/help-jump-matrix.css";
+@import "./styles/wallet.css";
 
 /* Stitch Material Symbols Outlined */
 .ms-icon {
@@ -115,6 +117,26 @@
   --z-overlay: 200;
   --z-modal: 300;
   --z-max: 400;
+
+  /* 点数钱包（由 theme store 按深浅色写入） */
+  --price-foreground: #fbbf24;
+  --price-surface: rgba(251, 191, 36, 0.12);
+  --price-border: rgba(251, 191, 36, 0.32);
+  --wallet-panel-bg: rgba(255, 255, 255, 0.04);
+  --wallet-row-hover: rgba(255, 255, 255, 0.03);
+  --wallet-glass-bg: color-mix(in srgb, var(--bg-card) 68%, transparent);
+  --wallet-glass-border: color-mix(in srgb, var(--price-foreground) 22%, var(--border-color));
+  --wallet-glow-a: color-mix(in srgb, var(--price-foreground) 11%, transparent);
+  --wallet-glow-b: color-mix(in srgb, var(--price-foreground) 6%, transparent);
+  --wallet-hero-radial: radial-gradient(ellipse 85% 65% at 50% -15%, var(--wallet-glow-a), transparent 72%);
+  --wallet-accent-gradient: linear-gradient(135deg, var(--price-foreground), color-mix(in srgb, var(--price-foreground) 72%, white));
+  --wallet-on-accent: #1a1400;
+  --wallet-watermark-opacity: 0.07;
+  --wallet-stat-icon: color-mix(in srgb, var(--price-foreground) 58%, transparent);
+  --wallet-btn-ghost-bg: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  --wallet-divider: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  --wallet-table-head-bg: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  --wallet-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }
 
 /* ── Tailwind 主题扩展 ── */
@@ -175,6 +197,9 @@
   --color-file-tree-bg: var(--file-tree-bg);
   --color-file-tree-hover: var(--file-tree-hover);
   --color-folder-icon: var(--folder-icon);
+  --color-price-foreground: var(--price-foreground);
+  --color-price-surface: var(--price-surface);
+  --color-price-border: var(--price-border);
 
   @keyframes shimmer {
     from {

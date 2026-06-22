@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&amp;family=Geist:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            backdrop-filter: blur(24px);
+            background: rgba(16, 20, 31, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+        .luxury-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+        }
+        .glow-gold {
+            box-shadow: 0 10px 30px -10px rgba(212, 175, 55, 0.2);
+        }
+        body {
+            background-color: #0A0E17;
+            color: #eae1d4;
+            overflow-x: hidden;
+        }
+        .radial-glow {
+            position: fixed;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+            z-index: -1;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-on-surface": "#343027",
+                      "surface-tint": "#e9c349",
+                      "on-surface": "#eae1d4",
+                      "primary-fixed": "#ffe088",
+                      "on-primary-container": "#554300",
+                      "on-error": "#690005",
+                      "on-background": "#eae1d4",
+                      "accent-success": "#10B981",
+                      "secondary-container": "#51492a",
+                      "surface-container-low": "#1f1b13",
+                      "primary": "#f2ca50",
+                      "error": "#ffb4ab",
+                      "on-tertiary-container": "#254188",
+                      "tertiary-fixed-dim": "#b4c5ff",
+                      "on-secondary": "#383013",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#00174b",
+                      "surface-container-high": "#2d2a21",
+                      "border-gold": "rgba(212, 175, 55, 0.15)",
+                      "surface-container-highest": "#38342b",
+                      "gold-bright": "#F4D03F",
+                      "accent-error": "#F87171",
+                      "outline-variant": "#4d4635",
+                      "border-white": "rgba(255, 255, 255, 0.05)",
+                      "surface-dim": "#16130b",
+                      "secondary-fixed": "#f0e2b8",
+                      "inverse-surface": "#eae1d4",
+                      "on-surface-variant": "#d0c5af",
+                      "surface-variant": "#38342b",
+                      "on-secondary-fixed-variant": "#4f4628",
+                      "primary-fixed-dim": "#e9c349",
+                      "on-tertiary-fixed-variant": "#27438a",
+                      "on-primary-fixed-variant": "#574500",
+                      "inverse-primary": "#735c00",
+                      "tertiary-fixed": "#dbe1ff",
+                      "on-primary-fixed": "#241a00",
+                      "surface": "#16130b",
+                      "secondary-fixed-dim": "#d3c69e",
+                      "on-secondary-fixed": "#221b03",
+                      "secondary": "#d3c69e",
+                      "surface-bright": "#3d392f",
+                      "tertiary-container": "#97b0ff",
+                      "on-tertiary": "#082b72",
+                      "background-deep": "#0A0E17",
+                      "on-secondary-container": "#c4b891",
+                      "outline": "#99907c",
+                      "background": "#16130b",
+                      "error-container": "#93000a",
+                      "surface-container": "#231f17",
+                      "tertiary": "#bfcdff",
+                      "surface-container-lowest": "#110e07",
+                      "surface-glass": "rgba(16, 20, 31, 0.6)",
+                      "primary-container": "#d4af37",
+                      "on-primary": "#3c2f00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "margin-page": "48px",
+                      "sidebar-width": "280px",
+                      "gutter": "24px",
+                      "container-max": "1100px",
+                      "stack-lg": "32px"
+              },
+              "fontFamily": {
+                      "display-xl": ["Playfair Display"],
+                      "label-caps": ["Geist"],
+                      "headline-lg": ["Playfair Display"],
+                      "title-md": ["Geist"],
+                      "headline-lg-mobile": ["Playfair Display"],
+                      "data-mono": ["Geist"],
+                      "body-md": ["Geist"]
+              },
+              "fontSize": {
+                      "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}],
+                      "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="font-body-md text-body-md">
+<!-- Ambient Glow Elements -->
+<div class="radial-glow -top-48 -left-48"></div>
+<div class="radial-glow -bottom-48 -right-48"></div>
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation (SideNavBar) -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-glass backdrop-blur-24 border-r border-white shadow-2xl flex flex-col p-stack-lg z-50">
+<!-- Brand Logo & Identity -->
+<div class="mb-10 flex items-center gap-4">
+<div class="w-10 h-10 luxury-gradient rounded-xl flex items-center justify-center glow-gold">
+<span class="material-symbols-outlined text-on-primary font-bold">diamond</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-[24px] text-primary-container leading-none">Ninewood</h1>
+<p class="font-label-caps text-[10px] text-on-surface-variant/50 tracking-widest mt-1">ELITE AUTHORITY</p>
+</div>
+</div>
+<!-- Primary Navigation Links -->
+<nav class="flex-1 space-y-2">
+<!-- Active: 首页 -->
+<a class="flex items-center gap-4 px-4 py-3 bg-primary/10 text-primary font-bold rounded-xl hover:scale-[1.02] active:scale-95 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-body-md">首页</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-body-md">圈子社区</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95" href="#">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-body-md">资源文件</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-body-md">分析数据</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95" href="#">
+<span class="material-symbols-outlined">group_add</span>
+<span class="text-body-md">我的团队</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl hover:scale-[1.02] active:scale-95" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-body-md">点数钱包</span>
+</a>
+</nav>
+<!-- Footer Navigation -->
+<div class="pt-6 border-t border-white/10 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-body-md">帮助中心</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-body-md">退出登录</span>
+</a>
+<div class="mt-6 flex items-center gap-3 px-4 py-2">
+<img class="w-10 h-10 rounded-full border border-gold-bright object-cover" data-alt="A high-quality, professional headshot of a software developer with a clean, cinematic lighting setup against a dark, tech-inspired background. The individual is wearing a sophisticated dark turtleneck, looking slightly off-camera with a confident and calm expression, representing an elite technical authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDw-M5PFu8qIXr8WF7SX5MORFA6Ttiwjsula9hK0IZLTGA_vvcTBUEvWfwRy0-xk__HCWo1hjY1HLlpqsW0s0k93Rho5H-qTh7IRHzPvsmqN_ukpPbEo2RT2R6No5LyTvww7JC6qTVsFr53hmiK1cN7Gu4VmjV4nTnMRQY-7-aLtcy8Nn-SjCdPkyKewfaBlbrNbUygp-yFkwRBC6uvBk3Hl3pJxCJLy8S5V_bIMCeVtpTOsCrIwEnWh9lC4RYSdJqXFQdaUqvPhfo"/>
+<div class="overflow-hidden">
+<p class="font-title-md text-[14px] truncate">Ninewood Elite</p>
+<p class="text-[10px] text-on-surface-variant/50">Technical Authority</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] w-full max-w-[1100px] mx-auto px-margin-page py-stack-lg space-y-stack-lg">
+<!-- Top App Bar Content (Inline) -->
+<header class="flex justify-between items-center h-16">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-12 pr-4 text-body-md focus:ring-1 focus:ring-primary/40 focus:border-primary/40 outline-none transition-all" placeholder="搜索资源、需求或讨论..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<div class="h-8 w-[1px] bg-white/10"></div>
+<div class="flex items-center gap-3">
+<span class="font-title-md text-primary">宁杭中心</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+</div>
+</header>
+<!-- 1. Welcome Hero Section -->
+<section class="relative overflow-hidden glass-card rounded-3xl p-12 gold-border glow-gold">
+
+<div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="space-y-4">
+<span class="font-label-caps text-primary tracking-[0.4em]">WELCOME BACK</span>
+<h2 class="font-headline-lg text-white">欢迎回来，宁杭独立开发者</h2>
+<p class="text-on-surface-variant max-w-xl">
+                            在这里，技术的精度与艺术的品味交织。您的每一次贡献都在重塑独立开发的未来。欢迎在您的私属工作站继续探索。
+                        </p>
+<div class="pt-4 flex gap-4">
+<button class="luxury-gradient text-on-primary font-bold py-3 px-8 rounded-full glow-gold flex items-center gap-2 hover:scale-[1.05] transition-transform">
+<span class="material-symbols-outlined">rocket_launch</span>
+                                立即开始
+                            </button>
+<button class="border border-gold text-primary font-bold py-3 px-8 rounded-full hover:bg-primary/10 transition-colors">
+                                查看手册
+                            </button>
+</div>
+</div>
+<div class="hidden lg:block w-64 h-64 opacity-20 transform rotate-12 scale-150">
+<span class="material-symbols-outlined text-[200px] text-primary">diversity_3</span>
+</div>
+</div>
+</section>
+<!-- 2. Stats Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="glass-card p-stack-md rounded-2xl flex items-center gap-6 border-l-4 border-l-primary">
+<div class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[32px]">group</span>
+</div>
+<div>
+<p class="text-on-surface-variant/70 text-[12px] font-label-caps mb-1">成员总数</p>
+<p class="font-data-mono text-[28px] text-white">1,284</p>
+</div>
+<div class="ml-auto text-accent-success text-[12px] flex items-center">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+                        12%
+                    </div>
+</div>
+<div class="glass-card p-stack-md rounded-2xl flex items-center gap-6 border-l-4 border-l-primary">
+<div class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[32px]">bolt</span>
+</div>
+<div>
+<p class="text-on-surface-variant/70 text-[12px] font-label-caps mb-1">今日活跃</p>
+<p class="font-data-mono text-[28px] text-white">456</p>
+</div>
+<div class="ml-auto text-accent-success text-[12px] flex items-center">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+                        8%
+                    </div>
+</div>
+<div class="glass-card p-stack-md rounded-2xl flex items-center gap-6 border-l-4 border-l-primary">
+<div class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[32px]">assignment_add</span>
+</div>
+<div>
+<p class="text-on-surface-variant/70 text-[12px] font-label-caps mb-1">新增需求</p>
+<p class="font-data-mono text-[28px] text-white">24</p>
+</div>
+<div class="ml-auto text-accent-success text-[12px] flex items-center">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                        New
+                    </div>
+</div>
+</section>
+<!-- 3. Quick Actions Grid -->
+<section class="space-y-stack-md">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-lg text-[24px]">快速行动</h3>
+<a class="text-primary text-[14px] hover:underline" href="#">管理所有工具</a>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-gutter">
+<button class="glass-card p-8 rounded-2xl group hover:border-primary/50 transition-all text-left">
+<div class="w-12 h-12 mb-6 rounded-lg luxury-gradient flex items-center justify-center text-on-primary group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">post_add</span>
+</div>
+<p class="font-title-md mb-2">发布需求</p>
+<p class="text-[12px] text-on-surface-variant/60">启动新的合作项目，寻找顶尖开发者支持。</p>
+</button>
+<button class="glass-card p-8 rounded-2xl group hover:border-primary/50 transition-all text-left">
+<div class="w-12 h-12 mb-6 rounded-lg bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">upload_file</span>
+</div>
+<p class="font-title-md mb-2">上传资源</p>
+<p class="text-[12px] text-on-surface-variant/60">分享您的代码库、文档或资产给社区成员。</p>
+</button>
+<button class="glass-card p-8 rounded-2xl group hover:border-primary/50 transition-all text-left">
+<div class="w-12 h-12 mb-6 rounded-lg bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">forum</span>
+</div>
+<p class="font-title-md mb-2">发起讨论</p>
+<p class="text-[12px] text-on-surface-variant/60">就技术难题或行业趋势与同行深度碰撞。</p>
+</button>
+<button class="glass-card p-8 rounded-2xl group hover:border-primary/50 transition-all text-left">
+<div class="w-12 h-12 mb-6 rounded-lg bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<p class="font-title-md mb-2">点数钱包</p>
+<p class="text-[12px] text-on-surface-variant/60">查看奖励积分、交易历史及兑换专属权益。</p>
+</button>
+</div>
+</section>
+<!-- 4. Recent Activity & Community Highlights (Asymmetric Bento) -->
+<section class="grid grid-cols-12 gap-gutter">
+<!-- Activity List -->
+<div class="col-span-12 lg:col-span-8 glass-card rounded-2xl overflow-hidden">
+<div class="p-6 border-b border-white/5 flex items-center justify-between">
+<h3 class="font-title-md">最近活动</h3>
+<button class="text-on-surface-variant/60 hover:text-white transition-colors">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+<div class="divide-y divide-white/5">
+<!-- Activity Item -->
+<div class="p-6 flex items-center gap-6 hover:bg-white/3 transition-colors">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A macro photograph of an expensive mechanical watch movement, emphasizing the gold gears and technical precision. The lighting is dramatic, high-contrast, and luxurious, matching an elite developer aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwsUfd4RdZ3X2NP0ihoITl-0pNgCc1VGl8eyGE_nv08lJhDjjE_UQleDXZRu-RrFsPX8gDSp6pKULnA_LJOJ0hK8oQq-zM6QTSIbJ_td0F5d_fG_GwlQXMV10d0umgs5_IDEJT50gukBBxAld1HSoOl26aftQTHj9XQtVD9H6zzHNL904YjdhaKzLnTIvMRpWrFM2b-MDBjWlUFy1A5_2z2ZGudjntzKBVXWVNEwlivR1BnzmVaImcCywPHI0C13c8_GCyJHc8Mbc"/>
+<div class="flex-1">
+<p class="text-white font-title-md text-[14px]">
+<span class="text-primary">Zhang Wei</span> 上传了新资源 <span class="text-on-surface-variant">"高性能计算库 v2.1"</span>
+</p>
+<p class="text-[12px] text-on-surface-variant/50 mt-1">10分钟前 · 资源文件</p>
+</div>
+<button class="border border-white/10 rounded-lg px-3 py-1 text-[12px] hover:bg-white/5">查看详情</button>
+</div>
+<div class="p-6 flex items-center gap-6 hover:bg-white/3 transition-colors">
+<div class="w-12 h-12 rounded-full bg-accent-success/10 flex items-center justify-center text-accent-success">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<div class="flex-1">
+<p class="text-white font-title-md text-[14px]">
+                                    新成员 <span class="text-primary">Li Na</span> 加入了宁杭圈子社区
+                                </p>
+<p class="text-[12px] text-on-surface-variant/50 mt-1">2小时前 · 圈子社区</p>
+</div>
+<button class="border border-white/10 rounded-lg px-3 py-1 text-[12px] hover:bg-white/5">发送欢迎</button>
+</div>
+<div class="p-6 flex items-center gap-6 hover:bg-white/3 transition-colors">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A close-up of a high-end fountain pen writing on premium parchment paper. The ink is a deep, shimmering gold. The setting is a darkened, mahogany-paneled library, lit by a soft desk lamp, creating a mood of heritage and elite technical authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCwdM73cLIQyVlBf_98NXbdyCYxsHuJZrAQxXVvsNhSNeW-O87tKb2YUnU_foHkK2Bxdl3IQtAPCY4oz6tuXWaRHqsdxJ08QV7ixuqrHPgcDUYj7UjzuBStHAAt-f1zC82H9osHws-vq_s9x47aONOas7p2tX_UqKBZnKhpEFOlQpi2JE1orX2g5MxieSK4nroeUaVvdowRU1pxMhl6kugw9y0dWkqzryAph8ldyIihdQJtpn6f0U0Mf9Z38R-Xmu6BfgcKownHJ4"/>
+<div class="flex-1">
+<p class="text-white font-title-md text-[14px]">
+<span class="text-primary">Wang Chen</span> 发起了讨论 <span class="text-on-surface-variant">"如何平衡独立开发与生活质量？"</span>
+</p>
+<p class="text-[12px] text-on-surface-variant/50 mt-1">4小时前 · 讨论区</p>
+</div>
+<span class="bg-primary/10 text-primary text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider">HOT</span>
+</div>
+</div>
+</div>
+<!-- Featured Badge/Wallet Quick View -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<div class="luxury-gradient rounded-2xl p-6 text-on-primary relative overflow-hidden shadow-2xl glow-gold h-fit">
+<span class="material-symbols-outlined absolute -right-6 -bottom-6 text-[120px] opacity-10">shield</span>
+<div class="relative z-10">
+<p class="font-label-caps text-[10px] mb-4 opacity-70 tracking-widest uppercase">Member Status</p>
+<h4 class="font-headline-lg text-[28px] mb-1">宁杭金牌会员</h4>
+<p class="text-[12px] opacity-80">您的权限已激活 · 剩余365天</p>
+<div class="mt-8 flex justify-between items-end">
+<div>
+<p class="text-[10px] opacity-70 font-label-caps uppercase">Credit Balance</p>
+<p class="font-data-mono text-[32px]">12,850 Pts</p>
+</div>
+<span class="material-symbols-outlined text-[40px]">token</span>
+</div>
+</div>
+</div>
+<div class="glass-card rounded-2xl p-6 gold-border">
+<h4 class="font-title-md mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">emoji_events</span>
+                            本周贡献榜
+                        </h4>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<span class="w-6 font-data-mono text-primary">01</span>
+<img class="w-8 h-8 rounded-full border border-primary/30" data-alt="A minimalist, high-end profile avatar of a tech visionary. Abstract shapes, glass textures, and golden lighting highlights. Sophisticated and exclusive style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlpvtQf9LLMGcavctXxNbdv3GK8jeW86CKwOLAyGEWAqOvKV2-QyaMeMYoeJzmVTl21sBYnyeJd9FAUWst1SFjZOylqPvyhExqf5c0GvuPEVmTp9T2xqVNbal1x7mqeII66JmAJ3c5OHwZSTKXUN5HYTLO9wQJDkE5hRQWCVU_9DC3Td4Luh1-RUyOi4WsH1xdE6lhzgoHCVrw4n0gJzU7_EA4XIfPfYarAsmdPya5n9oyol1s3vmLIF_frQs6wu8Q3Vjn5Wow6vA"/>
+<span class="flex-1 text-[14px]">Chen Qi</span>
+<span class="font-data-mono text-[12px] text-on-surface-variant/60">+125</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-6 font-data-mono text-on-surface-variant/40">02</span>
+<img class="w-8 h-8 rounded-full border border-white/10" data-alt="A modern, abstract digital portrait in a low-key lighting setup. Use of obsidian blacks and subtle gold reflections. High-end aesthetic for an elite developer." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXyXdyFmkMTsIqccv-TDLAsHM3p2k4yGlI1BeGP5lqJDIZXo0YuRuhj0QDtLeFlndZc7-FIETedLmMIqUlUkS-f2q-A9UZ_Cj5Z77gIfZjh7l2rWluSz4XkYaf82Zk28HHwIS-oV5U7muiLYu4jmJs_Z74gM4yoivGg4gOjX1h58xQxUCxUaDflPm3cwgEqlS6GvolsbREZzTxbi7sxAoyFK8BsV5prwaBSejinRH1yjE7mPBacCpeyAChPH31Lm8lKb3ulrcwKu0"/>
+<span class="flex-1 text-[14px]">Lin Mo</span>
+<span class="font-data-mono text-[12px] text-on-surface-variant/60">+98</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="w-6 font-data-mono text-on-surface-variant/40">03</span>
+<img class="w-8 h-8 rounded-full border border-white/10" data-alt="A sophisticated digital representation of a female professional in the tech industry. Cinematic lighting, professional environment, warm gold and deep navy color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRciggvFm7ebKBu9mov1Bg_v-mCJtRwi57s3nluZth9fB7CwzEb0QpPHialtJ30Frv_Pv7jgO8ObiMoCvDRc08_DHcgoXOLpBwtJwThTvz8FFEcKBQ05y-ReRbveebSa2pbgkZoRed4u0gnQusxclw5vfomMZ2u7WM3pUdmarQAz2rrFwyeBt_alNGERhq-vok_nOID_enuSe60ule9g_RvU7wt8K7KsvbqZ2tJV3D-OUO52rzNakwk5wvMq5J327k1CZXaMYZp5o"/>
+<span class="flex-1 text-[14px]">Su Xiao</span>
+<span class="font-data-mono text-[12px] text-on-surface-variant/60">+72</span>
+</div>
+</div>
+<button class="w-full mt-6 py-2 rounded-lg border border-white/10 text-[12px] hover:bg-white/5 transition-colors">查看完整排行</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Floating Action Button (FAB) - Suppressed on Dashboard Home as per context, but rendered if alignment is perfect. For Home, a "New Contribution" action is suitable. -->
+<button class="fixed bottom-10 right-10 w-16 h-16 luxury-gradient text-on-primary rounded-full shadow-2xl glow-gold flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-[60]">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<script>
+        // Micro-interactions for glass cards
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

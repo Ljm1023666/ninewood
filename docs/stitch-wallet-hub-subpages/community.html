@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Geist:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(16, 20, 31, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .gold-glow:hover {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+        body {
+            background-color: #0A0E17;
+            background-image: radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                              radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "on-error": "#690005",
+                        "border-white": "rgba(255, 255, 255, 0.05)",
+                        "tertiary-fixed": "#dbe1ff",
+                        "on-surface-variant": "#d0c5af",
+                        "on-tertiary-fixed-variant": "#27438a",
+                        "primary-container": "#d4af37",
+                        "on-primary-fixed-variant": "#574500",
+                        "inverse-surface": "#eae1d4",
+                        "on-primary-container": "#554300",
+                        "on-secondary": "#383013",
+                        "inverse-on-surface": "#343027",
+                        "surface-container-low": "#1f1b13",
+                        "surface-bright": "#3d392f",
+                        "surface-container-high": "#2d2a21",
+                        "outline": "#99907c",
+                        "on-secondary-fixed-variant": "#4f4628",
+                        "inverse-primary": "#735c00",
+                        "gold-bright": "#F4D03F",
+                        "surface-container-highest": "#38342b",
+                        "surface-tint": "#e9c349",
+                        "outline-variant": "#4d4635",
+                        "error": "#ffb4ab",
+                        "surface-glass": "rgba(16, 20, 31, 0.6)",
+                        "surface-container": "#231f17",
+                        "on-tertiary": "#082b72",
+                        "primary": "#f2ca50",
+                        "secondary-fixed-dim": "#d3c69e",
+                        "tertiary-container": "#97b0ff",
+                        "background": "#16130b",
+                        "on-secondary-fixed": "#221b03",
+                        "primary-fixed": "#ffe088",
+                        "surface-container-lowest": "#110e07",
+                        "on-tertiary-container": "#254188",
+                        "on-surface": "#eae1d4",
+                        "on-secondary-container": "#c4b891",
+                        "secondary-container": "#51492a",
+                        "accent-success": "#10B981",
+                        "tertiary": "#bfcdff",
+                        "surface": "#16130b",
+                        "secondary-fixed": "#f0e2b8",
+                        "background-deep": "#0A0E17",
+                        "primary-fixed-dim": "#e9c349",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#38342b",
+                        "surface-dim": "#16130b",
+                        "border-gold": "rgba(212, 175, 55, 0.15)",
+                        "on-primary-fixed": "#241a00",
+                        "error-container": "#93000a",
+                        "on-primary": "#3c2f00",
+                        "on-tertiary-fixed": "#00174b",
+                        "on-background": "#eae1d4",
+                        "accent-error": "#F87171",
+                        "secondary": "#d3c69e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "margin-page": "48px",
+                        "stack-lg": "32px",
+                        "sidebar-width": "280px",
+                        "container-max": "1100px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "body-md": ["Geist"],
+                        "label-caps": ["Geist"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "title-md": ["Geist"],
+                        "display-xl": ["Playfair Display"],
+                        "data-mono": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                        "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="text-on-surface font-body-md overflow-x-hidden">
+<!-- SideNavBar (Authority Source: JSON) -->
+<aside class="fixed left-0 top-0 h-full w-[280px] flex flex-col p-stack-md gap-stack-lg bg-surface/85 backdrop-blur-xl border-r border-white/10 z-50">
+<div class="flex flex-col gap-1 px-4 mb-8">
+<h1 class="text-title-sm font-black text-primary tracking-widest uppercase">Ninewood</h1>
+<p class="text-[10px] tracking-[0.3em] font-black text-on-surface-variant/60 uppercase">Productivity Hub</p>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<!-- Navigation Items Mapping -->
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-sm font-semibold">Home</span>
+</a>
+<!-- Active State for '圈子社区' (Communities) -->
+<a class="flex items-center gap-4 px-4 py-3 bg-primary-container text-on-primary-container rounded-xl font-semibold opacity-100 scale-[0.99]" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm">Communities</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-sm font-semibold">Files</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-sm font-semibold">Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined">diversity_3</span>
+<span class="text-sm font-semibold">Team</span>
+</a>
+</nav>
+<div class="flex flex-col gap-2 mt-auto border-t border-white/5 pt-stack-md">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm font-semibold">Help</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-semibold">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] min-h-screen relative flex flex-col items-center">
+<!-- Top Navigation -->
+<header class="w-full max-w-[1100px] h-16 flex justify-between items-center px-margin-page sticky top-0 z-40 bg-surface/80 backdrop-blur-md">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">arrow_back</span>
+<span class="text-on-surface-variant/40">/</span>
+<span class="text-sm font-medium">圈子社区</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">notifications</span>
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border border-surface"></div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">settings</span>
+<div class="w-8 h-8 rounded-full border border-primary/30 p-[2px]">
+<div class="w-full h-full rounded-full bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional close-up headshot of a software architect in a high-end dark studio setting with warm gold rim lighting. The person is wearing a designer black turtleneck. The background is a soft-focus bokeh of high-end server racks. Professional luxury aesthetic, deep shadows, and cinematic focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdgCfJMvE3ZGCAow_6tyXEK6RRwT-JYFmAI0QaQlrrmQpLIK76sXj9y9ZhU_zY1ovkb6FC2LY33-2n_nfsJ5cY8wmU1ryBDhNxhii2LpQHA-OVpnu1dNWrJFXJwqLVWFPK4BCdbiPO_mxFM_4QPZN1xNZBtTfkRoOlqteqNODA5ra8TfKooLEFDD7q7i1KSIhAkyHSRiXe7IsqHXlbS3U_fttHw8tPOOxTG7mSpGmIXO0gqA2OiiJkAu4_CMRdoJVJ3eUKoDDOEzE"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Hero Section -->
+<section class="w-full max-w-[1100px] px-margin-page py-stack-lg mt-8">
+<div class="relative overflow-hidden glass-panel rounded-3xl p-12 gold-border">
+<!-- Background Atmospheric Element -->
+<div class="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[200px] text-primary" style="font-variation-settings: 'wght' 100;">hub</span>
+</div>
+<div class="relative z-10 flex flex-col gap-6 max-w-2xl">
+<div class="flex flex-wrap items-center gap-3">
+<span class="px-3 py-1 text-label-caps font-label-caps bg-primary/10 text-primary border border-primary/20 rounded-full">活跃</span>
+<span class="px-3 py-1 text-label-caps font-label-caps bg-white/5 text-on-surface-variant border border-white/10 rounded-full">公开圈</span>
+</div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface">宁杭独立开发者</h2>
+<div class="flex items-center gap-8 text-on-surface-variant">
+<div class="flex flex-col">
+<span class="text-2xl font-data-mono text-primary">1,284</span>
+<span class="text-xs uppercase tracking-widest opacity-60">成员数量</span>
+</div>
+<div class="h-8 w-px bg-white/10"></div>
+<div class="flex flex-col">
+<span class="text-2xl font-data-mono text-primary">156</span>
+<span class="text-xs uppercase tracking-widest opacity-60">活跃需求</span>
+</div>
+</div>
+<p class="text-lg text-on-surface-variant leading-relaxed font-body-md">
+                        一个汇聚南京与杭州两地独立开发者的圈子，共同探讨产品、技术与出海机会。在这里，我们共享资源，共同成长。
+                    </p>
+<div class="mt-4">
+<button class="px-8 py-4 bg-gradient-to-r from-primary to-gold-bright text-on-primary font-bold rounded-full shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group">
+<span>在圈内发布需求</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Content Sections -->
+<section class="w-full max-w-[1100px] px-margin-page py-stack-lg flex flex-col gap-stack-md">
+<div class="flex justify-between items-end mb-4">
+<div class="flex flex-col gap-1">
+<h3 class="text-title-md font-title-md text-on-surface">圈内需求</h3>
+<div class="h-1 w-12 bg-primary rounded-full"></div>
+</div>
+<div class="flex gap-4">
+<button class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 uppercase tracking-widest">
+                        最新发布 <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Demand Feed Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Demand Card 1 -->
+<div class="glass-panel p-8 rounded-2xl gold-border gold-glow group cursor-pointer transition-all">
+<div class="flex justify-between items-start mb-6">
+<span class="px-3 py-1 text-xs font-bold bg-accent-success/10 text-accent-success border border-accent-success/20 rounded-md">进行中</span>
+<span class="text-xs font-data-mono text-on-surface-variant/40">#REQ-2409</span>
+</div>
+<h4 class="text-xl font-bold text-on-surface group-hover:text-primary transition-colors mb-4 leading-snug">寻找熟悉 Swift 的 iOS 开发者合作工具类产品</h4>
+<div class="flex items-center gap-4 mt-auto">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="A portrait of a serene medical professional in a futuristic clinical setting. The lighting is soft and ethereal, using a warm dark blue and gold color palette. High-end photography style, shallow depth of field, focused on a calm and professional expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcI6826fL0w-fNXMcpY_qQTo2zWO9KrE7RJm4IiZFMYZ288NG6nbjf4p9vbkGnRw3YhTTiy5Z1wImaD_BBahVGd38M_XDGsR-N8Fv5rQhxVg7_Ij0MhsvdRw2g4EH4gw6ZQCMqCTL0RwCRobkX-d9hpA13vyZfaybSUnM2aMXHgnSGDyFPqe_gvupZ-bDPtTwgeMQ296ipJtgi0icaa2MRJqsJ0JiCPoM0iYqnvM4-JdGkXi1IEkVb9Ynqtu_9McDzqYq1_saeo7k"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">钱医生内科</span>
+<span class="text-[10px] text-on-surface-variant/60 uppercase tracking-wider">3小时前发布</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+</div>
+</div>
+<!-- Demand Card 2 -->
+<div class="glass-panel p-8 rounded-2xl border-white/10 hover:border-primary/30 group cursor-pointer transition-all">
+<div class="flex justify-between items-start mb-6">
+<span class="px-3 py-1 text-xs font-bold bg-accent-error/10 text-accent-error border border-accent-error/20 rounded-md">急需</span>
+<span class="text-xs font-data-mono text-on-surface-variant/40">#REQ-2412</span>
+</div>
+<h4 class="text-xl font-bold text-on-surface group-hover:text-primary transition-colors mb-4 leading-snug">Next.js 14 App Router 部署坑点技术咨询</h4>
+<div class="flex items-center gap-4 mt-auto">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="A profile photo of a creative designer with an artistic vibe. The person is set against a background of abstract obsidian and gold digital art. Cinematic lighting, professional studio setup, elite luxury aesthetic, high contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9j9QYmumzZ5QqVbdDtsUYJj2nT5liLAn2lp56PkCk4sRCFhLsODHw41TpWiBFc4TOdgWlvI9GP-I-mqRvMXU3YdLwet1WEdiexzyEQ_NPA_r5ICZjPxTv5QzfMLnKh09DrQcuE7FeZHRjFHJkTMWq3ziYjQ4c_WU12uTy-qgGCMkCTfI0YL14O00n4KSPxfsE2PXvA8AQoC0VWg9FhDjG-FpXRNvShDsm2jREnJvRRbJF2tqhswBbForaZ9W_lL4XYmvM0yc2a5A"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface">李白不白</span>
+<span class="text-[10px] text-on-surface-variant/60 uppercase tracking-wider">5小时前发布</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+<!-- Empty State / More Demands Placeholder -->
+<div class="mt-8 glass-panel rounded-2xl p-12 border-dashed border-white/10 flex flex-col items-center text-center gap-4 group hover:border-primary/30 transition-all cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant/30 group-hover:text-primary/50 transition-all">add_circle</span>
+</div>
+<div>
+<p class="text-on-surface font-semibold">暂无更多实时需求</p>
+<p class="text-sm text-on-surface-variant/60 mt-1">您也可以在此分享您的项目进展或技术见解</p>
+</div>
+<button class="mt-2 text-primary font-bold text-sm hover:underline">查看历史存档</button>
+</div>
+</section>
+<!-- Aesthetic Footer element -->
+<footer class="w-full max-w-[1100px] px-margin-page py-16 flex justify-between items-center opacity-30 border-t border-white/5">
+<span class="text-xs font-label-caps tracking-[0.4em]">ELITE TECHNICAL AUTHORITY</span>
+<span class="text-xs font-label-caps tracking-[0.4em]">© 2024 NINEWOOD ATELIER</span>
+</footer>
+</main>
+<!-- Visual Polish: Ambient Glows -->
+<div class="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none z-0"></div>
+<div class="fixed bottom-0 left-0 w-[400px] h-[400px] bg-primary/3 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none z-0"></div>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>

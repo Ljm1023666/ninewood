@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - 资源文件</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Geist:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#f2ca50",
+                    "on-primary": "#3c2f00",
+                    "surface-variant": "#38342b",
+                    "on-tertiary": "#082b72",
+                    "on-tertiary-fixed-variant": "#27438a",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "#110e07",
+                    "surface-container-high": "#2d2a21",
+                    "error": "#ffb4ab",
+                    "on-primary-container": "#554300",
+                    "inverse-on-surface": "#343027",
+                    "background-deep": "#0A0E17",
+                    "on-secondary-container": "#c4b891",
+                    "on-error": "#690005",
+                    "inverse-surface": "#eae1d4",
+                    "inverse-primary": "#735c00",
+                    "outline": "#99907c",
+                    "tertiary": "#bfcdff",
+                    "surface-tint": "#e9c349",
+                    "secondary-fixed-dim": "#d3c69e",
+                    "secondary-fixed": "#f0e2b8",
+                    "on-primary-fixed-variant": "#574500",
+                    "surface": "#16130b",
+                    "on-primary-fixed": "#241a00",
+                    "on-background": "#eae1d4",
+                    "tertiary-container": "#97b0ff",
+                    "outline-variant": "#4d4635",
+                    "on-surface": "#eae1d4",
+                    "gold-bright": "#F4D03F",
+                    "secondary-container": "#51492a",
+                    "on-tertiary-fixed": "#00174b",
+                    "surface-container-low": "#1f1b13",
+                    "on-secondary-fixed": "#221b03",
+                    "border-white": "rgba(255, 255, 255, 0.05)",
+                    "border-gold": "rgba(212, 175, 55, 0.15)",
+                    "on-secondary-fixed-variant": "#4f4628",
+                    "accent-success": "#10B981",
+                    "background": "#16130b",
+                    "primary-fixed": "#ffe088",
+                    "surface-bright": "#3d392f",
+                    "surface-container": "#231f17",
+                    "on-surface-variant": "#d0c5af",
+                    "tertiary-fixed-dim": "#b4c5ff",
+                    "tertiary-fixed": "#dbe1ff",
+                    "secondary": "#d3c69e",
+                    "surface-dim": "#16130b",
+                    "on-secondary": "#383013",
+                    "accent-error": "#F87171",
+                    "primary-container": "#d4af37",
+                    "surface-glass": "rgba(16, 20, 31, 0.6)",
+                    "primary-fixed-dim": "#e9c349",
+                    "on-tertiary-container": "#254188",
+                    "surface-container-highest": "#38342b",
+                    "error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-md": "16px",
+                    "gutter": "24px",
+                    "stack-lg": "32px",
+                    "margin-page": "48px",
+                    "container-max": "1100px",
+                    "sidebar-width": "280px"
+            },
+            "fontFamily": {
+                    "body-md": ["Geist"],
+                    "label-caps": ["Geist"],
+                    "headline-lg": ["Playfair Display"],
+                    "data-mono": ["Geist"],
+                    "title-md": ["Geist"],
+                    "display-xl": ["Playfair Display"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(16, 20, 31, 0.7);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-border {
+            border: 1px solid rgba(212, 175, 55, 0.25);
+        }
+        .luxury-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 100%);
+        }
+        .sidebar-item-active {
+            background: rgba(242, 202, 80, 0.1);
+            color: #f2ca50;
+            font-weight: 700;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-overlay {
+            background: linear-gradient(to right, rgba(10, 14, 23, 0.95) 0%, rgba(10, 14, 23, 0.8) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-deep text-on-surface font-body-md min-h-screen selection:bg-primary/30">
+<!-- Background Asset -->
+<div class="fixed inset-0 z-[-1]">
+<div class="absolute inset-0 bg-overlay z-10"></div>
+<img class="w-full h-full object-cover opacity-40" src="https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU"/>
+</div>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] glass-panel border-r border-white/10 flex flex-col p-stack-lg z-50">
+<div class="flex flex-col mb-12">
+<h1 class="font-headline-lg text-[32px] text-primary-container tracking-tight">Ninewood</h1>
+<p class="text-[12px] uppercase tracking-[0.2em] text-on-surface-variant/60 font-bold">Elite Technical Authority</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>首页</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span>圈子社区</span>
+</a>
+<a class="sidebar-item-active flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">folder</span>
+<span>资源文件</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span>分析数据</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">group_add</span>
+<span>我的团队</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span>点数钱包</span>
+</a>
+</nav>
+<div class="pt-8 border-t border-white/5 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>帮助中心</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>退出登录</span>
+</a>
+<div class="mt-6 flex items-center gap-3 px-4 py-2 bg-white/5 rounded-2xl border border-white/5">
+<img class="w-10 h-10 rounded-full border border-primary/30 object-cover" data-alt="A portrait of a sophisticated tech executive in a high-end office setting, warm lighting, blurred technology background, professional attire, elegant dark aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPe_PUq1ugjlCuRhUK8T_F0j9tIRbEU5yh8PpFBF0xw5eaQH0A_zWZEFkYvXVT7HZ1Ov4Ul_OqVR8rdWCAl2zWjaMLPBc6rzv_CDjejTzqVsA5C57AySVXYiujajGEbsE7uew1J6-mTkQY3NdatXr5F0RMMdL_T7CfcfcbWRg7fBb4iXLogY-p53TWXJtWxr_WAqayBSBuYAO9CRN6X1FGlqiELrYCZ1J59Etd6qX8ulHwFQJ1vRjc0DIzTAuiypbzh1Gox0xtggA"/>
+<div class="overflow-hidden">
+<p class="font-bold text-on-surface truncate">Ninewood Elite</p>
+<p class="text-[10px] text-primary/70 tracking-widest uppercase">Premium Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] p-margin-page min-h-screen relative">
+<!-- Top Navigation Area -->
+<div class="max-w-[1100px] mx-auto mb-12">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-[48px] text-on-surface tracking-tight mb-2">资源库</h2>
+<p class="text-on-surface-variant/80 font-title-md">共享与协作的文件中心</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full glass-panel hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Action Bar -->
+<section class="max-w-[1100px] mx-auto glass-panel p-stack-md rounded-[2rem] flex items-center justify-between gold-border mb-stack-lg shadow-2xl">
+<!-- Search -->
+<div class="flex-1 max-w-sm relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-3 pl-12 pr-6 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all placeholder:text-on-surface-variant/40" placeholder="搜索资源..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex bg-white/5 p-1 rounded-full border border-white/5">
+<button class="px-6 py-2 rounded-full bg-primary/20 text-primary font-bold text-sm">全部</button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant hover:text-on-surface transition-colors text-sm">文档</button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant hover:text-on-surface transition-colors text-sm">图片</button>
+<button class="px-6 py-2 rounded-full text-on-surface-variant hover:text-on-surface transition-colors text-sm">代码</button>
+</div>
+<!-- CTA -->
+<button class="luxury-gradient px-8 py-3 rounded-full text-on-primary font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">upload</span>
+<span>上传资源</span>
+</button>
+</section>
+<!-- Resource Grid -->
+<div class="max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="glass-panel p-stack-md rounded-[1.5rem] hover:scale-[1.02] transition-all duration-500 group relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[100px]">picture_as_pdf</span>
+</div>
+<div class="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20">
+<span class="material-symbols-outlined text-red-400">picture_as_pdf</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1 truncate" title="宁杭开发者指南.pdf">宁杭开发者指南.pdf</h3>
+<p class="text-[12px] text-on-surface-variant/60 mb-6 font-data-mono">4.2 MB • 2023-10-25</p>
+<div class="flex items-center justify-between pt-4 border-t border-white/5">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full border border-white/10" data-alt="Close-up of a digital artist's avatar with stylish accessories, set against a neon-lit studio background, cinematic depth of field, rich textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr3xEh-rhDTzfnAgskM4uIQ_DDai2cjXLq1ySFBqwQ4TNz55DIBhbsFH4nXZNVhORnyvG_mNMDzT2XGr7y2YexWUaIci9DUD3F_BFhTWDy1BoWjPwpR3QpZsWfBln3-_S2mB9SHt3LqOgCBBqTeBroNdlZiBBFzu3pxsmKGb3frSRzVimYy4fyiEHY5KhTKmIJKANCAw2fXU98MYwEVKkIwwawl3dABPt1jya4qpxCKcUVQxOzQT1RNT-luYnJYtYEPWom5E95loU"/>
+<span class="text-[11px] text-on-surface-variant/80 uppercase tracking-wider">Alex Chen</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel p-stack-md rounded-[1.5rem] hover:scale-[1.02] transition-all duration-500 group relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[100px]">draw</span>
+</div>
+<div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
+<span class="material-symbols-outlined text-blue-400">draw</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1 truncate" title="UI_Kit_v2.0.fig">UI_Kit_v2.0.fig</h3>
+<p class="text-[12px] text-on-surface-variant/60 mb-6 font-data-mono">15.8 MB • 2023-10-24</p>
+<div class="flex items-center justify-between pt-4 border-t border-white/5">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full border border-white/10" data-alt="A portrait avatar of a female product manager, minimal jewelry, professional yet creative aesthetic, soft backlighting in a luxury office environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1aqflMb_heo3SZ2_TcFQRynfoOtuhnnr-dv898_44nMB5RzSvR-s4L0wWNzI8RvbCDZ6ZOxS8NOsnI0yCpTE6K2W-0zMkFoJBvXEf-VpIi-_CYqQHmJ9rjQQeQCek-nfcpBdA45KiLZMb4G2OdDM29XSO6vvHdaBm8K1bXNUvQNd2jQYetjDs56US2nvGtUCxESER3-zS15Ny3lt248I8ox5p8pG8BixIjdiiKxMeBogZWWAzqNdG2mOOXNCIRaXEXPWtQFqLzpA"/>
+<span class="text-[11px] text-on-surface-variant/80 uppercase tracking-wider">Sarah J.</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel p-stack-md rounded-[1.5rem] hover:scale-[1.02] transition-all duration-500 group relative overflow-hidden gold-border bg-primary/5">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[100px]">folder_zip</span>
+</div>
+<div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center mb-6 border border-primary/30">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">folder_zip</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1 truncate" title="项目资源包.zip">项目资源包.zip</h3>
+<p class="text-[12px] text-on-surface-variant/60 mb-6 font-data-mono">45.2 MB • 2023-10-22</p>
+<div class="flex items-center justify-between pt-4 border-t border-white/5">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full border border-white/10" data-alt="A professional male software engineer avatar, glasses, thoughtful expression, dark ambient room with subtle monitor glow, high-end photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiRoQk-Pq7V0ESqD-dgiymQiaz83ZN08ROoCEqLq7fs8ILtTs9L9lMB45HyVy4ZgYToIIZa7ZuvuFY4a9IWRCS7WS9rd950b-XBMkH8twjduGvtg39ShHFdPoumUEka-xrPWm15aFJ0ZaXTbPpC_gVDe1ZiZmOYbpYK8j3g8oPk_aPi20Nh3gvFd0HYglhNB9dOk9wRZQL4fxHga-CKiR9bUe0gI_8BLluHhOsFwqwnVFVAgZMnNsKZzBHtCohiuUC24modUEXnys"/>
+<span class="text-[11px] text-on-surface-variant/80 uppercase tracking-wider">Mike R.</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="glass-panel p-stack-md rounded-[1.5rem] hover:scale-[1.02] transition-all duration-500 group relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[100px]">description</span>
+</div>
+<div class="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center mb-6 border border-teal-500/20">
+<span class="material-symbols-outlined text-teal-400">description</span>
+</div>
+<h3 class="font-bold text-on-surface mb-1 truncate" title="README.md">README.md</h3>
+<p class="text-[12px] text-on-surface-variant/60 mb-6 font-data-mono">12 KB • 2023-10-20</p>
+<div class="flex items-center justify-between pt-4 border-t border-white/5">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full border border-white/10" data-alt="A detailed digital avatar of a senior backend developer, bearded, looking confidently at the camera, tech-noir lighting, dark blue and gold color scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbn8spQi1FS9UYvSIIktJCh9pQCtnaxfL4904CNA_fk7qu3LMzaOcbU6MlqPyAjWpml_pgWwW6X3o4AaZ8-O2mB4C07x2iXhpvbT8fvj2ALOBC2k_WhBfVYJHuFO7nbr78TujvPljX6xVEKr8QUycvDhVhn_cAqilmo6p5sDowUGphFXzpwXZDDYi44suGe5KllQoaX3aBYeUdpWM1qv7hDEnkXTXu5in4ZLXVR1aWnhz-C2Xv2snTanCIo7f8svB1Fd8g9Ho21z4"/>
+<span class="text-[11px] text-on-surface-variant/80 uppercase tracking-wider">Ninewood Bot</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Decorative Radial Glows -->
+<div class="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none z-[-1]"></div>
+<div class="fixed top-[-10%] left-[20%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] pointer-events-none z-[-1]"></div>
+</main>
+<script>
+        // Micro-interaction for cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px) scale(1.02)';
+                card.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.6)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) scale(1)';
+                card.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>
