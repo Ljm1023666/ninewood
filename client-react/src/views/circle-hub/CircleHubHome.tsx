@@ -5,6 +5,7 @@ import { toast } from '@/components/ui/confirm-dialog'
 import { useUserStore } from '@/stores/user'
 import { useCircleHub } from './circle-hub-context'
 import { circleApi, type CircleActivityItem } from '@/api/circle'
+import { HUB_SUBPAGE_NAV } from '@/constants/bento-nav'
 
 // hot tags from /hub/home API
 
@@ -34,6 +35,10 @@ export default function CircleHubHome() {
   const [hotTags, setHotTags] = useState<string[]>([])
   const [activities, setActivities] = useState<CircleActivityItem[]>([])
   const [homeError, setHomeError] = useState('')
+  const [showAnnounceForm, setShowAnnounceForm] = useState(false)
+  const [announceTitle, setAnnounceTitle] = useState('')
+  const [announceBody, setAnnounceBody] = useState('')
+  const [publishBusy, setPublishBusy] = useState(false)
 
   useEffect(() => {
     if (!circleId) return
@@ -74,11 +79,50 @@ export default function CircleHubHome() {
   const pendingInvites = stats?.pendingInvites ?? 0
 
   function go(path: string) {
-    navigate(`/circles/${circleId}/${path}`)
+    navigate(`/circles/${circleId}/${path}`, HUB_SUBPAGE_NAV)
   }
 
-  function stubAction(label: string) {
-    toast(`${label}功能即将上线`, 'info')
+  const canManage = Boolean(
+    user?.id &&
+      circle.members?.some(
+        (m) => m.userId === user.id && (m.role === 'OWNER' || m.role === 'ADMIN'),
+      ),
+  )
+
+  async function handlePublishAnnouncement() {
+    if (!circleId) return
+    const title = announceTitle.trim()
+    const body = announceBody.trim()
+    if (title.length < 2) {
+      toast('标题至少 2 个字', 'error')
+      return
+    }
+    if (!body) {
+      toast('请填写公告正文', 'error')
+      return
+    }
+    setPublishBusy(true)
+    try {
+      const res = await circleApi.postAnnouncement(circleId, { title, body, pinned: true })
+      const ann = res.data.data as NonNullable<typeof announcement>
+      setAnnouncement(ann)
+      setShowAnnounceForm(false)
+      setAnnounceTitle('')
+      setAnnounceBody('')
+      toast('公告已发布', 'success')
+      const homeRes = await circleApi.getHubHome(circleId)
+      const data = homeRes.data.data as {
+        stats: typeof stats
+        activities: CircleActivityItem[]
+      }
+      setStats(data.stats)
+      setActivities(data.activities)
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } }
+      toast(err.response?.data?.message || '发布失败', 'error')
+    } finally {
+      setPublishBusy(false)
+    }
   }
 
   const tagList = hotTags.length > 0 ? hotTags : ['#圈子正在筹备中']
@@ -108,15 +152,65 @@ export default function CircleHubHome() {
             {homeError ? <span style={{ color: '#e85a4f' }}> · {homeError}</span> : null}
           </p>
         </div>
-        <button
-          type="button"
-          className="cdb-hub-btn-outline"
-          onClick={() => stubAction('发布更新')}
-        >
-          <MsIcon name="edit_square" size={18} aria-hidden />
-          <span>发布更新</span>
-        </button>
+        {canManage ? (
+          <button
+            type="button"
+            className="cdb-hub-btn-outline"
+            onClick={() => setShowAnnounceForm((v) => !v)}
+            aria-expanded={showAnnounceForm}
+          >
+            <MsIcon name="edit_square" size={18} aria-hidden />
+            <span>{showAnnounceForm ? '取消' : '发布更新'}</span>
+          </button>
+        ) : null}
       </header>
+
+      {showAnnounceForm && canManage ? (
+        <section className="cdb-glass-card cdb-hub-panel" style={{ marginBottom: 8 }}>
+          <h3 className="cdb-hub-card-title" style={{ marginBottom: 12 }}>
+            发布圈子公告
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input
+              className="cdb-hub-search-input"
+              placeholder="公告标题（2–100 字）"
+              value={announceTitle}
+              maxLength={100}
+              onChange={(e) => setAnnounceTitle(e.target.value)}
+            />
+            <textarea
+              className="cdb-hub-help-search-input"
+              style={{ minHeight: 96, resize: 'vertical' }}
+              placeholder="公告正文"
+              value={announceBody}
+              maxLength={1000}
+              onChange={(e) => setAnnounceBody(e.target.value)}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button
+                type="button"
+                className="cdb-hub-btn-outline"
+                disabled={publishBusy}
+                onClick={() => {
+                  setShowAnnounceForm(false)
+                  setAnnounceTitle('')
+                  setAnnounceBody('')
+                }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="cdb-btn-primary"
+                disabled={publishBusy}
+                onClick={() => void handlePublishAnnouncement()}
+              >
+                {publishBusy ? '发布中…' : '发布公告'}
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <div className="cdb-hub-stat-row">
         <div className="cdb-glass-card cdb-hub-stat-card">
@@ -176,7 +270,7 @@ export default function CircleHubHome() {
             </div>
             <div>
               <div className="cdb-hub-announce-title-row">
-                <h3 className="cdb-hub-card-title">圈子公告</h3>
+                <h3 className="cdb-hub-card-title">{announcement?.title || '圈子公告'}</h3>
                 {announcement?.pinned ? <span className="cdb-badge">置顶</span> : null}
               </div>
               <p className="cdb-text-muted cdb-text-body-sm cdb-hub-announce-body">
