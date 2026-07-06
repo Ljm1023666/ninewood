@@ -1,6 +1,8 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { navigateSubpageExit } from '@/utils/subpage-nav'
 import { Button } from '@/components/ui/button'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { cn } from '@/lib/utils'
 
 interface BackButtonProps {
   /** 自定义返回逻辑，默认返回路由上级 */
@@ -8,15 +10,19 @@ interface BackButtonProps {
   label?: string
   /** 仅图标，供 PageHeader 等顶栏使用 */
   compact?: boolean
+  className?: string
 }
 
 export function BackButton({
   onBack,
   label = '返回',
   compact = false,
+  className,
 }: BackButtonProps) {
   const navigate = useNavigate()
-  const handleClick = onBack ?? (() => navigate(-1))
+  const { pathname } = useLocation()
+  const handleClick =
+    onBack ?? (() => navigateSubpageExit(navigate, pathname))
 
   if (compact) {
     return (
@@ -26,7 +32,10 @@ export function BackButton({
         size="icon"
         onClick={handleClick}
         aria-label={label}
-        className="size-9 shrink-0 rounded-md text-text-secondary hover:text-text-primary"
+        className={cn(
+          'size-9 shrink-0 rounded-md text-text-secondary hover:text-text-primary',
+          className,
+        )}
       >
         <MsIcon name="chevron_left" size={24} className="opacity-80" />
       </Button>

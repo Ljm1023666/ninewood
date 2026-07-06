@@ -6,13 +6,19 @@ import { BackButton } from '@/components/ui/back-button'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { ListItemCard } from '@/components/ui/list-item-card'
 import { useUserStore } from '@/stores/user'
+import {
+  navigateSubpageExit,
+  navigateSubpageSwitch,
+} from '@/utils/subpage-nav'
 
 /** 内部页统一宽度（对齐 Stitch max-w-4xl = 896px） */
 const WIDTH_CLASS = {
   narrow: 'max-w-[672px]',
   medium: 'max-w-[896px]',
-  wide: 'max-w-[896px]',
-  full: 'max-w-[1152px]',
+  wide: 'max-w-[1280px] w-full',
+  full: 'max-w-[1440px] w-full',
+  /** 铺满主内容区，无 max-width 居中限制 */
+  fluid: 'w-full max-w-none',
   /** A 类设置页 Stitch PRO Settings */
   settings: 'max-w-[1000px]',
   /** G 类个人主页：桌面宽栏 */
@@ -174,13 +180,17 @@ export function SegmentedFilter<T extends string>({
   onChange,
   className,
   variant = 'liquid-metal',
+  size = 'default',
 }: {
   options: SegmentedOption<T>[]
   value: T
   onChange: (v: T) => void
   className?: string
   variant?: 'liquid-metal' | 'classic'
+  /** default 36px；large 用于稀疏内容页 Tab */
+  size?: 'default' | 'large'
 }) {
+  const segmentHeight = size === 'large' ? 44 : 36
   if (variant === 'classic') {
     return (
       <div
@@ -220,7 +230,7 @@ export function SegmentedFilter<T extends string>({
           <LiquidMetalButton
             key={opt.value}
             label={opt.label}
-            height={36}
+            height={segmentHeight}
             fullWidth
             active={active}
             metalGlow={active}
@@ -622,7 +632,9 @@ export function SettingsProShell({
               <li key={item.id}>
                 <button
                   type="button"
-                  onClick={() => navigate(item.path)}
+                  onClick={() =>
+                    navigateSubpageSwitch(navigate, item.path, location.pathname)
+                  }
                   className={cn(
                     'settings-pro-sidebar__link',
                     isActive && 'settings-pro-sidebar__link--active',
@@ -650,7 +662,10 @@ export function SettingsProShell({
       <div className="settings-pro-main thin-scroll">
         <div className="settings-pro-main__inner">
           <header className="settings-pro-main__header internal-page-header">
-            <BackButton onBack={() => navigate(-1)} compact />
+            <BackButton
+              onBack={() => navigateSubpageExit(navigate, location.pathname)}
+              compact
+            />
             <h1 className="internal-display-title ml-4">{title ?? '设置'}</h1>
           </header>
           {children}
