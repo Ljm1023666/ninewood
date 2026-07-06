@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-Hans"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/jerosoler/Geist-Font@v1.0.0/fonts/geist-font.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<title>Ninewood - 宁杭独立开发者</title>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#abc7ff",
+                        "on-primary": "#002f66",
+                        "primary-container": "#458fff",
+                        "on-primary-container": "#00285a",
+                        "secondary": "#c7c6c6",
+                        "on-secondary": "#2f3131",
+                        "secondary-container": "#484949",
+                        "on-secondary-container": "#b8b8b8",
+                        "tertiary": "#ffb689",
+                        "on-tertiary": "#512300",
+                        "tertiary-container": "#e4700c",
+                        "on-tertiary-container": "#471e00",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "background": "#10131a",
+                        "on-background": "#e0e2ec",
+                        "surface": "#10131a",
+                        "on-surface": "#e0e2ec",
+                        "surface-variant": "#32353c",
+                        "on-surface-variant": "#c1c6d6",
+                        "outline": "#8b919f",
+                        "outline-variant": "#414754",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-container-low": "#181c23",
+                        "surface-container": "#1c2027",
+                        "surface-container-high": "#272a31",
+                        "surface-container-highest": "#32353c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "content-column": "768px",
+                        "margin-page": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-caps": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #10131a;
+            color: #e0e2ec;
+            font-family: 'Geist', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background-color: rgba(28, 32, 39, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .bg-overlay {
+            background: radial-gradient(circle at top right, rgba(16, 19, 26, 0.4), rgba(16, 19, 26, 0.95));
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10131a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #414754;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #abc7ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative lg:pl-[280px]">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU')"></div>
+<div class="absolute inset-0 bg-overlay z-10"></div>
+</div>
+<!-- Side Navigation Shell -->
+<aside class="hidden lg:flex fixed left-0 top-0 h-full w-[280px] flex-col p-stack-md gap-stack-lg bg-surface/40 backdrop-blur-3xl border-r border-white/5 z-[60] shadow-2xl">
+<div class="flex items-center gap-stack-sm px-2">
+<div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+</div>
+<div>
+<h3 class="text-title-sm font-title-sm font-black text-primary">Ninewood</h3>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Productivity Hub</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-grow">
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">home</span>
+<span class="text-label-caps font-label-caps">首页</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+<span class="text-label-caps font-label-caps">圈子社区</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">folder</span>
+<span class="text-label-caps font-label-caps">资源文件</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">insights</span>
+<span class="text-label-caps font-label-caps">分析数据</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">diversity_3</span>
+<span class="text-label-caps font-label-caps">我的团队</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-white/5 pt-stack-md flex flex-col gap-1">
+<a class="flex items-center gap-stack-md px-4 py-3 bg-white/10 text-primary border border-white/10 rounded-xl font-semibold transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-label-caps font-label-caps">帮助中心</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-caps font-label-caps">退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Header for Mobile/Mobile layout compatibility -->
+<header class="fixed top-0 left-0 lg:left-[280px] right-0 z-50 h-16 flex items-center px-margin-page bg-surface/30 backdrop-blur-xl border-b border-white/5 lg:hidden">
+<div class="flex items-center gap-stack-md w-full">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-all text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface">宁杭独立开发者</h1>
+</div>
+</header>
+<!-- Main Content: Help Center Layout -->
+<main class="relative z-20 pt-20 lg:pt-8 pb-32 lg:pb-8 flex flex-col items-center">
+<div class="w-full max-w-container-max px-4 lg:px-margin-page">
+<!-- Help Center Layout Container -->
+<div class="flex flex-col gap-6">
+<!-- Hero Search Section -->
+<section class="w-full glass-card inner-glow rounded-3xl p-8 lg:p-12 flex flex-col items-center justify-center relative overflow-hidden text-center min-h-[240px]">
+<div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent"></div>
+<div class="relative z-10 w-full max-w-2xl flex flex-col items-center gap-6">
+<h2 class="text-display-lg font-display-lg font-bold text-on-surface">如何能帮助您？</h2>
+<p class="text-body-lg text-on-surface-variant">在“宁杭独立开发者”圈子中寻找答案</p>
+<div class="w-full relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container-highest/50 border border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 rounded-2xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/50 backdrop-blur-md outline-none transition-all shadow-inner" placeholder="搜索问题、关键词或指南..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Bottom Split Content -->
+<div class="flex flex-col lg:flex-row gap-6 items-start">
+<!-- Left: FAQ Accordion -->
+<div class="flex-grow w-full lg:w-2/3 flex flex-col gap-4">
+<h3 class="text-headline-md font-headline-md font-bold text-on-surface mb-2 px-2">常见问题 (FAQ)</h3>
+<!-- Accordion Item 1 -->
+<details class="group glass-card inner-glow rounded-2xl overflow-hidden [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between p-5 cursor-pointer list-none text-title-sm font-semibold text-on-surface hover:bg-white/5 transition-colors">
+                            如何发布圈内需求？
+                            <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform duration-300">expand_more</span>
+</summary>
+<div class="p-5 pt-0 text-body-lg text-on-surface-variant border-t border-white/5 mt-2 pt-4">
+                            在圈子主页点击“发布需求”按钮，填写需求标题、详细描述、技能要求及预算范围。发布后，圈内其他开发者即可看到并与您联系。我们建议您尽量详细描述需求背景，以提高匹配效率。
+                        </div>
+</details>
+<!-- Accordion Item 2 -->
+<details class="group glass-card inner-glow rounded-2xl overflow-hidden [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between p-5 cursor-pointer list-none text-title-sm font-semibold text-on-surface hover:bg-white/5 transition-colors">
+                            如何加入圈主的开发团队？
+                            <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform duration-300">expand_more</span>
+</summary>
+<div class="p-5 pt-0 text-body-lg text-on-surface-variant border-t border-white/5 mt-2 pt-4">
+                            您可以通过“我的团队”模块查看当前开放的招募信息。如果圈主（钱医生内科）发布了团队招募，您可以直接点击申请并提交您的个人简历和作品集链接。
+                        </div>
+</details>
+<!-- Accordion Item 3 -->
+<details class="group glass-card inner-glow rounded-2xl overflow-hidden [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between p-5 cursor-pointer list-none text-title-sm font-semibold text-on-surface hover:bg-white/5 transition-colors">
+                            圈子内的资源文件如何下载？
+                            <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform duration-300">expand_more</span>
+</summary>
+<div class="p-5 pt-0 text-body-lg text-on-surface-variant border-t border-white/5 mt-2 pt-4">
+                            所有公开的资源文件都在“资源文件”板块。点击您需要的文件，系统会自动生成下载链接。部分高级资源可能需要您在圈内达到一定的活跃度才能解锁下载权限。
+                        </div>
+</details>
+<!-- Accordion Item 4 -->
+<details class="group glass-card inner-glow rounded-2xl overflow-hidden [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between p-5 cursor-pointer list-none text-title-sm font-semibold text-on-surface hover:bg-white/5 transition-colors">
+                            如何提升在圈内的活跃度？
+                            <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform duration-300">expand_more</span>
+</summary>
+<div class="p-5 pt-0 text-body-lg text-on-surface-variant border-t border-white/5 mt-2 pt-4">
+                            您可以通参与话题讨论、解答他人疑问、分享有价值的资源链接或发布优质需求来提升活跃度。活跃度高的成员将获得专属头衔，并在寻找合作伙伴时获得更多曝光。
+                        </div>
+</details>
+</div>
+<!-- Right: Quick Links & Contact -->
+<div class="w-full lg:w-1/3 flex flex-col gap-6 sticky top-24">
+<!-- Quick Links Card -->
+<section class="glass-card inner-glow rounded-3xl p-6 flex flex-col gap-4">
+<h3 class="text-label-caps font-label-caps text-on-surface-variant uppercase mb-2">快捷指引</h3>
+<div class="flex flex-col gap-2">
+<a class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-on-surface transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/70">article</span>
+<span class="text-body-md font-medium">圈子行为规范</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+</a>
+<a class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-on-surface transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/70">gavel</span>
+<span class="text-body-md font-medium">知识产权说明</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+</a>
+<a class="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 text-on-surface transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/70">campaign</span>
+<span class="text-body-md font-medium">最新公告栏</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- Contact Owner Card -->
+<section class="glass-card inner-glow rounded-3xl p-6 flex flex-col gap-5 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[50px] -z-10 rounded-full translate-x-1/2 -translate-y-1/2"></div>
+<h3 class="text-label-caps font-label-caps text-on-surface-variant uppercase">联系圈主</h3>
+<div class="flex items-center gap-4">
+<img alt="钱医生内科" class="w-12 h-12 rounded-full border-2 border-surface-container object-cover shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbtfFIDVplee2fh2ruRRq1wVZnsyIBlWaEbCkmXJMJsj2CONhkp6nlaokGxvexlR_uX4I6jQXv2Z5YlbM3m5eR-_qFnKHg7OT29wEIpE2kAvaZC06GYuCYYv7JY2TvH3194aPOWQCvSUR2RoVGnE3mgdEL7mwq7f-9VGD8_5qTOX0oTdT8qFg4zIXUSCUIAOvC88uzHdNcjSS2itHu3od8e7EVO_Od6II9xCcNrqnTW9mcTMuuiSxub78jw1ugUd_e3Ynh-o0Qo80"/>
+<div>
+<h4 class="text-body-lg font-semibold text-on-surface">钱医生内科</h4>
+<span class="text-[12px] text-primary">宁杭独立开发者 圈主</span>
+</div>
+</div>
+<p class="text-body-md text-on-surface-variant leading-relaxed">
+                            如有关于圈子合作、违规举报或重大建议，请直接联系圈主。
+                        </p>
+<button class="w-full mt-2 py-3 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+<span>发送私信</span>
+</button>
+</section>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-surface/60 backdrop-blur-3xl border-t border-white/5 z-50 flex justify-around items-center h-20 px-4 pb-4">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">group</span>
+<span class="text-[10px] font-bold">圈子</span>
+</div>
+<button class="w-12 h-12 bg-primary text-on-primary rounded-2xl flex items-center justify-center -translate-y-4 shadow-xl shadow-primary/30">
+<span class="material-symbols-outlined">add</span>
+</button>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-[10px] font-bold">资源</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold">我的</span>
+</div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button, a, .glass-card').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                if(!el.classList.contains('glass-card')) el.classList.add('scale-95');
+            });
+            el.addEventListener('mouseup', () => {
+                el.classList.remove('scale-95');
+            });
+            el.addEventListener('mouseleave', () => {
+                el.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>

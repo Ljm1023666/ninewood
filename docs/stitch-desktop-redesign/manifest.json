@@ -1,0 +1,92 @@
+[
+  {
+    "id": "cert-center",
+    "file": "cert-center.html",
+    "title": "认证中心 - Ninewood Desktop",
+    "route": "/cert-center",
+    "priority": "P0",
+    "screenId": "b42d1184d28c4ba196acc6d780ccf272",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvmNH5u3jLI7c7yrF3jr_BHGTEihCa9TZVqms0fUIBJ0Aag4YWg0kfzM2HSL8j6E4dSo2aKbA9EW3zX3xheOh8GbH9SCmiT7eNND0ZYkxxEw_CHsQfw0dg0os_aIARrhnewNqQHC7No49gpE0fwPcHWqRIL4_AK0lcHBENlK-NLOzJqEYuUjgGpsWwE4EH_eouaLojY-bgcbYNRRkNcaZciLEsakm_Ji0apov6vP5GPxVfCqvMDMIrTdKQ"
+  },
+  {
+    "id": "my-tags",
+    "file": "my-tags.html",
+    "title": "我的标签 - Ninewood Desktop",
+    "route": "/my-tags",
+    "priority": "P0",
+    "screenId": "9a039bf22e804e4092917aa0f98685bb",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtZ_dmOy4uC_cP3wQcxR7Fg1E9YUgAIan1gVx80NgpZSq1HGleJf_YPaPLUU3JOXRDud5ebhPwvxvITGIOIzJWGJaTPRtSUc-I656fiEnLDV1IoAf1uRQJxBSRqajbe6pzVrDdS9DT-_LaNvbiu0FXbVLF3B9hsLeCJd28UHLPR9Vh4DkHvbO6p9kk9QDLUAJDuBfurnVPQBv_XVgg2DyF4RIaknNfXJ_ZryHbamsBiAmC8DnJdcQJ9BG8"
+  },
+  {
+    "id": "search",
+    "file": "search.html",
+    "title": "找人 - Desktop Search Variant",
+    "route": "/search",
+    "priority": "P0",
+    "screenId": "548f021eeecb48dd85fd8bd37abf77a2",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLv9dTETk2YwOYInTVTzy7YLePJLmtgdm-QsUasL2xIDBcRW2BNEP6Ny8rTGB1fuFB38qW1OHt5UCrPp3Ucj0OzUFjSjlMmolEHAafrIvNW3Btz08v3qIHlpi3mjN_ofYPN4ms8VirSWd7dMI5mcdiYX2i-jbQbsdsCZyiLMLEQKLWGotP-_czH4k8SV1SeSFvm0eZkYld5Vw4mTENjx7bT_0HXNTI9CSmL0z_H_YYE3cUIXLY35W9pVcvU"
+  },
+  {
+    "id": "welfare",
+    "file": "welfare.html",
+    "title": "公益中心 - Fluent Desktop Variant",
+    "route": "/welfare",
+    "priority": "P0",
+    "screenId": "dbb6cdeabc704259aa9a0455809460da",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLu7yXgO8ECUl3LVUnnD--cHSo6rVW602dq6KE6mxVPpC2EpCqp1EN_ye5l2FXWRJQk301WkTiwyJy7AKGsZEWLcbQxsubZ_vCJ_v-VQAi4CbxyyNNRyPekyLGFm-g1uQu8pK8GWc-cwDeukLHpIE-gT-ZWl9m3POm9Q7PMG4xBt72nxmKqy3-ch5Ghg33Kgea3kaDaxSFOjnWiNPlBXudXIJ-oIPTQ0dqvm8PuSygu6l4nNdiH5sR0idQ"
+  },
+  {
+    "id": "cert-intro",
+    "file": "cert-intro.html",
+    "title": "认证介绍 - Ninewood Desktop",
+    "route": "/cert-intro",
+    "priority": "P1",
+    "screenId": "683eec376581422dad68c678eaddde89",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLsShoQ2eHkBkNwlf_tXN-DkqeEHWyI4TRxnvJG_K9XceO09VHobN3-gw0quhDs9ChonmMNm0shPNdjXO76dFlhKbPlTuLGx9lbwDo2unEv5-4y_b_4Tw_buzmRFMyg0GzoJV4hqF17YcjkOWKmJQls4lENP1NUrV1HKO-dfk1AfPU6Kh3LQ4N5uU9WObJ8yP9jc0Ir1NjFECUyvgpD5cYwM_PM5qMw2QCrfEuYaBCPt0O-RbbUFNTTIfDs"
+  },
+  {
+    "id": "follows",
+    "file": "follows.html",
+    "title": "关注/粉丝 - Ninewood Desktop",
+    "route": "/follows/:userId",
+    "priority": "P1",
+    "screenId": "5cdceb47ea804c08afc638b87ce2bc9c",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLsagTO9Fo5lWw3LgiBm7VqOl17QajLnyQNyoitVb0jmdWuFl27JibTMSbPdhO6ZBfXFgiQAK__KnzAfU9k4qzsDmeh5c8z_rEhhh8Qly7ExrN2dCl9fc6ccwsJLm-L0aIUdXAUYCBZegQJOY1cqWV8taUr6gUENrm77vfFRTTtQIOeYSsloi3cConfGMOTaTUsTnJAKPxUZllGTRznk6808ASUUaDY7z-YlQmspPkLkmbynX_QFYetFG4o"
+  },
+  {
+    "id": "my-bids",
+    "file": "my-bids.html",
+    "title": "我的应标 - Ninewood Desktop",
+    "route": "/my-bids",
+    "priority": "P1",
+    "screenId": "fa0a534a5f254b379c267741789f7234",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLuPkeEN6NfJbAByT82ZLOk7nafWLEH1FQa_RlZdIka8N9RjLGT-JpxikSnQYrKZHYkb3Hpfwc_L221TFQV_XM4CmjXB1vKGSKf9OJJ7J7Jzk-OMtigTS1geXMUiTfKngoDblyUKQHs-rrR5ol4A_UOv92Z8V00XFDaHGexU4GT6yvWE26ae0mxEjT8UnrKc8ZIuAdhCTpIVARug9SN2wkdx-d_wIo4UT5gw1oENuV8tKRa2IQTE7Mkyc_o"
+  },
+  {
+    "id": "payment",
+    "file": "payment.html",
+    "title": "点数支付 - Ninewood Elite",
+    "route": "/payment/:id",
+    "priority": "P1",
+    "screenId": "7a378b4549624316b2e913de78973eb5",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLuJ2elyqKsnYd8r01rSHddFh9ko8Z62zsVfV8Jtyfb3UDnEWCAO2bQHInD0AI6TB5QqAP5RxlUGszRmoDpqUe3sxjFHcb4brzcaJE2ytiTOur188KpuNnH45JKMnvno8a5xnW9zXqslsZUyGSQhRo8l8LkSpEvwMbgxl0CSptai6SvwKW9LTxvL1Bbrg-K9xNGgIkvU9bNtFjWmRLpePFiSOYYBhd3dtiJs3VjWW3XUe0D9XyUyXk_p7M8"
+  },
+  {
+    "id": "providers",
+    "file": "providers.html",
+    "title": "找服务者 - Ninewood Desktop",
+    "route": "/providers",
+    "priority": "P1",
+    "screenId": "4332f931352f4218b5c63becdcf7321d",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLsyzJYlA5Cw8JVHExGjcdsvAll6WY6pVX8Cd4EZ2JFOEpKm__gLzn5SwSbIqpRt3zYKdNV4KSmqreSmAdaTTuZzLr-XdlWzzIymPp3qad9kRN9YZxMnTGHnZH1_mcOIlm1xsYBV0jNGXPA99jt7r1GCMaEL9BKEBIK49hnAb3r9q5QsxuVnRR5HA-Ic__KFJIZvX_qQ8mBSFE_p0X4UZJycMCD2TPCUgdlSkuFZxC0GoPnTV3jBg1b3tA"
+  },
+  {
+    "id": "not-found",
+    "file": "not-found.html",
+    "title": "404 Not Found - Ninewood Desktop",
+    "route": "/*",
+    "priority": "P2",
+    "screenId": "9f1a4194bffd475c93232c940dab313b",
+    "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLu1E7UceD2ZGjWuL6cCtGXwtUR8biQqAydoUjP_N6Wm_ylxfD4m64za1xBVR91m598IPT-sEYMY5yTA7hB0nq9NFckREqTVDlNSk6oNukKSVe7o0T8O8EUo6Vwof1RqDGAxIEIb6p3Hsitq51Xg-FNPTELhPyhk-3OK9PzdBI1gX40bO87B5USbBuZfvHD5IlCi-0dl-sN1w5y9-X_PN5zy4w4qwM6kr8P0s3jMAnl824Fu69QyYIU8ZA"
+  }
+]

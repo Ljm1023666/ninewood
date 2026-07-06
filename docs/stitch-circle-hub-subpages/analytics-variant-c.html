@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-Hans"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/jerosoler/Geist-Font@v1.0.0/fonts/geist-font.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<title>Ninewood - 宁杭独立开发者 - 分析数据</title>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#abc7ff",
+                        "on-primary": "#002f66",
+                        "primary-container": "#458fff",
+                        "on-primary-container": "#00285a",
+                        "secondary": "#c7c6c6",
+                        "on-secondary": "#2f3131",
+                        "secondary-container": "#484949",
+                        "on-secondary-container": "#b8b8b8",
+                        "tertiary": "#ffb689",
+                        "on-tertiary": "#512300",
+                        "tertiary-container": "#e4700c",
+                        "on-tertiary-container": "#471e00",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "background": "#10131a",
+                        "on-background": "#e0e2ec",
+                        "surface": "#10131a",
+                        "on-surface": "#e0e2ec",
+                        "surface-variant": "#32353c",
+                        "on-surface-variant": "#c1c6d6",
+                        "outline": "#8b919f",
+                        "outline-variant": "#414754",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-container-low": "#181c23",
+                        "surface-container": "#1c2027",
+                        "surface-container-high": "#272a31",
+                        "surface-container-highest": "#32353c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "content-column": "768px",
+                        "margin-page": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-caps": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #10131a;
+            color: #e0e2ec;
+            font-family: 'Geist', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background-color: rgba(28, 32, 39, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .bg-overlay {
+            background: radial-gradient(circle at top right, rgba(16, 19, 26, 0.4), rgba(16, 19, 26, 0.95));
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10131a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #414754;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #abc7ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative lg:pl-[280px]">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU')"></div>
+<div class="absolute inset-0 bg-overlay z-10"></div>
+</div>
+<!-- Side Navigation Shell -->
+<aside class="hidden lg:flex fixed left-0 top-0 h-full w-[280px] flex-col p-stack-md gap-stack-lg bg-surface/40 backdrop-blur-3xl border-r border-white/5 z-[60] shadow-2xl">
+<div class="flex items-center gap-stack-sm px-2">
+<div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+</div>
+<div>
+<h3 class="text-title-sm font-title-sm font-black text-primary">Ninewood</h3>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Productivity Hub</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-grow">
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">home</span>
+<span class="text-label-caps font-label-caps">首页</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+<span class="text-label-caps font-label-caps">圈子社区</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">folder</span>
+<span class="text-label-caps font-label-caps">资源文件</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 bg-white/10 text-primary border border-white/10 rounded-xl font-semibold transition-all" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-label-caps font-label-caps">分析数据</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">diversity_3</span>
+<span class="text-label-caps font-label-caps">我的团队</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-white/5 pt-stack-md flex flex-col gap-1">
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-label-caps font-label-caps">帮助中心</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-caps font-label-caps">退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Header for Mobile/Mobile layout compatibility -->
+<header class="fixed top-0 left-0 lg:left-[280px] right-0 z-50 h-16 flex items-center px-margin-page bg-surface/30 backdrop-blur-xl border-b border-white/5 lg:hidden">
+<div class="flex items-center gap-stack-md w-full">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-all text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface">宁杭独立开发者</h1>
+</div>
+</header>
+<!-- Main Content: Analytics Command Center -->
+<main class="relative z-20 pt-20 lg:pt-8 pb-32 lg:pb-8 flex flex-col items-center">
+<div class="w-full max-w-container-max px-4 lg:px-margin-page flex flex-col gap-6">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-2">
+<div>
+<h2 class="text-display-lg font-display-lg font-bold text-on-surface tracking-tight">分析概览</h2>
+<p class="text-on-surface-variant text-body-lg mt-1">宁杭独立开发者圈子数据监控</p>
+</div>
+<div class="glass-card rounded-full px-5 py-2.5 flex items-center gap-3 text-body-md text-on-surface cursor-pointer hover:bg-white/5">
+<span class="material-symbols-outlined text-[20px] text-primary">calendar_month</span>
+<span class="font-medium">近 30 天</span>
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">arrow_drop_down</span>
+</div>
+</div>
+<!-- KPI Strip -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+<!-- Metric 1 -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col gap-2">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-label-caps font-label-caps uppercase">总成员数</span>
+<span class="material-symbols-outlined text-[18px]">groups</span>
+</div>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold text-on-surface leading-none">342</span>
+<span class="text-[12px] text-emerald-400 font-medium mb-0.5">+12</span>
+</div>
+<svg class="w-full h-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,25 L20,20 L40,22 L60,10 L80,15 L100,5" fill="none" stroke="#abc7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Metric 2 -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col gap-2">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-label-caps font-label-caps uppercase">周活跃度</span>
+<span class="material-symbols-outlined text-[18px]">show_chart</span>
+</div>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold text-on-surface leading-none">85%</span>
+<span class="text-[12px] text-emerald-400 font-medium mb-0.5">+5%</span>
+</div>
+<svg class="w-full h-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,20 L20,25 L40,15 L60,18 L80,5 L100,10" fill="none" stroke="#458fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Metric 3 -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col gap-2">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-label-caps font-label-caps uppercase">需求总量</span>
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+</div>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold text-on-surface leading-none">128</span>
+<span class="text-[12px] text-emerald-400 font-medium mb-0.5">+24</span>
+</div>
+<svg class="w-full h-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,28 L20,25 L40,18 L60,20 L80,10 L100,5" fill="none" stroke="#abc7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Metric 4 -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col gap-2">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-label-caps font-label-caps uppercase">讨论贴数</span>
+<span class="material-symbols-outlined text-[18px]">forum</span>
+</div>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold text-on-surface leading-none">892</span>
+<span class="text-[12px] text-emerald-400 font-medium mb-0.5">+104</span>
+</div>
+<svg class="w-full h-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,22 L20,18 L40,25 L60,15 L80,10 L100,12" fill="none" stroke="#458fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Metric 5 -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col gap-2">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-label-caps font-label-caps uppercase">资源下载</span>
+<span class="material-symbols-outlined text-[18px]">download</span>
+</div>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold text-on-surface leading-none">4.2k</span>
+<span class="text-[12px] text-emerald-400 font-medium mb-0.5">+320</span>
+</div>
+<svg class="w-full h-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,15 L20,20 L40,10 L60,12 L80,5 L100,8" fill="none" stroke="#abc7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Metric 6 -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col gap-2">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="text-label-caps font-label-caps uppercase">需求解决率</span>
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</div>
+<div class="flex items-end gap-2 mt-1">
+<span class="text-2xl font-bold text-on-surface leading-none">68%</span>
+<span class="text-[12px] text-zinc-400 font-medium mb-0.5">-2%</span>
+</div>
+<svg class="w-full h-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,10 L20,12 L40,8 L60,15 L80,12 L100,18" fill="none" stroke="#8b919f" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Main Body: Two large cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Line Chart Card: 成员增长趋势 -->
+<section class="glass-card inner-glow rounded-3xl p-6 h-[400px] flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-title-sm font-bold text-on-surface">成员增长趋势</h3>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex-grow relative border-b border-l border-white/10 pb-2 pl-2">
+<!-- Fake Grid -->
+<div class="absolute inset-0 flex flex-col justify-between pt-2 pb-8 pl-8">
+<div class="w-full h-px bg-white/5"></div>
+<div class="w-full h-px bg-white/5"></div>
+<div class="w-full h-px bg-white/5"></div>
+<div class="w-full h-px bg-white/5"></div>
+</div>
+<!-- Axis Labels -->
+<div class="absolute left-0 top-0 bottom-8 w-6 flex flex-col justify-between text-[10px] text-on-surface-variant text-right pr-2">
+<span>400</span><span>300</span><span>200</span><span>100</span>
+</div>
+<div class="absolute bottom-0 left-8 right-0 flex justify-between text-[10px] text-on-surface-variant pt-2 pr-4">
+<span>1月</span><span>2月</span><span>3月</span><span>4月</span><span>5月</span><span>6月</span>
+</div>
+<!-- Line Path -->
+<svg class="absolute inset-0 w-full h-[calc(100%-2rem)] ml-8 mt-2" preserveaspectratio="none" viewbox="0 0 100 100">
+<defs>
+<lineargradient id="line-gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#abc7ff" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#abc7ff" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,90 L20,85 L40,70 L60,40 L80,30 L100,10 L100,100 L0,100 Z" fill="url(#line-gradient)"></path>
+<path d="M0,90 L20,85 L40,70 L60,40 L80,30 L100,10" fill="none" stroke="#abc7ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+</svg>
+</div>
+</section>
+<!-- Bar Chart Card: 需求类别分布 -->
+<section class="glass-card inner-glow rounded-3xl p-6 h-[400px] flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-title-sm font-bold text-on-surface">需求类别分布</h3>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex-grow flex items-end justify-around pb-8 pt-4 border-b border-white/10 relative">
+<!-- Bar 1 -->
+<div class="w-10 sm:w-14 bg-primary/20 hover:bg-primary/30 transition-colors rounded-t-lg relative group" style="height: 85%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-[12px] bg-surface-container px-2 py-1 rounded text-on-surface transition-opacity shadow-lg">45</div>
+<div class="absolute -bottom-6 w-full text-center text-[11px] text-on-surface-variant">外包接单</div>
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg" style="height: 100%;"></div>
+</div>
+<!-- Bar 2 -->
+<div class="w-10 sm:w-14 bg-tertiary/20 hover:bg-tertiary/30 transition-colors rounded-t-lg relative group" style="height: 60%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-[12px] bg-surface-container px-2 py-1 rounded text-on-surface transition-opacity shadow-lg">32</div>
+<div class="absolute -bottom-6 w-full text-center text-[11px] text-on-surface-variant">技术合伙</div>
+<div class="absolute bottom-0 w-full bg-tertiary rounded-t-lg" style="height: 100%;"></div>
+</div>
+<!-- Bar 3 -->
+<div class="w-10 sm:w-14 bg-primary-container/20 hover:bg-primary-container/30 transition-colors rounded-t-lg relative group" style="height: 40%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-[12px] bg-surface-container px-2 py-1 rounded text-on-surface transition-opacity shadow-lg">21</div>
+<div class="absolute -bottom-6 w-full text-center text-[11px] text-on-surface-variant">资源互换</div>
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-lg" style="height: 100%;"></div>
+</div>
+<!-- Bar 4 -->
+<div class="w-10 sm:w-14 bg-white/5 hover:bg-white/10 transition-colors rounded-t-lg relative group" style="height: 25%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-[12px] bg-surface-container px-2 py-1 rounded text-on-surface transition-opacity shadow-lg">14</div>
+<div class="absolute -bottom-6 w-full text-center text-[11px] text-on-surface-variant">求职招聘</div>
+<div class="absolute bottom-0 w-full bg-outline rounded-t-lg" style="height: 100%;"></div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Section: 互动分析 Donut Chart -->
+<section class="glass-card inner-glow rounded-3xl p-6 flex flex-col md:flex-row items-center gap-8">
+<div class="flex-shrink-0 text-center md:text-left">
+<h3 class="text-title-sm font-bold text-on-surface mb-2">互动分析</h3>
+<p class="text-on-surface-variant text-body-md max-w-xs">反映社区内成员的主要活跃类型分布，助力精细化运营。</p>
+</div>
+<div class="flex-grow flex flex-col sm:flex-row items-center justify-center sm:justify-around w-full gap-8">
+<!-- Donut Chart -->
+<div class="relative w-40 h-40 flex-shrink-0">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<!-- Background Circle -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="rgba(255,255,255,0.05)" stroke-width="12"></circle>
+<!-- Segment 1 (Primary) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#abc7ff" stroke-dasharray="251.2" stroke-dashoffset="100.48" stroke-width="12"></circle>
+<!-- Segment 2 (Tertiary) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#ffb689" stroke-dasharray="251.2" stroke-dashoffset="200.96" stroke-width="12"></circle>
+<!-- Segment 3 (Outline) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#8b919f" stroke-dasharray="251.2" stroke-dashoffset="226.08" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-bold text-on-surface">1.2k</span>
+<span class="text-[10px] text-on-surface-variant uppercase font-semibold tracking-wider mt-1">总互动量</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-primary ring-4 ring-primary/10"></div>
+<span class="text-body-md text-on-surface w-20">发帖讨论</span>
+<span class="text-body-md text-on-surface-variant font-mono">60%</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-tertiary ring-4 ring-tertiary/10"></div>
+<span class="text-body-md text-on-surface w-20">评论交流</span>
+<span class="text-body-md text-on-surface-variant font-mono">30%</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-outline ring-4 ring-outline/10"></div>
+<span class="text-body-md text-on-surface w-20">点赞收藏</span>
+<span class="text-body-md text-on-surface-variant font-mono">10%</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-surface/60 backdrop-blur-3xl border-t border-white/5 z-50 flex justify-around items-center h-20 px-4 pb-4">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">group</span>
+<span class="text-[10px] font-bold">圈子</span>
+</div>
+<button class="w-12 h-12 bg-primary text-on-primary rounded-2xl flex items-center justify-center -translate-y-4 shadow-xl shadow-primary/30">
+<span class="material-symbols-outlined">add</span>
+</button>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] font-bold">分析</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold">我的</span>
+</div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button, a, .glass-card').forEach(el => {
+            if(!el.classList.contains('glass-card')){
+                el.addEventListener('mousedown', () => el.classList.add('scale-95'));
+                el.addEventListener('mouseup', () => el.classList.remove('scale-95'));
+                el.addEventListener('mouseleave', () => el.classList.remove('scale-95'));
+            }
+        });
+    </script>
+</body></html>

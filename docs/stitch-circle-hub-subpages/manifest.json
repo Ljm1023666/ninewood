@@ -1,0 +1,176 @@
+[
+  {
+    "file": "62b87ec9-bca5-4b65-b81c-39e3019b2a24.txt",
+    "tab": "home",
+    "label": "首页",
+    "route": "/circles/:id/home",
+    "variants": [
+      {
+        "slug": "variant-a",
+        "title": "Circle Home - Structured Grid Variant",
+        "screenId": "aac1384cf9ab4f079c3bc93aec414cdf",
+        "html": "home-variant-a.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvbFMTryDWST5_QAvNYT6CBDbc87r6Jv8S5PaNwmOpIsAozZkmzGY7Tha0Mx22uh2t64nf2szS5DI8Tz6sTz4tjH4PV_QV3uRlH3SGJpTwnEEbGiZyKrVxoUr9vjP6tBVONqhLmf1OlRiiKVzqXgmiZVa_GqCblBVkvVaE_EgbjRkHwqfZVqFym4vaY7ghinBQBkePexiZRzL_QehUYSi146awD56G8JINkWJDeGW6NAMUeVUlrs3uK7w"
+      },
+      {
+        "slug": "variant-b",
+        "title": "Circle Home - Asymmetric Layout Variant",
+        "screenId": "4d49bfbd922344a582ca5b82dc6de9b2",
+        "html": "home-variant-b.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLuCdISkuthLl5Zcaujbf6-PrcURr59r8msQgwPbmdmIT4-YoiS8oaW5sfn6agUDR7prUS5Ny-lNI_qaNgkfhGRamwUGqwE2pE2KN-2u2WqpnallguG4y3c1d8_W0UVtd7UvFC5p3wO6qVybQI0sByHaAgyHmddUYNJaROMvSsH3VC40uLdVqNR6ttEnYCvUdZhuXjTAYT6l3wQDSBYYeedGSrTDHAT2Bxg_xn0FgTkT2dLc9H3uSSAAMA"
+      },
+      {
+        "slug": "variant-c",
+        "title": "Circle Home - Focus Center Variant",
+        "screenId": "2f019fd7b2e646ad98ece71d438d05cf",
+        "html": "home-variant-c.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtPmDyZWRiCISxWN2jqygPyV3FDoVmbgm_xFE5sMOSwz-B5U_i0RyXsoC5KIsniAcCV72kzKop3oPf2T9K_PvV3Tbb0PCpP2s4PY3xyEy2HVatkGWzIDLxrmlAwY75LwiBiqak8lZtYtq32rlTR02sB3SkfkMlnTJ74DzMaLl-VDoLIqviQSMpYE5nkc14IquTgmbKXbfofoqflPP0i9NZB5uPyS5m9qZUzCaFdWYhAlqzM8p0Dy3fakM0"
+      }
+    ]
+  },
+  {
+    "file": "d9ff788a-9293-485e-9395-b8c1eb240da4.txt",
+    "tab": "community",
+    "label": "圈子社区",
+    "route": "/circles/:id/community",
+    "variants": [
+      {
+        "slug": "variant-a",
+        "title": "Circle Detail - Dynamic Grid Variant",
+        "screenId": "215d17b9d6bd4d8992d9ff19c0cfb61b",
+        "html": "community-variant-a.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLsTm7fjLhfcU0LXcQ7LJke_HumHPcvQxM5GBVVJANMH654i9XDZZ8droiD5T7euOolIH13rgGyhiCTaXxl4p40pDYzCW34gv4wlc_RVLljkva2BQuju-aM6xZE2tJw8AkQGRDW6VL_-Ka-0JzLWvUfQX6yHocPNB1Uf047JaQK_RLHw5VG51tj4PihbNnnw5ad19n-iBkqYKTpuofAXNChjpIrJqv22J7j855DALtD8OrGpD0xnN1aoLg"
+      },
+      {
+        "slug": "variant-b",
+        "title": "Circle Detail - Analytical Variant",
+        "screenId": "2ccc254767d44d5ea031bb34747d5d46",
+        "html": "community-variant-b.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLv5Ux5y3UVpxEV_8YLG9NjVgrDsvIFvSGib_ZgVmKB7djA-BKwWTPBp2tnpw0C3Lp0BI_TZit9Tj03580SbrkeREv9TL1Ot4Szoav39oPXJXqz7MK-wfC0xuvivZWSosln5h2RnUi4i2_BMF2frHBpLKK2QhK36R95GzEvSamEUsGsTxyhU3jApylvqv3n7NBuH18rWJLj7z56XhFY3adJFZempc1RIkyxvWIkp1dROx1uROzYjZ0Sk"
+      },
+      {
+        "slug": "variant-c",
+        "title": "Circle Detail - Action-Focused Variant",
+        "screenId": "70876ed3b9174484b93fcf106b2946e9",
+        "html": "community-variant-c.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvAW3sM_IdTa05vyB8nKxQgtt7F06f8spL4J0Vif0_3Gk4jtiGj79PSRQjl0liCrs00X602rXkbf92dFdJ7tsP6HWtAW4uDUSzsSV_EC8xmlnxHuQJvcjnEIBVe16-lpnrPH8H9zSlHR5APc89dW-k0uE1giPhIB3aOPti2tQwd0ywubm0L06dk7VFNWKSD3AwThrbmtklh5JxXJVbB-WSSRZt70k7wlRZlVutpCL7Vpx5mLWTuEBNZ5o4"
+      }
+    ]
+  },
+  {
+    "file": "bbba44a9-f2e1-41d6-b3d7-cd32138c3a26.txt",
+    "tab": "resources",
+    "label": "资源文件",
+    "route": "/circles/:id/resources",
+    "variants": [
+      {
+        "slug": "variant-a",
+        "title": "Resources - Asymmetric Filter Variant",
+        "screenId": "23bbce8f28e24b969aa5084745351a87",
+        "html": "resources-variant-a.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLsU9VtNOp7Tcznz5YfBp0i4KzHxRz0W_Fka1lbqHVpsf4hLpsUpLm_82hT9UvZavgra3-0iW4vnN2zycQqV-YcMpYOTy6RDVGzQm95xeUqJn18E2sJO7q6wovX8YzjdBHcXNqsXZ17R3TSOEaorb8hbx_NgKKZYQNNEoDNHy7d71Bp0v8MAl8Ku-hGubon6oTwOQGlhsftKP_Q4H-8gYP4DDcXAEoVOGmuOG-3gAja7V-h9fzmdJBd0ig"
+      },
+      {
+        "slug": "variant-b",
+        "title": "Resources - Structured Grid Variant",
+        "screenId": "7ef7b76092f14c428afdbcd81c29b127",
+        "html": "resources-variant-b.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtlf6WfwtZEZOKw_sRxKqEybppD5-EufPWE2Byu2s0WDpoF8rzE9yfAOhfL7Ng70ac4daxVSxFFaVQEOgtdgWEyj6QrcMiqtSNo66KEOJg2aC1YXfzGn-o2qrwHQB3LSFT3o_nYxq70xsMaZcGW5avHBmZoJ5bpa1UoKhyWQo10rMzmpj93TaIkpmQCPTBBUCjwMSLYTkuE2GJQ7sxULfnw_W20YpfGXlRbB26fkDM9D4sL2_JXY4VU6Q0"
+      },
+      {
+        "slug": "variant-c",
+        "title": "Resources - Bento Hybrid Variant",
+        "screenId": "a0b129828fdc42beb93cf57b6f37222f",
+        "html": "resources-variant-c.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLuCYBgRxxxHxNI-9SJ7z55iypOb7PVlrEfNzFvn_O5z5c0IS6azU71DLdfIq6HYJfbcXwKYcvTBCYGO5vJc3x7gIl_RMIw0Lwrag8ujqf1XfZ0AzftPoGDsAYKDc7zjbsuDOxDjMuOvc7Hc7B81c_BZYtvvBLq1WXluzmFdpmLvL7SJw-44yh5IUz7-RTDrho0L_ioaXR1Lk6OqxNxf_Di3TsnHzFa6Q2FulkMcGg3SsrfgBmUl8N1dkTA"
+      }
+    ]
+  },
+  {
+    "file": "7b2e292b-d116-4752-bd43-9fcac03bb1a6.txt",
+    "tab": "analytics",
+    "label": "分析数据",
+    "route": "/circles/:id/analytics",
+    "variants": [
+      {
+        "slug": "variant-a",
+        "title": "Circle Analytics - Grid Variant",
+        "screenId": "63eb7c81171749868378536dc8157280",
+        "html": "analytics-variant-a.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLsn09CkRIK7D3aU1DOtb-jFtFrNGhkVXalYPHkVZs9H2OI5Q5hEoPmYAhK3lCov_9nrVoXdO6FigIuAtwDv8buGu3PjNy9D698k5ubXl4dNWBjcpFgEpIagX1wxtawi74K4QlAJM8-ZX17gzesvIeJ7LY_QpTN1c89F4M97TxHyHg2quvS2soZG6Lx9Zea0jkMz_Gm8J09urRUuHcWb2lvHD15tBerZ68giIvILnQFVmTJkYUBTA7-WrPs"
+      },
+      {
+        "slug": "variant-b",
+        "title": "Circle Analytics - Split Variant",
+        "screenId": "bc4b1927003e41e0b4c2cfccff6a33c6",
+        "html": "analytics-variant-b.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtosOnmmMxZdcGAQfMzZ1zIOH8CN2fToeRwCxTlASJD2e_Yua0qdpu4cnyL2m1-keqlhZFpBf2s_zoA0vwefv1X9tgXcZVxQiVfpdHHrBYmRx5-JOcLaFfRXmGEj-o9ZsVfXbb1-bIMsP-IDgnabwn5WmUnPx2t_TvCpS-mlAAnfJYZbGIOzOnrqLP0Rz8lnqL36scQdM1_mhvYSp_k77tqMIvCUdlOzoDQ23OnCptjwzRWMDGi6dR5vQ"
+      },
+      {
+        "slug": "variant-c",
+        "title": "Circle Analytics - Command Variant",
+        "screenId": "01bc12a0c05f46fcb893611c92e68776",
+        "html": "analytics-variant-c.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvTfO7-qC2nLt89e339YDhPX4fhEPHH4bIa29y_g3lv6kaOzMN2AEfpFcwIHeuRW_MZ66PmS-ELrzKeZupm4Z7i-XYzSeiT8XNRlTksogd15SvINGCEuheYMorUmLqBNYo8s_p-Y-K7WoP9_23NsUQY8wLVPkYyodHr58zkx1TipN0zqMMBwic_Fzo4CpUweuQwSBH65CCDb15_DPqZQiwIIkHGSKu06ivw-3FIAbAXhaiZtOM4DF2Q39M"
+      }
+    ]
+  },
+  {
+    "file": "228d373d-3808-4990-93ee-839417a24562.txt",
+    "tab": "teams",
+    "label": "我的团队",
+    "route": "/circles/:id/teams",
+    "variants": [
+      {
+        "slug": "variant-a",
+        "title": "My Team - Bento Hybrid Variant",
+        "screenId": "91d15ff781c54a86801cef4f8a6fc3f4",
+        "html": "teams-variant-a.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLubqar9mQJwSRHnqwGFzyqUH7lrmoRcuO0ro0ejOX5I5GjpIvkUL7jx6z5LDChgmCB6ryGKdK-mKUU6tbaRMXiaTC0PJ1ENlczhfBNyWl988evYx9tMYQkDAdXxDvWgfyuoeOoso6s6tlTgFCJ6NnfTuZ92C4OGnaTg3HF0axFq89M2gEO8trjH-R4Jy2uzmgfG08o_31iqHaCctEoQfm5haQJLfC-w46qIcZAzcY5vOcMKGD_QyPfCiw"
+      },
+      {
+        "slug": "variant-b",
+        "title": "My Team - Split Management Variant",
+        "screenId": "2080958915bc4fa29496af4d5295cf55",
+        "html": "teams-variant-b.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLvFWb7ITEITm-fwFdPqJNnd2g0qeucmZVbMYibXhmoprxo9uMNEIbxW2THbJolfZIJ_n72X3jVNi7KvdOJ-FfdBo6AQoX2An0ltdOxGd8RzYksBjNd7LD_U47e5myDfKVBk8pZ9M_RgQAUQLwYF98Qic1AeJ3A1CpFtO3ASdRUX48Q8CYaYUatxJpiZz3m3RJboko1SrkRsRm1AdTF7LIw-WpGncTchY_fIu_-YRYulQMvKJnmXzxcbNg"
+      },
+      {
+        "slug": "variant-c",
+        "title": "My Team - Structured Grid Variant",
+        "screenId": "00fa60a001414f33aa168f25fc49200e",
+        "html": "teams-variant-c.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtHmGGJ0Gyg8PegAjBMl4aE0urbi2uaAxIlV9VVzNQLuc1ZaIss6RCYuzx4Bk4oTIh2HHRthM6kcs_IfdH9HjhJlRa2TNjmcXgPX6GQvg6Ot4IW2YadyJ_-xHaeuobxC16RliavZsvKfMj8rLj8Bu60m_thflQ90Rm1kplv8_e8-E0LDOf8fvKzX24JIvsQa3IIpi4mojm03pNiQ1xO8kt-GrirYVZHx2qhjzdzLuyO5W4L386-sOuN5QY"
+      }
+    ]
+  },
+  {
+    "file": "5829894f-6709-4295-b70c-d3af276b97b2.txt",
+    "tab": "help",
+    "label": "帮助中心",
+    "route": "/circles/:id/help",
+    "variants": [
+      {
+        "slug": "variant-a",
+        "title": "Circle Help - Asymmetric Variant",
+        "screenId": "03acf928f9d343c2b8a4ebb058e5178b",
+        "html": "help-variant-a.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLtz25oleBRohhYePc7-0HbepejID4MJ_7rSIbkkgd_CYcx-vsliuP-mIVNLcgodMMY50SceUvwHLMBNEpPadwc8yIaK38mSX93k643vDvy6ewhtN19vXuVae6vbef80QTCCXfaGIc-_oHarGWeJ2RvrATh7MqJ6DU663zu-ZeLPdyAOE4Cc7FqfAP2mBoYxjez3PzPpD0FH8M0Cy6DgRGakn2ASZ646rCjZgJaVAduoKmwU3y7RwI9DsHU"
+      },
+      {
+        "slug": "variant-b",
+        "title": "Circle Help - Structured Variant",
+        "screenId": "41c40f6036f54a96b9b54dc0a26be947",
+        "html": "help-variant-b.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLunkT2KuN5pv0TbsSC5sLMqm4nyu1q5xq8LLG3IKoKUHSjSfbq273iV83yRTSN6HHZ5KuENh5YlXlF3htCyyVGVLNDgidnBDFUrLRj5QtoyT06cTVKV-3GyPsoUc5GVxQ652YllyXIyyhuPVQvAA1lMyKuXtZlB6NiiYjzVYfhODCJpeTVXX6ZP0Mz76GcBdI349__3JAdS7SfZfyxB1P_oTU0Tr19RFBn2Wp8i88uPnH3exHGXcnoCCQ"
+      },
+      {
+        "slug": "variant-c",
+        "title": "Circle Help - Bento Variant",
+        "screenId": "9391ae0db82d4bd7a6c09bf9ab0cb3bf",
+        "html": "help-variant-c.html",
+        "screenshot": "https://lh3.googleusercontent.com/aida/AP1WRLt8mpwj-kJlQ9khmkp3zFw9aQnL6X2X9u6TUYuU_mIkBRodeQHeg0gNpKoDkFo4SsdKxc7r27jmVPvyMSSrLXpgt8gHHw004chvQB4GcdeJAGO3xWdChkmv0eWSne_vlCALeUPNL-DRECXSaH8JXkBrG-TWZcEUxioNowH9VvU6xqGbtfipjpquE1ICfjsDbYJQbDKiXP-qvakhcWY7u6LpYkUYajDP2k4UpKNRTXX7UOs1q9cvKR7z6AY"
+      }
+    ]
+  }
+]

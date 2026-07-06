@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-Hans"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/jerosoler/Geist-Font@v1.0.0/fonts/geist-font.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<title>Ninewood - 宁杭独立开发者 - 首页</title>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#abc7ff",
+                        "on-primary": "#002f66",
+                        "primary-container": "#458fff",
+                        "on-primary-container": "#00285a",
+                        "secondary": "#c7c6c6",
+                        "on-secondary": "#2f3131",
+                        "secondary-container": "#484949",
+                        "on-secondary-container": "#b8b8b8",
+                        "tertiary": "#ffb689",
+                        "on-tertiary": "#512300",
+                        "tertiary-container": "#e4700c",
+                        "on-tertiary-container": "#471e00",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "background": "#10131a",
+                        "on-background": "#e0e2ec",
+                        "surface": "#10131a",
+                        "on-surface": "#e0e2ec",
+                        "surface-variant": "#32353c",
+                        "on-surface-variant": "#c1c6d6",
+                        "outline": "#8b919f",
+                        "outline-variant": "#414754",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-container-low": "#181c23",
+                        "surface-container": "#1c2027",
+                        "surface-container-high": "#272a31",
+                        "surface-container-highest": "#32353c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "content-column": "768px",
+                        "margin-page": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-caps": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #10131a;
+            color: #e0e2ec;
+            font-family: 'Geist', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background-color: rgba(28, 32, 39, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .bg-overlay {
+            background: radial-gradient(circle at top right, rgba(16, 19, 26, 0.4), rgba(16, 19, 26, 0.95));
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10131a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #414754;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #abc7ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative lg:pl-[280px]">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU')"></div>
+<div class="absolute inset-0 bg-overlay z-10"></div>
+</div>
+<!-- Side Navigation Shell -->
+<aside class="hidden lg:flex fixed left-0 top-0 h-full w-[280px] flex-col p-stack-md gap-stack-lg bg-surface/40 backdrop-blur-3xl border-r border-white/5 z-[60] shadow-2xl">
+<div class="flex items-center gap-stack-sm px-2">
+<div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+</div>
+<div>
+<h3 class="text-title-sm font-title-sm font-black text-primary">Ninewood</h3>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Productivity Hub</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-grow">
+<a class="flex items-center gap-stack-md px-4 py-3 bg-white/10 text-primary border border-white/10 rounded-xl font-semibold transition-all" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-label-caps font-label-caps">首页</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+<span class="text-label-caps font-label-caps">圈子社区</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">folder</span>
+<span class="text-label-caps font-label-caps">资源文件</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">insights</span>
+<span class="text-label-caps font-label-caps">分析数据</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">diversity_3</span>
+<span class="text-label-caps font-label-caps">我的团队</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-white/5 pt-stack-md flex flex-col gap-1">
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-label-caps font-label-caps">帮助中心</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-caps font-label-caps">退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Header for Mobile/Mobile layout compatibility -->
+<header class="fixed top-0 left-0 lg:left-[280px] right-0 z-50 h-16 flex items-center px-margin-page bg-surface/30 backdrop-blur-xl border-b border-white/5 lg:hidden">
+<div class="flex items-center gap-stack-md w-full">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-all text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface">宁杭独立开发者</h1>
+</div>
+</header>
+<!-- Main Content: Focus-centric Bento Grid -->
+<main class="relative z-20 pt-20 lg:pt-8 pb-32 lg:pb-8 flex flex-col items-center">
+<div class="w-full max-w-container-max px-4 lg:px-margin-page">
+<!-- Hero Header -->
+<div class="mb-8 pl-2">
+<h1 class="text-display-lg font-display-lg font-bold text-on-surface tracking-tight mb-2">欢迎来到宁杭独立开发者</h1>
+<p class="text-on-surface-variant text-body-lg font-body-lg">在这里发现新机会，结交志同道合的开发者伙伴，共同探索产品的无限可能。</p>
+</div>
+<!-- Bento Grid Container -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 auto-rows-min">
+<!-- Centerpiece: Pinned Announcement (Row 1, Cols 1-8) -->
+<section class="md:col-span-8 glass-card inner-glow rounded-3xl p-6 lg:p-8 flex flex-col gap-6 relative overflow-hidden bg-gradient-to-br from-surface-container/80 to-surface-container-highest/80">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] -z-10 rounded-full translate-x-1/3 -translate-y-1/3"></div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">campaign</span>
+<h3 class="text-label-caps font-label-caps font-bold text-primary uppercase tracking-wider">置顶公告</h3>
+</div>
+<div>
+<h2 class="text-headline-md font-headline-md font-bold text-on-surface mb-4">欢迎加入宁杭开发者圈子！🎉</h2>
+<p class="text-on-surface-variant font-body-lg text-body-lg leading-relaxed">
+                            这是一个汇聚南京与杭州两地独立开发者的社群。在这里，你可以分享你的产品、寻找合作伙伴、交流技术心得，以及探讨出海机会。请大家遵守群规，互相尊重，共同维护一个良好的交流环境。期待大家在这里碰撞出精彩的火花！
+                        </p>
+</div>
+<div class="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full border border-white/10 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbtfFIDVplee2fh2ruRRq1wVZnsyIBlWaEbCkmXJMJsj2CONhkp6nlaokGxvexlR_uX4I6jQXv2Z5YlbM3m5eR-_qFnKHg7OT29wEIpE2kAvaZC06GYuCYYv7JY2TvH3194aPOWQCvSUR2RoVGnE3mgdEL7mwq7f-9VGD8_5qTOX0oTdT8qFg4zIXUSCUIAOvC88uzHdNcjSS2itHu3od8e7EVO_Od6II9xCcNrqnTW9mcTMuuiSxub78jw1ugUd_e3Ynh-o0Qo80"/>
+<div class="flex flex-col">
+<span class="text-on-surface text-[12px] font-semibold">钱医生内科</span>
+<span class="text-on-surface-variant text-[10px]">圈主 · 2小时前更新</span>
+</div>
+</div>
+<button class="px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-on-surface text-[12px] font-semibold transition-colors border border-white/5">
+                            查看详情
+                        </button>
+</div>
+</section>
+<!-- Stat Cards (Row 1, Cols 9-12) -->
+<section class="md:col-span-4 flex flex-col gap-4 lg:gap-6">
+<div class="glass-card inner-glow rounded-3xl p-6 flex flex-col justify-center flex-1 group hover:border-primary/20 transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-label-caps font-label-caps text-on-surface-variant uppercase">今日活跃</h3>
+<div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-xl">vital_signs</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-display-lg font-bold text-on-surface">12</span>
+<span class="text-body-md text-on-surface-variant">人在线</span>
+</div>
+</div>
+<div class="glass-card inner-glow rounded-3xl p-6 flex flex-col justify-center flex-1 group hover:border-primary/20 transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-label-caps font-label-caps text-on-surface-variant uppercase">新增资源</h3>
+<div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-xl">library_add</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-display-lg font-bold text-on-surface">3</span>
+<span class="text-body-md text-on-surface-variant">份文件</span>
+</div>
+</div>
+</section>
+<!-- Modular Bottom Section: Shortcuts & Timeline (Row 2, Cols 1-12) -->
+<section class="md:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+<!-- Shortcut Row (Cols 1-4) -->
+<div class="lg:col-span-4 glass-card inner-glow rounded-3xl p-6 flex flex-col gap-4">
+<h3 class="text-title-sm font-title-sm font-bold text-on-surface mb-2">快捷入口</h3>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group border border-transparent hover:border-white/5">
+<div class="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">edit_square</span>
+</div>
+<span class="text-[12px] font-semibold text-on-surface">发动态</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group border border-transparent hover:border-white/5">
+<div class="w-10 h-10 rounded-full bg-tertiary/20 text-tertiary flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">upload_file</span>
+</div>
+<span class="text-[12px] font-semibold text-on-surface">传资源</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group border border-transparent hover:border-white/5">
+<div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">forum</span>
+</div>
+<span class="text-[12px] font-semibold text-on-surface">进讨论</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group border border-transparent hover:border-white/5">
+<div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[20px]">group_add</span>
+</div>
+<span class="text-[12px] font-semibold text-on-surface">邀成员</span>
+</button>
+</div>
+</div>
+<!-- Activity Timeline (Cols 5-12) -->
+<div class="lg:col-span-8 glass-card inner-glow rounded-3xl p-6 lg:p-8 flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-title-sm font-title-sm font-bold text-on-surface">最新动态</h3>
+<button class="text-primary text-label-caps hover:underline flex items-center gap-1">
+                                查看全部 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+<div class="space-y-6 relative before:absolute before:inset-0 before:ml-[15px] md:before:ml-[19px] before:-translate-x-px before:h-full before:w-0.5 before:bg-white/5">
+<!-- Timeline Item 1 -->
+<div class="relative flex gap-4 items-start group">
+<div class="w-8 h-8 rounded-full bg-surface-container border-2 border-surface flex items-center justify-center z-10 shrink-0 group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-[14px] text-primary">add_circle</span>
+</div>
+<div class="flex-1 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-body-md text-on-surface font-semibold">圈子 “宁杭独立开发者” 已成功创建</p>
+<span class="text-[10px] text-on-surface-variant shrink-0 mt-1">今天 10:30</span>
+</div>
+<p class="text-body-md text-on-surface-variant">钱医生内科 创建了该圈子，并设置了初始框架。</p>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative flex gap-4 items-start group">
+<div class="w-8 h-8 rounded-full bg-surface-container border-2 border-surface flex items-center justify-center z-10 shrink-0 group-hover:border-emerald-400 transition-colors">
+<span class="material-symbols-outlined text-[14px] text-emerald-400">person_add</span>
+</div>
+<div class="flex-1 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
+<div class="flex justify-between items-start mb-1">
+<p class="text-body-md text-on-surface font-semibold">新成员加入</p>
+<span class="text-[10px] text-on-surface-variant shrink-0 mt-1">今天 11:15</span>
+</div>
+<p class="text-body-md text-on-surface-variant">3 位新开发者刚刚加入了本圈子，欢迎他们！</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-surface/60 backdrop-blur-3xl border-t border-white/5 z-50 flex justify-around items-center h-20 px-4 pb-4">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">group</span>
+<span class="text-[10px] font-bold">圈子</span>
+</div>
+<button class="w-12 h-12 bg-primary text-on-primary rounded-2xl flex items-center justify-center -translate-y-4 shadow-xl shadow-primary/30">
+<span class="material-symbols-outlined">add</span>
+</button>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-[10px] font-bold">资源</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold">我的</span>
+</div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button, a, .glass-card').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                if(!el.classList.contains('glass-card')) el.classList.add('scale-95');
+            });
+            el.addEventListener('mouseup', () => {
+                el.classList.remove('scale-95');
+            });
+            el.addEventListener('mouseleave', () => {
+                el.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>

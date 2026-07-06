@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>认证介绍 - Ninewood Elite Technical Authority</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&amp;family=Geist:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Shared Style & Theme Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#ffe088",
+                    "inverse-on-surface": "#343027",
+                    "tertiary-fixed": "#dbe1ff",
+                    "surface-glass": "rgba(16, 20, 31, 0.6)",
+                    "secondary-fixed-dim": "#d3c69e",
+                    "on-primary-fixed-variant": "#574500",
+                    "on-tertiary-fixed-variant": "#27438a",
+                    "surface-tint": "#e9c349",
+                    "surface-container-highest": "#38342b",
+                    "error": "#ffb4ab",
+                    "on-error": "#690005",
+                    "gold-bright": "#F4D03F",
+                    "on-tertiary": "#082b72",
+                    "surface-container-high": "#2d2a21",
+                    "border-gold": "rgba(212, 175, 55, 0.15)",
+                    "accent-error": "#F87171",
+                    "secondary-fixed": "#f0e2b8",
+                    "secondary": "#d3c69e",
+                    "outline": "#99907c",
+                    "tertiary": "#bfcdff",
+                    "surface-bright": "#3d392f",
+                    "on-secondary-fixed-variant": "#4f4628",
+                    "accent-success": "#10B981",
+                    "on-background": "#eae1d4",
+                    "error-container": "#93000a",
+                    "background": "#16130b",
+                    "on-secondary-container": "#c4b891",
+                    "on-tertiary-container": "#254188",
+                    "on-surface-variant": "#d0c5af",
+                    "surface-variant": "#38342b",
+                    "primary-fixed-dim": "#e9c349",
+                    "surface-container": "#231f17",
+                    "surface": "#16130b",
+                    "surface-container-low": "#1f1b13",
+                    "on-secondary": "#383013",
+                    "on-secondary-fixed": "#221b03",
+                    "tertiary-fixed-dim": "#b4c5ff",
+                    "primary-container": "#d4af37",
+                    "on-primary-fixed": "#241a00",
+                    "on-surface": "#eae1d4",
+                    "primary": "#f2ca50",
+                    "on-primary": "#3c2f00",
+                    "tertiary-container": "#97b0ff",
+                    "secondary-container": "#51492a",
+                    "inverse-primary": "#735c00",
+                    "on-tertiary-fixed": "#00174b",
+                    "inverse-surface": "#eae1d4",
+                    "on-primary-container": "#554300",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-lowest": "#110e07",
+                    "background-deep": "#0A0E17",
+                    "surface-dim": "#16130b",
+                    "outline-variant": "#4d4635",
+                    "border-white": "rgba(255, 255, 255, 0.05)"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "32px",
+                    "sidebar-width": "280px",
+                    "stack-md": "16px",
+                    "gutter": "24px",
+                    "container-max": "1100px",
+                    "margin-page": "48px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Playfair Display"],
+                    "title-md": ["Geist"],
+                    "display-xl": ["Playfair Display"],
+                    "data-mono": ["Geist"],
+                    "headline-lg-mobile": ["Playfair Display"],
+                    "body-md": ["Geist"],
+                    "label-caps": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                    "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0A0E17;
+            color: #eae1d4;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-card {
+            background: rgba(16, 20, 31, 0.4);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+        .radial-bg {
+            background: radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05) 0%, transparent 50%);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="radial-bg min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 backdrop-blur-2xl bg-surface-glass border-b border-border-white shadow-2xl">
+<div class="flex justify-between items-center px-margin-page py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-12">
+<span class="font-headline-lg text-headline-lg text-primary-fixed tracking-tight">Ninewood</span>
+<nav class="hidden md:flex gap-8">
+<a class="font-title-md text-title-md text-on-surface-variant opacity-70 hover:text-primary-fixed transition-colors duration-300" href="#">核心权益</a>
+<a class="font-title-md text-title-md text-on-surface-variant opacity-70 hover:text-primary-fixed transition-colors duration-300" href="#">等级体系</a>
+<a class="font-title-md text-title-md text-primary font-bold border-b-2 border-primary-fixed pb-1" href="#">认证路径</a>
+<a class="font-title-md text-title-md text-on-surface-variant opacity-70 hover:text-primary-fixed transition-colors duration-300" href="#">开发者生态</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">language</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">dark_mode</span>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-title-md text-title-md hover:scale-105 active:scale-95 transition-all shadow-primary/20">立即认证</button>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Hidden on main intro page content to prioritize canvas width as per instructions for intro flow) -->
+<!-- Task focused sub-page often hides global nav, but I'll include it pinned left as it's an 'Anchor' -->
+<aside class="fixed left-0 top-0 h-full w-sidebar-width bg-surface-container-lowest border-r border-border-white shadow-inner flex flex-col p-stack-md hidden xl:flex z-40 pt-24">
+<div class="mb-stack-lg px-4">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-border-gold flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A sophisticated close-up portrait of a professional software architect in a dimly lit studio setting, illuminated by cold blue screen light and warm gold rim lighting. The aesthetic is clean, cinematic, and evokes a sense of high-level expertise and technical authority." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRuMtmLpsqydaTbZwkJVIDJFoDrOzU-g9rUJKskZyFx7Ga4nGDZ5ZXZCpNeszGON4ZjtyeehP2IdnBuO9YmF-_IBv_H_ZGB1KYJkva-t6vy2ZitNlr2UhCqsWWmodic58ZqfQBNU-_qBfzozK2iixHGlw9rgT1C5deoh6olgiPzsIf24GNzGpHZoOlABnGbiDlODG42Xt_h46VeE-qnFEhF2oCMUUYBVoC3HxCbzZkDiNlSy8BLDanzvRg7rQLfkIA2q6QMuCPMes"/>
+</div>
+<div>
+<p class="font-title-md text-title-md text-primary-fixed">精英开发者</p>
+<p class="text-[10px] text-on-surface-variant opacity-70 tracking-widest uppercase">Ninewood 会员</p>
+</div>
+</div>
+</div>
+<div class="flex-1 space-y-2">
+<a class="flex items-center gap-3 p-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md text-body-md">仪表盘</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl bg-primary/10 text-primary transition-all" href="#">
+<span class="material-symbols-outlined">verified</span>
+<span class="font-body-md text-body-md">认证中心</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">workspace_premium</span>
+<span class="font-body-md text-body-md">技术锦标赛</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-body-md text-body-md">资源库</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-md text-body-md">精英社区</span>
+</a>
+</div>
+<div class="mt-auto border-t border-border-white pt-stack-md space-y-2">
+<button class="w-full bg-secondary-container text-on-secondary-container py-3 rounded-xl mb-4 font-title-md text-title-md hover:brightness-110 transition-all">提升等级</button>
+<a class="flex items-center gap-3 p-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">设置</span>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-body-md text-body-md">支持</span>
+</a>
+</div>
+</aside>
+<main class="xl:ml-sidebar-width pt-28 pb-20 px-margin-page">
+<div class="max-w-container-max mx-auto">
+<!-- Hero Section -->
+<section class="flex flex-col lg:flex-row gap-12 mb-24 items-center">
+<!-- Hero Left -->
+<div class="lg:w-[55%] animate-fade-in">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-6 leading-tight">开启你的<br/><span class="text-primary-fixed">技术身份认证</span></h1>
+<p class="font-title-md text-title-md text-on-surface-variant opacity-80 mb-10 max-w-lg">
+                        解锁精英开发者的专属权限与抢单额度。通过 Ninewood 权威认证，展示您的专业高度。
+                    </p>
+<ul class="space-y-4 mb-10">
+<li class="flex items-center gap-4 group">
+<div class="w-6 h-6 rounded-full border border-primary-fixed/30 flex items-center justify-center group-hover:border-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">全球公认的开发者认证标识 (Verified Status)</span>
+</li>
+<li class="flex items-center gap-4 group">
+<div class="w-6 h-6 rounded-full border border-primary-fixed/30 flex items-center justify-center group-hover:border-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">单次任务抢单额度提升至 $50k+</span>
+</li>
+<li class="flex items-center gap-4 group">
+<div class="w-6 h-6 rounded-full border border-primary-fixed/30 flex items-center justify-center group-hover:border-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">专属技术架构师 1对1 优先级支持</span>
+</li>
+</ul>
+<button class="px-10 py-5 bg-gradient-to-r from-primary-container to-gold-bright text-on-primary-fixed rounded-full font-title-md text-title-md gold-glow hover:scale-[1.02] transition-all active:scale-95">
+                        立即开始认证
+                    </button>
+</div>
+<!-- Hero Right: Tier Comparison Table -->
+<div class="lg:w-[45%] w-full">
+<div class="glass-card rounded-3xl overflow-hidden shadow-2xl relative">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed/5 to-transparent pointer-events-none"></div>
+<div class="p-8">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-title-md text-title-md text-primary-fixed">等级权益对比</h3>
+<span class="material-symbols-outlined text-on-surface-variant opacity-40">info</span>
+</div>
+<div class="space-y-4">
+<div class="grid grid-cols-5 gap-2 pb-4 border-b border-border-white opacity-50">
+<div class="col-span-2 font-label-caps text-label-caps uppercase">维度</div>
+<div class="text-center font-label-caps text-label-caps uppercase">未认证</div>
+<div class="text-center font-label-caps text-label-caps uppercase">初级</div>
+<div class="text-center font-label-caps text-label-caps uppercase text-primary-fixed">高级</div>
+</div>
+<div class="grid grid-cols-5 gap-2 py-4 border-b border-border-white hover:bg-white/5 transition-colors rounded-lg">
+<div class="col-span-2 font-body-md text-body-md">单次抢单额度</div>
+<div class="text-center font-data-mono text-data-mono text-xs">$500</div>
+<div class="text-center font-data-mono text-data-mono text-xs">$5K</div>
+<div class="text-center font-data-mono text-data-mono text-xs text-primary-fixed">$50K+</div>
+</div>
+<div class="grid grid-cols-5 gap-2 py-4 border-b border-border-white hover:bg-white/5 transition-colors rounded-lg">
+<div class="col-span-2 font-body-md text-body-md">技术服务费</div>
+<div class="text-center font-data-mono text-data-mono text-xs">20%</div>
+<div class="text-center font-data-mono text-data-mono text-xs">15%</div>
+<div class="text-center font-data-mono text-data-mono text-xs text-primary-fixed">5%</div>
+</div>
+<div class="grid grid-cols-5 gap-2 py-4 border-b border-border-white hover:bg-white/5 transition-colors rounded-lg">
+<div class="col-span-2 font-body-md text-body-md">专属标识</div>
+<div class="text-center"><span class="material-symbols-outlined text-error text-sm">close</span></div>
+<div class="text-center"><span class="material-symbols-outlined text-accent-success text-sm">check</span></div>
+<div class="text-center"><span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">verified</span></div>
+</div>
+<div class="grid grid-cols-5 gap-2 py-4 hover:bg-white/5 transition-colors rounded-lg">
+<div class="col-span-2 font-body-md text-body-md">专家社群</div>
+<div class="text-center"><span class="material-symbols-outlined text-error text-sm">close</span></div>
+<div class="text-center"><span class="material-symbols-outlined text-on-surface-variant opacity-40 text-sm">remove</span></div>
+<div class="text-center"><span class="material-symbols-outlined text-primary-fixed text-sm" style="font-variation-settings: 'FILL' 1;">check</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Cards Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-stack-lg mb-24">
+<!-- Card 1 -->
+<div class="glass-card p-10 rounded-3xl group hover:border-gold transition-all duration-500 relative overflow-hidden">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary-fixed/5 rounded-full blur-2xl group-hover:bg-primary-fixed/10 transition-all"></div>
+<div class="w-14 h-14 bg-surface-container-high border border-border-white rounded-2xl flex items-center justify-center mb-8 group-hover:border-primary-fixed/40 group-hover:scale-110 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings: 'FILL' 0;">security</span>
+</div>
+<h3 class="font-headline-lg text-title-md text-on-surface mb-4">信誉保障</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                        通过严谨的身份认证流程，建立基于真实能力的信任背书。在高端技术交易市场中，您的认证身份即是实力的最佳证明，确保交易全程安全可靠。
+                    </p>
+</div>
+<!-- Card 2 -->
+<div class="glass-card p-10 rounded-3xl group hover:border-gold transition-all duration-500 relative overflow-hidden">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary-fixed/5 rounded-full blur-2xl group-hover:bg-primary-fixed/10 transition-all"></div>
+<div class="w-14 h-14 bg-surface-container-high border border-border-white rounded-2xl flex items-center justify-center mb-8 group-hover:border-primary-fixed/40 group-hover:scale-110 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings: 'FILL' 0;">rocket_launch</span>
+</div>
+<h3 class="font-headline-lg text-title-md text-on-surface mb-4">抢单额度</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                        更高的认证级别直接对应更广阔的项目机会。从基础的模块开发到百万级系统架构设计，Ninewood 认证是您通往高价值、高影响力项目的唯一通行证。
+                    </p>
+</div>
+<!-- Card 3 -->
+<div class="glass-card p-10 rounded-3xl group hover:border-gold transition-all duration-500 relative overflow-hidden">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary-fixed/5 rounded-full blur-2xl group-hover:bg-primary-fixed/10 transition-all"></div>
+<div class="w-14 h-14 bg-surface-container-high border border-border-white rounded-2xl flex items-center justify-center mb-8 group-hover:border-primary-fixed/40 group-hover:scale-110 transition-all duration-300">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings: 'FILL' 0;">stars</span>
+</div>
+<h3 class="font-headline-lg text-title-md text-on-surface mb-4">专属标识</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                        在社区中脱颖而出。获得金色认证徽章、定制化的个人中心封面以及在全球人才搜索列表中的置顶展示，让全球顶尖雇主第一时间关注到您。
+                    </p>
+</div>
+</section>
+<!-- Secondary CTA / Path section -->
+<section class="glass-card rounded-[40px] p-16 flex flex-col items-center text-center mb-24 border-border-gold">
+
+<div class="relative z-10">
+<h2 class="font-headline-lg text-headline-lg mb-6">准备好证明您的专业能力了吗？</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto mb-12 opacity-80">
+                        认证过程通常需要 3-5 个工作日，我们的专家委员会将对您的技术背景、项目经验和代码质量进行深度评估。
+                    </p>
+<div class="flex flex-col sm:flex-row gap-6 justify-center">
+<button class="px-12 py-4 bg-primary-fixed text-on-primary-fixed rounded-xl font-title-md text-title-md hover:brightness-110 active:scale-95 transition-all">
+                            上传认证材料
+                        </button>
+<button class="px-12 py-4 border border-border-gold text-primary-fixed rounded-xl font-title-md text-title-md hover:bg-primary-fixed/5 active:scale-95 transition-all">
+                            查看详细要求
+                        </button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-background-deep border-t border-border-gold py-stack-lg relative z-50">
+<div class="max-w-container-max mx-auto px-margin-page flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="font-headline-lg text-headline-lg text-primary-fixed tracking-tight">Ninewood</span>
+<p class="text-on-surface-variant opacity-70 font-body-md text-body-md">© 2024 Ninewood Elite Technical Authority. 保留所有权利。</p>
+</div>
+<div class="flex gap-12">
+<div class="flex flex-col gap-3">
+<p class="font-label-caps text-label-caps text-primary-fixed mb-2">法律合规</p>
+<a class="text-on-surface-variant hover:text-gold-bright transition-colors font-body-md text-body-md" href="#">隐私政策</a>
+<a class="text-on-surface-variant hover:text-gold-bright transition-colors font-body-md text-body-md" href="#">服务条款</a>
+</div>
+<div class="flex flex-col gap-3">
+<p class="font-label-caps text-label-caps text-primary-fixed mb-2">支持中心</p>
+<a class="text-on-surface-variant hover:text-gold-bright transition-colors font-body-md text-body-md" href="#">安全白皮书</a>
+<a class="text-on-surface-variant hover:text-gold-bright transition-colors font-body-md text-body-md" href="#">联系我们</a>
+</div>
+</div>
+<div class="flex gap-6">
+<a class="w-10 h-10 rounded-full glass-card flex items-center justify-center hover:text-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">alternate_email</span>
+</a>
+<a class="w-10 h-10 rounded-full glass-card flex items-center justify-center hover:text-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">public</span>
+</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for table rows
+        document.querySelectorAll('section div.grid').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateX(4px)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Simple Fade-in animation controller
+        window.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.animate-fade-in');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    el.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+        });
+    </script>
+</body></html>

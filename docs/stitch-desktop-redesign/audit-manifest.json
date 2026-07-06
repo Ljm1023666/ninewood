@@ -1,0 +1,98 @@
+[
+  {
+    "id": "welfare",
+    "route": "/welfare",
+    "title": "公益中心",
+    "file": "client-react/src/views/WelfareCenter.tsx",
+    "issue": "width=narrow(672px)，纵向堆叠表单+列表，大量留白",
+    "priority": "P0"
+  },
+  {
+    "id": "cert-center",
+    "route": "/cert-center",
+    "title": "认证中心",
+    "file": "client-react/src/views/CertCenter.tsx",
+    "issue": "单列卡片堆叠，信息密度低，像手机设置页",
+    "priority": "P0"
+  },
+  {
+    "id": "search",
+    "route": "/search",
+    "title": "找人",
+    "file": "client-react/src/views/Search.tsx",
+    "issue": "窄搜索条+居中空态，未利用宽屏",
+    "priority": "P0"
+  },
+  {
+    "id": "my-tags",
+    "route": "/my-tags",
+    "title": "我的标签",
+    "file": "client-react/src/views/MyTags.tsx",
+    "issue": "width=narrow，标签云+移动端 Switch",
+    "priority": "P0"
+  },
+  {
+    "id": "payment",
+    "route": "/payment/:id",
+    "title": "点数支付",
+    "file": "client-react/src/views/Payment.tsx",
+    "issue": "width=narrow，居中支付确认像 H5",
+    "priority": "P1"
+  },
+  {
+    "id": "follows",
+    "route": "/follows/:userId",
+    "title": "关注/粉丝",
+    "file": "client-react/src/views/Follows.tsx",
+    "issue": "width=narrow 列表",
+    "priority": "P1"
+  },
+  {
+    "id": "cert-intro",
+    "route": "/cert-intro",
+    "title": "认证介绍",
+    "file": "client-react/src/views/CertIntro.tsx",
+    "issue": "width=narrow 营销长页",
+    "priority": "P1"
+  },
+  {
+    "id": "providers",
+    "route": "/providers",
+    "title": "找服务者",
+    "file": "client-react/src/views/Providers.tsx",
+    "issue": "medium 单列筛选+列表",
+    "priority": "P1"
+  },
+  {
+    "id": "my-bids",
+    "route": "/my-bids",
+    "title": "我的应标",
+    "file": "client-react/src/views/MyBids.tsx",
+    "issue": "medium 简单列表",
+    "priority": "P1"
+  },
+  {
+    "id": "push-settings",
+    "route": "/push-settings",
+    "title": "推送设置",
+    "file": "client-react/src/views/PushSettings.tsx",
+    "issue": "设置表单纵向堆叠偏窄",
+    "priority": "P2"
+  },
+  {
+    "id": "new-group",
+    "route": "/messages/new-group",
+    "title": "新建群聊",
+    "file": "client-react/src/views/NewGroupChat.tsx",
+    "issue": "max-w-sm 弹窗式布局",
+    "priority": "P2"
+  },
+  {
+    "id": "not-found",
+    "route": "/*",
+    "title": "404",
+    "file": "client-react/src/views/NotFound.tsx",
+    "issue": "width=narrow 居中",
+    "priority": "P2"
+  }
+]

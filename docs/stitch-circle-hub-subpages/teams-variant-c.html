@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-Hans"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/gh/jerosoler/Geist-Font@v1.0.0/fonts/geist-font.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<title>Ninewood - 我的团队</title>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#abc7ff",
+                        "on-primary": "#002f66",
+                        "primary-container": "#458fff",
+                        "on-primary-container": "#00285a",
+                        "secondary": "#c7c6c6",
+                        "on-secondary": "#2f3131",
+                        "secondary-container": "#484949",
+                        "on-secondary-container": "#b8b8b8",
+                        "tertiary": "#ffb689",
+                        "on-tertiary": "#512300",
+                        "tertiary-container": "#e4700c",
+                        "on-tertiary-container": "#471e00",
+                        "error": "#ffb4ab",
+                        "on-error": "#690005",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "background": "#10131a",
+                        "on-background": "#e0e2ec",
+                        "surface": "#10131a",
+                        "on-surface": "#e0e2ec",
+                        "surface-variant": "#32353c",
+                        "on-surface-variant": "#c1c6d6",
+                        "outline": "#8b919f",
+                        "outline-variant": "#414754",
+                        "surface-container-lowest": "#0b0e15",
+                        "surface-container-low": "#181c23",
+                        "surface-container": "#1c2027",
+                        "surface-container-high": "#272a31",
+                        "surface-container-highest": "#32353c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "container-max": "1280px",
+                        "gutter": "24px",
+                        "content-column": "768px",
+                        "margin-page": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "label-caps": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #10131a;
+            color: #e0e2ec;
+            font-family: 'Geist', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background-color: rgba(28, 32, 39, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .inner-glow {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .bg-overlay {
+            background: radial-gradient(circle at top right, rgba(16, 19, 26, 0.4), rgba(16, 19, 26, 0.95));
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(65, 71, 84, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #abc7ff;
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative lg:pl-[280px]">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU')"></div>
+<div class="absolute inset-0 bg-overlay z-10"></div>
+</div>
+<!-- Side Navigation Shell -->
+<aside class="hidden lg:flex fixed left-0 top-0 h-full w-[280px] flex-col p-stack-md gap-stack-lg bg-surface/40 backdrop-blur-3xl border-r border-white/5 z-[60] shadow-2xl">
+<div class="flex items-center gap-stack-sm px-2">
+<div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+</div>
+<div>
+<h3 class="text-title-sm font-title-sm font-black text-primary">Ninewood</h3>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Productivity Hub</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-grow">
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">home</span>
+<span class="text-label-caps font-label-caps">首页</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+<span class="text-label-caps font-label-caps">圈子社区</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">folder</span>
+<span class="text-label-caps font-label-caps">资源文件</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">insights</span>
+<span class="text-label-caps font-label-caps">分析数据</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-3 bg-white/10 text-primary border border-white/10 rounded-xl font-semibold transition-all" href="#">
+<span class="material-symbols-outlined">diversity_3</span>
+<span class="text-label-caps font-label-caps">我的团队</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-white/5 pt-stack-md flex flex-col gap-1">
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-label-caps font-label-caps">帮助中心</span>
+</a>
+<a class="flex items-center gap-stack-md px-4 py-2 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-caps font-label-caps">退出登录</span>
+</a>
+</div>
+</aside>
+<!-- Header for Mobile/Mobile layout compatibility -->
+<header class="fixed top-0 left-0 lg:left-[280px] right-0 z-50 h-16 flex items-center px-margin-page bg-surface/30 backdrop-blur-xl border-b border-white/5 lg:hidden">
+<div class="flex items-center gap-stack-md w-full">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10 transition-all text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface">我的团队</h1>
+</div>
+</header>
+<!-- Main Content: My Team Layout -->
+<main class="relative z-20 pt-20 lg:pt-8 pb-32 lg:pb-8 flex flex-col items-center">
+<div class="w-full max-w-container-max px-4 lg:px-margin-page flex flex-col gap-6">
+<!-- Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+<h1 class="text-headline-md font-headline-md font-bold text-on-surface hidden lg:block">我的团队</h1>
+<button class="bg-primary text-on-primary px-6 h-10 rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                邀请成员
+            </button>
+</div>
+<!-- Search & Filters -->
+<div class="glass-card inner-glow rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+<button class="px-4 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30 text-body-md font-medium whitespace-nowrap">全部</button>
+<button class="px-4 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 border border-transparent text-body-md whitespace-nowrap transition-all">圈主</button>
+<button class="px-4 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 border border-transparent text-body-md whitespace-nowrap transition-all">管理员</button>
+<button class="px-4 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 border border-transparent text-body-md whitespace-nowrap transition-all">成员</button>
+</div>
+<div class="relative w-full md:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full h-10 pl-10 pr-4 bg-surface-container-highest/50 border border-white/10 rounded-xl text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary/50 transition-all text-body-md" placeholder="搜索成员..." type="text"/>
+</div>
+</div>
+<!-- Members Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+<!-- Card 1 (Owner) -->
+<div class="glass-card inner-glow rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[50px] -z-10 rounded-full translate-x-1/2 -translate-y-1/2"></div>
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<img class="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbtfFIDVplee2fh2ruRRq1wVZnsyIBlWaEbCkmXJMJsj2CONhkp6nlaokGxvexlR_uX4I6jQXv2Z5YlbM3m5eR-_qFnKHg7OT29wEIpE2kAvaZC06GYuCYYv7JY2TvH3194aPOWQCvSUR2RoVGnE3mgdEL7mwq7f-9VGD8_5qTOX0oTdT8qFg4zIXUSCUIAOvC88uzHdNcjSS2itHu3od8e7EVO_Od6II9xCcNrqnTW9mcTMuuiSxub78jw1ugUd_e3Ynh-o0Qo80"/>
+<div>
+<h3 class="text-title-sm font-bold text-on-surface">钱医生内科</h3>
+<span class="text-[11px] text-on-surface-variant">qianyisheng</span>
+</div>
+</div>
+<span class="px-2.5 py-0.5 rounded-lg bg-primary/20 text-primary text-[10px] font-bold border border-primary/30 whitespace-nowrap">圈主</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 rounded-lg bg-white/5 text-on-surface-variant text-[11px] border border-white/5">全栈开发</span>
+<span class="px-2 py-1 rounded-lg bg-white/5 text-on-surface-variant text-[11px] border border-white/5">独立黑客</span>
+</div>
+<div class="border-t border-white/5 pt-4 mt-2 flex justify-between items-center">
+<span class="text-[11px] text-on-surface-variant flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                        最后活跃: 刚刚
+                    </span>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Card 2 (Admin) -->
+<div class="glass-card inner-glow rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-surface-container-highest flex items-center justify-center border border-white/10 flex-shrink-0">
+<span class="material-symbols-outlined text-indigo-400">person</span>
+</div>
+<div>
+<h3 class="text-title-sm font-bold text-on-surface">Alex Chen</h3>
+<span class="text-[11px] text-on-surface-variant">alexc_dev</span>
+</div>
+</div>
+<span class="px-2.5 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30 whitespace-nowrap">管理员</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 rounded-lg bg-white/5 text-on-surface-variant text-[11px] border border-white/5">后端开发</span>
+<span class="px-2 py-1 rounded-lg bg-white/5 text-on-surface-variant text-[11px] border border-white/5">架构师</span>
+</div>
+<div class="border-t border-white/5 pt-4 mt-2 flex justify-between items-center">
+<span class="text-[11px] text-on-surface-variant flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                        最后活跃: 10分钟前
+                    </span>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Card 3 (Member) -->
+<div class="glass-card inner-glow rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden group">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-surface-container-highest flex items-center justify-center border border-white/10 flex-shrink-0">
+<span class="material-symbols-outlined text-rose-400">person</span>
+</div>
+<div>
+<h3 class="text-title-sm font-bold text-on-surface">Sarah Lee</h3>
+<span class="text-[11px] text-on-surface-variant">sarah_ui</span>
+</div>
+</div>
+<span class="px-2.5 py-0.5 rounded-lg bg-white/10 text-on-surface-variant text-[10px] font-bold border border-white/10 whitespace-nowrap">成员</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 rounded-lg bg-white/5 text-on-surface-variant text-[11px] border border-white/5">UI/UX 设计师</span>
+</div>
+<div class="border-t border-white/5 pt-4 mt-2 flex justify-between items-center">
+<span class="text-[11px] text-zinc-500 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                        最后活跃: 2小时前
+                    </span>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Pending Invites -->
+<div class="mt-4 flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<h2 class="text-title-sm font-bold text-on-surface">待处理邀请</h2>
+<span class="px-2 py-0.5 rounded-full bg-white/10 text-on-surface-variant text-[10px] font-bold">1</span>
+</div>
+<div class="glass-card inner-glow rounded-3xl overflow-hidden">
+<div class="flex items-center justify-between p-4 sm:p-6 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full border border-dashed border-white/20 flex items-center justify-center text-on-surface-variant bg-white/5">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+</div>
+<div>
+<h4 class="text-body-md font-semibold text-on-surface">david.wang@example.com</h4>
+<p class="text-[11px] text-on-surface-variant mt-0.5">邀请为 成员 · 已发送 2 天前</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg text-[11px] font-bold text-primary hover:bg-primary/10 transition-colors">重新发送</button>
+<button class="w-8 h-8 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-surface/60 backdrop-blur-3xl border-t border-white/5 z-50 flex justify-around items-center h-20 px-4 pb-4">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">首页</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">group</span>
+<span class="text-[10px] font-bold">圈子</span>
+</div>
+<button class="w-12 h-12 bg-primary text-on-primary rounded-2xl flex items-center justify-center -translate-y-4 shadow-xl shadow-primary/30">
+<span class="material-symbols-outlined">add</span>
+</button>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">diversity_3</span>
+<span class="text-[10px] font-bold">团队</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold">我的</span>
+</div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        document.querySelectorAll('button, a, .glass-card').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                if(!el.classList.contains('glass-card') && !el.closest('.hide-scrollbar')) el.classList.add('scale-95');
+            });
+            el.addEventListener('mouseup', () => {
+                el.classList.remove('scale-95');
+            });
+            el.addEventListener('mouseleave', () => {
+                el.classList.remove('scale-95');
+            });
+        });
+    </script>
+</body></html>

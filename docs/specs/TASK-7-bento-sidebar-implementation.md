@@ -398,6 +398,7 @@ pnpm --filter server test
 | 删除 `circles-enhanced` 后端 | 需单独立项；本 Task 仅前端降级 |
 | Mobile 适配 | 项目 Scope Lock |
 | Stage 2 公开圈 | D4 后置 |
+| **Wave 2–4 全局页 Bento 包装** | **2026-06-21 产品改向：Hub 子页见 `TASK-8-circle-hub-backend.md`** |
 
 ---
 
@@ -406,3 +407,4 @@ pnpm --filter server test
 | 日期 | 变更 |
 |------|------|
 | 2026-06-21 | v1.0 初版：侧栏审计 + Wave 1–4 |
+| 2026-06-21 | v1.1 Brain：Wave 2–4 作废；Hub 嵌套子页 + 后端见 Task 8 |

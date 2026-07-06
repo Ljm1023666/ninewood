@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood | 找服务者</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Geist:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-card {
+            background: rgba(17, 14, 7, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-glow:hover {
+            box-shadow: 0 0 20px rgba(242, 202, 80, 0.15);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(242, 202, 80, 0.1);
+            border-radius: 10px;
+        }
+        body {
+            background-color: #0A0E17;
+            background-image: radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05) 0%, transparent 40%);
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#16130b",
+                    "border-white": "rgba(255, 255, 255, 0.05)",
+                    "on-background": "#eae1d4",
+                    "surface-variant": "#38342b",
+                    "surface-container-highest": "#38342b",
+                    "on-surface-variant": "#d0c5af",
+                    "surface-container-lowest": "#110e07",
+                    "primary": "#f2ca50",
+                    "on-secondary-container": "#c4b891",
+                    "background-deep": "#0A0E17",
+                    "on-error": "#690005",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#4f4628",
+                    "outline": "#99907c",
+                    "on-primary-fixed-variant": "#574500",
+                    "surface-container-low": "#1f1b13",
+                    "secondary": "#d3c69e",
+                    "accent-error": "#F87171",
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed": "#221b03",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#d3c69e",
+                    "secondary-container": "#51492a",
+                    "on-tertiary-fixed-variant": "#27438a",
+                    "on-tertiary-container": "#254188",
+                    "primary-fixed": "#ffe088",
+                    "on-primary-fixed": "#241a00",
+                    "surface-dim": "#16130b",
+                    "surface-container-high": "#2d2a21",
+                    "accent-success": "#10B981",
+                    "surface-glass": "rgba(16, 20, 31, 0.6)",
+                    "surface-bright": "#3d392f",
+                    "tertiary-fixed": "#dbe1ff",
+                    "on-primary-container": "#554300",
+                    "tertiary": "#bfcdff",
+                    "border-gold": "rgba(212, 175, 55, 0.15)",
+                    "secondary-fixed": "#f0e2b8",
+                    "on-tertiary": "#082b72",
+                    "surface-tint": "#e9c349",
+                    "surface": "#16130b",
+                    "inverse-primary": "#735c00",
+                    "outline-variant": "#4d4635",
+                    "gold-bright": "#F4D03F",
+                    "primary-fixed-dim": "#e9c349",
+                    "on-primary": "#3c2f00",
+                    "tertiary-fixed-dim": "#b4c5ff",
+                    "tertiary-container": "#97b0ff",
+                    "primary-container": "#d4af37",
+                    "on-tertiary-fixed": "#00174b",
+                    "on-secondary": "#383013",
+                    "inverse-surface": "#eae1d4",
+                    "on-surface": "#eae1d4",
+                    "inverse-on-surface": "#343027",
+                    "surface-container": "#231f17"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "32px",
+                    "margin-page": "48px",
+                    "sidebar-width": "280px",
+                    "container-max": "1100px",
+                    "stack-md": "16px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Playfair Display"],
+                    "display-xl": ["Playfair Display"],
+                    "data-mono": ["Geist"],
+                    "title-md": ["Geist"],
+                    "body-md": ["Geist"],
+                    "label-caps": ["Geist"],
+                    "headline-lg": ["Playfair Display"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}],
+                    "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-body-md text-on-surface selection:bg-primary/30 overflow-hidden">
+<!-- Global Layout Container -->
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar - SideNavBar logic applied -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-lowest/80 backdrop-blur-xl border-r border-border-white shadow-2xl flex flex-col p-6 z-50">
+<!-- Header Identity -->
+<div class="mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">foundation</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-[24px] text-primary tracking-tight leading-none">Ninewood</h1>
+<p class="text-[10px] text-on-surface-variant/50 font-label-caps uppercase mt-1">Elite Technical Authority</p>
+</div>
+</div>
+</div>
+<!-- Scrollable Filter Content -->
+<div class="flex-grow space-y-8 custom-scrollbar overflow-y-auto pr-2">
+<!-- Navigation (Shared Component Integration) -->
+<nav class="space-y-1">
+<p class="text-label-caps text-on-surface-variant/40 mb-3 px-3">Main Menu</p>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant/70 font-body-md hover:bg-white/5 transition-all duration-200 rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary font-bold rounded-xl transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">storefront</span>
+<span>Marketplace</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant/70 font-body-md hover:bg-white/5 transition-all duration-200 rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">engineering</span>
+<span>Engineers</span>
+</a>
+</nav>
+<!-- Custom Page Filters -->
+<div class="space-y-6 pt-4 border-t border-border-white">
+<p class="text-label-caps text-on-surface-variant/40 px-3">精细筛选 (Filters)</p>
+<!-- Region -->
+<div class="px-3 space-y-3">
+<label class="text-body-md font-bold text-on-surface-variant block">区域 (Region)</label>
+<div class="space-y-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded-full border-primary/40 bg-transparent text-primary focus:ring-0 focus:ring-offset-0" name="region" type="radio"/>
+<span class="text-body-md text-on-surface-variant/70 group-hover:text-on-surface transition-colors">全部</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded-full border-primary/40 bg-transparent text-primary focus:ring-0 focus:ring-offset-0" name="region" type="radio"/>
+<span class="text-body-md text-on-surface-variant/70 group-hover:text-on-surface transition-colors">亚太</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded-full border-primary/40 bg-transparent text-primary focus:ring-0 focus:ring-offset-0" name="region" type="radio"/>
+<span class="text-body-md text-on-surface-variant/70 group-hover:text-on-surface transition-colors">北美</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded-full border-primary/40 bg-transparent text-primary focus:ring-0 focus:ring-offset-0" name="region" type="radio"/>
+<span class="text-body-md text-on-surface-variant/70 group-hover:text-on-surface transition-colors">欧洲</span>
+</label>
+</div>
+</div>
+<!-- Tags -->
+<div class="px-3 space-y-3">
+<label class="text-body-md font-bold text-on-surface-variant block">标签 (Tags)</label>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full text-[12px] bg-primary/10 text-primary border border-primary/20 cursor-pointer">架构设计</span>
+<span class="px-3 py-1 rounded-full text-[12px] bg-white/5 text-on-surface-variant/60 border border-white/10 hover:border-primary/40 transition-colors cursor-pointer">全栈开发</span>
+<span class="px-3 py-1 rounded-full text-[12px] bg-white/5 text-on-surface-variant/60 border border-white/10 hover:border-primary/40 transition-colors cursor-pointer">区块链</span>
+<span class="px-3 py-1 rounded-full text-[12px] bg-white/5 text-on-surface-variant/60 border border-white/10 hover:border-primary/40 transition-colors cursor-pointer">AI/算法</span>
+</div>
+</div>
+<!-- Status Toggle -->
+<div class="px-3 flex items-center justify-between">
+<label class="text-body-md font-bold text-on-surface-variant">在线状态</label>
+<button class="w-10 h-5 bg-primary rounded-full relative flex items-center px-1 shadow-[0_0_10px_rgba(242,202,80,0.3)]">
+<div class="w-3 h-3 bg-on-primary rounded-full absolute right-1"></div>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Tabs -->
+<div class="mt-auto space-y-1 pt-6">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant/70 font-body-md hover:bg-white/5 transition-all duration-200 rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-accent-error/70 font-body-md hover:bg-error-container/10 transition-all duration-200 rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-[280px] w-[calc(100%-280px)] h-full overflow-y-auto relative">
+<!-- TopNavBar (Shared Component Integration) -->
+<header class="fixed top-0 right-0 w-[calc(100%-280px)] h-20 bg-background/60 backdrop-blur-md border-b border-border-white z-40 flex items-center justify-between px-12">
+<div class="flex items-center gap-6 w-1/2">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-12 pr-4 text-body-md focus:ring-1 focus:ring-primary/40 focus:border-primary/40 transition-all outline-none" placeholder="全局搜索服务者、技能或背景..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 border-r border-border-white pr-6">
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Changelog</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">history</span>
+</button>
+<div class="w-10 h-10 rounded-full border border-primary/20 p-0.5 overflow-hidden">
+<img class="w-full h-full rounded-full object-cover" data-alt="Close-up studio portrait of a high-end technical consultant with sharp facial features and professional attire, soft dramatic rim lighting highlighting the contours, deep obsidian background with subtle golden bokeh, premium photography style, 8k resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr_fiYyyZaEbmBW2vwhCreIocKWm6WfIxloCgEnOIJvCdb2CID8ajvIJVkJvhus3_BO-a-4lQ8NLI-3TboDxcA_JzhblJhq4Gx95Z0cFJ4t3IfsVSiOooMO-2-dEoudlO-IYnp_G7ea4LVCa7fNgaJeU5ohPkx5NoVFsjKl8O4bnSnqY3TY15ea_VtjTT3vdqm994q5yvYXcYBuiiQ0sEVes_U3nda8p2ZufPYJ6Mk390FqVJ6e3xI-G9Pd-iye4lhvyITATGipzc"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="pt-32 px-12 pb-20 max-w-[1200px] mx-auto">
+<!-- Hero Header -->
+<div class="mb-12 flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-on-surface mb-2">找服务者</h2>
+<p class="text-on-surface-variant/70 text-[18px]">连接 Ninewood 全球顶级工程专家</p>
+</div>
+<button class="bg-gradient-to-r from-primary to-gold-bright text-on-primary px-8 py-3 rounded-full font-bold shadow-[0_10px_20px_-5px_rgba(242,202,80,0.4)] flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">add</span>
+                        发布新需求
+                    </button>
+</div>
+<!-- Bento Statistics (Mini) -->
+<div class="grid grid-cols-4 gap-6 mb-12">
+<div class="glass-card p-6 rounded-2xl border-l-4 border-l-primary">
+<p class="text-label-caps text-on-surface-variant/50 mb-1">活跃专家</p>
+<p class="text-display-xl text-[32px] text-primary">1,248</p>
+</div>
+<div class="glass-card p-6 rounded-2xl">
+<p class="text-label-caps text-on-surface-variant/50 mb-1">平均响应</p>
+<p class="text-display-xl text-[32px]">14 <span class="text-body-md font-normal opacity-50">min</span></p>
+</div>
+<div class="glass-card p-6 rounded-2xl">
+<p class="text-label-caps text-on-surface-variant/50 mb-1">认证通过率</p>
+<p class="text-display-xl text-[32px]">4.2%</p>
+</div>
+<div class="glass-card p-6 rounded-2xl overflow-hidden relative group">
+
+<div class="relative z-10">
+<p class="text-label-caps text-primary mb-1">今日优选</p>
+<p class="text-body-md font-bold">查看本周精选架构师</p>
+</div>
+</div>
+</div>
+<!-- Main Data Table Container -->
+<div class="glass-card rounded-2xl overflow-hidden border border-border-white shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-border-white bg-white/5">
+<th class="px-8 py-5 text-label-caps text-on-surface-variant/50">服务者 (Provider)</th>
+<th class="px-6 py-5 text-label-caps text-on-surface-variant/50">核心领域</th>
+<th class="px-6 py-5 text-label-caps text-on-surface-variant/50">区域</th>
+<th class="px-6 py-5 text-label-caps text-on-surface-variant/50">状态</th>
+<th class="px-8 py-5 text-label-caps text-on-surface-variant/50 text-right">操作</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-white">
+<!-- Row 1 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male developer in his 30s with short hair and glasses, looking confident and calm, soft atmospheric studio lighting with amber highlights, set against a dark architectural background, high-end commercial aesthetic, ultra-detailed, cinematic photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnaBa583KYulIhNVKY7luJl4kSANbmEIdNcNHhdwYRvkpRDYMCSQw4zaefjJb10ypJqwSvFO_yCFAoG8az55MqWX_RKpXd1mYdQMuOhNzSpUG1nZvkszBVoel9bMzV_47Sdt01n8e-n-I1ZHQ1aLX4ivz2goEAlVJy7UpmdfBgnVZwUOABAzy7j8HzXBmGVdJ1uiSZYB5jPOaCfgxFhTVqakD8vj6tYnKrUfF6rSa_XK2J8293KbcNf4Nb9V7aaWU9oZx72ksbABM"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-on-surface text-body-md">Chen Wei</p>
+<span class="text-[10px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded uppercase font-bold">Elite</span>
+</div>
+<p class="text-on-surface-variant/50 text-[12px]">Senior Cloud Architect</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">架构设计</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">AWS/K8s</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">亚太 (Asia Pacific)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<span class="text-body-md text-on-surface-variant">在线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of a female software engineer, elegant and focused expression, wearing dark minimalist attire, soft depth-of-field with tech-office elements in the background, cool blue and warm gold lighting balance, professional high-fashion tech aesthetic, 8k sharp detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvWsObWMiAmjE4uJaWQXcNexs5o7Pt7PNcYZEdwxd0ZH0KnkQ_2cRDHo3k_NnfiXjZZYhwE_WYJb27BL4HO6r6eTTN_1lh5ZWC2OULxkurYE-q4jiuoNYS7Mt2rH3TNcETVaOjckvxLIjNkRDM2y4HocZ2bt3ix5uf-tCORsd_IQoe_JhGodxKt_5rXd-L8j613zRXg53BZsNKmIFeNE37SmXJBAAfzQR2hbN3heCTVkIcoYiVkyQarqfuvbBMfimJI9ZOdifuuVQ"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-on-surface text-body-md">Sarah Jenkins</p>
+</div>
+<p class="text-on-surface-variant/50 text-[12px]">Fullstack Engineer</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">全栈开发</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">TypeScript</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">北美 (North America)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<span class="text-body-md text-on-surface-variant">在线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="A striking portrait of a European male data scientist, thoughtful expression, wearing a high-quality dark turtleneck, dramatic cinematic lighting with golden highlights on the face, minimalist studio background, ultra-high-definition, premium luxury feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBceQDdMZpcj9VVkNIgSGP-ebQRRHWl4uuRXC9_TwDE5PfzPKEFgDVhU-dJAhU8ZX3pCMHq4Pf6mSu3ZLC5bLz5SU_5RNZBsX6OzVYl_GYWzEPQxDQLbfjIwVAch8FCXOdJ1jchu8UjnCjf3vnlag5NfuhnwvJnRGu3F9WFyoZ3iYEDKYFIV-Tp4D75o8hvAiiPn8h0kjfU-cbqbu45-SVb6jO9CzqtFAuXQ5dYLXKOmHIWmFZqw7SNt4KUROwPfYf0gYzqEtrk66M"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-on-surface text-body-md">Lukas Weber</p>
+<span class="text-[10px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded uppercase font-bold">Elite</span>
+</div>
+<p class="text-on-surface-variant/50 text-[12px]">AI &amp; ML Specialist</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">AI/算法</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">PyTorch</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">欧洲 (Europe)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-on-surface-variant/30"></div>
+<span class="text-body-md text-on-surface-variant">离线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="Portrait of an East Asian male blockchain developer, modern workspace background with neon accents, soft lighting emphasizing a high-tech vibe, premium digital photography style, clean aesthetic, dark background with subtle gold glows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBi2TQ6xJ5hEegZFZ48plEmwFe24rEe6vzAkDVSaHQApUs2qAooki-_WpQQfevBJuSOYXrFP2hSVkYRV92gjTqijJN0RkPpzFchy7eYUCerkoIEs-9ea552LbEu0b2KC5y-SDOdIOlzBemvmDxlQF0ileHm4llIvO86FM0IM_SADTrfiV5R-65CNWN5H6gKGSXgduYNCgE54DfvRd2AkyWroK3l0s4jDq9VeEsESVi6CrhaJYhWqjO5Iy2vAU5D8slCtwZ2jyofSBg"/>
+</div>
+<div>
+<p class="font-bold text-on-surface text-body-md">Hiroshi Tanaka</p>
+<p class="text-on-surface-variant/50 text-[12px]">Smart Contract Expert</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">区块链</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">Solidity</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">亚太 (Asia Pacific)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<span class="text-body-md text-on-surface-variant">在线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="Close up of a female developer with curly hair, vibrant lighting with subtle gold and teal color tones, energetic but professional expression, sophisticated tech workspace environment, high-quality lens blur in background, atmospheric depth, 8k resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCA4yN4SM7F0LDCWLK44uuXRDxCFQr0ZAXeCrqHYJat7CRKr1eM_7Hlmd8Zy7ZJFa2RXuQeKpiicEIRa_XDkLT_Tc02mCIDNYGlHAzsQ6bN3VQzhgWIWpryYoRQyESAamOeKDIznrBjlJ_GGsoxoASvVMdqVFQpa9suICSI4ocfssxkHCz3qa6wXmDh0IkCYDJVlhHobgx3peIqUOTQMMx7a_eMQaT0JDXOCmJpYuE_kfJa0rcwd9Tl43uQFUf4tryYPnP2ySG7EA"/>
+</div>
+<div>
+<p class="font-bold text-on-surface text-body-md">Elena Rodriguez</p>
+<p class="text-on-surface-variant/50 text-[12px]">DevOps Master</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">DevOps</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">Terraform</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">北美 (North America)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<span class="text-body-md text-on-surface-variant">在线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="A portrait of a senior male engineer with graying hair and a sharp suit, high-status technical authority, warm key lighting, premium studio setting, deep dark background with subtle gold particles, elite photography, hyper-realistic details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqMHZaahFBQv6WgLtBrfrp8e2kS2HgCzho7iASqeQqzLPdxZZr1XFt4wwyI8HJtuTQLT6GJY6zLScAATsIDl_At3I5kUh9loJv7Tk6alpVriYD7GpFU5eLVsF-xmKPgfToD6HfZSZEU-SSPteoRHigbQ6B9MXaXKEe_mh8huvkuuhRH-EwsO4fpgMULQy2DTVzPyeLZ6ltTyTIbDXpwKlwThIFip5iT92kxLXlvhH1xCizWnx27tZobUlsBfWftRPUWjLbVpgsa1U"/>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-on-surface text-body-md">Marcus Thorne</p>
+<span class="text-[10px] bg-primary/20 text-primary border border-primary/30 px-1.5 py-0.5 rounded uppercase font-bold">Elite</span>
+</div>
+<p class="text-on-surface-variant/50 text-[12px]">Principal Engineer</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">架构设计</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">Distributed Systems</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">欧洲 (Europe)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<span class="text-body-md text-on-surface-variant">在线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young woman in tech, intelligent expression, minimalist lighting style with focus on natural skin textures, dark professional background, high-end digital art style, crisp and clear, premium feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRc8Rq8lnvXM0VcR3MBH5BXug0GvQxAQ9htrrXZ20SxS-q3x7F27ZsIBr56zPAoxLBn3k9laqu4RkwR1E6HJP2JOiBmFZyzHvxUl0nKdrz3h4xD_BrOjZABwgGu9ozC7mlEByD8q7ImnkGQCHnBRhJA1m_iN3av25ppRXsd4vq5XLrtr_AwfFJxIVkH2AT_OUgwMsoTBoL7QOwB5_Pjeabql5he9dloEE75siZP2jHpuMrzYnrLOAuNtXKYToIBLVtG-oaDr0TSUo"/>
+</div>
+<div>
+<p class="font-bold text-on-surface text-body-md">Ava Mitchell</p>
+<p class="text-on-surface-variant/50 text-[12px]">Mobile App Expert</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">全栈开发</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">Flutter/Dart</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">北美 (North America)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-on-surface-variant/30"></div>
+<span class="text-body-md text-on-surface-variant">离线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of an Indian male engineer, glasses, friendly but authoritative expression, high-contrast lighting highlighting hair and shoulder profile, dark minimal background, tech professional aesthetic, ultra-sharp detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxUHs3X-4IZouXhLUmSdjQnJgBy-_IJN03tILQyCsJbvSBiOLzLfGxePM7K68f6o7hBMLZC1caM6jw4PmryL2O8tp89tU2mjKKqgs5R7G1arbHKKzxLUmqD089k9CJKJGxyVzndVktcUa8aRVe2-Yn8dLRYQGNbAyXgxx4h7szWAvdTmfNZSCA0XOzHok_54yFaYvjHH-KH_W9mg7bZOp4fBkC1aIpeEHQHv7DgfgWnPFqA13Ftek7fAK8U1OHEwgfu5FDPERbdwk"/>
+</div>
+<div>
+<p class="font-bold text-on-surface text-body-md">Ankit Sharma</p>
+<p class="text-on-surface-variant/50 text-[12px]">Security Engineer</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6">
+<div class="flex gap-2">
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">DevOps</span>
+<span class="text-[12px] text-on-surface-variant bg-white/5 px-2 py-1 rounded border border-white/5">Cyberspace Security</span>
+</div>
+</td>
+<td class="px-6 py-6 text-on-surface-variant text-body-md">亚太 (Asia Pacific)</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-success shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<span class="text-body-md text-on-surface-variant">在线</span>
+</div>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary text-body-md font-bold hover:underline underline-offset-4">查看详情</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Pagination Placeholder -->
+<div class="mt-8 flex justify-between items-center px-4">
+<p class="text-on-surface-variant/50 text-body-md">显示 1-8 / 共 156 位专家</p>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-lg bg-primary text-on-primary font-bold">1</button>
+<button class="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:bg-white/10 transition-colors">2</button>
+<button class="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:bg-white/10 transition-colors">3</button>
+<button class="w-10 h-10 rounded-lg glass-card flex items-center justify-center hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Atmosphere FX (Canvas-like) -->
+<div class="fixed inset-0 pointer-events-none z-[-1]">
+<div class="absolute top-1/4 left-1/3 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]"></div>
+<div class="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px]"></div>
+</div>
+<script>
+        // Micro-interaction for filter toggles
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Potential filtering logic here
+                console.log('Filtering by:', this.name, this.value);
+            });
+        });
+
+        // Hover effect for table rows
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateX(8px)';
+                row.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateX(0)';
+            });
+        });
+    </script>
+</body></html>

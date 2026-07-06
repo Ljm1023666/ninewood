@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>桌面端 UI 重设计 · Ninewood Stitch</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #0b0e15;
+      color: #e0e2ec;
+      margin: 0;
+      padding: 32px 40px 64px;
+    }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    .sub {
+      color: #c1c6d6;
+      margin-bottom: 24px;
+      line-height: 1.65;
+      max-width: 820px;
+    }
+    .sub a { color: #6eb4ff; }
+    h2 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #8b93a8;
+      margin: 36px 0 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    a.card {
+      display: block;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(28,32,39,.75);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .15s, transform .15s;
+    }
+    a.card:hover {
+      border-color: rgba(110, 180, 255, .45);
+      transform: translateY(-2px);
+    }
+    a.card.pending {
+      opacity: .55;
+      pointer-events: none;
+    }
+    img {
+      width: 100%;
+      aspect-ratio: 16/10;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      background: #10131a;
+    }
+    .placeholder {
+      width: 100%;
+      aspect-ratio: 16/10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #141820, #1a2030);
+      color: #6b7280;
+      font-size: 13px;
+    }
+    .meta { padding: 14px 16px; }
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(110,180,255,.12);
+      color: #6eb4ff;
+    }
+    .tag.p0 { background: rgba(212,175,55,.15); color: #D4AF37; }
+    .tag.p1 { background: rgba(110,180,255,.12); color: #6eb4ff; }
+    .tag.p2 { background: rgba(255,255,255,.06); color: #9ca3af; }
+    .tag.pending { background: rgba(255,120,80,.12); color: #f97316; }
+    .title { font-size: 15px; font-weight: 600; margin-top: 8px; line-height: 1.35; }
+    .route { font-size: 12px; color: #8b93a8; margin-top: 4px; font-family: ui-monospace, monospace; }
+    .issue { font-size: 12px; color: #9ca3af; margin-top: 8px; line-height: 1.5; }
+    table.audit {
+      width: 100%;
+      max-width: 960px;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    table.audit th, table.audit td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    table.audit th { color: #8b93a8; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>桌面端 UI 重设计</h1>
+  <p class="sub">
+    针对项目中仍带「手机端窄栏 / 单列堆叠」风格的页面，使用 Stitch 生成 <strong>Windows 桌面级</strong> 布局稿（1440px 主内容区、多栏分屏、数据表格、命令栏）。
+    审计清单见 <a href="audit-manifest.json">audit-manifest.json</a>，Prompt 规格见 <code>scripts/stitch-desktop-redesign-prompts.md</code>。
+  </p>
+
+  <h2>P0 · 截图问题页（已完成）</h2>
+  <div class="grid" id="p0-grid"></div>
+
+  <h2>P1 · 高优先级（部分完成）</h2>
+  <div class="grid" id="p1-grid"></div>
+
+  <h2>P2 · 待生成</h2>
+  <div class="grid" id="p2-grid"></div>
+
+  <h2>完整审计表</h2>
+  <table class="audit" id="audit-table">
+    <thead>
+      <tr><th>页面</th><th>路由</th><th>问题</th><th>Stitch 稿</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const audit = [
+      { id: "welfare", route: "/welfare", title: "公益中心", issue: "width=narrow，纵向堆叠", priority: "P0" },
+      { id: "cert-center", route: "/cert-center", title: "认证中心", issue: "单列卡片，像手机设置页", priority: "P0" },
+      { id: "search", route: "/search", title: "找人", issue: "窄搜索条+居中空态", priority: "P0" },
+      { id: "my-tags", route: "/my-tags", title: "我的标签", issue: "narrow+标签云+Switch", priority: "P0" },
+      { id: "payment", route: "/payment/:id", title: "点数支付", issue: "narrow 居中支付", priority: "P1" },
+      { id: "follows", route: "/follows/:userId", title: "关注/粉丝", issue: "narrow 列表", priority: "P1" },
+      { id: "cert-intro", route: "/cert-intro", title: "认证介绍", issue: "narrow 营销长页", priority: "P1" },
+      { id: "providers", route: "/providers", title: "找服务者", issue: "单列筛选+列表", priority: "P1" },
+      { id: "my-bids", route: "/my-bids", title: "我的应标", issue: "简单列表", priority: "P1" },
+      { id: "push-settings", route: "/push-settings", title: "推送设置", issue: "设置表单偏窄", priority: "P2" },
+      { id: "new-group", route: "/messages/new-group", title: "新建群聊", issue: "max-w-sm 弹窗式", priority: "P2" },
+      { id: "not-found", route: "/*", title: "404", issue: "narrow 居中", priority: "P2" },
+    ];
+
+    async function init() {
+      const manifest = await fetch("manifest.json").then((r) => r.json());
+      const byId = Object.fromEntries(manifest.map((m) => [m.id, m]));
+
+    function cardHtml(item) {
+      const done = byId[item.id];
+      if (done) {
+        return `<a class="card" href="${done.file}" target="_blank">
+          <img src="${done.screenshot}" alt="${item.title}" loading="lazy" />
+          <div class="meta">
+            <div class="row"><span class="tag ${item.priority.toLowerCase()}">${item.priority}</span></div>
+            <div class="title">${item.title}</div>
+            <div class="route">${item.route}</div>
+            <div class="issue">${item.issue}</div>
+          </div>
+        </a>`;
+      }
+      return `<div class="card pending">
+        <div class="placeholder">Stitch 生成中 / 待重试</div>
+        <div class="meta">
+          <div class="row"><span class="tag pending">待生成</span><span class="tag ${item.priority.toLowerCase()}">${item.priority}</span></div>
+          <div class="title">${item.title}</div>
+          <div class="route">${item.route}</div>
+          <div class="issue">${item.issue}</div>
+        </div>
+      </div>`;
+    }
+
+    document.getElementById("p0-grid").innerHTML = audit.filter((a) => a.priority === "P0").map(cardHtml).join("");
+    document.getElementById("p1-grid").innerHTML = audit.filter((a) => a.priority === "P1").map(cardHtml).join("");
+    document.getElementById("p2-grid").innerHTML = audit.filter((a) => a.priority === "P2").map(cardHtml).join("");
+
+    document.querySelector("#audit-table tbody").innerHTML = audit.map((a) => {
+      const done = byId[a.id];
+      return `<tr>
+        <td>${a.title}</td>
+        <td><code>${a.route}</code></td>
+        <td>${a.issue}</td>
+        <td>${done ? `<a href="${done.file}" style="color:#6eb4ff">已生成</a>` : "—"}</td>
+      </tr>`;
+    }).join("");
+    }
+
+    init().catch(console.error);
+  </script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - 我的标签</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&amp;family=Geist:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "on-tertiary": "#082b72",
+                        "on-primary": "#3c2f00",
+                        "surface-container": "#231f17",
+                        "on-secondary-container": "#c4b891",
+                        "primary-fixed-dim": "#e9c349",
+                        "border-gold": "rgba(212, 175, 55, 0.15)",
+                        "on-background": "#eae1d4",
+                        "gold-bright": "#F4D03F",
+                        "secondary-container": "#51492a",
+                        "background-deep": "#0A0E17",
+                        "on-surface-variant": "#d0c5af",
+                        "surface-container-high": "#2d2a21",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed": "#00174b",
+                        "on-secondary": "#383013",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#f0e2b8",
+                        "tertiary-fixed": "#dbe1ff",
+                        "on-tertiary-container": "#254188",
+                        "surface-container-lowest": "#110e07",
+                        "accent-error": "#F87171",
+                        "on-primary-fixed": "#241a00",
+                        "on-primary-container": "#554300",
+                        "inverse-on-surface": "#343027",
+                        "outline-variant": "#4d4635",
+                        "tertiary": "#bfcdff",
+                        "surface-bright": "#3d392f",
+                        "inverse-surface": "#eae1d4",
+                        "surface-glass": "rgba(16, 20, 31, 0.6)",
+                        "primary-container": "#d4af37",
+                        "on-secondary-fixed": "#221b03",
+                        "on-secondary-fixed-variant": "#4f4628",
+                        "surface-variant": "#38342b",
+                        "surface-dim": "#16130b",
+                        "on-surface": "#eae1d4",
+                        "accent-success": "#10B981",
+                        "tertiary-container": "#97b0ff",
+                        "inverse-primary": "#735c00",
+                        "secondary": "#d3c69e",
+                        "primary-fixed": "#ffe088",
+                        "border-white": "rgba(255, 255, 255, 0.05)",
+                        "surface-container-highest": "#38342b",
+                        "on-primary-fixed-variant": "#574500",
+                        "background": "#16130b",
+                        "outline": "#99907c",
+                        "surface-tint": "#e9c349",
+                        "secondary-fixed-dim": "#d3c69e",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#16130b",
+                        "surface-container-low": "#1f1b13",
+                        "on-tertiary-fixed-variant": "#27438a",
+                        "primary": "#f2ca50"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "margin-page": "48px",
+                        "container-max": "1100px",
+                        "stack-lg": "32px",
+                        "sidebar-width": "280px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "label-caps": ["Geist"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "display-xl": ["Playfair Display"],
+                        "body-md": ["Geist"],
+                        "title-md": ["Geist"],
+                        "data-mono": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}],
+                        "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom Scrollbar for Webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 14, 23, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-background-deep text-on-surface font-body-md min-h-screen overflow-hidden selection:bg-primary/30 selection:text-primary-fixed">
+<!-- Atmospheric Background -->
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-background-deep via-background-deep to-surface-container-lowest opacity-90 z-10"></div>
+<div class="absolute inset-0 z-0" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLtkf3vVA0rp1WM0oAcpKBBejKxc46AZBrVLR5HKwGV2GwtcicbLCk_Li3_Bc-Aw4SwEPF17BifH8NbRe8D8d50ptdevMaD_lnG7crKqjvm_0LE0MDp07mzHi4qTpYfaf91am3-yEF8j_x965CDhmgpY4pp1OCEtSIEwrybwBf1ROpLuLOO_YHZtHh9C_YQ8zJwWFTgwKO2p6NNiVuQ7MwRWWwZ7KukTcRPlwIhsKhWSnW1geO35Kk3zwsU'); background-size: cover; background-position: center; opacity: 0.15; filter: blur(8px) saturate(0.5);"></div>
+<!-- Radial Glows -->
+<div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px]"></div>
+<div class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary/5 blur-[150px]"></div>
+</div>
+<div class="relative z-10 flex h-screen">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col py-stack-lg px-4 gap-stack-md w-sidebar-width h-screen fixed left-0 top-0 bg-surface-container-lowest border-r border-white z-40">
+<!-- Brand -->
+<div class="px-4 mb-8">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tighter">Ninewood</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 opacity-70">Elite Technical Workspace</p>
+</div>
+<!-- Tabs -->
+<div class="flex-1 overflow-y-auto space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-title-md text-title-md">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-title-md text-title-md">Communities</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-title-md text-title-md">Resources</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-title-md text-title-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary font-bold hover:bg-primary/20 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined filled">badge</span>
+<span class="font-title-md text-title-md">Team</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-title-md text-title-md">Wallet</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="mt-auto px-4 pb-4 border-b border-white/5">
+<button class="w-full py-3 px-4 bg-gradient-to-r from-gold-bright to-primary-container text-on-primary font-title-md text-title-md rounded-full shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2">
+<span class="material-symbols-outlined">add</span>
+                    New Project
+                </button>
+</div>
+<!-- Footer -->
+<div class="px-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span class="font-body-md text-body-md">Security</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant opacity-70 hover:bg-white/5 hover:text-on-surface transition-colors duration-200" href="#">
+<span class="material-symbols-outlined text-sm">logout</span>
+<span class="font-body-md text-body-md">Log Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-[280px] flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="w-full h-16 bg-surface-glass/80 backdrop-blur-xl border-b border-white/10 shadow-2xl flex justify-between items-center px-margin-page sticky top-0 z-30">
+<div class="flex items-center gap-4">
+<h2 class="font-headline-lg text-title-md md:text-2xl text-primary font-bold">我的标签</h2>
+<div class="px-3 py-1 rounded-full bg-primary/10 border border-gold/20 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(212,175,55,0.8)]"></div>
+<span class="font-data-mono text-xs text-primary-fixed">已开通 3 个标签</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<!-- Actions -->
+<div class="flex items-center gap-2 text-on-surface-variant opacity-70">
+<button class="p-2 rounded-full hover:bg-white/10 hover:text-primary transition-colors cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-white/10 hover:text-primary transition-colors cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-full hover:bg-white/10 hover:text-primary transition-colors cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="h-6 w-px bg-white/10 mx-2"></div>
+<!-- Primary Action & Avatar -->
+<button class="px-4 py-1.5 rounded-full border border-gold text-primary font-title-md text-sm hover:bg-primary/10 transition-colors cursor-pointer active:scale-95 duration-200">
+                        Execute
+                    </button>
+<div class="w-8 h-8 rounded-full bg-surface-variant border border-white/20 overflow-hidden ml-2 cursor-pointer hover:border-gold transition-colors">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="A minimalist, highly detailed digital avatar of an elite tech professional, rendered in dark mode with subtle gold lighting accents. The style is sleek, corporate, and polished, fitting a luxury software interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA06cy8LM74E9jWoxpU-pDKyDTK1NsLi8eWXDIXLga89Mx360yWTnB2_hw5MNU3zckQBU8uBeRzaA1ITQ12jughxRnuAfuda8jyQLJwH7fb8NhHs_QPgfaZqcMxV9vEp2ELjO49tJVr21qTztCJBVOj_qrhUHkOtQRJFYGgcmt5vW_amZy9bSTqDtOIQwQL-gu0DYQ8c93VuTkUKYn-Fi9SfahhIuLeu-FwkkRGz4ZPo_3xTg3UKWc5mTQJvJZL3KE-egBnaaKNWFw"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="flex-1 overflow-y-auto p-margin-page">
+<div class="max-w-container-max mx-auto h-full">
+<!-- 35/65 Split Layout -->
+<div class="flex flex-col lg:flex-row gap-gutter h-full">
+<!-- Left Panel (35% approx, fixed 360px) -->
+<div class="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-stack-lg">
+<!-- 已开通标签 Card -->
+<div class="bg-surface-glass/80 backdrop-blur-2xl rounded-xl border border-white p-6 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex-1 relative overflow-hidden">
+<!-- Subtle watermark -->
+<span class="material-symbols-outlined absolute -bottom-10 -right-10 text-[120px] text-white/[0.02] pointer-events-none">sell</span>
+<h3 class="font-title-md text-title-md text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">verified</span>
+                                    已开通标签
+                                </h3>
+<div class="flex flex-col gap-3">
+<!-- Chip 1 -->
+<div class="group flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3 hover:bg-white/10 hover:border-gold transition-all duration-300">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-surface-dim flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-primary text-sm">code</span>
+</div>
+<span class="font-body-md text-on-surface">前端开发</span>
+</div>
+<button class="text-on-surface-variant opacity-50 group-hover:opacity-100 group-hover:text-error transition-colors p-1 rounded-md hover:bg-error/10">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Chip 2 -->
+<div class="group flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3 hover:bg-white/10 hover:border-gold transition-all duration-300">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-surface-dim flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-primary text-sm">brush</span>
+</div>
+<span class="font-body-md text-on-surface">UI设计</span>
+</div>
+<button class="text-on-surface-variant opacity-50 group-hover:opacity-100 group-hover:text-error transition-colors p-1 rounded-md hover:bg-error/10">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Chip 3 -->
+<div class="group flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3 hover:bg-white/10 hover:border-gold transition-all duration-300">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-md bg-surface-dim flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-primary text-sm">terminal</span>
+</div>
+<span class="font-body-md text-on-surface">Python</span>
+</div>
+<button class="text-on-surface-variant opacity-50 group-hover:opacity-100 group-hover:text-error transition-colors p-1 rounded-md hover:bg-error/10">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Settings Cards Stack -->
+<div class="flex flex-col gap-stack-md">
+<!-- 忙碌状态 -->
+<div class="bg-surface-glass/80 backdrop-blur-2xl rounded-xl border border-white p-5 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between cursor-pointer hover:border-white/20 transition-colors">
+<div class="flex flex-col">
+<span class="font-title-md text-on-surface mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-fixed-dim text-[20px]">do_not_disturb_on</span>
+                                            忙碌中
+                                        </span>
+<span class="font-body-md text-xs text-on-surface-variant opacity-70">开启后不出现在搜索结果</span>
+</div>
+<!-- Custom Toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary/40 peer-checked:after:bg-primary"></div>
+</label>
+</div>
+<!-- 特殊检索 -->
+<div class="bg-surface-glass/80 backdrop-blur-2xl rounded-xl border border-gold/30 p-5 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between cursor-pointer hover:border-gold transition-colors relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent to-primary/5 pointer-events-none"></div>
+<div class="flex flex-col relative z-10">
+<span class="font-title-md text-primary mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">radar</span>
+                                            开启特殊检索
+                                        </span>
+<span class="font-body-md text-xs text-on-surface-variant opacity-70">允许匹配高级项目需求</span>
+</div>
+<!-- Custom Toggle Checked -->
+<label class="relative inline-flex items-center cursor-pointer z-10">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary/40 peer-checked:after:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Right Panel (65% approx) -->
+<div class="flex-1 bg-surface-glass/80 backdrop-blur-2xl rounded-xl border border-white p-6 md:p-8 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex flex-col h-full">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-white/5 pb-4">
+<h3 class="font-headline-lg text-2xl text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">add_circle</span>
+                                    添加标签
+                                </h3>
+<!-- Search inside right panel -->
+<div class="relative w-full sm:w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-50 text-[20px]">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm font-body-md text-on-surface focus:outline-none focus:border-primary/40 focus:bg-white/10 transition-all placeholder:text-on-surface-variant/50" placeholder="搜索技能标签..." type="text"/>
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-5 py-2 rounded-full bg-primary/10 text-primary border border-gold/20 font-title-md text-sm whitespace-nowrap transition-all">技术</button>
+<button class="px-5 py-2 rounded-full bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-white/5 border border-transparent font-title-md text-sm whitespace-nowrap transition-all">家政</button>
+<button class="px-5 py-2 rounded-full bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-white/5 border border-transparent font-title-md text-sm whitespace-nowrap transition-all">教育</button>
+<button class="px-5 py-2 rounded-full bg-transparent text-on-surface-variant hover:text-on-surface hover:bg-white/5 border border-transparent font-title-md text-sm whitespace-nowrap transition-all">其他</button>
+</div>
+<!-- Grid Area -->
+<div class="flex-1 overflow-y-auto pr-2">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+<!-- Render Tags -->
+<!-- Selected state examples -->
+<div class="group relative bg-primary/20 border border-gold rounded-lg p-3 cursor-pointer overflow-hidden transition-all duration-200 shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+<div class="absolute right-2 top-2">
+<span class="material-symbols-outlined text-[16px] text-primary filled">check_circle</span>
+</div>
+<span class="font-data-mono text-sm text-primary font-bold block mt-1">Vue.js</span>
+</div>
+<div class="group relative bg-primary/20 border border-gold rounded-lg p-3 cursor-pointer overflow-hidden transition-all duration-200 shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+<div class="absolute right-2 top-2">
+<span class="material-symbols-outlined text-[16px] text-primary filled">check_circle</span>
+</div>
+<span class="font-data-mono text-sm text-primary font-bold block mt-1">React</span>
+</div>
+<!-- Unselected state examples (generating many for dense grid) -->
+<script>
+                                        const tags = ["Node.js", "TypeScript", "Docker", "Kubernetes", "Figma", "Photoshop", "Illustrator", "Swift", "Kotlin", "Go", "Rust", "Java", "C++", "C#", "SQL", "NoSQL", "DevOps", "AWS", "Azure", "GCP", "WebGL", "Three.js", "AI", "Machine Learning", "Data Science", "Blockchain", "Smart Contract", "Solidity", "Zero Knowledge", "Web3", "UI/UX", "Motion Design", "GraphQL", "REST API", "MongoDB", "Redis", "Elasticsearch", "Linux", "Nginx"];
+                                        
+                                        tags.forEach(tag => {
+                                            document.write(`
+                                                <div class="group relative bg-surface-dim/50 border border-white/5 rounded-lg p-3 cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all duration-200">
+                                                    <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span class="material-symbols-outlined text-[16px] text-on-surface-variant">add</span>
+                                                    </div>
+                                                    <span class="font-data-mono text-sm text-on-surface-variant group-hover:text-on-surface block mt-1 truncate">${tag}</span>
+                                                </div>
+                                            `);
+                                        });
+                                    </script>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

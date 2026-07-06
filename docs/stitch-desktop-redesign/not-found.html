@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Geist:wght@400;700;900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Playfair+Display:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            backdrop-filter: blur(24px);
+            background: rgba(16, 20, 31, 0.6);
+        }
+        .gold-glow {
+            text-shadow: 0 0 20px rgba(242, 202, 80, 0.3);
+        }
+        .technical-line {
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+            height: 1px;
+            width: 100%;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#2d2a21",
+                        "on-secondary-container": "#c4b891",
+                        "primary-container": "#d4af37",
+                        "inverse-surface": "#eae1d4",
+                        "on-secondary-fixed": "#221b03",
+                        "error-container": "#93000a",
+                        "surface-variant": "#38342b",
+                        "on-surface-variant": "#d0c5af",
+                        "tertiary-fixed-dim": "#b4c5ff",
+                        "on-surface": "#eae1d4",
+                        "on-secondary": "#383013",
+                        "surface-tint": "#e9c349",
+                        "surface-dim": "#16130b",
+                        "surface": "#16130b",
+                        "border-gold": "rgba(212, 175, 55, 0.15)",
+                        "primary-fixed-dim": "#e9c349",
+                        "gold-bright": "#F4D03F",
+                        "primary": "#f2ca50",
+                        "border-white": "rgba(255, 255, 255, 0.05)",
+                        "accent-success": "#10B981",
+                        "inverse-primary": "#735c00",
+                        "on-primary": "#3c2f00",
+                        "secondary": "#d3c69e",
+                        "on-tertiary-fixed-variant": "#27438a",
+                        "surface-container-low": "#1f1b13",
+                        "secondary-fixed": "#f0e2b8",
+                        "background": "#16130b",
+                        "tertiary-fixed": "#dbe1ff",
+                        "on-primary-container": "#554300",
+                        "tertiary": "#bfcdff",
+                        "outline": "#99907c",
+                        "on-primary-fixed": "#241a00",
+                        "on-tertiary-container": "#254188",
+                        "secondary-fixed-dim": "#d3c69e",
+                        "on-tertiary-fixed": "#00174b",
+                        "on-secondary-fixed-variant": "#4f4628",
+                        "error": "#ffb4ab",
+                        "surface-container": "#231f17",
+                        "surface-container-lowest": "#110e07",
+                        "accent-error": "#F87171",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#343027",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#eae1d4",
+                        "on-primary-fixed-variant": "#574500",
+                        "on-tertiary": "#082b72",
+                        "secondary-container": "#51492a",
+                        "surface-container-highest": "#38342b",
+                        "primary-fixed": "#ffe088",
+                        "tertiary-container": "#97b0ff",
+                        "outline-variant": "#4d4635",
+                        "surface-glass": "rgba(16, 20, 31, 0.6)",
+                        "background-deep": "#0A0E17",
+                        "surface-bright": "#3d392f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-page": "48px",
+                        "container-max": "1100px",
+                        "stack-lg": "32px",
+                        "stack-md": "16px",
+                        "sidebar-width": "280px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "data-mono": ["Geist"],
+                        "headline-lg": ["Playfair Display"],
+                        "label-caps": ["Geist"],
+                        "display-xl": ["Playfair Display"],
+                        "body-md": ["Geist"],
+                        "title-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "data-mono": ["18px", {"lineHeight": "1", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.3em", "fontWeight": "900"}],
+                        "headline-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "display-xl": ["84px", {"lineHeight": "1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "title-md": ["18px", {"lineHeight": "1.4", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background-deep text-on-surface selection:bg-primary/30 min-h-screen">
+<!-- Background Atmospheric Effect -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full"></div>
+</div>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-sidebar-width bg-surface-dim/80 backdrop-blur-2xl border-r border-white flex flex-col p-stack-md gap-stack-lg z-50">
+<div class="flex flex-col gap-1 px-4">
+<span class="font-headline-lg text-headline-lg text-primary tracking-tight">Ninewood</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant/50 tracking-[0.3em]">ELITE TECHNICAL AUTHORITY</span>
+</div>
+<nav class="flex flex-col gap-2 mt-8">
+<div class="font-label-caps text-label-caps text-on-surface-variant/40 px-4 mb-2">WORKSPACE</div>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 hover:scale-[1.02] transition-transform rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<span class="font-title-md text-title-md">Workspace</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 hover:scale-[1.02] transition-transform rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span class="font-title-md text-title-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 hover:scale-[1.02] transition-transform rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+<span class="font-title-md text-title-md">Infrastructure</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 hover:scale-[1.02] transition-transform rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">security</span>
+<span class="font-title-md text-title-md">Security</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:bg-white/5 hover:scale-[1.02] transition-transform rounded-xl" href="#">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+<span class="font-title-md text-title-md">Vault</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="font-label-caps text-label-caps">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant/70 hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span class="font-label-caps text-label-caps">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-sidebar-width min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-20 px-margin-page w-full z-40 bg-surface/60 backdrop-blur-xl border-b border-white sticky top-0 shadow-2xl">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 bg-white/5 border border-white px-4 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-primary/70 text-[18px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md font-body-md text-on-surface w-48 placeholder:text-on-surface-variant/30" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant/70 hover:text-primary transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant/70 hover:text-primary transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="h-10 w-10 rounded-full border border-primary/20 p-0.5 overflow-hidden">
+<img class="w-full h-full object-cover rounded-full" data-alt="Close-up portrait of a high-end software engineer in a dark, atmospheric studio setting. Low-key lighting with golden highlights on their face, wearing professional black minimalist attire. The background features blurred digital server lights and technical glass textures, maintaining the Ninewood luxury developer workspace aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyLnz4TCmdIJyw60_0TXIEQhDJWhwmfxEdcdrvtqysO__OARS72kJTdOW7IGuuv_9D2tXzJpuYTOE69CyInLRMGjhSK1AstWtZCJDUlK4P0eXoKV8zkH3kiMEbErP-2Owo2WU9btaRWKjT3NXcYqIxrzvFUMbnXXGRE3e_cb6OT2IpICoZgP6BUNmm_nxvyaECDLGM49GMT5ejzfySBnBeTQy03ALu_-iHrEw4E0I7jTH1IN2YeJHx8NO8qX5hiUeh52lApyxCBYE"/>
+</div>
+</div>
+</header>
+<!-- 404 Content Canvas -->
+<div class="flex-grow flex items-center justify-center p-margin-page relative overflow-hidden">
+<!-- Animated Background Shader (Decorative) -->
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
+
+</div>
+<!-- Focused 404 Container -->
+<div class="max-w-container-max w-full grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10 glass-panel border border-white p-12 md:p-20 rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)]">
+<!-- Left: 404 Graphic -->
+<div class="relative flex justify-center items-center select-none animate-float">
+<div class="absolute inset-0 bg-primary/5 blur-[80px] rounded-full scale-125"></div>
+<div class="relative flex flex-col items-center">
+<div class="text-[180px] md:text-[240px] font-display-xl text-primary gold-glow leading-none flex items-center gap-2 tracking-tighter">
+<span>4</span>
+<div class="w-32 h-32 md:w-44 md:h-44 border-[1px] border-primary/40 rounded-full flex items-center justify-center relative">
+<div class="absolute inset-2 border-[1px] border-primary/20 rounded-full border-dashed animate-[spin_20s_linear_infinite]"></div>
+<span class="material-symbols-outlined text-[60px] md:text-[80px] text-primary/80">not_interested</span>
+</div>
+<span>4</span>
+</div>
+<div class="technical-line mt-4"></div>
+<div class="flex justify-between w-full mt-2 font-data-mono text-[10px] text-primary/40 tracking-[0.4em] uppercase">
+<span>ERR_PATH_NOT_FOUND</span>
+<span>NODE_09X12</span>
+</div>
+</div>
+</div>
+<!-- Right: Content & Navigation -->
+<div class="flex flex-col gap-stack-lg">
+<div class="flex flex-col gap-4">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">页面未找到</h1>
+<p class="font-body-md text-body-md text-on-surface-variant/70 leading-relaxed max-w-md">
+                            抱歉，您访问的路径已偏离航道。该资源可能已被移动或不复存在。请核对地址或通过下方快捷入口返回。
+                        </p>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Nav Card 1 -->
+<a class="group flex items-center justify-between p-5 rounded-xl border border-white glass-panel hover:border-primary/40 transition-all duration-300" href="/">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">home</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md group-hover:text-primary transition-colors">返回首页</span>
+<span class="text-[12px] text-on-surface-variant/50 font-body-md">回到主控制台</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/30 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<!-- Nav Card 2 -->
+<a class="group flex items-center justify-between p-5 rounded-xl border border-white glass-panel hover:border-primary/40 transition-all duration-300" href="#">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md group-hover:text-primary transition-colors">查看文档</span>
+<span class="text-[12px] text-on-surface-variant/50 font-body-md">查阅技术指南</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/30 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<!-- Nav Card 3 -->
+<a class="group flex items-center justify-between p-5 rounded-xl border border-white glass-panel hover:border-primary/40 transition-all duration-300" href="#">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">support_agent</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md group-hover:text-primary transition-colors">联系支持</span>
+<span class="text-[12px] text-on-surface-variant/50 font-body-md">寻求技术专家协助</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/30 group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+</div>
+<div class="mt-4">
+<button class="px-8 py-3 bg-gradient-to-r from-primary to-gold-bright text-on-primary font-title-md rounded-full shadow-[0_10px_30px_-5px_rgba(242,202,80,0.4)] hover:scale-105 active:scale-95 transition-all duration-300" onclick="window.history.back()">
+                            返回上一页
+                        </button>
+</div>
+</div>
+</div>
+<!-- Technical Watermark Detail -->
+<div class="absolute bottom-12 right-12 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[200px] text-on-surface-variant">terminal</span>
+</div>
+</div>
+<!-- Footer Space -->
+<footer class="mt-auto py-8 px-margin-page flex justify-between border-t border-white/5 opacity-50">
+<span class="font-label-caps text-label-caps">© 2024 NINEWOOD AUTHORITY</span>
+<div class="flex gap-8">
+<a class="font-label-caps text-label-caps hover:text-primary" href="#">PRIVACY</a>
+<a class="font-label-caps text-label-caps hover:text-primary" href="#">SECURITY PROTOCOL</a>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interactions for interactive glass cards
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>
