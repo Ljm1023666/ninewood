@@ -1,30 +1,50 @@
 import { Router, Request, Response } from 'express';
 import type { Server as SocketServer } from 'socket.io';
-import { authMiddleware } from '../middleware/auth.js';
-import { adminMiddleware } from '../middleware/admin.js';
+import { adminGate } from '../middleware/admin-gate.js';
 import { success, fail } from '../utils/response.js';
 import { prisma } from '../lib/prisma.js';
+import { config } from '../config.js';
 import { z } from 'zod';
 import { welfareDisbursementService } from '../services/welfare-disbursement.js';
 import { calculateSettlement } from '../services/settlement.js';
+import { adminOpsRouter } from './admin-ops.js';
 
 export const adminRouter = Router();
 
+async function resolveOperatorId(req: Request): Promise<string | null> {
+  if (req.adminOperatorId) return req.adminOperatorId;
+  if (req.user?.userId) return req.user.userId;
+  if (config.adminSystemUserId) return config.adminSystemUserId;
+  const admin = await prisma.user.findFirst({
+    where: { role: 'ADMIN' },
+    select: { id: true },
+  });
+  return admin?.id ?? null;
+}
+
+adminRouter.use(adminGate);
+
+adminRouter.use(adminOpsRouter);
+
+// GET /api/admin/health — 运营后台连通性探测
+adminRouter.get('/health', (_req: Request, res: Response) => {
+  success(res, { ok: true, service: 'ninewood', version: '1' });
+});
+
 // GET /api/admin/dashboard — 管理员聚合数据
-adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
+adminRouter.get('/dashboard', async (_req: Request, res: Response) => {
   const now = new Date();
 
-  // ── Overview Counts ──
-  const [userCount, demandCount, orderCount, circleCount, providerCount] = await Promise.all([
-    prisma.user.count(),
-    prisma.demand.count(),
-    prisma.order.count(),
-    prisma.circle.count({ where: { status: 'ACTIVE' } }),
-    prisma.userTag.count({ where: { status: 'IDLE' } }),
-  ]);
+  const [userCount, demandCount, orderCount, circleCount, providerCount] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.demand.count(),
+      prisma.order.count(),
+      prisma.circle.count({ where: { status: 'ACTIVE' } }),
+      prisma.userTag.count({ where: { status: 'IDLE' } }),
+    ]);
   const disputeCount = await prisma.order.count({ where: { status: 'DISPUTED' } });
 
-  // ── Monthly Revenue Trend (last 7 months) ──
   const sevenMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
   const ordersForRevenue = await prisma.order.findMany({
     where: { completedAt: { gte: sevenMonthsAgo }, status: 'COMPLETED' },
@@ -48,7 +68,6 @@ adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Requ
     }
   }
 
-  // ── User Growth (last 7 months) ──
   const usersByMonth = await prisma.user.findMany({
     where: { createdAt: { gte: sevenMonthsAgo } },
     select: { createdAt: true },
@@ -61,19 +80,26 @@ adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Requ
     }
   }
 
-  // running total
-  let running = await prisma.user.count({ where: { createdAt: { lt: sevenMonthsAgo } } });
+  let running = await prisma.user.count({
+    where: { createdAt: { lt: sevenMonthsAgo } },
+  });
   const userGrowthTrend = Object.entries(userGrowthMap).map(([name, count]) => {
     running += count;
     return { name, users: running, newUsers: count };
   });
 
   const revenueTrend = Object.entries(revenueMap).map(([name, revenue]) => ({
-    name, revenue: Math.round(revenue * 100) / 100,
+    name,
+    revenue: Math.round(revenue * 100) / 100,
   }));
 
-  // ── Order Status Distribution ──
-  const [pendingOrders, inProgressOrders, waitingReviewOrders, completedOrders, cancelledOrders] = await Promise.all([
+  const [
+    pendingOrders,
+    inProgressOrders,
+    waitingReviewOrders,
+    completedOrders,
+    cancelledOrders,
+  ] = await Promise.all([
     prisma.order.count({ where: { status: 'PENDING' } }),
     prisma.order.count({ where: { status: 'IN_PROGRESS' } }),
     prisma.order.count({ where: { status: 'WAITING_REVIEW' } }),
@@ -81,7 +107,6 @@ adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Requ
     prisma.order.count({ where: { status: 'CANCELLED' } }),
   ]);
 
-  // ── Recent Orders ──
   const recentOrders = await prisma.order.findMany({
     take: 10,
     orderBy: { createdAt: 'desc' },
@@ -92,16 +117,15 @@ adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Requ
     },
   });
 
-  // ── Demand Status Distribution ──
-  const [activeDemands, frozenDemands, inProgressDemands, completedDemands, withdrawnDemands] = await Promise.all([
-    prisma.demand.count({ where: { status: 'ACTIVE' } }),
-    prisma.demand.count({ where: { status: 'FROZEN' } }),
-    prisma.demand.count({ where: { status: 'IN_PROGRESS' } }),
-    prisma.demand.count({ where: { status: 'COMPLETED' } }),
-    prisma.demand.count({ where: { status: 'WITHDRAWN' } }),
-  ]);
+  const [activeDemands, frozenDemands, inProgressDemands, completedDemands, withdrawnDemands] =
+    await Promise.all([
+      prisma.demand.count({ where: { status: 'ACTIVE' } }),
+      prisma.demand.count({ where: { status: 'FROZEN' } }),
+      prisma.demand.count({ where: { status: 'IN_PROGRESS' } }),
+      prisma.demand.count({ where: { status: 'COMPLETED' } }),
+      prisma.demand.count({ where: { status: 'WITHDRAWN' } }),
+    ]);
 
-  // ── Top Tags by demand count ──
   const topTags = await prisma.demand.groupBy({
     by: ['tagName'],
     _count: { id: true },
@@ -110,19 +134,37 @@ adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Requ
     take: 10,
   });
 
-  // ── Active Circles count ──
   const circlesByType = await prisma.circle.groupBy({
     by: ['type'],
     _count: { id: true },
   });
 
   success(res, {
-    overview: { userCount, demandCount, orderCount, disputeCount, circleCount, providerCount },
+    overview: {
+      userCount,
+      demandCount,
+      orderCount,
+      disputeCount,
+      circleCount,
+      providerCount,
+    },
     revenueTrend,
     userGrowthTrend,
-    orderDistribution: { pending: pendingOrders, inProgress: inProgressOrders, waitingReview: waitingReviewOrders, completed: completedOrders, cancelled: cancelledOrders },
-    demandDistribution: { active: activeDemands, frozen: frozenDemands, inProgress: inProgressDemands, completed: completedDemands, withdrawn: withdrawnDemands },
-    recentOrders: recentOrders.map((o: any) => ({
+    orderDistribution: {
+      pending: pendingOrders,
+      inProgress: inProgressOrders,
+      waitingReview: waitingReviewOrders,
+      completed: completedOrders,
+      cancelled: cancelledOrders,
+    },
+    demandDistribution: {
+      active: activeDemands,
+      frozen: frozenDemands,
+      inProgress: inProgressDemands,
+      completed: completedDemands,
+      withdrawn: withdrawnDemands,
+    },
+    recentOrders: recentOrders.map((o) => ({
       id: o.id,
       demandTitle: o.demand?.title || '—',
       provider: o.provider?.nickname || '—',
@@ -132,32 +174,33 @@ adminRouter.get('/dashboard', authMiddleware, adminMiddleware, async (_req: Requ
       createdAt: o.createdAt,
       completedAt: o.completedAt,
     })),
-    topTags: topTags.map((t: any) => ({ tagName: t.tagName, count: t._count.id })),
+    topTags: topTags.map((t) => ({ tagName: t.tagName, count: t._count.id })),
     circlesByType,
   });
 });
 
-adminRouter.use(authMiddleware, adminMiddleware);
-
-// GET /api/admin/users — 以表格列出所有用户，支持按 nickname/phone 检索
+// GET /api/admin/users
 adminRouter.get('/users', async (req: Request, res: Response) => {
   try {
-    const q = String(req.query.q || '').trim()
-    const role = String(req.query.role || '').trim()
-    const page = Number(req.query.page) || 1
-    const limit = 20
+    const q = String(req.query.q || '').trim();
+    const role = String(req.query.role || '').trim();
+    const page = Number(req.query.page) || 1;
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
 
-    const where: any = {}
+    const where: {
+      OR?: Array<{ nickname?: object; phone?: object }>;
+      role?: string | { not: string };
+    } = {};
     if (q) {
       where.OR = [
         { nickname: { contains: q, mode: 'insensitive' } },
         { phone: { contains: q } },
-      ]
+      ];
     }
     if (role === 'ADMIN') {
-      where.role = 'ADMIN'
+      where.role = 'ADMIN';
     } else if (role === 'USER') {
-      where.role = { not: 'ADMIN' }
+      where.role = { not: 'ADMIN' };
     }
 
     const [users, total] = await Promise.all([
@@ -179,7 +222,7 @@ adminRouter.get('/users', async (req: Request, res: Response) => {
         take: limit,
       }),
       prisma.user.count({ where }),
-    ])
+    ]);
     success(res, {
       items: users.map((u) => ({
         ...u,
@@ -188,11 +231,12 @@ adminRouter.get('/users', async (req: Request, res: Response) => {
       total,
       page,
       totalPages: Math.ceil(total / limit),
-    })
-  } catch (e: any) {
-    fail(res, e.message || 'server error', 500)
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'server error';
+    fail(res, msg, 500);
   }
-})
+});
 
 // GET /api/admin/stats
 adminRouter.get('/stats', async (_req: Request, res: Response) => {
@@ -205,8 +249,66 @@ adminRouter.get('/stats', async (_req: Request, res: Response) => {
   success(res, { userCount, demandCount, circleCount, orderCount });
 });
 
+// GET /api/admin/circles
+adminRouter.get('/circles', async (req: Request, res: Response) => {
+  try {
+    const status = String(req.query.status || '').trim();
+    const q = String(req.query.q || '').trim();
+    const page = Number(req.query.page) || 1;
+    const limit = Math.min(Number(req.query.limit) || 20, 100);
+
+    const where: {
+      status?: 'ACTIVE' | 'WARNING' | 'DEFUNCT';
+      OR?: Array<{ name?: object; description?: object }>;
+    } = {};
+    if (status === 'ACTIVE' || status === 'WARNING' || status === 'DEFUNCT') {
+      where.status = status;
+    }
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.circle.findMany({
+        where,
+        include: {
+          owner: { select: { id: true, nickname: true, phone: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.circle.count({ where }),
+    ]);
+
+    success(res, {
+      items: items.map((c) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        type: c.type,
+        status: c.status,
+        memberCount: c.memberCount,
+        activeScore: c.activeScore,
+        cityCode: c.cityCode,
+        coverUrl: c.coverUrl,
+        createdAt: c.createdAt,
+        owner: c.owner,
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'server error';
+    fail(res, msg, 500);
+  }
+});
+
 // GET /api/admin/disputes
-// Task 6.1: 争议列表统一模型 — 同时包含发起争议 (DISPUTED) 和等待验收 (WAITING_REVIEW)
 adminRouter.get('/disputes', async (_req: Request, res: Response) => {
   const disputes = await prisma.order.findMany({
     where: { status: { in: ['DISPUTED', 'WAITING_REVIEW'] } },
@@ -217,11 +319,19 @@ adminRouter.get('/disputes', async (_req: Request, res: Response) => {
     },
     orderBy: { createdAt: 'desc' },
   });
-  success(res, disputes.map((o: any) => ({ ...o, agreedPrice: Number(o.agreedPrice) })));
+  success(
+    res,
+    disputes.map((o) => ({ ...o, agreedPrice: Number(o.agreedPrice) })),
+  );
 });
 
 // POST /api/admin/disputes/:id/resolve
 adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) => {
+  const operatorId = await resolveOperatorId(req);
+  if (!operatorId) {
+    return fail(res, '无法确定运营操作者，请配置 ADMIN_SYSTEM_USER_ID', 500);
+  }
+
   const order = await prisma.order.findUnique({
     where: { id: req.params.id as string },
     include: { demand: { select: { id: true, minPrice: true } } },
@@ -233,12 +343,11 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
     return fail(res, '订单状态不允许裁决', 400);
   }
 
-  const { action } = req.body; // 'refund' | 'complete'
+  const { action } = req.body;
   if (!['refund', 'complete'].includes(action)) {
     return fail(res, '无效的裁决操作', 400);
   }
 
-  // P1-02: “refund” 与 “complete” 区分状态，不再静默都标 COMPLETED。
   if (action === 'refund') {
     const { walletService } = await import('../services/wallet.service.js');
     await prisma.$transaction(async (tx) => {
@@ -272,12 +381,12 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
       });
     });
   } else {
-    // 完成：调用 wallet.settleDemand 并完成订单。
     try {
       const { walletService } = await import('../services/wallet.service.js');
       await walletService.settleDemand(order.demandId, Number(order.agreedPrice));
-    } catch (e: any) {
-      console.warn('[admin.disputes.resolve] settleDemand failed:', e?.message);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn('[admin.disputes.resolve] settleDemand failed:', msg);
     }
     await prisma.order.update({
       where: { id: req.params.id as string },
@@ -286,20 +395,21 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
   }
 
   const finalStatus = action === 'refund' ? 'REFUNDED' : 'COMPLETED';
-
-  // Notify both parties
   const io = req.app.get('io') as SocketServer | undefined;
   for (const uid of [order.providerId, order.requesterId]) {
     await prisma.message.create({
       data: {
-        fromUserId: req.user!.userId,
+        fromUserId: operatorId,
         toUserId: uid,
         orderId: order.id,
         content: `争议订单已被管理员裁决：${action === 'complete' ? '订单完成，结算放款' : '订单退款关闭'}`,
         type: 'SYSTEM',
       },
     });
-    io?.to(`user:${uid}`).emit('order:update', { orderId: order.id, status: finalStatus });
+    io?.to(`user:${uid}`).emit('order:update', {
+      orderId: order.id,
+      status: finalStatus,
+    });
   }
 
   success(res, { message: '争议已裁决', orderId: order.id, status: finalStatus });
@@ -311,51 +421,74 @@ adminRouter.put('/circles/:id/approve', async (req: Request, res: Response) => {
     where: { id: req.params.id as string },
     data: { status: 'ACTIVE' },
   });
-  success(res, circle, '公开圈已审核通过');
+  success(res, circle, '圈子已设为活跃');
 });
 
-
-// === Stage 1.2: 公益资金池拨付 ===
+// PUT /api/admin/circles/:id/status — 运营后台调整圈子状态
+adminRouter.put('/circles/:id/status', async (req: Request, res: Response) => {
+  const schema = z.object({
+    status: z.enum(['ACTIVE', 'WARNING', 'DEFUNCT']),
+  });
+  try {
+    const { status } = schema.parse(req.body);
+    const circle = await prisma.circle.update({
+      where: { id: req.params.id as string },
+      data: { status },
+    });
+    success(res, circle, '圈子状态已更新');
+  } catch (e: unknown) {
+    if (e instanceof z.ZodError) return fail(res, '参数验证失败', 400, e.errors);
+    fail(res, e instanceof Error ? e.message : 'server error', 500);
+  }
+});
 
 const disbursementCreateSchema = z.object({
   regionId: z.coerce.number().int().min(0),
   amount: z.coerce.number().positive(),
   recipientOrg: z.string().min(1).max(200),
   memo: z.string().max(500).optional(),
-})
+});
 
-// POST /api/admin/welfare/disbursements
 adminRouter.post('/welfare/disbursements', async (req: Request, res: Response) => {
   try {
-    const data = disbursementCreateSchema.parse(req.body)
+    const operatorId = await resolveOperatorId(req);
+    if (!operatorId) {
+      return fail(res, '无法确定运营操作者', 500);
+    }
+    const data = disbursementCreateSchema.parse(req.body);
     const result = await welfareDisbursementService.recordDisbursement({
       regionId: data.regionId,
       amount: data.amount,
       recipientOrg: data.recipientOrg,
       memo: data.memo,
-      operatorId: req.user!.userId,
-    })
-    success(res, result, '拨付已登记', 201)
-  } catch (e: any) {
-    if (e instanceof z.ZodError) return fail(res, '参数验证失败', 400, e.errors)
-    if (e.status) return fail(res, e.message, e.status)
-    fail(res, e.message || 'server error', 500)
+      operatorId,
+    });
+    success(res, result, '拨付已登记', 201);
+  } catch (e: unknown) {
+    if (e instanceof z.ZodError) return fail(res, '参数验证失败', 400, e.errors);
+    const err = e as { status?: number; message?: string };
+    if (err.status) return fail(res, err.message || 'error', err.status);
+    fail(res, err.message || 'server error', 500);
   }
-})
+});
 
-// GET /api/admin/welfare/disbursements?regionId=...
 adminRouter.get('/welfare/disbursements', async (req: Request, res: Response) => {
   try {
-    const regionId = Number(req.query.regionId)
+    const regionId = Number(req.query.regionId);
     if (!Number.isFinite(regionId)) {
-      return fail(res, '缺少 regionId', 400)
+      return fail(res, '缺少 regionId', 400);
     }
-    const page = Number(req.query.page) || 1
-    const limit = Number(req.query.limit) || 20
-    const result = await welfareDisbursementService.listDisbursements(regionId, page, limit)
-    success(res, result)
-  } catch (e: any) {
-    if (e.status) return fail(res, e.message, e.status)
-    fail(res, e.message || 'server error', 500)
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const result = await welfareDisbursementService.listDisbursements(
+      regionId,
+      page,
+      limit,
+    );
+    success(res, result);
+  } catch (e: unknown) {
+    const err = e as { status?: number; message?: string };
+    if (err.status) return fail(res, err.message || 'error', err.status);
+    fail(res, err.message || 'server error', 500);
   }
-})
+});
