@@ -52,6 +52,38 @@ export interface CreateAgentTaskDto {
   deliveryChannels?: DeliveryChannel[]
 }
 
+export interface AgentTaskBuildStep {
+  key: string
+  label: string
+}
+
+export interface AgentTaskBuildResult {
+  buildId: string
+  ready: boolean
+  name: string
+  type: 'DEMAND_DIGEST'
+  frequency: AgentTaskFrequency
+  atHour: number | null
+  atMinute: number
+  weekday: number | null
+  filters: Record<string, unknown>
+  deliveryChannels: DeliveryChannel[]
+  humanSchedule: string
+  humanFilters: string
+  summary: string
+  revisionHint: string | null
+  steps: AgentTaskBuildStep[]
+  userDescription: string
+  round: number
+}
+
+export interface BuildAgentTaskDto {
+  description: string
+  feedback?: string
+  previousSummary?: string
+  round?: number
+}
+
 export const agentTasksApi = {
   list: async (): Promise<AgentTask[]> => {
     const { data } = await api.get<{ tasks: AgentTask[] }>('/agent/tasks')
@@ -68,6 +100,11 @@ export const agentTasksApi = {
   create: async (dto: CreateAgentTaskDto): Promise<AgentTask> => {
     const { data } = await api.post<{ task: AgentTask }>('/agent/tasks', dto)
     return data.task
+  },
+
+  build: async (dto: BuildAgentTaskDto): Promise<AgentTaskBuildResult> => {
+    const { data } = await api.post<{ build: AgentTaskBuildResult }>('/agent/tasks/build', dto)
+    return data.build
   },
 
   patch: async (

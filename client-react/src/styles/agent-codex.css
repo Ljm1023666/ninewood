@@ -405,6 +405,136 @@
   padding: 4px 0;
 }
 
+/* ChatGPT 风格 Markdown 正文 */
+.agent-codex-md {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--codex-text);
+  word-break: break-word;
+}
+
+.agent-codex-md > :first-child {
+  margin-top: 0;
+}
+
+.agent-codex-md > :last-child {
+  margin-bottom: 0;
+}
+
+.agent-codex-md p {
+  margin: 0 0 12px;
+}
+
+.agent-codex-md h1,
+.agent-codex-md h2,
+.agent-codex-md h3,
+.agent-codex-md h4 {
+  margin: 20px 0 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--codex-text);
+}
+
+.agent-codex-md h1 {
+  font-size: 1.35em;
+}
+
+.agent-codex-md h2 {
+  font-size: 1.2em;
+}
+
+.agent-codex-md h3 {
+  font-size: 1.08em;
+}
+
+.agent-codex-md h4 {
+  font-size: 1em;
+}
+
+.agent-codex-md ul,
+.agent-codex-md ol {
+  margin: 0 0 12px;
+  padding-left: 1.5em;
+}
+
+.agent-codex-md li {
+  margin: 4px 0;
+}
+
+.agent-codex-md li > p {
+  margin: 0;
+}
+
+.agent-codex-md strong {
+  font-weight: 600;
+  color: var(--codex-text);
+}
+
+.agent-codex-md a {
+  color: var(--internal-accent, #3b82f6);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.agent-codex-md a:hover {
+  opacity: 0.85;
+}
+
+.agent-codex-md blockquote {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--codex-hairline);
+  color: var(--codex-text-secondary);
+}
+
+.agent-codex-md code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-codex-md pre {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--codex-sidebar-hover);
+  border: 1px solid var(--codex-hairline);
+}
+
+.agent-codex-md pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.agent-codex-md table {
+  width: 100%;
+  margin: 0 0 16px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.agent-codex-md th,
+.agent-codex-md td {
+  padding: 8px 12px;
+  border: 1px solid var(--codex-hairline);
+  text-align: left;
+  vertical-align: top;
+}
+
+.agent-codex-md th {
+  font-weight: 600;
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-codex-md hr {
+  margin: 16px 0;
+  border: none;
+  border-top: 1px solid var(--codex-hairline);
+}
+
 .agent-codex-thinking__label {
   display: inline-flex;
   align-items: center;
@@ -1056,4 +1186,107 @@
   color: var(--codex-text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* Task 10 · 自动化任务草稿卡 */
+.agent-card.agent-task-draft-card {
+  overflow: hidden;
+  border: 1px solid var(--codex-hairline);
+  border-left: 3px solid rgba(51, 136, 255, 0.55);
+  border-radius: 10px;
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-task-draft-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--codex-hairline);
+}
+
+.agent-task-draft-card__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.agent-task-draft-card__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--codex-text);
+}
+
+.agent-task-draft-card__sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--codex-text-muted);
+}
+
+.agent-task-draft-card__body {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agent-task-draft-card__row {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.agent-task-draft-card__label {
+  flex-shrink: 0;
+  width: 72px;
+  color: var(--codex-text-muted);
+}
+
+.agent-task-draft-card__value {
+  flex: 1;
+  min-width: 0;
+  color: var(--codex-text);
+}
+
+.agent-task-draft-card__actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 14px 12px;
+}
+
+.agent-task-draft-card__actions .agent-btn {
+  flex: 1;
+}
+
+.agent-task-draft-card__status {
+  margin: 0 14px 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--codex-text-muted);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.agent-codex--light .agent-task-draft-card__status {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.agent-task-draft-card__status--ok {
+  color: rgba(16, 185, 129, 0.95);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.agent-task-draft-card__status--err {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.agent-task-draft-card__hint {
+  padding: 8px 14px 12px;
+  border-top: 1px solid var(--codex-hairline);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--codex-text-muted);
 }

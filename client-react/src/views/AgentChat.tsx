@@ -337,6 +337,7 @@ export default function AgentChat() {
       setReportCards([])
       setTaskDrafts([])
       setThinking(false)
+      // 合规：AI 助手顶部固定 banner 在挂载时已展示（见下方 JSX）
       const stream = streamMessage(
         convId,
         trimmed,
@@ -773,6 +774,18 @@ export default function AgentChat() {
 
       <div className="agent-codex-canvas">
         <div className="agent-codex-workspace">
+        {/* 合规：《生成式 AI 服务管理暂行办法》§12 + 《深度合成》§17 — AI 生成内容显著标识 */}
+        <div
+          role="note"
+          aria-label="AI 生成内容标识"
+          className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
+        >
+          <MsIcon name="auto_awesome" size={14} aria-hidden />
+          <span className="font-semibold">本面板内所有回答由 AI 生成</span>
+          <span className="text-amber-200/70">
+            · 可能存在错误，仅供参考；不构成专业建议
+          </span>
+        </div>
         <header
           className={cn(
             'agent-codex-main__bar',
@@ -1029,6 +1042,10 @@ export default function AgentChat() {
               {streamText ? (
                 <div className="flex justify-start">
                   <div className="agent-codex-msg agent-codex-msg--ai">
+                    <div className="mb-1 inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-200">
+                      <MsIcon name="auto_awesome" size={10} aria-hidden />
+                      AI 生成
+                    </div>
                     <AgentMarkdown content={streamText} />
                   </div>
                 </div>

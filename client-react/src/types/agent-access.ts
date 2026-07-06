@@ -6,17 +6,17 @@ export const AGENT_ACCESS_MODES = [
   {
     id: 'approval' as const,
     label: '请求批准',
-    hint: '查询可直接执行，写操作需你批准',
+    hint: '可读取公开数据、跳转页面；写操作需你批准',
   },
   {
     id: 'full' as const,
     label: '完全访问',
-    hint: '可直接执行全部工具并联网搜索',
+    hint: '可直接执行全部操作并联网搜索',
   },
   {
     id: 'readonly' as const,
     label: '只读建议',
-    hint: '仅文字建议，不调用任何工具',
+    hint: '可查询公开数据并跳转；写操作仅给文字建议',
   },
 ]
 

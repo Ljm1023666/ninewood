@@ -18,10 +18,14 @@ export interface AgentMessage {
   content: string
   thinking?: string
   toolCalls?: Array<{
+    id?: string
     name: string
     arguments: Record<string, unknown>
+    status?: string
+    steps?: string[]
     result?: unknown
     data?: Record<string, unknown>
+    success?: boolean
   }>
   tokenCount?: number
   createdAt: string
@@ -152,11 +156,17 @@ export async function createConversation(params?: {
   return res.data
 }
 
-/** 删除对话 */
+/** 重命名对话 */
 export async function updateConversation(id: string, data: { title: string }) {
-    return api.patch(`/conversations/${id}`, data)
-  },
-  deleteConversation(id: string) {
+  const res = await api.patch<{ success: boolean; title: string }>(
+    `/agent/conversations/${id}`,
+    data,
+  )
+  return res.data
+}
+
+/** 删除对话 */
+export async function deleteConversation(id: string) {
   await api.delete(`/agent/conversations/${id}`)
 }
 
@@ -164,6 +174,7 @@ export async function updateConversation(id: string, data: { title: string }) {
 export async function approveAgentTool(
   conversationId: string,
   params: {
+    toolCallId?: string
     toolName: string
     arguments: Record<string, unknown>
     approved: boolean

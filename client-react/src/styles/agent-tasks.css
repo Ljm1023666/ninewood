@@ -1,0 +1,635 @@
+/* Task 10 · /agent/tasks 管理页（对齐 internal 设计 token） */
+
+.agent-tasks-page {
+  width: 100%;
+}
+
+.agent-tasks-page__tabs-wrap {
+  margin-bottom: var(--internal-rhythm, 48px);
+}
+
+.agent-tasks-page__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: var(--internal-accent, #3388ff);
+}
+
+.agent-tasks-page__error {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--internal-radius, 12px);
+  font-size: 13px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.agent-tasks-page__loading {
+  padding: 24px 0;
+  font-size: 13px;
+  color: var(--internal-text-muted);
+}
+
+.agent-tasks-page__empty {
+  padding: 32px 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--internal-text-secondary);
+}
+
+.agent-tasks-page__empty-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--internal-text-muted);
+}
+
+.agent-tasks-page__quota-hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form-panel {
+  margin-bottom: var(--internal-rhythm, 48px);
+}
+
+/* ── 新建任务表单（Codex 式分区面板） ── */
+
+.agent-task-form {
+  padding: 20px;
+  border: 1px solid var(--internal-border);
+  border-radius: var(--internal-radius);
+  background: var(--internal-card);
+}
+
+.agent-task-form__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--internal-hairline);
+}
+
+.agent-task-form__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--internal-text);
+}
+
+.agent-task-form__subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__section {
+  margin-bottom: 20px;
+}
+
+.agent-task-form__section-title {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__section-desc {
+  margin: -6px 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__field {
+  margin-bottom: 12px;
+}
+
+.agent-task-form__field:last-child {
+  margin-bottom: 0;
+}
+
+.agent-task-form__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--internal-text-secondary);
+}
+
+.agent-task-form__hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__input,
+.agent-task-form__select {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--internal-border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--internal-text);
+  background: var(--internal-surface);
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+
+.agent-task-form__input:focus,
+.agent-task-form__select:focus {
+  border-color: rgba(51, 136, 255, 0.45);
+}
+
+.agent-task-form__input--time {
+  width: 72px;
+  text-align: center;
+}
+
+.agent-task-form__time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agent-task-form__time-sep {
+  font-size: 14px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.agent-task-form__range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-task-form__range-sep {
+  flex-shrink: 0;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__channels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agent-task-form__channel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--internal-text-secondary);
+  cursor: pointer;
+}
+
+.agent-task-form__preview {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px dashed var(--internal-border);
+  border-radius: 8px;
+  background: var(--internal-panel-bg);
+}
+
+.agent-task-form__preview-row {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--internal-text-secondary);
+}
+
+.agent-task-form__preview-row + .agent-task-form__preview-row {
+  margin-top: 6px;
+}
+
+.agent-task-form__preview-label {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.agent-task-form__actions .agent-btn--primary {
+  min-width: 120px;
+}
+
+/* ── 自然语言构建器 ── */
+
+.agent-task-builder {
+  padding: 20px;
+  border: 1px solid var(--internal-border);
+  border-radius: var(--internal-radius);
+  background: var(--internal-card);
+}
+
+.agent-task-builder__composer {
+  margin-bottom: 16px;
+}
+
+.agent-task-builder__textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border: 1px solid var(--internal-border);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--internal-text);
+  background: var(--internal-surface);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.12s ease;
+}
+
+.agent-task-builder__textarea--sm {
+  min-height: 64px;
+}
+
+.agent-task-builder__textarea:focus {
+  border-color: rgba(51, 136, 255, 0.45);
+}
+
+.agent-task-builder__refine {
+  margin-bottom: 16px;
+}
+
+.agent-task-builder__flow {
+  margin-bottom: 16px;
+}
+
+.agent-task-builder__constitution {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-build-flow {
+  padding: 14px 16px;
+  border: 1px solid var(--internal-border);
+  border-left: 3px solid rgba(51, 136, 255, 0.55);
+  border-radius: 10px;
+  background: var(--internal-panel-bg);
+}
+
+.agent-task-build-flow__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.agent-task-build-flow__icon {
+  display: inline-flex;
+  color: rgba(51, 136, 255, 0.85);
+}
+
+.agent-task-build-flow__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--internal-text);
+}
+
+.agent-task-build-flow__sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-build-flow__summary {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--internal-text-secondary);
+}
+
+.agent-task-build-flow__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-build-flow__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-task-build-flow__step {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--internal-text-secondary);
+}
+
+.agent-task-build-flow__step-idx {
+  flex-shrink: 0;
+  width: 20px;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-build-flow__hint {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--internal-text-muted);
+  background: var(--internal-hover);
+}
+
+.agent-link {
+  color: var(--internal-accent, #3388ff);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.agent-link:hover {
+  text-decoration: underline;
+}
+
+/* 共享按钮（管理页 + Codex 草稿卡） */
+.agent-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--internal-border, #2a2a2a);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  background: transparent;
+  color: var(--internal-text, #f0f0f0);
+}
+
+.agent-codex .agent-btn {
+  border-color: var(--codex-hairline);
+  color: var(--codex-text);
+}
+
+.agent-btn:hover:not(:disabled) {
+  background: var(--internal-hover-md, rgba(255, 255, 255, 0.03));
+}
+
+.agent-codex .agent-btn:hover:not(:disabled) {
+  background: var(--codex-sidebar-hover);
+}
+
+.agent-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.agent-btn--primary {
+  border-color: rgba(51, 136, 255, 0.45);
+  background: rgba(51, 136, 255, 0.12);
+  color: var(--internal-text, #f0f0f0);
+}
+
+.agent-codex .agent-btn--primary {
+  color: var(--codex-text);
+}
+
+.agent-btn--primary:hover:not(:disabled) {
+  background: rgba(51, 136, 255, 0.2);
+}
+
+.agent-btn--ghost {
+  color: var(--internal-text-secondary);
+}
+
+.agent-codex .agent-btn--ghost {
+  color: var(--codex-text-muted);
+}
+
+.agent-btn--danger {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+.agent-btn--danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.agent-btn--xs {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* 任务列表 */
+.agent-tasks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-task-item {
+  padding: 16px;
+  border: 1px solid var(--internal-border);
+  border-radius: var(--internal-radius);
+  background: var(--internal-card);
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.agent-task-item:hover {
+  border-color: rgba(51, 136, 255, 0.25);
+  background: var(--internal-card-hover);
+}
+
+.agent-task-item__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.agent-task-item__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--internal-text);
+}
+
+.agent-task-item__pill {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.agent-task-item__pill.is-on {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.agent-task-item__pill.is-off {
+  color: var(--internal-text-muted);
+  background: var(--internal-hover);
+  border: 1px solid var(--internal-border);
+}
+
+.agent-task-item__actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agent-task-item__meta,
+.agent-task-item__schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  font-size: 12px;
+  color: var(--internal-text-muted);
+}
+
+.agent-task-item__schedule {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--internal-hairline);
+}
+
+/* 结果箱 */
+.agent-inbox-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-inbox-item {
+  padding: 14px 16px;
+  border: 1px solid var(--internal-border);
+  border-radius: var(--internal-radius);
+  background: var(--internal-card);
+}
+
+.agent-inbox-item.is-unread {
+  border-left: 3px solid var(--internal-accent, #3388ff);
+}
+
+.agent-inbox-item.is-read {
+  opacity: 0.85;
+}
+
+.agent-inbox-item__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.agent-inbox-item__status {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.agent-inbox-item__status--success {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.agent-inbox-item__status--empty {
+  color: var(--internal-text-muted);
+  background: var(--internal-hover);
+}
+
+.agent-inbox-item__status--error {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.agent-inbox-item__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--internal-text);
+}
+
+.agent-inbox-item__time {
+  font-size: 12px;
+  color: var(--internal-text-muted);
+}
+
+.agent-inbox-item__body {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--internal-text-secondary);
+}
+
+.agent-inbox-item__hits {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-inbox-item__hits li {
+  font-size: 13px;
+}

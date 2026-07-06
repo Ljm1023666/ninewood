@@ -86,8 +86,8 @@ const NAV_PATTERNS: PatternEntry[] = [
     action: { type: 'navigate', path: '/circles', title: '圈子' },
   },
   {
-    patterns: [/^(去)?公益(中心)?$/i, /^福利中心$/i],
-    action: { type: 'navigate', path: '/welfare', title: '公益中心' },
+    patterns: [/^(去)?激励(中心)?$/i, /^激励中心$/i],
+    action: { type: 'navigate', path: '/welfare', title: '激励中心（内测）' },
   },
   {
     patterns: [/^市场分析$/i, /^标签统计$/i, /^(去)?看(看)?市场/i],
