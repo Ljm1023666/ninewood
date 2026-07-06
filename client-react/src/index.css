@@ -1,9 +1,12 @@
 @import "tailwindcss";
 @import "./styles/agent-codex.css";
 @import "./styles/agent-tasks.css";
+@import "./styles/messages-chat.css";
 @import "./styles/demand-workspace.css";
 @import "./styles/help-jump-matrix.css";
 @import "./styles/wallet.css";
+@import "./styles/desktop-luxury.css";
+@import "./styles/tax-visualizer.css";
 
 /* Stitch Material Symbols Outlined */
 .ms-icon {
@@ -65,6 +68,9 @@
   /* ── 圆角 ── */
   --radius: 10px;
   --radius-sm: 6px;
+
+  /* 全局侧栏宽度（Layout Sidebar） */
+  --sidebar-w: 72px;
 
   /* ── 阴影 ── */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
@@ -2704,4 +2710,66 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
 }
 .animate-flowing-light {
   animation: flowing-light 2.5s linear infinite;
+}
+
+/* ── Tax Visualizer Slider ──
+   沿用九木黑白主题,蓝色填充(#3388FF)表示"已走过"的部分 */
+.tax-slider {
+  height: 6px;
+  background: transparent;
+}
+.tax-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    #3388FF 0%,
+    #3388FF var(--fill, 0%),
+    rgba(255, 255, 255, 0.12) var(--fill, 0%),
+    rgba(255, 255, 255, 0.12) 100%
+  );
+}
+.tax-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.tax-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: #3388FF;
+}
+.tax-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #3388FF;
+  margin-top: -6px;
+  box-shadow: 0 0 0 4px rgba(51, 136, 255, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.tax-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #3388FF;
+  box-shadow: 0 0 0 4px rgba(51, 136, 255, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.tax-slider:hover::-webkit-slider-thumb,
+.tax-slider:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 6px rgba(51, 136, 255, 0.18);
+}
+.tax-slider:hover::-moz-range-thumb,
+.tax-slider:focus-visible::-moz-range-thumb {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 6px rgba(51, 136, 255, 0.18);
+}
+.tax-slider:focus-visible {
+  outline: none;
 }

@@ -279,6 +279,55 @@ export default function Settings() {
           </SettingsPanel>
         </InternalSection>
 
+        {/* 合规：举报与帮助中心（必设，24h 响应） */}
+        <InternalSection label="举报与帮助">
+          <SettingsPanel>
+            <SettingsRow
+              icon="report"
+              title="举报违规内容"
+              description="如发现违法违规或不良信息，请通过以下渠道举报。我们承诺 24 小时内响应。"
+              last={false}
+            >
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://www.12377.cn"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="settings-link"
+                >
+                  12377 网络违法和不良信息举报
+                </a>
+                <a
+                  href="https://www.12321.cn"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="settings-link"
+                >
+                  12321 网络不良与垃圾信息举报
+                </a>
+                <p className="text-xs text-text-muted">
+                  平台内举报：通过站内"举报"按钮（每条内容旁）发起，平台运营 24h 内处理
+                </p>
+              </div>
+            </SettingsRow>
+            <SettingsRow
+              icon="policy"
+              title="我的数据"
+              description="依据《个人信息保护法》，您可查阅、复制、导出或更正您的个人数据。"
+              last={true}
+            >
+              <SettingsActionButton
+                variant="secondary"
+                onClick={() => {
+                  window.location.href = '/settings/data'
+                }}
+              >
+                管理我的数据
+              </SettingsActionButton>
+            </SettingsRow>
+          </SettingsPanel>
+        </InternalSection>
+
         <ServiceTagSection />
 
         <InternalSection label="法律">

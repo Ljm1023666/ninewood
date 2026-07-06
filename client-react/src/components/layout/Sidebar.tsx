@@ -14,6 +14,7 @@ import {
   LogOut,
   HelpCircle,
   Activity,
+  Calculator,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
@@ -28,6 +29,7 @@ const NAV_TOP = [
   { path: '/circles', icon: Users, label: '圈子' },
   { path: '/dashboard', icon: Activity, label: '监控' },
   { path: '/help', icon: HelpCircle, label: '帮助' },
+  { path: '/tax-visualizer', icon: Calculator, label: '税务可视化' },
 ]
 
 const NAV_BOTTOM = [

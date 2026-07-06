@@ -1,15 +1,16 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { MsIcon } from '@/components/ui/ms-icon'
 import {
-  BENTO_MAIN_NAV,
-  BENTO_FOOTER_NAV,
+  getBentoMainNav,
+  getBentoFooterNav,
+  getCommunityPath,
   BENTO_LOGOUT_NAV,
+  HUB_SUBPAGE_NAV,
   isBentoActive,
   type BentoNavItem,
 } from '@/constants/bento-nav'
 
 type AppBentoSidebarProps = {
-  /** 由宿主（通常是 BentoAppShell）注入的登出处理 */
   onLogout: () => void
 }
 
@@ -49,13 +50,19 @@ function NavButton({
 export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { id: circleId } = useParams<{ id: string }>()
+
+  if (!circleId) return null
+
+  const mainNav = getBentoMainNav(circleId)
+  const footerNav = getBentoFooterNav(circleId)
 
   function go(item: BentoNavItem) {
     if (item.key === 'logout') {
       onLogout()
       return
     }
-    navigate(item.path)
+    navigate(item.path, HUB_SUBPAGE_NAV)
   }
 
   return (
@@ -63,7 +70,7 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
       <button
         type="button"
         className="cdb-sidebar-brand"
-        onClick={() => navigate('/circles')}
+        onClick={() => navigate(getCommunityPath(circleId), HUB_SUBPAGE_NAV)}
         aria-label="前往圈子社区"
         data-bento-nav="brand"
       >
@@ -77,7 +84,7 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
       </button>
 
       <nav className="cdb-sidebar-nav" aria-label="主导航-主区">
-        {BENTO_MAIN_NAV.map((item) => (
+        {mainNav.map((item) => (
           <NavButton
             key={item.key}
             item={item}
@@ -88,14 +95,18 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
       </nav>
 
       <div className="cdb-sidebar-footer" aria-label="主导航-页脚">
-        {BENTO_FOOTER_NAV.map((item) => (
+        {footerNav.map((item) => (
           <button
             key={item.key}
             type="button"
             onClick={() => go(item)}
             data-bento-nav={item.key}
             data-active={isBentoActive(item, pathname)}
-            className="cdb-sidebar-footer-btn"
+            className={
+              isBentoActive(item, pathname)
+                ? 'cdb-sidebar-footer-btn cdb-sidebar-footer-btn--active'
+                : 'cdb-sidebar-footer-btn'
+            }
           >
             <MsIcon name={item.icon} size={24} aria-hidden />
             <span>{item.label}</span>

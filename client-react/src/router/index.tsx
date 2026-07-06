@@ -46,6 +46,7 @@ const AgentTasksPage = lazy(() => import('@/views/agent/AgentTasksPage'))
 const Privacy = lazy(() => import('@/views/Privacy'))
 const Terms = lazy(() => import('@/views/Terms'))
 const Licenses = lazy(() => import('@/views/Licenses'))
+const MyData = lazy(() => import('@/views/MyData'))
 const NewGroupChat = lazy(() => import('@/views/NewGroupChat'))
 const CardPool = lazy(() => import('@/views/CardPool'))
 const CardPoolResourceExplorer = lazy(
@@ -54,6 +55,7 @@ const CardPoolResourceExplorer = lazy(
 const DeadPool = lazy(() => import('@/views/DeadPool'))
 const MyTags = lazy(() => import('@/views/MyTags'))
 const FiltersPreview = lazy(() => import('@/views/FiltersPreview'))
+const TaxVisualizerPage = lazy(() => import('@/views/tax-visualizer/TaxVisualizerPage'))
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 const Dashboard = lazy(() => import('@/views/Dashboard'))
@@ -474,7 +476,24 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '/login', element: <GuestGuard /> },
+  {
+    path: '/login',
+    element: <GuestGuard />,
+  },
+  {
+    /* 税务可视化:无需登录,但走 Layout 以获得侧栏/页眉/PageTransition 等公共壳层 */
+    element: <Layout />,
+    children: [
+      {
+        path: '/tax-visualizer',
+        element: (
+          <LazyLoad>
+            <TaxVisualizerPage />
+          </LazyLoad>
+        ),
+      },
+    ],
+  },
   {
     path: '/privacy',
     element: (
@@ -496,6 +515,14 @@ export const router = createBrowserRouter([
     element: (
       <LazyLoad>
         <Licenses />
+      </LazyLoad>
+    ),
+  },
+  {
+    path: '/settings/data',
+    element: (
+      <LazyLoad>
+        <MyData />
       </LazyLoad>
     ),
   },

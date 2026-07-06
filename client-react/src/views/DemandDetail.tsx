@@ -1,4 +1,4 @@
-﻿import {
+import {
   useState,
   useEffect,
   useMemo,
@@ -489,7 +489,6 @@ export default function DemandDetail() {
           </div>
         ) : demand.status === 'IN_PROGRESS' ? (
           <InProgressPanel demand={demand} userId={currentUserId} />
-        )
         ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
           <SettlementPanel demandId={demand.id} />
         ) : null}
@@ -633,7 +632,7 @@ function InProgressPanel({ demand, userId }: { demand: any; userId?: string }) {
   const [order, setOrder] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  // 尝试从 demand 字段获取 orderId(发布者接受时�d）；如果没有，从白合部分接口 GET /orders?demandId=
+  // 尝试从 demand 关联订单；若无则从订单列表按 demandId 匹配
   useEffect(() => {
     let cancelled = false
     async function load() {

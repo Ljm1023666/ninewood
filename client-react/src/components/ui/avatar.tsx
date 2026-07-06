@@ -15,7 +15,8 @@ const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(
     <span
       ref={ref}
       className={cn(
-        'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
+        // inline-flex + 显式尺寸：子元素均为 absolute 时，避免在 flex 父级中宽度塌陷为 0
+        'relative inline-flex h-10 w-10 shrink-0 overflow-hidden rounded-full',
         className,
       )}
       {...props}

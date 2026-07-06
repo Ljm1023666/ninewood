@@ -23,6 +23,8 @@ interface RegionCascaderProps {
   onChange?: (regionId: number, region: RegionNode) => void
   placeholder?: string
   className?: string
+  /** 窄侧栏用纵向堆叠，避免省/市/区县横向溢出 */
+  layout?: 'row' | 'stack'
 }
 
 const PARENT_ID_CHINA = 100000
@@ -48,6 +50,7 @@ export function RegionCascader({
   value,
   onChange,
   className,
+  layout = 'row',
 }: RegionCascaderProps) {
   const [provinces, setProvinces] = useState<RegionNode[]>([])
   const [cities, setCities] = useState<RegionNode[]>([])
@@ -137,14 +140,22 @@ export function RegionCascader({
     }
   }
 
+  const stacked = layout === 'stack'
+  const triggerClass = stacked ? 'w-full min-w-0' : 'min-w-[120px]'
+
   return (
-    <div className={cn('flex gap-2', className)}>
+    <div
+      className={cn(
+        stacked ? 'flex w-full flex-col gap-2' : 'flex gap-2',
+        className,
+      )}
+    >
       {/* 省 */}
       <Select
         value={selectedProvinceId?.toString() || ''}
         onValueChange={handleProvinceChange}
       >
-        <SelectTrigger className="min-w-[120px]">
+        <SelectTrigger className={triggerClass}>
           <SelectValue placeholder="省份" />
         </SelectTrigger>
         <SelectContent>
@@ -172,7 +183,7 @@ export function RegionCascader({
         onValueChange={handleCityChange}
         disabled={!selectedProvinceId}
       >
-        <SelectTrigger className="min-w-[120px]">
+        <SelectTrigger className={triggerClass}>
           <SelectValue placeholder="城市" />
         </SelectTrigger>
         <SelectContent>
@@ -200,7 +211,7 @@ export function RegionCascader({
         onValueChange={handleDistrictChange}
         disabled={!selectedCityId}
       >
-        <SelectTrigger className="min-w-[120px]">
+        <SelectTrigger className={triggerClass}>
           <SelectValue placeholder="区县" />
         </SelectTrigger>
         <SelectContent>

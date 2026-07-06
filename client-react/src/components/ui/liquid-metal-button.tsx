@@ -413,7 +413,7 @@ export function LiquidMetalButton({
             {viewMode === 'text' && (
               <span
                 style={{
-                  fontSize: '14px',
+                  fontSize: 'var(--lm-label-size, 14px)',
                   color: contentColor,
                   fontWeight: active ? 600 : 500,
                   textShadow: 'var(--lm-text-shadow)',

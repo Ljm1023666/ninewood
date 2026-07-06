@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { navigateSubpageExit } from '@/utils/subpage-nav'
 import { cn } from '@/lib/utils'
 import { BackButton } from '@/components/ui/back-button'
 
@@ -24,9 +25,10 @@ export function PageHeader({
   variant = 'display',
 }: PageHeaderProps) {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const handleBack =
     onBack === 'back'
-      ? () => navigate(-1)
+      ? () => navigateSubpageExit(navigate, pathname)
       : typeof onBack === 'function'
         ? onBack
         : undefined
@@ -44,13 +46,13 @@ export function PageHeader({
         )}
       >
         {handleBack && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+          <div className="absolute left-0 top-1/2 z-10 -translate-y-1/2">
             <BackButton onBack={handleBack} compact />
           </div>
         )}
         <div
           className={cn(
-            'flex min-w-0 flex-col items-center justify-center text-center',
+            'pointer-events-none flex min-w-0 flex-col items-center justify-center text-center',
             showLeft && 'ml-11',
             showRight && 'mr-11',
           )}
@@ -65,7 +67,7 @@ export function PageHeader({
           )}
         </div>
         {actions && (
-          <div className="absolute right-0 top-1/2 flex shrink-0 -translate-y-1/2 items-center gap-2">
+          <div className="absolute right-0 top-1/2 z-10 flex shrink-0 -translate-y-1/2 items-center gap-2">
             {actions}
           </div>
         )}

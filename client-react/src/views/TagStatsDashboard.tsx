@@ -4,6 +4,10 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -38,6 +42,8 @@ export default function TagStatsDashboard() {
   const [refreshing, setRefreshing] = useState(false)
   const [overview, setOverview] = useState<any>(null)
   const [overviewLoading, setOverviewLoading] = useState(true)
+  const [trends, setTrends] = useState<any[]>([])
+  const [trendsLoading, setTrendsLoading] = useState(true)
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true)
@@ -67,12 +73,26 @@ export default function TagStatsDashboard() {
     }
   }, [])
 
+  const loadTrends = useCallback(async () => {
+    setTrendsLoading(true)
+    try {
+      const r = await api.get('/tag-stats/trends', { params: { days: 30 } })
+      setTrends(r.data?.data?.series || [])
+    } catch (e: any) {
+      toast(e?.response?.data?.message || e?.message || '加载趋势失败', 'error')
+      setTrends([])
+    } finally {
+      setTrendsLoading(false)
+    }
+  }, [])
+
   const handleRefreshStats = async () => {
     setRefreshing(true)
     try {
       await api.post('/tag-stats/refresh')
       await loadStats()
       await loadOverview()
+      await loadTrends()
       toast('统计已刷新', 'success')
     } catch (e: any) {
       toast(e?.response?.data?.message || e?.message || '刷新失败', 'error')
@@ -83,9 +103,13 @@ export default function TagStatsDashboard() {
 
   useEffect(() => { loadStats() }, [loadStats])
   useEffect(() => { loadOverview() }, [loadOverview])
+  useEffect(() => { loadTrends() }, [loadTrends])
+
+  const getCompletedOrders = (s: { completedOrders?: number; totalCards?: number }) =>
+    s.completedOrders ?? s.totalCards ?? 0
 
   const sortedStats = useMemo(() => {
-    return [...stats].sort((a, b) => (b.completedOrders || 0) - (a.completedOrders || 0))
+    return [...stats].sort((a, b) => getCompletedOrders(b) - getCompletedOrders(a))
   }, [stats])
 
   // CSV 导出：实际生成下载
@@ -97,7 +121,7 @@ export default function TagStatsDashboard() {
     const header = ['tagName', 'completedOrders', 'activeProviders', 'activeDemands', 'totalAmount', 'avgAmount']
     const rows = sortedStats.map((s) => [
       s.tagName,
-      s.completedOrders ?? 0,
+      getCompletedOrders(s),
       s.activeProviders ?? 0,
       s.activeDemands ?? 0,
       s.totalAmount ?? 0,
@@ -117,16 +141,52 @@ export default function TagStatsDashboard() {
   }, [sortedStats])
 
   const chartData = useMemo(() => {
-    const base = sortedStats.map((s) => ({
-      name: s.tagName,
-      成交单数: s.completedOrders || 0,
-      活跃服务者: s.activeProviders || 0,
-    }))
+    const base = sortedStats
+      .filter((s) => s.tagName)
+      .slice(0, 14)
+      .map((s) => ({
+        name: s.tagName,
+        成交单数: getCompletedOrders(s),
+        活跃服务者: s.activeProviders || 0,
+      }))
     while (base.length < 14) {
       base.push({ name: '—', 成交单数: 0, 活跃服务者: 0 })
     }
-    return base.slice(0, 14)
+    return base
   }, [sortedStats])
+
+  const amountChartData = useMemo(() => {
+    return sortedStats
+      .filter((s) => s.tagName && (s.totalAmount || 0) > 0)
+      .slice(0, 8)
+      .map((s) => ({
+        name: s.tagName,
+        成交额: Number(s.totalAmount) || 0,
+      }))
+  }, [sortedStats])
+
+  const trendChartData = useMemo(() => {
+    return trends.map((t) => ({
+      name: t.label,
+      交易额: Math.round((t.revenue / 10000) * 100) / 100,
+      订单数: t.orders,
+      新需求: t.demands,
+    }))
+  }, [trends])
+
+  const maxTagAmount = useMemo(
+    () => Math.max(...sortedStats.map((s) => Number(s.totalAmount) || 0), 1),
+    [sortedStats],
+  )
+
+  const chartTooltipStyle = {
+    background: isDark ? '#0c0d0d' : '#ffffff',
+    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+    borderRadius: 0,
+    fontSize: 14,
+    fontFamily: 'monospace',
+    color: isDark ? '#ffffff' : '#000000',
+  }
 
   const chartGrid = {
     stroke: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
@@ -171,12 +231,12 @@ export default function TagStatsDashboard() {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex overflow-hidden font-sans antialiased transition-colors duration-200 ${
+      className={`flex h-full min-h-0 w-full min-w-0 overflow-hidden font-sans antialiased transition-colors duration-200 ${
         isDark ? 'bg-[#121414] text-white' : 'bg-[#F5F5F5] text-black'
       }`}
     >
       <nav
-        className={`flex h-full w-[240px] shrink-0 flex-col border-r py-8 px-5 z-20 transition-colors duration-200 ${
+        className={`flex h-full w-[240px] shrink-0 flex-col border-r py-8 px-5 transition-colors duration-200 ${
           isDark ? 'border-white/5 bg-[#0c0d0d]' : 'border-black/10 bg-white'
         }`}
       >
@@ -397,7 +457,7 @@ export default function TagStatsDashboard() {
                 </div>
                 <div className="p-6 flex flex-col justify-between h-[140px]">
                   <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>本周新增需求</span>
-                  <span className="font-mono text-4xl font-semibold tracking-tight text-[#3388FF] tabular-nums">+{(overview?.relatedDemands ?? 0).toLocaleString('zh-CN')}</span>
+                  <span className="font-mono text-4xl font-semibold tracking-tight text-[#3388FF] tabular-nums">+{(overview?.newDemandsThisWeek ?? 0).toLocaleString('zh-CN')}</span>
                 </div>
                 <div className="p-6 flex flex-col justify-between h-[140px]">
                   <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>关联需求</span>
@@ -417,7 +477,11 @@ export default function TagStatsDashboard() {
                   </span>
                 </header>
                 <div className="p-8">
-                  {chartData.every((c) => c.name === '—') ? (
+                  {statsLoading ? (
+                    <div className="flex h-[320px] items-center justify-center">
+                      <LoadingState variant="internal" lines={2} />
+                    </div>
+                  ) : chartData.every((c) => c.name === '—') ? (
                     <div className={`flex h-[320px] items-center justify-center font-mono text-base ${isDark ? 'text-white/30' : 'text-black/30'}`}>
                       暂无图表数据，请先点击「重新计算」
                     </div>
@@ -430,33 +494,67 @@ export default function TagStatsDashboard() {
                           <YAxis {...chartAxis} allowDecimals={false} width={40} />
                           <Tooltip
                             cursor={{ fill: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}
-                            contentStyle={{
-                              background: isDark ? '#0c0d0d' : '#ffffff',
-                              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-                              borderRadius: 0,
-                              fontSize: 14,
-                              fontFamily: 'monospace',
-                              color: isDark ? '#ffffff' : '#000000',
-                            }}
+                            contentStyle={chartTooltipStyle}
                             labelStyle={{ color: isDark ? '#ffffff' : '#000000' }}
                           />
-                          <Bar dataKey="成交单数" radius={[1, 1, 0, 0]} maxBarSize={24}>
+                          <Legend
+                            wrapperStyle={{ fontFamily: 'monospace', fontSize: 12 }}
+                            formatter={(value) => <span style={{ color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>{value}</span>}
+                          />
+                          <Bar dataKey="成交单数" radius={[1, 1, 0, 0]} maxBarSize={20}>
                             {chartData.map((_, idx) => (
-                              <Bar
-                                key={`d-${idx}`}
-                                dataKey="活跃服务者"
-                                fill={isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(0, 0, 0, 0.22)'}
-                                radius={[1, 1, 0, 0]}
-                                maxBarSize={24}
+                              <Cell
+                                key={`orders-${idx}`}
+                                fill={
+                                  chartData[idx].name === '—'
+                                    ? 'transparent'
+                                    : idx === 0
+                                      ? '#3388FF'
+                                      : isDark
+                                        ? 'rgba(255, 255, 255, 0.22)'
+                                        : 'rgba(0, 0, 0, 0.22)'
+                                }
                               />
                             ))}
                           </Bar>
+                          <Bar
+                            dataKey="活跃服务者"
+                            fill={isDark ? 'rgba(51, 136, 255, 0.35)' : 'rgba(51, 136, 255, 0.25)'}
+                            radius={[1, 1, 0, 0]}
+                            maxBarSize={20}
+                          />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   )}
                 </div>
               </section>
+
+              {amountChartData.length > 0 && (
+                <section
+                  className={`border flex flex-col transition-colors duration-200 ${
+                    isDark ? 'border-white/5 bg-[#0c0d0d]' : 'border-black/10 bg-white'
+                  }`}
+                >
+                  <header className={`h-[60px] border-b px-8 flex items-center justify-between shrink-0 ${isDark ? 'border-white/5' : 'border-black/10'}`}>
+                    <span className={`font-mono text-sm font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>标签成交额 TOP</span>
+                    <span className={`font-mono text-xs ${isDark ? 'text-white/40' : 'text-black/40'}`}>单位: 元</span>
+                  </header>
+                  <div className="p-8">
+                    <div className="h-[280px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart layout="vertical" data={amountChartData} margin={{ top: 4, right: 24, left: 8, bottom: 4 }}>
+                          <CartesianGrid horizontal={false} {...chartGrid} />
+                          <XAxis type="number" {...chartAxis} />
+                          <YAxis type="category" dataKey="name" {...chartAxis} width={96} />
+                          <Tooltip contentStyle={chartTooltipStyle} />
+                          <Bar dataKey="成交额" fill="#3388FF" radius={[0, 1, 1, 0]} maxBarSize={18} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               <section
                 className={`border flex flex-col transition-colors duration-200 ${
@@ -493,7 +591,7 @@ export default function TagStatsDashboard() {
                       <div className={`divide-y ${isDark ? 'divide-white/5' : 'divide-black/10'}`}>
                         {sortedStats.slice(0, 15).map((s, index) => {
                           const rankNum = String(index + 1).padStart(2, '0')
-                          const status = getStatusLabelAndClass(s.completedOrders || 0, index)
+                          const status = getStatusLabelAndClass(getCompletedOrders(s), index)
                           return (
                             <div
                               key={s.tagName || index}
@@ -508,7 +606,7 @@ export default function TagStatsDashboard() {
                                 {s.tagName}
                               </span>
                               <span className={`font-mono text-base text-right ${isDark ? 'text-white/80' : 'text-black/80'}`}>
-                                {(s.completedOrders || 0).toLocaleString('zh-CN')}
+                                {getCompletedOrders(s).toLocaleString('zh-CN')}
                               </span>
                               <div className="text-right">
                                 <span className={`font-mono text-xs px-3 py-1 uppercase tracking-wider ${status.className}`}>
@@ -552,16 +650,71 @@ export default function TagStatsDashboard() {
                   <span className="font-mono text-4xl font-semibold tracking-tight tabular-nums">{(overview?.demandCount ?? 0).toLocaleString('zh-CN')}</span>
                 </div>
               </section>
-              {/* 不再渲染假趋势图 — P2-01 补充 */}
+              {/* 平台交易走势 — 接真实时间序列 API */}
               <section
-                className={`border p-8 flex flex-col gap-4 transition-colors duration-200 ${
+                className={`border flex flex-col transition-colors duration-200 ${
                   isDark ? 'border-white/5 bg-[#0c0d0d]' : 'border-black/10 bg-white'
                 }`}
               >
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-black'}`}>平台交易走势</h3>
-                <p className={`text-sm ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                  本页仅展示服务状态，趋势图需后端提供时间序列接口后重启。当前趋势模块未启用，请联系运维。
-                </p>
+                <header className={`h-[60px] border-b px-8 flex items-center justify-between shrink-0 ${isDark ? 'border-white/5' : 'border-black/10'}`}>
+                  <span className={`font-mono text-sm font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>平台交易走势 (30天)</span>
+                  <span className={`font-mono text-xs ${isDark ? 'text-white/40' : 'text-black/40'}`}>单位: 万元</span>
+                </header>
+                <div className="p-8">
+                  {trendsLoading || overviewLoading ? (
+                    <div className="flex h-[320px] items-center justify-center">
+                      <LoadingState variant="internal" lines={2} />
+                    </div>
+                  ) : trendChartData.length === 0 || trendChartData.every((d) => d.交易额 === 0 && d.订单数 === 0) ? (
+                    <div className={`flex h-[320px] items-center justify-center font-mono text-sm ${isDark ? 'text-white/30' : 'text-black/30'}`}>
+                      暂无趋势数据
+                    </div>
+                  ) : (
+                    <div className="h-[320px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={trendChartData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+                          <CartesianGrid vertical={false} {...chartGrid} />
+                          <XAxis dataKey="name" {...chartAxis} interval="preserveStartEnd" />
+                          <YAxis yAxisId="left" {...chartAxis} />
+                          <YAxis yAxisId="right" orientation="right" {...chartAxis} allowDecimals={false} />
+                          <Tooltip contentStyle={chartTooltipStyle} />
+                          <Legend wrapperStyle={{ fontFamily: 'monospace', fontSize: 12 }} />
+                          <Line
+                            yAxisId="left"
+                            type="monotone"
+                            dataKey="交易额"
+                            stroke="#3388FF"
+                            strokeWidth={2}
+                            dot={{ r: 2, fill: '#3388FF' }}
+                            activeDot={{ r: 4 }}
+                          />
+                          <Line
+                            yAxisId="right"
+                            type="monotone"
+                            dataKey="订单数"
+                            stroke={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.35)'}
+                            strokeWidth={1.5}
+                            strokeDasharray="4 4"
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section
+                className={`grid grid-cols-2 gap-6 transition-colors duration-200`}
+              >
+                <div className={`border p-6 flex flex-col gap-4 ${isDark ? 'border-white/5 bg-[#0c0d0d]' : 'border-black/10 bg-white'}`}>
+                  <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>本周新增需求</span>
+                  <span className="font-mono text-3xl font-semibold text-[#3388FF] tabular-nums">+{(overview?.newDemandsThisWeek ?? 0).toLocaleString('zh-CN')}</span>
+                </div>
+                <div className={`border p-6 flex flex-col gap-4 ${isDark ? 'border-white/5 bg-[#0c0d0d]' : 'border-black/10 bg-white'}`}>
+                  <span className={`font-mono text-xs font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>已完成订单</span>
+                  <span className="font-mono text-3xl font-semibold tabular-nums">{(overview?.completedOrders ?? 0).toLocaleString('zh-CN')}</span>
+                </div>
               </section>
             </>
           )}
@@ -577,27 +730,41 @@ export default function TagStatsDashboard() {
                 <span className={`font-mono text-xs ${isDark ? 'text-white/40' : 'text-black/40'}`}>共 {stats.length} 个本地标签</span>
               </header>
               <div className="p-8 grid grid-cols-2 gap-6">
-                {stats.map((s, idx) => (
-                  <div
-                    key={s.tagName || idx}
-                    className={`border p-6 flex flex-col justify-between transition-colors ${
-                      isDark
-                        ? 'border-white/5 bg-[#121414] hover:border-white/20'
-                        : 'border-black/10 bg-white hover:border-black/20'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-black'}`}>{s.tagName}</span>
-                      <span className={`font-mono text-xs px-2 py-0.5 border ${isDark ? 'border-white/10 text-white/40' : 'border-black/10 text-black/40'}`}>
-                        {s.id ? `ID: ${s.id.slice(0, 8)}` : `§${idx + 1}`}
-                      </span>
-                    </div>
-                    <div className={`mt-6 flex items-center justify-between text-sm font-mono ${isDark ? 'text-white/40' : 'text-black/40'}`}>
-                      <span>成交: {s.completedOrders || 0}</span>
-                      <span>服务者: {s.activeProviders || 0}</span>
-                    </div>
+                {stats.length === 0 ? (
+                  <div className={`col-span-2 p-12 text-center font-mono text-sm ${isDark ? 'text-white/30' : 'text-black/30'}`}>
+                    暂无标签数据，请先点击「重新计算」
                   </div>
-                ))}
+                ) : (
+                  stats.map((s, idx) => {
+                    const orders = getCompletedOrders(s)
+                    const amountPct = Math.round(((Number(s.totalAmount) || 0) / maxTagAmount) * 100)
+                    return (
+                      <div
+                        key={s.tagName || idx}
+                        className={`border p-6 flex flex-col gap-4 transition-colors ${
+                          isDark
+                            ? 'border-white/5 bg-[#121414] hover:border-white/20'
+                            : 'border-black/10 bg-white hover:border-black/20'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-black'}`}>{s.tagName}</span>
+                          <span className={`font-mono text-xs px-2 py-0.5 border ${isDark ? 'border-white/10 text-white/40' : 'border-black/10 text-black/40'}`}>
+                            {s.id ? `ID: ${String(s.id).slice(0, 8)}` : `#${idx + 1}`}
+                          </span>
+                        </div>
+                        <div className={`h-1.5 w-full ${isDark ? 'bg-white/10' : 'bg-black/10'}`}>
+                          <div className="h-full bg-[#3388FF] transition-all" style={{ width: `${amountPct}%` }} />
+                        </div>
+                        <div className={`grid grid-cols-3 gap-2 text-sm font-mono ${isDark ? 'text-white/50' : 'text-black/50'}`}>
+                          <span>成交 {orders}</span>
+                          <span>服务者 {s.activeProviders || 0}</span>
+                          <span className="text-right">¥{Number(s.totalAmount || 0).toLocaleString('zh-CN')}</span>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
               </div>
             </section>
           )}

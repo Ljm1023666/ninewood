@@ -8,6 +8,7 @@ const INTERNAL_AMBIENT_PREFIXES = [
   '/my-bids',
   '/transactions',
   '/cert-center',
+  '/cert-intro',
   '/messages',
   '/circles',
   '/search',
@@ -25,9 +26,11 @@ const INTERNAL_AMBIENT_PREFIXES = [
   '/card-pool',
   '/new-group',
   '/tag-stats',
+  '/discover',
   '/certified-search',
   '/circle-list',
   '/my-tags',
+  '/tax-visualizer',
 ] as const
 
 export function suppressLayoutAmbient(pathname: string): boolean {

@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import PageTransition from './PageTransition'
+import Sidebar from './Sidebar'
 import { useChatStore } from '@/stores/chat'
 import { useKeyboard } from '@/hooks/useKeyboard'
 import { ToastContainer } from '@/components/ui/confirm-dialog'
@@ -8,6 +9,7 @@ import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import { useUserStore } from '@/stores/user'
 import { isDemandDetailRoute } from '@/utils/user-cover-presets'
 import { suppressLayoutAmbient } from '@/utils/internal-routes'
+import { navigateSubpageExit } from '@/utils/subpage-nav'
 import { userApi } from '@/api/user'
 
 export default function Layout() {
@@ -68,7 +70,10 @@ export default function Layout() {
 
   useKeyboard([
     { key: 'k', ctrl: true, handler: () => navigate('/') },
-    { key: 'Escape', handler: () => navigate(-1) },
+    {
+      key: 'Escape',
+      handler: () => navigateSubpageExit(navigate, location.pathname),
+    },
   ])
 
   const p = location.pathname
@@ -84,6 +89,7 @@ export default function Layout() {
       }
     >
       <ToastContainer />
+      <Sidebar />
 
       <main
         className={
