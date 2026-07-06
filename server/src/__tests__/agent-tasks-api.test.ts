@@ -356,6 +356,10 @@ describe('POST /:id/run-now', () => {
     expect(m.agentTaskRunCreate.mock.calls[0][0].data.status).toBe('SUCCESS')
     expect(m.messageCreate.mock.calls[0][0].data.content).toContain('[AGENT_TASK]')
     expect(m.messageCreate.mock.calls[0][0].data.content).toContain('王者推送')
+    expect(m.agentTaskUpdate).toHaveBeenCalledWith({
+      where: { id: 't1' },
+      data: { lastRunAt: expect.any(Date), lastSummary: '共找到 2 条匹配需求' },
+    })
   })
 
   it('writes ERROR run when run() throws; no MESSAGE', async () => {

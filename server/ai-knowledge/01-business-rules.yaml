@@ -240,22 +240,24 @@ rules_pool:
 # ── 应用分发市场规则 ──────────────────────────────────────────────────────
 
 rules_welfare:
+  # 内测期说明：本组规则对应"激励中心"占位功能，不构成真实公益。
+  # 商业化前必须重写；如要做真实公益需对接持牌慈善组织并取得相应资质。
 
   - id: WELFARE_NO_FEE
-    rule: "公益需求不收取平台服务费"
+    rule: "激励任务不收取平台服务费（内测占位）"
     check: "demand.isPublicWelfare == true -> settlement.serviceFee == 0"
 
   - id: WELFARE_DEPOSIT_FREE
-    rule: "公益需求不需要缴纳保证金"
+    rule: "激励任务不需要缴纳保证金"
     check: "demand.isPublicWelfare == true -> demand.deposit == 0"
 
   - id: WELFARE_FALSE_PENALTY
-    rule: "虚假公益需求永久封号"
+    rule: "虚假激励任务永久封号"
     check: "welfare.fraud == true -> user.banned = permanent"
 
   - id: WELFARE_REWARD
-    rule: "完成公益需求可获得随机奖励或精神奖励"
-    mechanism: "公益完成时抽成入资金池 + 随机奖励服务方"
+    rule: "完成激励任务可获得模拟随机奖励或精神奖励"
+    mechanism: "激励完成时抽成入模拟池 + 随机奖励服务方（仅内测演示）"
 
 # ── 卡片生命周期规则 ──────────────────────────────────────────────────────
 

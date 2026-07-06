@@ -1,4 +1,5 @@
 import { config } from '../../config.js';
+import { contentFilter } from '../content-filter/index.js';
 import type {
   ChatCompletionParams,
   ChatCompletionResult,
@@ -146,6 +147,7 @@ export async function readSSEStream(
   let fullContent = '';
   let reasoningContent = '';
   const thinkExt = createThinkExtractor();
+  let contentBlocked = false; // 合规：AI 输出命中内容安全过滤时切断后续 delta
 
   const sendThinkLine = (line: string) => {
     handlers.onThinkLine?.(line);
@@ -182,7 +184,17 @@ export async function readSSEStream(
         const textDelta: string = delta.content || '';
         if (textDelta) {
           fullContent += textDelta;
-          handlers.onTextDelta?.(textDelta);
+          // 合规：AI 输出内容安全过滤（《生成式 AI 办法》§14）
+          const sanitized = contentFilter.sanitize(textDelta);
+          if (sanitized.blocked) {
+            // 首次命中：切断后续 delta，仅发送一次兜底回复
+            if (!contentBlocked) {
+              contentBlocked = true;
+              handlers.onTextDelta?.(sanitized.text);
+            }
+            continue;
+          }
+          handlers.onTextDelta?.(sanitized.text);
           // 从内容中提取 <think> 标签（MiniMax 旧 API 兼容）
           flushThinkLines(thinkExt, sendThinkLine);
         }

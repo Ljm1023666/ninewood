@@ -1,4 +1,4 @@
-/** Agent 访问模式（对齐 Codex Composer） */
+/** Agent 访问模式（对齐主流 Agent：Ask / Agent+Approval / Full） */
 export type AgentAccessMode = 'readonly' | 'approval' | 'full'
 
 export function normalizeAccessMode(value: unknown): AgentAccessMode {
@@ -6,4 +6,14 @@ export function normalizeAccessMode(value: unknown): AgentAccessMode {
     return value
   }
   return 'approval'
+}
+
+/** 是否允许直接执行写操作工具 */
+export function canAutoExecuteWrites(accessMode: AgentAccessMode): boolean {
+  return accessMode === 'full'
+}
+
+/** 是否允许联网搜索 */
+export function canUseWebSearch(accessMode: AgentAccessMode): boolean {
+  return accessMode === 'full'
 }

@@ -98,9 +98,10 @@ page_map:
 
   - id: welfare
     path: /welfare
-    title: 公益中心
-    category: 公益
-    keywords: [公益, 慈善, 求助, 捐赠, 寻人]
+    title: 激励中心（内测）
+    category: 激励
+    keywords: [激励, 内测, 模拟, 任务]
+    disclaimer: "内测期占位功能：所有数据为模拟，不构成公益捐赠、慈善募捐或有奖销售"
 
   - id: dashboard
     path: /dashboard
@@ -645,20 +646,22 @@ faq:
     related: [how-to-tags]
 
     answer:
-      summary: "以标签维度展示市场指标：需求数量、活跃服务者数、平均报价、成交率"
+      summary: "标签维度市场看板：成交单量、活跃服务者、成交额排行与 30 日平台走势（真实 API，可刷新/导出 CSV）"
       features:
         page: /tag-stats
-        metrics_per_tag:
-          - "需求数量"
-          - "活跃服务者数"
-          - "平均报价"
-          - "成交率"
-        detail: "趋势图、供需比变化"
-        refresh_interval: "每小时"
-        window: "近 30 天"
+        tabs: [系统总览, 数据分析, 标签管理]
+        metrics:
+          - "总标签数 / 活跃标签"
+          - "本周新增需求 / 关联进行中需求"
+          - "平台注册用户、订单、交易额"
+        charts:
+          - "标签活跃度双柱图（成交单数 + 活跃服务者）"
+          - "标签成交额 TOP 横向图"
+          - "近 30 日交易走势折线图"
+        actions: ["重新计算 /api/tag-stats/refresh", "导出 CSV"]
       usage:
-        - "供需比判断：需求多、服务者少 → 竞争小、成功率高"
-        - "参考平均报价区间设定价格"
+        - "图表为空时先点「重新计算」再刷新页面"
+        - "参考标签成交额与排行设定服务方向与报价"
 
   - id: what-is-dashboard
     category: feature
@@ -683,19 +686,20 @@ faq:
 
   - id: what-is-welfare
     category: feature
-    tags: [公益, 福利, 慈善, 求助, 捐赠, 寻人, 资金池]
+    tags: [激励, 内测, 模拟, 任务]
     related: [how-to-publish]
 
     answer:
-      summary: "公益板块：发布公益需求（免服务费/免保证金）+ 查看公益资金池"
+      summary: "激励中心（内测占位）：发布激励任务 + 查看模拟奖励，不构成公益捐赠或慈善募捐"
       features:
         page: /welfare
         actions:
-          - "浏览公益需求列表"
-          - "发布公益需求（走常规审核，不收费）"
-          - "查看公益资金池余额和捐赠记录"
+          - "浏览激励任务列表"
+          - "发布激励任务（内测演示）"
+          - "查看模拟激励池余额和最近奖励记录"
       penalties:
-        - "虚假公益需求永久封禁"
+        - "内测期所有数据为模拟，不代表真实交易或募捐"
+      disclaimer: "本功能为内测期占位。商业化前将根据法规要求重新设计。"
 
   - id: how-to-use-agent
     category: feature

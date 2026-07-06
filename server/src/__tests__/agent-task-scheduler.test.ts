@@ -126,6 +126,7 @@ describe('runAgentTaskScheduler · happy path', () => {
     const upArgs = m.agentTaskUpdate.mock.calls[0][0]
     expect(upArgs.where.id).toBe('task-1')
     expect(upArgs.data.lastRunAt).toEqual(now)
+    expect(upArgs.data.lastSummary).toBe('共找到 3 条匹配需求')
     expect(upArgs.data.nextRunAt).toBeInstanceOf(Date)
     expect(upArgs.data.nextRunAt.getTime()).toBeGreaterThan(now.getTime())
   })

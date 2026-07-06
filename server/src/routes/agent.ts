@@ -15,6 +15,11 @@ import {
   addMessage,
 } from '../services/agent/conversation.js';
 import { executeAgent } from '../services/agent/executor.js';
+import {
+  findPendingToolCall,
+  updateStoredToolCall,
+} from '../services/agent/pending-tools.js';
+import { describeToolDone } from '../services/agent/tool-narration.js';
 import { normalizeAccessMode } from '../services/agent/access-mode.js';
 import { checkQuota, recordCall, getRemaining } from '../services/agent/quota.js';
 import { semanticNavigate } from '../services/semantic-classifier.js';
@@ -216,7 +221,7 @@ const NAV_TARGETS: { name: string; keywords: string[]; path: string; title: stri
   { name: '死池', keywords: ['死池', '过期池'], path: '/card-pool/dead', title: '死池' },
   { name: '认证', keywords: ['认证', '实名认证'], path: '/cert-center', title: '认证中心' },
   { name: '圈子', keywords: ['圈子', '社区'], path: '/circles', title: '圈子' },
-  { name: '公益', keywords: ['公益', '福利'], path: '/welfare', title: '公益中心' },
+  { name: '激励', keywords: ['激励', '福利', '内测', '模拟'], path: '/welfare', title: '激励中心（内测）' },
   { name: '找人', keywords: ['找人', '搜索用户', '找师傅'], path: '/search', title: '找人' },
   { name: '数据看板', keywords: ['数据', '看板', 'dashboard', '监控', '统计'], path: '/dashboard', title: '数据看板' },
 ];
@@ -299,6 +304,10 @@ agentRouter.post('/conversations/:id/stream', authMiddleware, async (req: Reques
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
+    // 合规：AI 生成内容首字节前显式标识（《生成式 AI 办法》§12）
+    res.write(
+      `event: meta\ndata: ${JSON.stringify({ isAIGenerated: true, source: 'agent-stream' })}\n\n`,
+    );
 
     const send = (event: string, data: unknown) => {
       res.write(`event: ${event}\ndata: ${typeof data === 'string' ? data : JSON.stringify(data)}\n\n`);
@@ -340,49 +349,95 @@ agentRouter.post(
     try {
       const userId = req.user!.userId;
       const conversationId = req.params.id as string;
-      const { toolName, arguments: toolArgs, approved } = req.body as {
+      const { toolCallId, toolName, arguments: toolArgs, approved } = req.body as {
+        toolCallId?: string;
         toolName?: string;
         arguments?: Record<string, unknown>;
         approved?: boolean;
       };
 
-      if (!toolName || typeof toolName !== 'string') {
-        return res.status(400).json({ error: '缺少工具名称' });
-      }
-
       const conv = await getConversation(conversationId, userId);
       if (!conv) return res.status(404).json({ error: '对话不存在' });
 
+      let resolvedName = toolName;
+      let resolvedArgs = toolArgs ?? {};
+      let messageId: string | undefined;
+
+      if (toolCallId) {
+        const pending = await findPendingToolCall(conversationId, toolCallId);
+        if (!pending) {
+          return res.status(404).json({ error: '未找到待批准的操作或已处理' });
+        }
+        resolvedName = pending.toolCall.name;
+        resolvedArgs = pending.toolCall.arguments;
+        messageId = pending.messageId;
+      }
+
+      if (!resolvedName || typeof resolvedName !== 'string') {
+        return res.status(400).json({ error: '缺少工具名称' });
+      }
+
       if (!approved) {
-        const message = `已拒绝操作：${toolName}`;
-        await addMessage({ conversationId, role: 'assistant', content: message });
+        const message = describeToolDone(
+          resolvedName,
+          `已拒绝：${resolvedName}`,
+          false,
+        );
+      if (toolCallId && messageId) {
+        const pending = await findPendingToolCall(conversationId, toolCallId);
+        const priorSteps = pending?.toolCall.steps ?? [];
+        await updateStoredToolCall(messageId, toolCallId, {
+          status: 'rejected',
+          success: false,
+          result: message,
+          steps: [...priorSteps, message],
+        });
+      } else {
+          await addMessage({ conversationId, role: 'assistant', content: message });
+        }
         return res.json({ success: true, approved: false, message });
       }
 
       const result = await toolRegistry.execute(
-        toolName,
-        toolArgs ?? {},
+        resolvedName,
+        resolvedArgs,
         { userId, conversationId },
       );
 
-      await addMessage({
-        conversationId,
-        role: 'assistant',
-        content: result.message,
-        toolCalls: [
-          {
-            name: toolName,
-            arguments: toolArgs ?? {},
-            result: result.message,
-            data: result.data,
-          },
-        ],
-      });
+      const doneMessage = describeToolDone(resolvedName, result.message, false);
+
+      if (toolCallId && messageId) {
+        const pending = await findPendingToolCall(conversationId, toolCallId);
+        const priorSteps = pending?.toolCall.steps ?? [];
+        await updateStoredToolCall(messageId, toolCallId, {
+          status: 'executed',
+          success: result.success,
+          result: doneMessage,
+          data: result.data,
+          steps: [...priorSteps, doneMessage],
+        });
+      } else {
+        await addMessage({
+          conversationId,
+          role: 'assistant',
+          content: doneMessage,
+          toolCalls: [
+            {
+              name: resolvedName,
+              arguments: resolvedArgs,
+              status: 'executed',
+              result: doneMessage,
+              data: result.data,
+              success: result.success,
+            },
+          ],
+        });
+      }
 
       res.json({
         success: result.success,
         approved: true,
-        message: result.message,
+        message: doneMessage,
         data: result.data,
         error: result.error,
       });

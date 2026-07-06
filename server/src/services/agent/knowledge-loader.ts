@@ -11,7 +11,7 @@ interface KnowledgeDoc {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /** ai-knowledge 目录路径（相对于 server/） */
-const KNOWLEDGE_DIR = path.resolve(__dirname, '../../ai-knowledge');
+const KNOWLEDGE_DIR = path.resolve(__dirname, '../../../ai-knowledge');
 
 /** 读取后的知识库缓存 */
 let cachedKnowledge: KnowledgeDoc[] | null = null;
@@ -150,32 +150,56 @@ export function buildKnowledgePrompt(): string {
  * 根据用户查询关键词检索最相关的知识段落
  * 截取匹配段落附近的内容，避免返回整个文件
  */
+function extractSearchKeywords(query: string): string[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const parts = q.split(/\s+/).filter((k) => k.length > 1);
+  if (q.length > 1 && !parts.includes(q)) parts.unshift(q);
+  return parts.length > 0 ? parts : q.length > 1 ? [q] : [];
+}
+
+function isConsultQuery(query: string): boolean {
+  return /怎么|如何|什么是|为什么|有什么用|是什么|什么意思|怎样|有哪些/.test(query);
+}
+
+function scoreKnowledgeDoc(
+  doc: KnowledgeDoc,
+  keywords: string[],
+  rawQuery: string,
+): number {
+  let score = 0;
+  const contentLower = doc.content.toLowerCase();
+  for (const keyword of keywords) {
+    if (doc.title.toLowerCase().includes(keyword)) score += 10;
+    if (contentLower.includes(keyword)) score += 3;
+    for (const section of doc.sections) {
+      if (section.keywords.some((k) => k.toLowerCase().includes(keyword))) {
+        score += 5;
+      }
+    }
+  }
+  // 咨询类问题优先 FAQ 帮助库，避免命中业务规则 yaml
+  if (doc.filename === '02-help-knowledge.yaml') {
+    if (isConsultQuery(rawQuery)) score += 25;
+    if (/how-to-publish|发需求|发布页|demands\/create/.test(contentLower)) {
+      if (/发布|发需求|发单/.test(rawQuery)) score += 15;
+    }
+  }
+  if (doc.filename === '03-agent-capabilities.yaml' && isConsultQuery(rawQuery)) {
+    score -= 12;
+  }
+  return score;
+}
+
 export function searchKnowledge(query: string): string {
   const docs = loadKnowledgeFiles();
   if (docs.length === 0) return '';
 
-  const keywords = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((k) => k.length > 1);
-
+  const keywords = extractSearchKeywords(query);
   if (keywords.length === 0) return '';
 
-  // 按关键词匹配度对文档排序
   const scored = docs
-    .map((doc) => {
-      let score = 0;
-      for (const keyword of keywords) {
-        if (doc.title.toLowerCase().includes(keyword)) score += 10;
-        if (doc.content.toLowerCase().includes(keyword)) score += 3;
-        for (const section of doc.sections) {
-          if (section.keywords.some((k) => k.toLowerCase().includes(keyword))) {
-            score += 5;
-          }
-        }
-      }
-      return { doc, score };
-    })
+    .map((doc) => ({ doc, score: scoreKnowledgeDoc(doc, keywords, query) }))
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score);
 
@@ -184,13 +208,24 @@ export function searchKnowledge(query: string): string {
   const best = scored[0].doc;
   const lines = best.content.split('\n');
 
-  // 找到第一个包含关键词的行，取其前后上下文
+  // 优先定位 FAQ 条目（how-to-publish 等）
   let matchLineIdx = -1;
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i].toLowerCase();
-    if (keywords.some((k) => l.includes(k))) {
-      matchLineIdx = i;
-      break;
+    if (l.includes('how-to-publish') || l.includes('id: how-to-publish')) {
+      if (/发布|发需求/.test(query)) {
+        matchLineIdx = i;
+        break;
+      }
+    }
+  }
+  if (matchLineIdx === -1) {
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i].toLowerCase();
+      if (keywords.some((k) => l.includes(k))) {
+        matchLineIdx = i;
+        break;
+      }
     }
   }
 

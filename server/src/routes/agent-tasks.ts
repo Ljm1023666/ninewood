@@ -21,6 +21,10 @@ import { authMiddleware } from '../middleware/auth.js'
 import { computeNextRunAt, describeSchedule, ScheduleValidationError } from '../services/agent/task-schedule.js'
 import { getTaskType, DEMAND_DIGEST_ID } from '../services/agent/task-types/index.js'
 import { AGENT_TASK_TAG } from '../cron/agent-task-scheduler.js'
+import {
+  buildAgentTaskFromDescription,
+  TaskBuildError,
+} from '../services/agent/task-builder.js'
 
 export const agentTasksRouter = Router()
 
@@ -55,6 +59,39 @@ agentTasksRouter.get('/', authMiddleware, async (req, res) => {
     orderBy: { createdAt: 'desc' },
   })
   res.json({ tasks })
+})
+
+/** POST /build — 自然语言构建任务（多轮，不写库） */
+agentTasksRouter.post('/build', authMiddleware, async (req, res) => {
+  const userId = requireUser(req, res)
+  if (!userId) return
+
+  const body = req.body as {
+    description?: unknown
+    feedback?: unknown
+    previousSummary?: unknown
+    round?: unknown
+  }
+
+  if (typeof body.description !== 'string' || !body.description.trim()) {
+    return badRequest(res, 'description 必须为非空字符串')
+  }
+
+  try {
+    const build = await buildAgentTaskFromDescription({
+      description: body.description,
+      feedback: typeof body.feedback === 'string' ? body.feedback : undefined,
+      previousSummary:
+        typeof body.previousSummary === 'string' ? body.previousSummary : undefined,
+      round: typeof body.round === 'number' ? body.round : undefined,
+    })
+    res.json({ build })
+  } catch (err) {
+    if (err instanceof TaskBuildError) {
+      return badRequest(res, err.message)
+    }
+    throw err
+  }
 })
 
 /** GET /inbox — 结果箱分页（必须在 /:id 之前注册，否则会被 :id 吞掉） */
@@ -380,6 +417,11 @@ agentTasksRouter.post('/:id/run-now', authMiddleware, async (req, res) => {
         },
       })
     }
+
+    await prisma.agentTask.update({
+      where: { id: task.id },
+      data: { lastRunAt: now, lastSummary: run.summary },
+    })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     run = await prisma.agentTaskRun.create({
@@ -391,6 +433,11 @@ agentTasksRouter.post('/:id/run-now', authMiddleware, async (req, res) => {
         summary: `执行失败：${msg}`,
         payload: [],
       },
+    })
+
+    await prisma.agentTask.update({
+      where: { id: task.id },
+      data: { lastRunAt: now, lastSummary: run.summary },
     })
   }
 

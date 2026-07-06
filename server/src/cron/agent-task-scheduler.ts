@@ -63,9 +63,10 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
     const type = getTaskType(task.type)
     if (!type) {
       // 注册表里找不到（不应发生，但保底）
-      await writeErrorRun(task, `未知任务类型: ${task.type}`, now)
+      const unknownMsg = `未知任务类型: ${task.type}`
+      await writeErrorRun(task, unknownMsg, now)
       errored += 1
-      await advanceSchedule(task, now)
+      await advanceSchedule(task, now, `执行失败：${unknownMsg}`)
       continue
     }
 
@@ -94,13 +95,13 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
         await sendSystemMessage(task.userId, task.name, result.summary)
       }
 
-      await advanceSchedule(task, now)
+      await advanceSchedule(task, now, result.summary)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error(`[agent-task-scheduler] task ${task.id} failed:`, err)
       await writeErrorRun(task, msg, now)
       errored += 1
-      await advanceSchedule(task, now)
+      await advanceSchedule(task, now, `执行失败：${msg}`)
     }
   }
 
@@ -129,6 +130,7 @@ async function writeErrorRun(task: { id: string }, message: string, now: Date): 
 async function advanceSchedule(
   task: { id: string; frequency: string; atHour: number | null; atMinute: number | null; weekday: number | null },
   now: Date,
+  lastSummary: string,
 ): Promise<void> {
   const next = computeNextRunAt(
     {
@@ -141,7 +143,7 @@ async function advanceSchedule(
   )
   await prisma.agentTask.update({
     where: { id: task.id },
-    data: { lastRunAt: now, nextRunAt: next },
+    data: { lastRunAt: now, nextRunAt: next, lastSummary },
   })
 }
 

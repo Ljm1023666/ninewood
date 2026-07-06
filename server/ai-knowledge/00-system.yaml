@@ -261,7 +261,7 @@ models:
     note: "数据每小时更新一次，反映近 30 天市场状态"
 
   WelfareFundPool:
-    description: 公益资金池
+    description: 激励池（内测模拟占位字段；商业化前需重新命名）
     fields:
       regionId: { type: Int, unique: true }
       balance: { type: Float, default: 0 }

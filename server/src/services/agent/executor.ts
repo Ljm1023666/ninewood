@@ -4,7 +4,6 @@ import { toolRegistry, type ToolContext, type RegisteredTool } from './tool-regi
 import { loadAllSkills, buildSkillPrompt } from './skill-loader.js';
 import { buildKnowledgeIndex } from './knowledge-loader.js';
 import { addMessage, truncateTitle } from './conversation.js';
-import type { ToolResult } from './tool-registry.js';
 import {
   normalizeAccessMode,
   canUseWebSearch,
@@ -17,6 +16,10 @@ import {
 import { inferFollowUpTools, type ExecutedTool } from './follow-up-tools.js';
 import { processToolInvocations } from './tool-runner.js';
 import { matchForbidden } from './capability-matcher.js';
+import {
+  synthesizeAnswerFromTools,
+  toOpenAIToolCalls,
+} from './agent-tool-synthesis.js';
 
 // ─── 工具调用限流 ──────────────────────────────────────────────────────────
 // 同一会话内，单次用户消息最多触发 MAX_TOOL_CALLS 次工具调用
@@ -119,6 +122,7 @@ function buildSystemPrompt(
   prompt += `\n\n要求：
 - 使用简体中文，语气自然友好
 - 回答简短直接，不要绕弯子、不要说废话
+- **排版**：用 Markdown 组织长回答（类似 ChatGPT）：二级/三级标题、列表、表格（GFM）、加粗关键词；不要输出原始 YAML 或代码块除非用户要技术细节
 - 用户聊什么就回什么，不要强行把话题转到发布需求上
 - 只有当用户明确表达想找人/找服务/发需求时，才引导填写表单
 - 如果有不确定的地方，向用户追问确认`;
@@ -207,6 +211,9 @@ function buildMessages(
   return messages;
 }
 
+/** OpenAI 兼容的 tool_calls 格式 — 见 agent-tool-synthesis.ts */
+export { toOpenAIToolCalls } from './agent-tool-synthesis.js';
+
 /** 执行 Agent 流式对话 */
 export async function executeAgent(
   params: AgentExecuteParams,
@@ -278,7 +285,7 @@ export async function executeAgent(
     const toolCtx = { userId, conversationId, accessMode, send };
     const allStoredCalls: StoredToolCall[] = [];
     const allExecuted: ExecutedTool[] = [];
-    let lastRoundHadTools = false;
+    let lastRoundText = '';
     let thinkStripper: ReturnType<typeof createThinkStripper> | null = null;
 
     for (let chainDepth = 0; chainDepth <= MAX_CHAIN_DEPTH; chainDepth++) {
@@ -306,17 +313,16 @@ export async function executeAgent(
       const limitedToolCalls = round.toolCalls.slice(0, MAX_TOOL_CALLS);
 
       if (limitedToolCalls.length === 0) {
-        lastRoundHadTools = false;
+        lastRoundText = round.content || '';
         break;
       }
-      lastRoundHadTools = true;
 
-      // 追加 assistant 消息（带 tool_calls 元数据）供下一轮 LLM 引用
+      // 追加 assistant 消息（OpenAI tool_calls 格式）供下一轮 LLM 引用
       messages.push({
         role: 'assistant',
         content: round.content || '',
-        ...({ tool_calls: limitedToolCalls } as unknown as Record<string, unknown>),
-      });
+        tool_calls: toOpenAIToolCalls(limitedToolCalls),
+      } as unknown as { role: string; content: string });
 
       // 执行工具
       const invocations = limitedToolCalls.map((tc) => {
@@ -347,20 +353,22 @@ export async function executeAgent(
       allStoredCalls.push(...combined.storedCalls);
       allExecuted.push(...combined.executed);
 
-      // 追加 tool 消息（OpenAI 格式）
+      // 追加 tool 消息（OpenAI 格式，含 tool_call_id）
       for (let i = 0; i < combined.toolResults.length; i++) {
         const tr = combined.toolResults[i]!;
-        const tc = limitedToolCalls[i];
+        const stored = combined.storedCalls[i];
+        const toolCallId = stored?.id ?? limitedToolCalls[i]?.id;
+        if (!toolCallId) continue;
         messages.push({
           role: 'tool',
+          tool_call_id: toolCallId,
           content: JSON.stringify({
             success: tr.success,
             data: tr.data,
             error: tr.error,
             message: tr.message,
           }),
-          ...({ tool_call_id: tc?.id } as unknown as Record<string, unknown>),
-        });
+        } as unknown as { role: string; content: string });
       }
 
       // pending（等待用户批准）→ 终止循环
@@ -377,19 +385,35 @@ export async function executeAgent(
       }
     }
 
-    // 最后一轮：批量总结（无 tools）
+    // 工具链结束后：若模型未产出正文，再补一轮无 tools 总结
     const summarizable = allExecuted
       .map((e) => e.result)
       .filter((r) => !(r.data && typeof r.data === 'object' && (r.data as { pending?: boolean }).pending));
-    if (summarizable.length > 0) {
-      await continueWithToolResults(
+    if (summarizable.length > 0 && !lastRoundText.trim()) {
+      const summaryText = await continueWithToolResults(
         messages,
-        summarizable,
         conversationId,
         model,
         thinking,
         send,
       );
+      if (summaryText.trim()) {
+        lastRoundText = summaryText;
+      }
+    }
+
+    // LLM 总结失败时：read_knowledge 等工具结果确定性兜底
+    if (!lastRoundText.trim() && allExecuted.length > 0) {
+      const fallback = synthesizeAnswerFromTools(allExecuted);
+      if (fallback) {
+        send('text', { delta: fallback });
+        await addMessage({
+          conversationId,
+          role: 'assistant',
+          content: fallback,
+        });
+        lastRoundText = fallback;
+      }
     }
 
     // 非思考模式下冲洗残留缓冲
@@ -534,37 +558,19 @@ async function runAgentRound(opts: {
   return { content: fullContent, toolCalls }
 }
 
-/** 工具执行后一次性总结所有结果（单次 AI 调用） */
+/** 工具执行后：基于已有 tool 消息，补一轮无 tools 的自然语言回答 */
 async function continueWithToolResults(
   messages: { role: string; content: string }[],
-  toolResults: ToolResult[],
   conversationId: string,
   model?: string,
   thinking?: boolean,
   send?: EventSender,
-): Promise<void> {
-  // 添加工具调用和结果到消息列表
-  messages.push({
-    role: 'assistant',
-    content: `[工具调用] ${toolResults.map((t) => t.message).join(' ')}`,
-  });
-
-  for (const tr of toolResults) {
-    messages.push({
-      role: 'tool',
-      content: JSON.stringify({
-        success: tr.success,
-        data: tr.data,
-        error: tr.error,
-        message: tr.message,
-      }),
-    });
-  }
-
+): Promise<string> {
+  // messages 已含 assistant tool_calls + tool 结果，勿重复注入
   messages.push({
     role: 'user',
     content:
-      '请根据以上工具执行结果，用自然语言向用户总结发生了什么。若已跳转页面则说明正在打开；若未能完成跳转不要声称已打开。保持简洁友好，使用简体中文。',
+      '请根据以上工具执行结果，用自然语言直接回答用户最初的问题。若 read_knowledge 返回了 data 字段，请提炼要点作答，不要只说「已查阅」。使用 Markdown 排版（标题、列表、表格），类似 ChatGPT 网页版。保持简洁友好，使用简体中文。',
   });
 
   const selectedModel = model || config.aiModel
@@ -600,11 +606,11 @@ async function continueWithToolResults(
 
     if (!aiRes.ok) {
       send?.('error', { message: `总结调用失败: ${aiRes.status}` });
-      return;
+      return '';
     }
 
     const reader = aiRes.body?.getReader();
-    if (!reader) return;
+    if (!reader) return '';
 
     let summaryContent = '';
 
@@ -621,14 +627,17 @@ async function continueWithToolResults(
       },
     });
 
-    // 保存总结消息
-    await addMessage({
-      conversationId,
-      role: 'assistant',
-      content: summaryContent,
-    });
+    if (summaryContent.trim()) {
+      await addMessage({
+        conversationId,
+        role: 'assistant',
+        content: summaryContent,
+      });
+    }
+    return summaryContent;
   } catch (e: any) {
     console.error('[Agent] continueWithToolResults error:', e.message);
     send?.('error', { message: '工具结果总结失败' });
+    return '';
   }
 }

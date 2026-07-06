@@ -21,6 +21,17 @@ export const aiRouter = Router();
 
 // ── 辅助：发送错误并结束 SSE ──
 
+/**
+ * 合规（《生成式 AI 服务管理暂行办法》§12 / 《深度合成》§17）：
+ * 所有 AI 流式输出在首字节前必须发出 meta 事件，前端据此在内容上方展示"AI 生成"标识。
+ * isAIGenerated: true 是法定必填项；不依赖业务字段，前端无条件展示。
+ */
+function sseMeta(res: Response, extra: Record<string, unknown> = {}) {
+  res.write(
+    `event: meta\ndata: ${JSON.stringify({ isAIGenerated: true, ...extra })}\n\n`,
+  );
+}
+
 function sseError(res: Response, message: string) {
   res.write(`event: error\ndata: ${JSON.stringify({ message })}\n\n`);
   res.end();
@@ -180,6 +191,7 @@ aiRouter.post('/discover-stream', async (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
+    sseMeta(res, { source: 'discover-stream' });
 
     const fullContent = await chatCompletionStream({
       messages: [
@@ -233,6 +245,7 @@ aiRouter.post('/discover-classify-stream', async (req: Request, res: Response) =
         res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Connection', 'keep-alive')
         res.flushHeaders()
+        sseMeta(res, { source: 'discover-classify-stream', classifiedLocally: true })
 
         const result = {
           keywords: localMatch.labels,
@@ -260,6 +273,7 @@ aiRouter.post('/discover-classify-stream', async (req: Request, res: Response) =
       res.setHeader('Cache-Control', 'no-cache')
       res.setHeader('Connection', 'keep-alive')
       res.flushHeaders()
+      sseMeta(res, { source: 'discover-classify-stream', classifiedLocally: false })
 
       const result = {
         keywords: [message],
@@ -387,6 +401,7 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
     res.flushHeaders()
+    sseMeta(res, { source: 'analyze-demand-stream' })
 
     const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
       method: 'POST',
@@ -536,6 +551,7 @@ ${thinkModeEnabled ? '\n【要求】将你的推理分析过程放在 <think>...
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
     res.flushHeaders()
+    sseMeta(res, { source: 'agent-demand-stream' })
 
     // 使用 agentStream 处理流式 + 工具调用
     await agentStream({
