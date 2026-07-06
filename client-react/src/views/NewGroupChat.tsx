@@ -6,7 +6,15 @@ import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
 import { messageApi } from '@/api/message'
 import { toast } from '@/components/ui/confirm-dialog'
-import { PageHeader } from '@/components/layout/PageHeader'
+import {
+  DesktopPageShell,
+  DlpGlass,
+  DlpGlassHead,
+  DlpGlassBody,
+  DlpBtnPrimary,
+  DlpBtnGhost,
+} from '@/components/layout/desktop-page'
+
 interface Contact {
   id: string
   nickname: string
@@ -69,8 +77,7 @@ export default function NewGroupChat() {
     if (selected.length === 0 || creating) return
     setCreating(true)
     try {
-      const name =
-        groupName.trim() || selected.map((s) => s.nickname).join('、')
+      const name = groupName.trim() || selected.map((s) => s.nickname).join('、')
       const res = await messageApi.createMerge(
         name,
         selected.map((s) => s.id),
@@ -83,133 +90,120 @@ export default function NewGroupChat() {
   }
 
   return (
-    <div className="internal-shell flex h-full min-h-0 w-full min-w-0 flex-col bg-bg-primary text-text-primary">
-      <div className="shrink-0 px-4 pt-3">
-        <PageHeader
-          title="发起群聊"
-          onBack="back"
-          divider
-          className="mb-0 border-b border-border pb-3"
-          actions={
-            <button
-              type="button"
-              disabled={selected.length === 0}
-              onClick={handleDone}
-              className="text-sm font-semibold text-[var(--primary-start)] disabled:opacity-30"
-            >
-              {selected.length <= 1 ? '完成' : `下一步(${selected.length})`}
-            </button>
-          }
-        />
-      </div>
-
-      {/* 搜索 + 已选 */}
-      <div className="shrink-0 border-b border-border bg-bg-secondary px-4 pb-3 pt-3">
-        <div className="relative">
-          <MsIcon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜索"
-            className="w-full rounded-lg border border-border bg-card py-2 pl-10 pr-3 text-sm text-text-primary placeholder:text-text-muted outline-none"
-          />
-        </div>
-        {selected.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {selected.map((c) => (
-              <span
-                key={c.id}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-[var(--primary-start)]/15 px-3 py-1.5 text-sm font-medium text-[var(--primary-start)]"
-                onClick={() => toggle(c)}
-              >
-                {c.nickname}
-                <MsIcon name="close" size={14} />
-              </span>
-            ))}
+    <DesktopPageShell
+      title="发起群聊"
+      subtitle="选择联系人创建合并会话"
+      flush
+      actions={
+        <DlpBtnPrimary onClick={handleDone} disabled={selected.length === 0}>
+          {selected.length <= 1 ? '完成' : `下一步 (${selected.length})`}
+        </DlpBtnPrimary>
+      }
+    >
+      <div className="dlp-split dlp-split--group min-h-[480px]">
+        <div className="flex min-h-0 flex-col">
+          <div className="dlp-search-row !mb-4">
+            <input
+              className="dlp-input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜索联系人"
+            />
           </div>
-        )}
+
+          <DlpGlass className="min-h-0 flex-1 overflow-hidden">
+            <div className="thin-scroll max-h-[520px] overflow-y-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                {filtered.map((c) => {
+                  const isSel = !!selected.find((x) => x.id === c.id)
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggle(c)}
+                      className={cn(
+                        'flex items-center gap-3 border-b border-[var(--wallet-divider)] px-4 py-3 text-left transition-colors hover:bg-[var(--wallet-row-hover)]',
+                        isSel && 'bg-[color-mix(in_srgb,var(--price-foreground)_8%,transparent)]',
+                      )}
+                    >
+                      <div className="dlp-avatar !size-10">
+                        {c.avatarUrl ? (
+                          <img src={c.avatarUrl} alt="" />
+                        ) : (
+                          c.nickname.charAt(0)
+                        )}
+                      </div>
+                      <span className="flex-1 text-base text-text-primary">{c.nickname}</span>
+                      <div
+                        className={cn(
+                          'flex size-5 shrink-0 items-center justify-center rounded border-2',
+                          isSel
+                            ? 'border-[var(--price-foreground)] bg-[var(--price-foreground)]'
+                            : 'border-[var(--wallet-glass-border)]',
+                        )}
+                      >
+                        {isSel && <MsIcon name="check" size={12} className="text-[var(--wallet-on-accent)]" />}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </DlpGlass>
+        </div>
+
+        <aside>
+          <DlpGlass className="flex h-full flex-col">
+            <DlpGlassHead title="已选成员" subtitle={`${selected.length} 人`} />
+            <DlpGlassBody className="min-h-[200px] flex-1">
+              {selected.length === 0 ? (
+                <p className="text-sm text-text-muted">从左侧列表选择联系人</p>
+              ) : (
+                <div className="dlp-tag-grid">
+                  {selected.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggle(c)}
+                      className="dlp-tag dlp-tag--on"
+                    >
+                      {c.nickname}
+                      <MsIcon name="close" size={14} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </DlpGlassBody>
+          </DlpGlass>
+        </aside>
       </div>
 
-      {/* 联系人列表 */}
-      <div className="thin-scroll min-h-0 flex-1 overflow-y-auto">
-        {filtered.map((c) => {
-          const isSel = !!selected.find((x) => x.id === c.id)
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => toggle(c)}
-              className="flex w-full items-center gap-3 border-b border-border/50 px-4 py-3 text-left active:bg-bg-secondary"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-bg-tertiary text-sm font-bold text-text-secondary">
-                {c.avatarUrl ? (
-                  <img
-                    src={c.avatarUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  c.nickname.charAt(0)
-                )}
-              </div>
-              <span className="flex-1 text-[15px] text-text-primary">
-                {c.nickname}
-              </span>
-              <div
-                className={cn(
-                  'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
-                  isSel
-                    ? 'border-[var(--primary-start)] bg-[var(--primary-start)]'
-                    : 'border-border',
-                )}
-              >
-                {isSel && (
-                  <MsIcon name="check" size={12} className="text-white" />
-                )}
-              </div>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* 群名弹窗 */}
       {showNameDialog && (
-        <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center">
+        <div className="dlp-modal-backdrop">
           <div
-            className="absolute inset-0 bg-background/70"
+            className="absolute inset-0"
             onClick={() => setShowNameDialog(false)}
           />
-          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-2xl">
-            <h2 className="text-center text-lg font-bold text-text-primary">
-              设置群聊名称
-            </h2>
+          <div className="dlp-glass dlp-modal relative z-10">
+            <h3>设置群聊名称</h3>
             <input
+              className="dlp-input mt-4 w-full"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              placeholder="输入群聊名称"
+              placeholder="输入群聊名称（可选）"
               autoFocus
-              className="mt-4 w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none focus:border-[var(--primary-start)]"
             />
             <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowNameDialog(false)}
-                className="flex-1 rounded-lg border border-border py-2 text-sm text-text-secondary"
-              >
+              <DlpBtnGhost onClick={() => setShowNameDialog(false)} className="flex-1">
                 取消
-              </button>
-              <button
-                type="button"
-                disabled={creating}
-                onClick={createGroup}
-                className="flex-1 rounded-lg bg-[var(--primary-start)] py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
+              </DlpBtnGhost>
+              <DlpBtnPrimary onClick={createGroup} disabled={creating} className="flex-1">
                 {creating ? '创建中…' : '创建'}
-              </button>
+              </DlpBtnPrimary>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </DesktopPageShell>
   )
 }

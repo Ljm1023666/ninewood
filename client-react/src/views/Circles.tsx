@@ -4,18 +4,14 @@ import { circleApi } from '@/api/circle'
 import { cn } from '@/lib/utils'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { PageHeader } from '@/components/layout/PageHeader'
+import { SegmentedFilter } from '@/components/layout/internal-ui'
 import {
-  InternalPageShell,
-  InternalContentBlock,
-  SegmentedFilter,
-  SettingsInput,
-  StatusChip,
-} from '@/components/layout/internal-ui'
-import { ListItemCard } from '@/components/ui/list-item-card'
-import { EmptyState } from '@/components/ui/empty-state'
+  DesktopPageShell,
+  DlpGlass,
+  DlpBadge,
+  DlpEmpty,
+  DlpBtnPrimary,
+} from '@/components/layout/desktop-page'
 import { LoadingState } from '@/components/ui/loading-state'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
@@ -48,43 +44,36 @@ function CircleListItem({
   description,
   memberCount,
   badge,
-  badgeTone = 'blue',
+  badgeTone = 'default',
   onNavigate,
 }: {
   name: string
   description?: string | null
   memberCount: number
   badge: string
-  badgeTone?: 'blue' | 'green' | 'amber'
+  badgeTone?: 'default' | 'gold' | 'success'
   onNavigate: () => void
 }) {
-  const chipClass =
-    badgeTone === 'green'
-      ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300'
-      : badgeTone === 'amber'
-        ? 'border-amber-500/35 bg-amber-500/10 text-amber-300'
-        : 'border-[var(--internal-accent)]/35 bg-[var(--internal-accent)]/10 text-blue-300'
-
   return (
-    <ListItemCard variant="internal" onClick={onNavigate} className="p-4">
-      <div className="relative z-[1] flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-4">
-          <h2 className="min-w-0 flex-1 text-lg font-semibold tracking-wide text-text-primary">
-            {name}
-          </h2>
-          <StatusChip label={badge} className={chipClass} />
-        </div>
-        <div className="flex items-end justify-between gap-4">
-          <span className="line-clamp-1 text-sm text-text-secondary">
+    <button type="button" className="dlp-record-row" onClick={onNavigate}>
+      <div className="flex items-start justify-between gap-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="dlp-record-row__title truncate">{name}</h2>
+            <DlpBadge tone={badgeTone} rect>
+              {badge}
+            </DlpBadge>
+          </div>
+          <p className="dlp-record-row__meta line-clamp-2">
             {description?.trim() || '暂无简介'}
-          </span>
-          <span className="flex shrink-0 items-center gap-1 font-mono text-xs uppercase tracking-wider text-text-muted">
-            <MsIcon name={STITCH_PAGE_ICONS.circles} size={14} aria-hidden />
-            {memberCount}人
-          </span>
+          </p>
         </div>
+        <span className="dlp-record-row__aside flex items-center gap-1.5">
+          <MsIcon name={STITCH_PAGE_ICONS.circles} size={18} aria-hidden />
+          {memberCount} 人
+        </span>
       </div>
-    </ListItemCard>
+    </button>
   )
 }
 
@@ -153,7 +142,7 @@ export default function Circles() {
             description: c?.description,
             memberCount: c?._count?.members ?? 1,
             badge: roleLabel[m.role] ?? m.role,
-            badgeTone: 'blue' as const,
+            badgeTone: 'gold' as const,
           }
         })
       : circles.map((c) => ({
@@ -163,101 +152,106 @@ export default function Circles() {
           description: c.description,
           memberCount: c._count?.members ?? 0,
           badge: '公开',
-          badgeTone: 'green' as const,
+          badgeTone: 'success' as const,
         }))
 
   return (
-    <InternalPageShell width="medium">
-      <PageHeader
-        title="圈子"
-        subtitle="加入志同道合的圈子，交流经验、分享资源、找到合作机会"
-        onBack="back"
-        actions={
-          <div className="flex items-center gap-3">
-            <LiquidMetalButton
-              viewMode="icon"
-              icon={
-                <MsIcon
-                  name="refresh"
-                  size={16}
-                  className={cn(loading && 'animate-spin')}
-                  aria-hidden
-                />
-              }
-              aria-label="刷新"
-              disabled={loading}
-              onClick={() => void fetchCircles()}
-            />
-            <LiquidMetalButton
-              label="创建圈子"
-              onClick={() => setShowCreate(true)}
-            />
-          </div>
-        }
+    <DesktopPageShell
+      title="圈子"
+      subtitle="加入志同道合的圈子，交流经验、分享资源、找到合作机会"
+      actions={
+        <div className="flex items-center gap-3">
+          <LiquidMetalButton
+            viewMode="icon"
+            icon={
+              <MsIcon
+                name="refresh"
+                size={16}
+                className={cn(loading && 'animate-spin')}
+                aria-hidden
+              />
+            }
+            aria-label="刷新"
+            disabled={loading}
+            onClick={() => void fetchCircles()}
+          />
+          <LiquidMetalButton label="创建圈子" onClick={() => setShowCreate(true)} />
+        </div>
+      }
+    >
+      <SegmentedFilter
+        className="mb-6"
+        size="large"
+        options={[
+          { value: 'mine', label: `我的圈子 (${myCircles.length})` },
+          { value: 'discover', label: `发现圈子 (${circles.length})` },
+        ]}
+        value={tab}
+        onChange={setTab}
       />
 
-      <InternalContentBlock>
-        <SegmentedFilter
-          options={[
-            { value: 'mine', label: `我的圈子 (${myCircles.length})` },
-            { value: 'discover', label: `发现圈子 (${circles.length})` },
-          ]}
-          value={tab}
-          onChange={setTab}
-        />
-
-        {error ? (
-          <EmptyState
-            variant="internal"
-            type="circle"
-            message={error}
-            actionLabel="重试"
-            onAction={() => void fetchCircles()}
+      {error ? (
+        <DlpGlass>
+          <DlpEmpty
+            icon={<MsIcon name="error_outline" size={48} />}
+            title="加载失败"
+            description={error}
+            action={<DlpBtnPrimary onClick={() => void fetchCircles()}>重试</DlpBtnPrimary>}
           />
-        ) : null}
+        </DlpGlass>
+      ) : null}
 
-        {loading && !error ? <LoadingState variant="internal" lines={4} /> : null}
+      {loading && !error ? <LoadingState variant="internal" lines={4} /> : null}
 
-        {!loading && !error && activeList.length > 0 ? (
-          <div className="flex w-full flex-col gap-3">
-            {activeList.map((item) => (
-              <CircleListItem
-                key={item.key}
-                name={item.name}
-                description={item.description}
-                memberCount={item.memberCount}
-                badge={item.badge}
-                badgeTone={item.badgeTone}
-                onNavigate={() => navigate(`/circles/${item.id}`)}
-              />
-            ))}
-          </div>
-        ) : null}
+      {!loading && !error && activeList.length > 0 ? (
+        <div className="dlp-record-table">
+          {activeList.map((item) => (
+            <CircleListItem
+              key={item.key}
+              name={item.name}
+              description={item.description}
+              memberCount={item.memberCount}
+              badge={item.badge}
+              badgeTone={item.badgeTone}
+              onNavigate={() => navigate(`/circles/${item.id}`)}
+            />
+          ))}
+        </div>
+      ) : null}
 
-        {!loading && !error && activeList.length === 0 ? (
-          tab === 'mine' ? (
-            <EmptyState
-              variant="internal"
-              type="circle"
-              message="还没有加入圈子。去发现页面浏览公开圈子吧。"
-              actionLabel="发现圈子"
-              onAction={() => setTab('discover')}
+      {!loading && !error && activeList.length === 0 ? (
+        <DlpGlass>
+          {tab === 'mine' ? (
+            <DlpEmpty
+              icon={<MsIcon name="groups" size={48} />}
+              title="未加入圈子"
+              description="还没有加入圈子。去发现页面浏览公开圈子吧。"
+              action={
+                <LiquidMetalButton
+                  label="发现圈子"
+                  onClick={() => setTab('discover')}
+                />
+              }
             />
           ) : (
-            <EmptyState
-              variant="internal"
-              type="circle"
-              message="还没有人创建圈子，成为第一个吧。"
-              actionLabel="创建圈子"
-              onAction={() => setShowCreate(true)}
+            <DlpEmpty
+              icon={<MsIcon name="groups" size={48} />}
+              title="暂无公开圈子"
+              description="还没有人创建圈子，成为第一个吧。"
+              action={
+                <LiquidMetalButton
+                  label="创建圈子"
+                  onClick={() => setShowCreate(true)}
+                />
+              }
             />
-          )
-        ) : null}
-      </InternalContentBlock>
+          )}
+        </DlpGlass>
+      ) : null}
 
       {showCreate ? (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-[2px] sm:items-center sm:p-6"
+          className="dlp-modal-backdrop"
           role="presentation"
           onClick={() => !createBusy && setShowCreate(false)}
         >
@@ -265,49 +259,45 @@ export default function Circles() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="circles-create-title"
-            className="settings-panel max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[var(--internal-radius)] sm:rounded-[var(--internal-radius)]"
+            className="dlp-glass dlp-modal max-h-[90vh] overflow-y-auto thin-scroll"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="border-b border-[var(--internal-hairline)] px-6 py-5">
-              <h2
-                id="circles-create-title"
-                className="text-lg font-semibold tracking-wide text-text-primary"
-              >
-                创建圈子
-              </h2>
-              <p className="mt-1 text-sm text-text-muted">
-                创建一个圈子，邀请志同道合的朋友加入
-              </p>
+            <h3 id="circles-create-title">创建圈子</h3>
+            <p className="mb-5 text-sm text-text-muted">
+              创建一个圈子，邀请志同道合的朋友加入
+            </p>
+            <div className="dlp-field">
+              <label className="dlp-label" htmlFor="circle-name">
+                圈子名称
+              </label>
+              <input
+                id="circle-name"
+                className="dlp-input"
+                value={createForm.name}
+                onChange={(e) => setCreateForm((p) => ({ ...p, name: e.target.value }))}
+                placeholder="给圈子取个名字"
+              />
             </div>
-            <div className="space-y-4 px-6 py-5">
-              <div className="space-y-2">
-                <Label htmlFor="circle-name">圈子名称</Label>
-                <SettingsInput
-                  value={createForm.name}
-                  onChange={(v) => setCreateForm((p) => ({ ...p, name: v }))}
-                  placeholder="给圈子取个名字"
-                  className="w-full"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="circle-desc">圈子简介</Label>
-                <Textarea
-                  id="circle-desc"
-                  value={createForm.description}
-                  onChange={(e) =>
-                    setCreateForm((p) => ({
-                      ...p,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="介绍一下这个圈子"
-                  rows={4}
-                  className="resize-none border-[var(--internal-hairline)] bg-transparent text-text-primary"
-                  maxLength={500}
-                />
-              </div>
+            <div className="dlp-field">
+              <label className="dlp-label" htmlFor="circle-desc">
+                圈子简介
+              </label>
+              <textarea
+                id="circle-desc"
+                className="dlp-textarea"
+                value={createForm.description}
+                onChange={(e) =>
+                  setCreateForm((p) => ({
+                    ...p,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="介绍一下这个圈子"
+                rows={4}
+                maxLength={500}
+              />
             </div>
-            <div className="flex justify-end gap-3 border-t border-[var(--internal-hairline)] px-6 py-4">
+            <div className="mt-2 flex justify-end gap-3">
               <LiquidMetalButton
                 label="取消"
                 disabled={createBusy}
@@ -322,6 +312,6 @@ export default function Circles() {
           </div>
         </div>
       ) : null}
-    </InternalPageShell>
+    </DesktopPageShell>
   )
 }

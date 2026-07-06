@@ -1,233 +1,132 @@
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'motion/react'
-import { ContainerScroll, CardSticky } from '@/components/ui/sticky-scroll'
-import { LiquidGlassCard } from '@/components/ui/liquid-weather-glass'
-import { useThemeStore } from '@/stores/theme'
-import { certLabel, certColor, certGlow } from '@/constants/cert'
-import { cn } from '@/lib/utils'
-import { AcetGradientButton } from '@/components/ui/tailwindcss-buttons-variants'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { InternalPageShell } from '@/components/layout/internal-ui'
+import {
+  DesktopPageShell,
+  DlpGlass,
+  DlpGlassHead,
+  DlpBtnPrimary,
+} from '@/components/layout/desktop-page'
 import { MsIcon } from '@/components/ui/ms-icon'
-import { STITCH_PROFILE_ICONS } from '@/constants/stitch-icons'
 
-const levels = ['NONE', 'BASIC', 'INTERMEDIATE', 'ADVANCED', 'MASTER'] as const
+const tiers = [
+  { dim: '单次抢单额度', none: '$500', basic: '$5K', advanced: '$50K+' },
+  { dim: '技术服务费', none: '20%', basic: '15%', advanced: '5%' },
+  { dim: '专属标识', none: 'close', basic: 'check', advanced: 'verified' },
+  { dim: '专家社群', none: 'close', basic: 'remove', advanced: 'check' },
+] as const
 
-const levelInfo: Record<
-  string,
-  { req: string; perks: string[]; desc: string }
-> = {
-  NONE: {
-    req: '注册即获得',
-    desc: '新用户的起点，可以浏览需求和发布需求，开始你的服务平台之旅。',
-    perks: ['浏览所有需求', '发布服务需求', '查看用户主页'],
+const features = [
+  {
+    title: '信誉保障',
+    desc: '实名认证与订单履约记录，建立可信赖的服务身份。',
+    icon: 'verified_user',
   },
-  BASIC: {
-    req: '完成 5 笔订单 + 信誉 ≥ 60',
-    desc: '迈出接单第一步。获得基础的抢单能力，开始积累你的服务口碑。',
-    perks: ['申请接单', '积分兑换', '基础搜索曝光'],
+  {
+    title: '抢单额度',
+    desc: '等级越高，每月可主动抢占的需求越多。',
+    icon: 'bolt',
   },
-  INTERMEDIATE: {
-    req: '完成 20 笔订单 + 信誉 ≥ 70',
-    desc: '中级服务者，解锁抢单权限。可以主动抢占心仪的需求，更快获取订单。',
-    perks: ['抢单权限（每月3次）', '优先搜索排名', '创建私有圈子'],
+  {
+    title: '专属标识',
+    desc: '个人主页与搜索结果展示认证徽章，提升曝光。',
+    icon: 'workspace_premium',
   },
-  ADVANCED: {
-    req: '完成 50 笔订单 + 信誉 ≥ 80',
-    desc: '高级服务者，获得平台信任背书。享受更高的曝光率和更多特权。',
-    perks: [
-      '抢单额度提升（每月5次）',
-      '首页推荐位',
-      '申请公开圈子',
-      '高级认证标识',
-    ],
-  },
-  MASTER: {
-    req: '完成 100 笔订单 + 信誉 ≥ 90',
-    desc: '平台顶级服务者，行业标杆。享有全平台最高权重和最完整的权限体系。',
-    perks: [
-      '无限抢单次数',
-      '全站置顶推荐',
-      '创建公开圈子免审核',
-      '专属客服通道',
-      '大师徽章展示',
-    ],
-  },
+] as const
+
+const bullets = [
+  '全球公认的开发者认证标识 (Verified Status)',
+  '单次任务抢单额度提升至 $50k+',
+  '专属技术架构师 1对1 优先级支持',
+] as const
+
+function TierCell({ value }: { value: string }) {
+  if (value === 'close') {
+    return <MsIcon name="close" size={16} className="text-error" />
+  }
+  if (value === 'check') {
+    return <MsIcon name="check" size={16} className="text-[var(--success-color)]" />
+  }
+  if (value === 'verified') {
+    return <MsIcon name="verified" size={16} className="text-[var(--price-foreground)]" />
+  }
+  if (value === 'remove') {
+    return <MsIcon name="remove" size={16} className="text-text-muted opacity-50" />
+  }
+  return <span className={value.includes('50') ? 'dlp-table__gold text-sm font-bold' : 'text-sm'}>{value}</span>
 }
 
 export default function CertIntro() {
   const navigate = useNavigate()
-  const isDark = useThemeStore((s) => s.current.dark)
-  const tPrimary = isDark ? 'text-white' : 'text-text-primary'
-  const tSecondary = isDark ? 'text-white/70' : 'text-text-secondary'
-  const tMuted = isDark ? 'text-white/50' : 'text-text-muted'
+
   return (
-    <InternalPageShell width="narrow" contentClassName="pb-0">
-      <PageHeader
-        title="层层进阶，解锁更多能力"
-        subtitle="从新手到大师，5 个认证等级，每升一级解锁更强权限。"
-        onBack="back"
-        divider={false}
-        className="mb-2"
-      />
+    <DesktopPageShell
+      title="认证体系"
+      subtitle="从新手到大师，逐级解锁抢单额度、搜索曝光与圈子权限"
+    >
+      <div className="dlp-hero-split">
+        <div className="dlp-hero-copy">
+          <p className="dlp-eyebrow">NINEWOOD CERTIFICATION</p>
+          <h2>
+            开启你的
+            <br />
+            <span className="text-[var(--price-foreground)]">技术身份认证</span>
+          </h2>
+          <p>
+            解锁精英开发者的专属权限与抢单额度。通过 Ninewood 权威认证，展示您的专业高度。
+          </p>
+          <ul className="dlp-hero-list">
+            {bullets.map((text) => (
+              <li key={text}>
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[rgba(212,175,55,0.3)]">
+                  <MsIcon name="check_circle" size={14} className="text-[var(--price-foreground)]" />
+                </span>
+                {text}
+              </li>
+            ))}
+          </ul>
+          <DlpBtnPrimary className="mt-8 !px-10 !py-4" onClick={() => navigate('/cert-center')}>
+            立即开始认证
+          </DlpBtnPrimary>
+        </div>
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className={cn(
-          'mb-4 flex items-center justify-center gap-2 text-sm font-semibold uppercase tracking-wider',
-          tMuted,
-        )}
-      >
-        <MsIcon name="verified_user" size={14} className="text-foreground" aria-hidden />
-        认证体系
-      </motion.p>
-
-      {/* 等级说明（保留叠卡展示，不改动卡片本体） */}
-      <ContainerScroll className="pb-40">
-        {levels.map((level, i) => {
-          const color = certColor[level]
-          const info = levelInfo[level]
-          const targetScale = 1 - (levels.length - i) * 0.03
-
-          return (
-            <CardSticky
-              key={level}
-              index={i}
-              incrementY={20}
-              incrementZ={15 - i * 2}
-            >
+        <DlpGlass gold>
+          <DlpGlassHead title="等级权益对比" />
+          <div className="dlp-glass__body !pt-0">
+            <div className="grid grid-cols-5 gap-2 border-b border-[var(--wallet-divider)] pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
+              <div className="col-span-2">维度</div>
+              <div className="text-center">未认证</div>
+              <div className="text-center">初级</div>
+              <div className="text-center text-[var(--price-foreground)]">高级</div>
+            </div>
+            {tiers.map((row) => (
               <div
-                style={{
-                  transform: `scale(${targetScale})`,
-                  transformOrigin: 'center top',
-                }}
+                key={row.dim}
+                className="grid grid-cols-5 gap-2 border-b border-[var(--wallet-divider)] py-4 last:border-b-0 hover:bg-white/[0.03]"
               >
-                <LiquidGlassCard
-                  draggable
-                  shadowIntensity="sm"
-                  glowIntensity={
-                    level === 'MASTER'
-                      ? 'lg'
-                      : level === 'ADVANCED'
-                        ? 'md'
-                        : 'sm'
-                  }
-                  borderRadius="24px"
-                  className={`relative overflow-visible p-6 ${tPrimary}`}
-                >
-                  {/* 电光边框 */}
-                  <div
-                    className="pointer-events-none absolute -inset-[2px] rounded-[26px]"
-                    style={{
-                      background: `conic-gradient(from 0deg, transparent 0deg, ${color} 60deg, ${color}88 120deg, transparent 180deg, ${color}44 240deg, transparent 360deg)`,
-                      zIndex: -1,
-                      opacity: 0.7,
-                    }}
-                  />
-
-                  {/* 等级徽章 */}
-                  <div className="mb-4 flex items-center gap-3">
-                    <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold"
-                      style={{
-                        background: `${color}22`,
-                        boxShadow: certGlow[level],
-                        color,
-                      }}
-                    >
-                      {i + 1}
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-extrabold" style={{ color }}>
-                        {certLabel[level]}
-                      </h2>
-                      <p
-                        className={cn(
-                          'text-sm',
-                          isDark ? 'text-white/40' : 'text-text-muted',
-                        )}
-                      >
-                        {info.req}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 描述 */}
-                  <p className={`mb-5 text-sm leading-relaxed ${tSecondary}`}>
-                    {info.desc}
-                  </p>
-
-                  {/* 权限列表 */}
-                  <div className="space-y-2">
-                    {info.perks.map((perk, j) => (
-                      <motion.div
-                        key={j}
-                        initial={{ opacity: 0, x: -12 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: j * 0.1 }}
-                        viewport={{ once: true }}
-                        className={cn(
-                          'flex items-center gap-3 rounded-xl p-3',
-                          isDark ? 'bg-white/[0.04]' : 'bg-bg-secondary/35',
-                        )}
-                      >
-                        <div
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                          style={{ background: `${color}18`, color }}
-                        >
-                          {j === 0 ? (
-                            <MsIcon name={STITCH_PROFILE_ICONS.bolt} size={12} />
-                          ) : j === 1 ? (
-                            <MsIcon name={STITCH_PROFILE_ICONS.star} size={12} />
-                          ) : j === 2 ? (
-                            <MsIcon name={STITCH_PROFILE_ICONS.group} size={12} />
-                          ) : (
-                            <MsIcon name={STITCH_PROFILE_ICONS.cert} size={12} />
-                          )}
-                        </div>
-                        <span
-                          className={cn(
-                            'text-sm',
-                            isDark ? 'text-white/80' : 'text-text-primary',
-                          )}
-                        >
-                          {perk}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </LiquidGlassCard>
+                <div className="col-span-2 text-sm text-text-primary">{row.dim}</div>
+                <div className="flex justify-center">
+                  <TierCell value={row.none} />
+                </div>
+                <div className="flex justify-center">
+                  <TierCell value={row.basic} />
+                </div>
+                <div className="flex justify-center">
+                  <TierCell value={row.advanced} />
+                </div>
               </div>
-            </CardSticky>
-          )
-        })}
+            ))}
+          </div>
+        </DlpGlass>
+      </div>
 
-        {/* 底部：前往认证中心 */}
-        <CardSticky index={levels.length} incrementY={20} incrementZ={0}>
-          <LiquidGlassCard
-            draggable
-            shadowIntensity="sm"
-            glowIntensity="md"
-            borderRadius="24px"
-            className={`p-8 text-center ${tPrimary}`}
-          >
-            <MsIcon name={STITCH_PROFILE_ICONS.cert} size={40} className="mx-auto mb-4 text-foreground" />
-            <h2 className="mb-2 text-xl font-bold">准备好了吗？</h2>
-            <p className={`mb-6 text-sm ${tMuted}`}>
-              前往认证中心查看你的当前进度
-            </p>
-            <AcetGradientButton
-              type="button"
-              onClick={() => navigate('/cert-center')}
-              className="inline-flex items-center gap-2 !rounded-xl !px-6 !py-3 !text-sm font-semibold"
-            >
-              进入认证中心
-              <MsIcon name="arrow_forward" size={16} />
-            </AcetGradientButton>
-          </LiquidGlassCard>
-        </CardSticky>
-      </ContainerScroll>
-    </InternalPageShell>
+      <div className="dlp-feature-grid">
+        {features.map((f) => (
+          <DlpGlass key={f.title} className="dlp-feature">
+            <MsIcon name={f.icon} size={32} className="text-[var(--price-foreground)]" />
+            <h3>{f.title}</h3>
+            <p>{f.desc}</p>
+          </DlpGlass>
+        ))}
+      </div>
+    </DesktopPageShell>
   )
 }

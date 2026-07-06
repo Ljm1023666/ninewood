@@ -1,21 +1,32 @@
 import { useState, useEffect, useCallback } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
-import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  InternalPageShell,
-  InternalContentBlock,
-  InternalStatCard,
-  SettingsPanel,
-  SettingsInput,
-  SettingsActionButton,
-  StatusChip,
-} from '@/components/layout/internal-ui'
+  DesktopPageShell,
+  DlpGlass,
+  DlpGlassHead,
+  DlpGlassBody,
+  DlpStat,
+  DlpBtnPrimary,
+  DlpBadge,
+} from '@/components/layout/desktop-page'
 import { Link } from 'react-router-dom'
 import { welfareApi } from '@/api/welfare'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
+import { cn } from '@/lib/utils'
 
+/**
+ * 激励中心（原"公益中心"内测占位页）
+ *
+ * 监管说明（内测期 v0.1）：
+ * - 本功能为内测期占位页面，所展示的"激励点数"为模拟数据，不构成任何形式的
+ *   公益捐赠、慈善募捐或有奖销售承诺。
+ * - 根据《慈善法》《广告法》《反不正当竞争法》要求，本平台不在内测期开展任何
+ *   公开募捐、抽奖式有奖销售或公益资金拨付活动。
+ * - 商业化合规需在接入真实支付 / 真实资金流前完成（对接持牌慈善组织、
+ *   EDI 证、市场监管报备等），详见 docs/COMPLIANCE/。
+ */
 export default function WelfareCenter() {
   const me = useUserStore((s) => s.user)
   const [pool, setPool] = useState<any>(null)
@@ -45,7 +56,7 @@ export default function WelfareCenter() {
       const r = await welfareApi.fundPool(0)
       setPool(r.data?.data || {})
     } catch {
-      /* toast handled by axios */
+      /* axios */
     }
   }, [])
 
@@ -56,7 +67,7 @@ export default function WelfareCenter() {
       setTotalEarned(r.data?.data?.totalEarned || 0)
       setBadges(r.data?.data?.badges || [])
     } catch {
-      /* toast handled by axios */
+      /* axios */
     }
   }, [])
 
@@ -65,7 +76,7 @@ export default function WelfareCenter() {
       const r = await welfareApi.list()
       setWelfareDemands(r.data?.data?.items || [])
     } catch {
-      /* toast handled by axios */
+      /* axios */
     }
   }, [])
 
@@ -86,14 +97,8 @@ export default function WelfareCenter() {
         ...form,
         regionId: form.regionId ? Number(form.regionId) : undefined,
       })
-      setForm({
-        title: '',
-        description: '',
-        expectedOutcome: '',
-        minPrice: 100,
-        regionId: '',
-      })
-      toast('公益需求已发布', 'success')
+      setForm({ title: '', description: '', expectedOutcome: '', minPrice: 100, regionId: '' })
+      toast('激励任务已发布（内测）', 'success')
       loadWelfareDemands()
     } catch (e: any) {
       toast(e.response?.data?.message || '发布失败', 'error')
@@ -125,15 +130,11 @@ export default function WelfareCenter() {
       const res = await welfareApi.complete(completingFor.id, completeForm)
       const reward = (res.data as any)?.data?.reward
       if (reward) {
-        if (reward.type === 'monetary') {
-          toast(`公益奖励到账 ¥${reward.amount.toFixed(2)}`, 'success')
-        } else if (reward.type === 'spiritual') {
-          toast(`获得精神奖励：${reward.badge}`, 'success')
-        } else {
-          toast(`选奖成功：${reward.badge}`, 'success')
-        }
+        if (reward.type === 'monetary') toast(`模拟奖励到账 ¥${reward.amount.toFixed(2)}（测试数据）`, 'success')
+        else if (reward.type === 'spiritual') toast(`获得精神奖励：${reward.badge}`, 'success')
+        else toast(`选奖成功：${reward.badge}`, 'success')
       } else {
-        toast('公益需求已完成', 'success')
+        toast('任务已完成', 'success')
       }
       setCompletingFor(null)
       setCompleteForm({ finalPrice: 100, rewardMode: 'random', choiceLabel: '' })
@@ -145,250 +146,251 @@ export default function WelfareCenter() {
   }
 
   return (
-    <InternalPageShell width="narrow">
-      <PageHeader
-        title="公益中心"
-        subtitle="发布公益需求，帮助需要帮助的人。平台抽成 10% 全额投入公益资金池。"
-        onBack="back"
-      />
-
-      <InternalContentBlock>
-        <div className="grid grid-cols-2 gap-4">
-          {pool && (
-            <InternalStatCard
-              icon={<MsIcon name="volunteer_activism" size={24} />}
-              title="公益资金池"
-              description={`累计流入 ¥${pool.totalInflow?.toFixed(2) || '0.00'} · 累计支出 ¥${pool.totalOutflow?.toFixed(2) || '0.00'}`}
-              value={`¥${pool.balance?.toFixed(2) || '0.00'}`}
-            />
-          )}
-          <InternalStatCard
-            icon={<MsIcon name="workspace_premium" size={24} />}
-            title="我的贡献"
-            description={
-              totalEarned > 0
-                ? `累计奖励 ¥${totalEarned.toFixed(2)}`
-                : '参与公益服务，积累贡献记录'
-            }
-            value={totalEarned > 0 ? `¥${totalEarned.toFixed(2)}` : '—'}
+    <DesktopPageShell
+      title="激励中心（内测）"
+      subtitle="内测期激励功能占位：所有点数为模拟数据，不构成公益捐赠、慈善募捐或有奖销售承诺。"
+      density="compact"
+    >
+      <div className="dlp-stat-grid">
+        {pool && (
+          <DlpStat
+            label="激励池余额（模拟）"
+            value={`¥${pool.balance?.toFixed(2) || '0.00'}`}
+            gold
+            icon={<MsIcon name="volunteer_activism" size={40} />}
           />
-        </div>
-
-        {badges.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {[...new Set(badges)].map((b) => (
-              <StatusChip
-                key={b}
-                label={b}
-                className="border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted"
-              />
-            ))}
-          </div>
         )}
+        <DlpStat
+          label="我的累计（模拟）"
+          value={totalEarned > 0 ? `¥${totalEarned.toFixed(2)}` : '—'}
+          icon={<MsIcon name="workspace_premium" size={40} />}
+        />
+        <DlpStat
+          label="可认领任务"
+          value={String(welfareDemands.length)}
+          suffix="条"
+          icon={<MsIcon name="redeem" size={40} />}
+        />
+      </div>
 
-        <SettingsPanel>
-          <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
-            <p className="flex items-center gap-1.5 font-semibold text-text-primary">
-              <MsIcon name="redeem" size={14} />
-              可认领公益需求
-            </p>
-            <p className="mt-1 text-xs text-text-muted">服务者可点击「认领」加入，后续走两段式接单。</p>
-          </div>
+      {badges.length > 0 && (
+        <div className="dlp-tag-grid mb-6">
+          {[...new Set(badges)].map((b) => (
+            <DlpBadge key={b} tone="gold">{b}</DlpBadge>
+          ))}
+        </div>
+      )}
+
+      <div className="dlp-split dlp-split--60-40">
+        <DlpGlass>
+          <DlpGlassHead title="可认领激励任务" subtitle="内测演示：服务者点击「认领」后走两段式接单流程" />
           {welfareDemands.length === 0 ? (
-            <div className="px-6 py-8 text-center text-sm text-text-muted">
-              当前没有可认领的公益需求
-            </div>
+            <DlpGlassBody>
+              <p className="text-center text-sm text-text-muted">当前没有可认领的激励任务</p>
+            </DlpGlassBody>
           ) : (
-            <div className="flex flex-col">
-              {welfareDemands.map((d: any) => {
-                const isOwner = me?.id === d.user?.id
-                const claimed = claimedIds.has(d.id)
-                return (
-                  <div
-                    key={d.id}
-                    className="flex items-start justify-between gap-3 border-b border-[var(--internal-hairline)] px-6 py-3 last:border-b-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-text-primary truncate">{d.title}</p>
-                      <p className="mt-1 text-xs text-text-muted line-clamp-2">{d.description}</p>
-                      <p className="mt-1 text-xs text-text-secondary">
-                        预期效果：{d.expectedOutcome} · 最低报酬 ¥{d.minPrice}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 flex-col items-end gap-2">
-                      {isOwner ? (
-                        <SettingsActionButton
-                          variant="primary"
-                          onClick={() => {
-                            setCompletingFor(d)
-                            setCompleteForm((prev) => ({ ...prev, finalPrice: d.minPrice }))
-                          }}
-                        >
-                          完成
-                        </SettingsActionButton>
-                      ) : claimed ? (
-                        <span className="text-xs text-text-muted">已认领</span>
-                      ) : (
-                        <SettingsActionButton
-                          variant="primary"
-                          onClick={() => claim(d.id)}
-                          disabled={claimingId === d.id}
-                        >
-                          {claimingId === d.id ? '认领中...' : '认领'}
-                        </SettingsActionButton>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="dlp-table-wrap">
+              <table className="dlp-table">
+                <thead>
+                  <tr>
+                    <th>标题</th>
+                    <th>预期效果</th>
+                    <th>最低报酬（模拟）</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {welfareDemands.map((d: any) => {
+                    const isOwner = me?.id === d.user?.id
+                    const claimed = claimedIds.has(d.id)
+                    return (
+                      <tr key={d.id}>
+                        <td>
+                          <p className="dlp-table__primary truncate max-w-[240px]">{d.title}</p>
+                          <p className="dlp-table__muted mt-1 line-clamp-2 max-w-[280px]">{d.description}</p>
+                        </td>
+                        <td className="max-w-[160px]">
+                          <span className="line-clamp-2">{d.expectedOutcome}</span>
+                        </td>
+                        <td className="dlp-table__gold whitespace-nowrap">¥{d.minPrice}</td>
+                        <td className="whitespace-nowrap">
+                          {isOwner ? (
+                            <DlpBtnPrimary
+                              onClick={() => {
+                                setCompletingFor(d)
+                                setCompleteForm((prev) => ({ ...prev, finalPrice: d.minPrice }))
+                              }}
+                            >
+                              完成
+                            </DlpBtnPrimary>
+                          ) : claimed ? (
+                            <span className="text-sm text-text-muted">已认领</span>
+                          ) : (
+                            <DlpBtnPrimary
+                              onClick={() => claim(d.id)}
+                              disabled={claimingId === d.id}
+                            >
+                              {claimingId === d.id ? '认领中…' : '认领'}
+                            </DlpBtnPrimary>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
-        </SettingsPanel>
+        </DlpGlass>
 
-        {rewards.length > 0 && (
-          <SettingsPanel>
-            <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
-              <p className="flex items-center gap-1.5 font-semibold text-text-primary">
-                <MsIcon name="redeem" size={14} />
-                最近奖励
-              </p>
-            </div>
-            <div className="flex flex-col px-6 py-2">
-              {rewards.slice(0, 5).map((r: any) => (
-                <div
-                  key={r.id}
-                  className="flex items-center justify-between border-b border-[var(--internal-hairline)] py-3 font-mono text-xs last:border-b-0"
-                >
-                  <span className="text-text-secondary">
-                    {r.isSpiritual
-                      ? r.badge
-                      : r.rewardType === 'choice'
-                        ? `选奖：${r.choiceLabel}`
-                        : `¥${r.amount.toFixed(2)}`}
-                  </span>
-                  <span className="text-text-muted">
-                    {new Date(r.createdAt).toLocaleDateString('zh-CN')}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-[var(--internal-hairline)] px-6 py-3">
-              <Link
-                to="/transactions"
-                className="flex items-center gap-1 font-mono text-xs text-[var(--internal-accent)] hover:underline"
-              >
-                <MsIcon name={STITCH_PAGE_ICONS.transactions} size={12} />
-                查看全部交易记录
-                <MsIcon name="open_in_new" size={12} />
-              </Link>
-            </div>
-          </SettingsPanel>
-        )}
-
-        <SettingsPanel>
-          <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
-            <h2 className="font-semibold text-text-primary">发布公益需求</h2>
-          </div>
-          <div className="flex flex-col gap-4 px-6 py-5">
-            <SettingsInput
-              value={form.title}
-              onChange={(v) => setForm({ ...form, title: v })}
-              placeholder="标题（如：走失儿童寻找）"
-            />
-            <textarea
-              className="settings-input min-h-24 resize-none"
-              placeholder="详细描述..."
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-            <SettingsInput
-              value={form.expectedOutcome}
-              onChange={(v) => setForm({ ...form, expectedOutcome: v })}
-              placeholder="预期效果"
-            />
-            <div className="flex gap-2">
-              <SettingsInput
-                value={String(form.minPrice)}
-                onChange={(v) => setForm({ ...form, minPrice: Number(v) || 0 })}
-                placeholder="最低报酬 (¥)"
-                className="flex-1"
-              />
-              <SettingsInput
-                value={form.regionId}
-                onChange={(v) => setForm({ ...form, regionId: v })}
-                placeholder="区域ID"
-                className="w-28"
+        <DlpGlass gold>
+          <DlpGlassHead title="发布激励任务（内测）" />
+          <DlpGlassBody>
+            <div className="dlp-field">
+              <label className="dlp-label">标题</label>
+              <input
+                className="dlp-input"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="如：示例任务标题"
               />
             </div>
-            <p className="flex items-center gap-1 font-mono text-xs text-text-muted">
+            <div className="dlp-field">
+              <label className="dlp-label">详细描述</label>
+              <textarea
+                className="dlp-textarea"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="详细描述…"
+              />
+            </div>
+            <div className="dlp-field">
+              <label className="dlp-label">预期效果</label>
+              <input
+                className="dlp-input"
+                value={form.expectedOutcome}
+                onChange={(e) => setForm({ ...form, expectedOutcome: e.target.value })}
+                placeholder="预期效果"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="dlp-field !mb-0">
+                <label className="dlp-label">最低报酬 (¥, 模拟)</label>
+                <input
+                  className="dlp-input"
+                  value={String(form.minPrice)}
+                  onChange={(e) => setForm({ ...form, minPrice: Number(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="dlp-field !mb-0">
+                <label className="dlp-label">区域 ID</label>
+                <input
+                  className="dlp-input"
+                  value={form.regionId}
+                  onChange={(e) => setForm({ ...form, regionId: e.target.value })}
+                  placeholder="可选"
+                />
+              </div>
+            </div>
+            <p className="mt-3 flex items-center gap-1 text-xs text-text-muted">
               <MsIcon name="schedule" size={12} />
-              公益需求有 15 天公开期
+              内测占位：仅用于演示两段式接单流程，不产生真实交易
             </p>
-            <SettingsActionButton
-              onClick={createDemand}
-              disabled={creating}
-              variant="primary"
-              className="w-full"
-            >
-              <MsIcon name={STITCH_PAGE_ICONS.welfare} size={16} className="mr-1 inline" />
-              {creating ? '发布中…' : '发布公益需求'}
-            </SettingsActionButton>
+            <DlpBtnPrimary onClick={createDemand} disabled={creating} className="mt-4 w-full">
+              <MsIcon name={STITCH_PAGE_ICONS.welfare} size={16} />
+              {creating ? '发布中…' : '发布激励任务（内测）'}
+            </DlpBtnPrimary>
+          </DlpGlassBody>
+        </DlpGlass>
+      </div>
+
+      {rewards.length > 0 && (
+        <DlpGlass className="mt-6">
+          <DlpGlassHead title="最近激励记录（模拟）" />
+          <div className="dlp-table-wrap">
+            <table className="dlp-table">
+              <thead>
+                <tr>
+                  <th>奖励（模拟）</th>
+                  <th>日期</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rewards.slice(0, 8).map((r: any) => (
+                  <tr key={r.id}>
+                    <td className="dlp-table__primary">
+                      {r.isSpiritual
+                        ? r.badge
+                        : r.rewardType === 'choice'
+                          ? `选奖：${r.choiceLabel}`
+                          : `¥${r.amount.toFixed(2)}`}
+                    </td>
+                    <td className="dlp-table__muted whitespace-nowrap">
+                      {new Date(r.createdAt).toLocaleDateString('zh-CN')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </SettingsPanel>
-      </InternalContentBlock>
+          <div className="border-t border-[var(--wallet-divider)] px-5 py-3">
+            <Link to="/transactions" className="dlp-link flex items-center gap-1">
+              <MsIcon name={STITCH_PAGE_ICONS.transactions} size={12} />
+              查看全部交易记录
+              <MsIcon name="open_in_new" size={12} />
+            </Link>
+          </div>
+        </DlpGlass>
+      )}
 
       {completingFor && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          onClick={() => setCompletingFor(null)}
-        >
-          <div
-            className="w-[90%] max-w-sm rounded-2xl border border-[var(--internal-hairline)] bg-bg-secondary p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="mb-4 text-lg font-bold text-text-primary">完成公益需求</h3>
-            <div className="flex flex-col gap-3">
-              <label className="text-xs text-text-muted">最终价格</label>
-              <SettingsInput
+        <div className="dlp-modal-backdrop" onClick={() => setCompletingFor(null)}>
+          <div className="dlp-glass dlp-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>完成任务（内测）</h3>
+            <div className="dlp-field">
+              <label className="dlp-label">最终价格（模拟）</label>
+              <input
+                className="dlp-input"
                 value={String(completeForm.finalPrice)}
-                onChange={(v) => setCompleteForm({ ...completeForm, finalPrice: Number(v) || 0 })}
-                placeholder="最终价格"
+                onChange={(e) =>
+                  setCompleteForm({ ...completeForm, finalPrice: Number(e.target.value) || 0 })
+                }
               />
-              <label className="text-xs text-text-muted">奖励模式</label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCompleteForm({ ...completeForm, rewardMode: 'random' })}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm ${completeForm.rewardMode === 'random' ? 'border-[var(--internal-accent)] bg-[var(--internal-accent)]/10 text-[var(--internal-accent)]' : 'border-[var(--internal-hairline)] text-text-secondary'}`}
-                >
-                  随机红包
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCompleteForm({ ...completeForm, rewardMode: 'choice' })}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm ${completeForm.rewardMode === 'choice' ? 'border-[var(--internal-accent)] bg-[var(--internal-accent)]/10 text-[var(--internal-accent)]' : 'border-[var(--internal-hairline)] text-text-secondary'}`}
-                >
-                  选奖
-                </button>
-              </div>
-              {completeForm.rewardMode === 'choice' && (
-                <SettingsInput
-                  value={completeForm.choiceLabel}
-                  onChange={(v) => setCompleteForm({ ...completeForm, choiceLabel: v })}
-                  placeholder="奖项名称"
-                />
-              )}
-              <SettingsActionButton
-                onClick={completeDemand}
-                variant="primary"
-                className="w-full"
-              >
-                提交完成
-              </SettingsActionButton>
             </div>
+            <div className="dlp-field">
+              <label className="dlp-label">奖励模式（仅内测演示）</label>
+              <div className="flex gap-2">
+                {(['random', 'choice'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setCompleteForm({ ...completeForm, rewardMode: mode })}
+                    className={cn(
+                      'dlp-tag flex-1 justify-center',
+                      completeForm.rewardMode === mode && 'dlp-tag--on',
+                    )}
+                  >
+                    {mode === 'random' ? '随机' : '选奖'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {completeForm.rewardMode === 'choice' && (
+              <div className="dlp-field">
+                <label className="dlp-label">奖项名称（测试）</label>
+                <input
+                  className="dlp-input"
+                  value={completeForm.choiceLabel}
+                  onChange={(e) => setCompleteForm({ ...completeForm, choiceLabel: e.target.value })}
+                />
+              </div>
+            )}
+            <DlpBtnPrimary onClick={completeDemand} className="w-full">
+              提交完成
+            </DlpBtnPrimary>
           </div>
         </div>
       )}
-    </InternalPageShell>
+    </DesktopPageShell>
   )
 }

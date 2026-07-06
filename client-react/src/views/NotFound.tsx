@@ -1,40 +1,51 @@
 import { useNavigate } from 'react-router-dom'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { InternalPageShell } from '@/components/layout/internal-ui'
+import {
+  DesktopPageShell,
+  DlpBtnPrimary,
+  DlpBtnGhost,
+} from '@/components/layout/desktop-page'
+import { MsIcon } from '@/components/ui/ms-icon'
+
+const shortcuts = [
+  { label: '去发现', path: '/', icon: 'explore' },
+  { label: '订单中心', path: '/orders', icon: 'receipt_long' },
+  { label: '帮助中心', path: '/help', icon: 'help' },
+] as const
 
 export default function NotFound() {
   const navigate = useNavigate()
 
   return (
-    <InternalPageShell
-      width="narrow"
-      contentClassName="flex min-h-full flex-col"
-    >
-      <PageHeader title="页面不存在" onBack="back" divider={false} className="mb-2" />
-      <div className="flex flex-1 flex-col items-center justify-center gap-5 py-12">
-        <div className="flex size-20 items-center justify-center rounded-3xl border border-white/[0.06] bg-white/[0.03]">
-          <span className="text-4xl font-bold text-white/20">404</span>
-        </div>
-        <p className="max-w-sm text-center text-sm text-text-muted">
-          你访问的页面不存在，可能已被移除或链接有误
-        </p>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-2.5 text-sm text-text-secondary transition-colors hover:bg-white/[0.06] hover:text-text-primary"
-          >
-            返回上一页
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="rounded-xl bg-[var(--internal-accent)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
-          >
-            回首页
-          </button>
+    <DesktopPageShell title="页面不存在">
+      <div className="dlp-not-found">
+        <div className="dlp-not-found__code">404</div>
+
+        <div>
+          <h2 className="dlp-title !text-3xl">找不到该页面</h2>
+          <p className="dlp-subtitle">
+            你访问的链接可能已失效、被移除，或地址输入有误。可以返回上一页，或从下方快捷入口继续浏览。
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <DlpBtnGhost onClick={() => navigate(-1)}>返回上一页</DlpBtnGhost>
+            <DlpBtnPrimary onClick={() => navigate('/')}>回首页</DlpBtnPrimary>
+          </div>
+
+          <div className="dlp-shortcut-grid">
+            {shortcuts.map((s) => (
+              <button
+                key={s.path}
+                type="button"
+                onClick={() => navigate(s.path)}
+                className="dlp-glass dlp-shortcut"
+              >
+                <MsIcon name={s.icon} size={20} className="text-[var(--price-foreground)]" />
+                <span className="text-sm font-medium text-text-primary">{s.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </InternalPageShell>
+    </DesktopPageShell>
   )
 }

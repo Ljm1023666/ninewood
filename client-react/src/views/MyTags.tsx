@@ -1,22 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
-import { TagSelector, useTagLoader } from '@/components/ui/tag-selector'
-import { Chip } from '@/components/ui/chip'
-import { Switch } from '@/components/ui/switch'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { useTagLoader } from '@/components/ui/tag-selector'
 import { LoadingState } from '@/components/ui/loading-state'
 import { ErrorState } from '@/components/ui/error-state'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { InternalPageShell } from '@/components/layout/internal-ui'
+import {
+  DesktopPageShell,
+  DlpGlass,
+  DlpGlassHead,
+  DlpGlassBody,
+  DlpToggleRow,
+} from '@/components/layout/desktop-page'
 import { userApi } from '@/api/user'
-
 export default function MyTags() {
-  const {
-    tags: allTags,
-    loading: allTagsLoading,
-    error: allTagsError,
-  } = useTagLoader()
-
+  const { tags: allTags, loading: allTagsLoading, error: allTagsError } = useTagLoader()
   const [myTags, setMyTags] = useState<string[]>([])
   const [isBusy, setIsBusy] = useState(false)
   const [allowSpecialSearch, setAllowSpecialSearch] = useState(false)
@@ -27,10 +23,7 @@ export default function MyTags() {
     setLoading(true)
     setError('')
     try {
-      const [tagsRes, busyRes] = await Promise.all([
-        userApi.getMyTags(),
-        userApi.getMyBusy(),
-      ])
+      const [tagsRes, busyRes] = await Promise.all([userApi.getMyTags(), userApi.getMyBusy()])
       setMyTags(tagsRes.data.data?.serviceTags || [])
       const busyData = busyRes.data.data
       setIsBusy(busyData?.isBusy || false)
@@ -89,123 +82,95 @@ export default function MyTags() {
     }
   }
 
-  // 全页 loading
   if (loading) {
     return (
-      <InternalPageShell width="narrow">
-        <PageHeader title="我的标签" onBack="back" />
+      <DesktopPageShell title="我的标签">
         <LoadingState lines={4} />
-      </InternalPageShell>
+      </DesktopPageShell>
     )
   }
 
-  // 全页 error
   if (error) {
     return (
-      <InternalPageShell width="narrow">
-        <PageHeader title="我的标签" onBack="back" />
+      <DesktopPageShell title="我的标签">
         <ErrorState message={error} onRetry={loadData} />
-      </InternalPageShell>
+      </DesktopPageShell>
     )
   }
 
   const availableTags = allTags.filter((t) => !myTags.includes(t))
 
   return (
-    <InternalPageShell width="narrow" contentClassName="gap-4">
-      <PageHeader title="我的标签" onBack="back" />
-
-        {/* 1. 我的标签开关 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>我的标签开关</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {myTags.length === 0 ? (
-              <p className="text-sm text-text-muted">暂无标签，从下方添加</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {myTags.map((tag) => (
-                  <div key={tag} className="group flex items-center gap-0.5">
-                    <Chip variant="outlined" selected className="h-8 pr-1">
+    <DesktopPageShell
+      title="我的标签"
+      subtitle={`已开通 ${myTags.length} 个标签 · ${isBusy ? '忙碌中' : '可被发现'}`}
+    >
+      <div className="dlp-split dlp-split--aside">
+        <aside className="dlp-stack">
+          <DlpGlass>
+            <DlpGlassHead title="已开通标签" subtitle="点击 × 可移除" />
+            <DlpGlassBody>
+              {myTags.length === 0 ? (
+                <p className="text-sm text-text-muted">暂无标签，从右侧标签库添加</p>
+              ) : (
+                <div className="dlp-tag-grid">
+                  {myTags.map((tag) => (
+                    <span key={tag} className="dlp-tag dlp-tag--on">
                       {tag}
-                    </Chip>
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="flex size-5 items-center justify-center rounded-full text-text-muted opacity-0 group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400 transition-all"
-                      aria-label={`移除标签 ${tag}`}
-                    >
-                      <MsIcon name="close" size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="text-text-muted hover:text-error"
+                        aria-label={`移除标签 ${tag}`}
+                      >
+                        <MsIcon name="close" size={14} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </DlpGlassBody>
+          </DlpGlass>
 
-        {/* 2. 添加标签 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>添加标签</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <DlpGlass>
+            <DlpGlassBody className="!p-0">
+              <DlpToggleRow
+                label="忙碌中"
+                description="开启后不会出现在搜索结果中"
+                checked={isBusy}
+                onChange={toggleBusy}
+              />
+              {isBusy && (
+                <DlpToggleRow
+                  label="允许特殊搜索"
+                  description="即使忙碌，特殊搜索仍能找到您"
+                  checked={allowSpecialSearch}
+                  onChange={toggleAllowSpecialSearch}
+                />
+              )}
+            </DlpGlassBody>
+          </DlpGlass>
+        </aside>
+
+        <DlpGlass>
+          <DlpGlassHead title="标签库" subtitle="点击添加至已开通列表" />
+          <DlpGlassBody>
             {availableTags.length === 0 ? (
               <p className="text-sm text-text-muted">所有可用标签已添加</p>
             ) : (
-              <TagSelector
-                tags={availableTags}
-                selected={[]}
-                onChange={(tags) => {
-                  const added = tags.find((t) => !myTags.includes(t))
-                  if (added) addTag(added)
-                }}
-                loading={allTagsLoading}
-                error={allTagsError}
-                max={99}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 3. 忙碌状态 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>忙碌状态</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="text-sm font-medium text-text-primary">
-                    忙碌中
-                  </p>
-                  <p className="text-xs text-text-muted">
-                    开启后不会出现在搜索结果中
-                  </p>
-                </div>
-                <Switch checked={isBusy} onCheckedChange={toggleBusy} />
+              <div className="dlp-tag-grid">
+                {availableTags.map((tag) => (
+                  <button key={tag} type="button" className="dlp-tag" onClick={() => addTag(tag)}>
+                    {tag}
+                  </button>
+                ))}
               </div>
-              {isBusy && (
-                <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium text-text-primary">
-                      允许特殊搜索
-                    </p>
-                    <p className="text-xs text-text-muted">
-                      即使忙碌，特殊搜索仍能找到您
-                    </p>
-                  </div>
-                  <Switch
-                    checked={allowSpecialSearch}
-                    onCheckedChange={toggleAllowSpecialSearch}
-                  />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-    </InternalPageShell>
+            )}
+            {allTagsLoading && <p className="mt-4 text-sm text-text-muted">加载标签库…</p>}
+            {allTagsError && <p className="mt-4 text-sm text-error">{allTagsError}</p>}
+          </DlpGlassBody>
+        </DlpGlass>
+      </div>
+    </DesktopPageShell>
   )
 }

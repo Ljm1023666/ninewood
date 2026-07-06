@@ -3,17 +3,16 @@ import { MsIcon } from '@/components/ui/ms-icon'
 import { userApi } from '@/api/user'
 import { certificationApi } from '@/api/certification'
 import { certLabel } from '@/constants/cert'
-import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  InternalPageShell,
-  InternalContentBlock,
-  InternalSection,
-  SettingsPanel,
-  SettingsRow,
-  SettingsActionButton,
-  SettingsInput,
-  StatusChip,
-} from '@/components/layout/internal-ui'
+  DesktopPageShell,
+  DlpGlass,
+  DlpGlassHead,
+  DlpGlassBody,
+  DlpStat,
+  DlpBtnPrimary,
+  DlpBadge,
+} from '@/components/layout/desktop-page'
+import { cn } from '@/lib/utils'
 import { toast } from '@/components/ui/confirm-dialog'
 
 const steps = [
@@ -52,132 +51,139 @@ export default function CertCenter() {
     fetchStatus()
   }, [])
 
-  const currentIdx = steps.findIndex(
-    (s) => s.level === certStatus?.certificationLevel,
-  )
+  const currentIdx = steps.findIndex((s) => s.level === certStatus?.certificationLevel)
   const hasPromotion = certStatus?.promotion
-  const progressPct = hasPromotion
-    ? Math.round(certStatus.promotion.progress * 100)
-    : 0
+  const progressPct = hasPromotion ? Math.round(certStatus.promotion.progress * 100) : 0
 
   return (
-    <InternalPageShell width="wide" contentClassName="pb-12 pt-2">
-      <PageHeader title="认证中心" onBack="back" divider={false} className="mb-6" />
-
+    <DesktopPageShell
+      title="认证中心"
+      subtitle="查看等级进度、抢单额度与认证权益"
+      density="compact"
+    >
       {certStatus && (
-        <InternalContentBlock>
-          <SettingsPanel className="flex items-center gap-6 p-6">
-            <div className="flex size-20 shrink-0 items-center justify-center border-2 border-[var(--internal-accent)]/40">
-              <MsIcon name="verified_user" size={40} className="text-[var(--internal-accent)]" />
-            </div>
-            <div>
-              <p className="internal-eyebrow-label">当前等级</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text-primary">
-                {certLabel[certStatus.certificationLevel] ||
-                  certStatus.certificationLevel}
-              </h2>
-              <p className="settings-section-intro__desc mt-2">
-                信誉积分 {certStatus.creditScore} · 完成订单{' '}
-                {certStatus.completedOrders}
-              </p>
-            </div>
-          </SettingsPanel>
+        <div className="dlp-split dlp-split--3">
+          <aside>
+            <DlpGlass>
+              <DlpGlassHead title="认证路径" subtitle="逐级解锁权益" />
+              <DlpGlassBody className="!p-0">
+                <div className="dlp-stepper !border-0 !pl-0">
+                  {steps.map((step, idx) => {
+                    const done = idx < currentIdx
+                    const current = idx === currentIdx
+                    return (
+                      <div
+                        key={step.level}
+                        className={cn(
+                          'dlp-step',
+                          done && 'dlp-step--done',
+                          current && 'dlp-step--current',
+                        )}
+                      >
+                        <span className="dlp-step__dot" />
+                        <p className="dlp-step__title">{step.label}</p>
+                        <p className="dlp-step__desc">{step.desc}</p>
+                        <div className="mt-2">
+                          <DlpBadge tone={current ? 'gold' : done ? 'success' : 'default'}>
+                            {current ? '当前' : done ? '已达成' : '未达成'}
+                          </DlpBadge>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </DlpGlassBody>
+            </DlpGlass>
+          </aside>
 
-          <SettingsPanel>
-            {hasPromotion ? (
-              <>
-                <SettingsRow
-                  label="升级进度"
-                  description={`距离${
-                    certLabel[certStatus.promotion.next] || certStatus.promotion.next
-                  }还需 ${
-                    certStatus.promotion.needed - certStatus.completedOrders
-                  } 单`}
-                >
-                  <span className="font-mono text-[var(--internal-accent)]">
-                    {progressPct}%
-                  </span>
-                </SettingsRow>
-                <SettingsRow
-                  label="本月抢单额度"
-                  description={`已用 ${certStatus.snatchCredits ?? 0} 次（仅展示）`}
-                >
-                  <span className="font-mono text-sm text-text-primary">
-                    {certStatus.snatchCredits ?? 0}
-                  </span>
-                </SettingsRow>
-                <SettingsRow
-                  label="认证材料"
-                  description="当前状态"
-                  last
-                >
-                  <StatusChip
-                    label={certStatus.certificationLevel === 'NONE' ? '未提交' : '已认证'}
-                    className="border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted"
-                  />
-                </SettingsRow>
-              </>
-            ) : (
-              <SettingsRow
-                label="认证等级"
-                description="已达成最高等级"
-                last
-              >
-                <StatusChip
-                  label="已满级"
-                  className="border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted"
-                />
-              </SettingsRow>
+          <div className="dlp-stack">
+            <div className="dlp-stat-grid dlp-stat-grid--3">
+              <DlpStat
+                label="当前等级"
+                value={certLabel[certStatus.certificationLevel] || certStatus.certificationLevel}
+                gold
+                icon={<MsIcon name="verified_user" size={48} />}
+              />
+              <DlpStat label="信誉积分" value={certStatus.creditScore} />
+              <DlpStat label="完成订单" value={certStatus.completedOrders} suffix="单" />
+            </div>
+
+            <DlpGlass gold>
+              <DlpGlassHead
+                title="升级进度"
+                subtitle={
+                  hasPromotion
+                    ? `距离${certLabel[certStatus.promotion.next] || certStatus.promotion.next}还需 ${certStatus.promotion.needed - certStatus.completedOrders} 单`
+                    : '已达成最高等级'
+                }
+              />
+              <DlpGlassBody>
+                {hasPromotion ? (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-text-muted">完成度</span>
+                      <span className="dlp-table__gold">{progressPct}%</span>
+                    </div>
+                    <div className="dlp-progress">
+                      <div className="dlp-progress__bar" style={{ width: `${progressPct}%` }} />
+                    </div>
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                      <div className="dlp-kpi">
+                        <p className="dlp-kpi__label">本月抢单额度</p>
+                        <p className="dlp-kpi__value">{certStatus.snatchCredits ?? 0}</p>
+                      </div>
+                      <div className="dlp-kpi">
+                        <p className="dlp-kpi__label">认证材料</p>
+                        <p className="dlp-kpi__value text-base">
+                          {certStatus.certificationLevel === 'NONE' ? '未提交' : '已认证'}
+                        </p>
+                      </div>
+                    </div>
+                    <DlpBtnPrimary
+                      onClick={upgrade}
+                      disabled={certStatus.promotion.progress < 1 || upgrading}
+                      className="mt-6"
+                    >
+                      {upgrading ? '升级中…' : '申请升级'}
+                    </DlpBtnPrimary>
+                  </>
+                ) : (
+                  <DlpBadge tone="gold">已满级</DlpBadge>
+                )}
+              </DlpGlassBody>
+            </DlpGlass>
+
+            {certStatus?.certificationLevel === 'NONE' && (
+              <RegisterProviderSection onRegistered={fetchStatus} />
             )}
-          </SettingsPanel>
+          </div>
 
-          {hasPromotion && (
-            <SettingsActionButton
-              onClick={upgrade}
-              disabled={certStatus.promotion.progress < 1 || upgrading}
-              variant="primary"
-              className="w-full"
-            >
-              {upgrading ? '升级中…' : '申请升级'}
-            </SettingsActionButton>
-          )}
-
-    
-        {certStatus?.certificationLevel === 'NONE' && (
-          <RegisterProviderSection onRegistered={fetchStatus} />
-        )}
-
-      <InternalSection label="认证路径">
-            <SettingsPanel>
-              {steps.map((step, idx) => {
-                const done = idx <= currentIdx
-                const current = idx === currentIdx
-                return (
-                  <SettingsRow
-                    key={step.level}
-                    label={step.label}
-                    description={step.desc}
-                    last={idx === steps.length - 1}
+          <aside>
+            <DlpGlass>
+              <DlpGlassHead title="认证权益" />
+              <DlpGlassBody className="!p-0">
+                {[
+                  { t: '抢单额度', d: '中级起解锁月度抢单' },
+                  { t: '搜索曝光', d: '等级越高排名越靠前' },
+                  { t: '专属标识', d: '个人主页展示认证徽章' },
+                  { t: '圈子权限', d: '高级可创建公开圈子' },
+                ].map((item, i, arr) => (
+                  <div
+                    key={item.t}
+                    className={cn('px-5 py-4', i < arr.length - 1 && 'border-b border-[var(--wallet-divider)]')}
                   >
-                    <StatusChip
-                      label={current ? '当前' : done ? '已达成' : '未达成'}
-                      className={
-                        current
-                          ? 'border-[var(--internal-accent)]/30 bg-[var(--internal-accent)]/10 text-[var(--internal-accent)]'
-                          : 'border-[var(--internal-hairline)] bg-white/[0.03] text-text-muted'
-                      }
-                    />
-                  </SettingsRow>
-                )
-              })}
-            </SettingsPanel>
-          </InternalSection>
-        </InternalContentBlock>
+                    <p className="text-sm font-semibold text-text-primary">{item.t}</p>
+                    <p className="mt-1 text-sm text-text-muted">{item.d}</p>
+                  </div>
+                ))}
+              </DlpGlassBody>
+            </DlpGlass>
+          </aside>
+        </div>
       )}
-    </InternalPageShell>
+    </DesktopPageShell>
   )
 }
-
 
 function RegisterProviderSection({ onRegistered }: { onRegistered: () => void }) {
   const [tags, setTags] = useState('')
@@ -208,26 +214,34 @@ function RegisterProviderSection({ onRegistered }: { onRegistered: () => void })
   }
 
   return (
-    <SettingsPanel>
-      <div className="border-b border-[var(--internal-hairline)] px-6 py-4">
-        <h3 className="font-semibold text-text-primary">注册为认证服务者</h3>
-        <p className="mt-1 text-xs text-text-muted">提交习想服务的标签后，平台审核通过即可享受抢单、推送优先等权益。</p>
-      </div>
-      <div className="flex flex-col gap-3 px-6 py-5">
-        <SettingsInput
-          value={tags}
-          onChange={setTags}
-          placeholder="服务标签（多个用逗号或者逗号分隔）"
-        />
-        <SettingsInput
-          value={regionId}
-          onChange={setRegionId}
-          placeholder="服务区域ID（可选）"
-        />
-        <SettingsActionButton onClick={submit} disabled={submitting} variant="primary" className="w-full">
+    <DlpGlass>
+      <DlpGlassHead
+        title="注册为认证服务者"
+        subtitle="提交服务标签后，平台审核通过即可享受抢单、推送优先等权益"
+      />
+      <DlpGlassBody>
+        <div className="dlp-field">
+          <label className="dlp-label">服务标签</label>
+          <input
+            className="dlp-input"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="多个标签用逗号分隔"
+          />
+        </div>
+        <div className="dlp-field">
+          <label className="dlp-label">服务区域 ID（可选）</label>
+          <input
+            className="dlp-input"
+            value={regionId}
+            onChange={(e) => setRegionId(e.target.value)}
+            placeholder="区域 ID"
+          />
+        </div>
+        <DlpBtnPrimary onClick={submit} disabled={submitting} className="w-full">
           {submitting ? '提交中…' : '提交认证申请'}
-        </SettingsActionButton>
-      </div>
-    </SettingsPanel>
+        </DlpBtnPrimary>
+      </DlpGlassBody>
+    </DlpGlass>
   )
 }

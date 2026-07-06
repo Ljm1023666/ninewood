@@ -123,7 +123,7 @@ export default function TransactionHistory() {
                       <div className="flex shrink-0 flex-wrap justify-end gap-2">
                         {item.isWelfare ? (
                           <StatusChip
-                            label="公益"
+                            label="激励"
                             className="border-red-500/30 bg-red-500/20 text-red-400"
                           />
                         ) : null}

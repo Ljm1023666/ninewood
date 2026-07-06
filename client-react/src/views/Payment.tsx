@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { orderApi } from '@/api/order'
-import { AcetPrimaryButton } from '@/components/ui/tailwindcss-buttons-variants'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { InternalPageShell } from '@/components/layout/internal-ui'
+import {
+  DesktopPageShell,
+  DlpGlass,
+  DlpBtnPrimary,
+} from '@/components/layout/desktop-page'
 
 export default function Payment() {
   const { id } = useParams<{ id: string }>()
@@ -28,42 +30,57 @@ export default function Payment() {
   }
 
   return (
-    <InternalPageShell width="narrow" contentClassName="flex min-h-full flex-col">
-      <PageHeader title="点数支付" onBack="back" />
+    <DesktopPageShell title="点数支付" subtitle="使用点数钱包完成订单支付">
+      <div className="dlp-split dlp-split--pay">
+        <DlpGlass className="p-8">
+          <MsIcon name="receipt_long" size={36} className="text-[var(--price-foreground)]" />
+          <h2 className="mt-4 text-xl font-semibold text-text-primary">订单摘要</h2>
+          <p className="mt-2 text-sm text-text-muted">订单号：{id ?? '—'}</p>
+          <dl className="mt-6 space-y-3 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-text-muted">支付方式</dt>
+              <dd className="font-medium text-text-primary">点数钱包</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-text-muted">平台服务费</dt>
+              <dd className="font-medium text-text-primary">5%</dd>
+            </div>
+            <div className="flex justify-between gap-4 border-t border-[var(--wallet-divider)] pt-3">
+              <dt className="text-text-muted">说明</dt>
+              <dd className="max-w-[240px] text-right text-text-secondary">
+                开发期点数支付（1 点 = 1 元），确认后扣除服务费
+              </dd>
+            </div>
+          </dl>
+        </DlpGlass>
 
-      <div className="flex flex-1 flex-col items-center justify-center py-12">
-        <div className="w-full max-w-sm shrink-0 text-center">
+        <DlpGlass gold className="flex flex-col justify-center p-8">
           {paid ? (
-            <div className="animate-fadeIn">
+            <div className="animate-fadeIn text-center">
               <MsIcon name="check_circle" size={56} className="mx-auto mb-4 text-success" />
-              <h2 className="mb-2 text-2xl font-bold text-text-primary">
-                支付成功
-              </h2>
-              <p className="text-sm text-text-muted">即将跳转...</p>
+              <h2 className="mb-2 text-2xl font-bold text-text-primary">支付成功</h2>
+              <p className="text-sm text-text-muted">即将跳转至订单详情…</p>
             </div>
           ) : (
-            <div>
-              <MsIcon name="credit_card" size={56} className="mx-auto mb-4 text-accent" />
-              <p className="mb-2 text-base font-medium text-text-primary">点数支付</p>
-              <p className="mb-6 text-sm text-text-muted">开发期点数支付（1点=1元），确认后将扣除 5% 平台服务费</p>
+            <div className="mx-auto w-full max-w-md">
+              <MsIcon name="credit_card" size={48} className="mb-4 text-[var(--price-foreground)]" />
+              <h2 className="text-xl font-semibold text-text-primary">确认支付</h2>
+              <p className="mt-2 text-sm text-text-muted">
+                请核对订单信息后点击下方按钮完成点数扣款
+              </p>
               {error && (
-                <div className="mb-4 flex items-center justify-center gap-1.5 rounded-lg bg-error/10 px-3 py-2 text-sm text-error">
+                <div className="mt-4 flex items-center gap-1.5 rounded-lg bg-error/10 px-3 py-2 text-sm text-error">
                   <MsIcon name="error" size={16} />
                   {error}
                 </div>
               )}
-              <AcetPrimaryButton
-                type="button"
-                onClick={pay}
-                disabled={loading}
-                className="w-full !rounded-xl !py-4 !text-sm font-bold disabled:!opacity-40"
-              >
-                {loading ? '处理中...' : '确认支付'}
-              </AcetPrimaryButton>
+              <DlpBtnPrimary onClick={pay} disabled={loading} className="mt-6 w-full">
+                {loading ? '处理中…' : '确认支付'}
+              </DlpBtnPrimary>
             </div>
           )}
-        </div>
+        </DlpGlass>
       </div>
-    </InternalPageShell>
+    </DesktopPageShell>
   )
 }

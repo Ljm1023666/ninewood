@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { poolApi } from '@/api/pool'
-import { EmptyState } from '@/components/ui/empty-state'
 import { ErrorState } from '@/components/ui/error-state'
 import { LoadingState } from '@/components/ui/loading-state'
-import { PageHeader } from '@/components/layout/PageHeader'
 import {
-  InternalPageShell,
-  InternalContentBlock,
-  SegmentedFilter,
-  TransactionListItem,
-} from '@/components/layout/internal-ui'
+  DesktopPageShell,
+  DlpGlass,
+  DlpBtnGhost,
+  DlpBadge,
+  DlpEmpty,
+} from '@/components/layout/desktop-page'
+import { cn } from '@/lib/utils'
 
 const BID_TABS = [
   { value: 'all' as const, label: '全部' },
@@ -29,6 +29,18 @@ interface BidItem {
     minPrice: number
     serviceType: string
   }
+}
+
+function bidTone(status: BidItem['status']) {
+  if (status === 'ACCEPTED') return 'success' as const
+  if (status === 'PENDING') return 'warn' as const
+  return 'default' as const
+}
+
+function bidLabel(status: BidItem['status']) {
+  if (status === 'ACCEPTED') return '已中标'
+  if (status === 'PENDING') return '竞标中'
+  return '未中标'
 }
 
 export default function MyBids() {
@@ -55,53 +67,89 @@ export default function MyBids() {
   }, [fetchBids])
 
   const [filter, setFilter] = useState<'all' | 'PENDING' | 'ACCEPTED'>('all')
-
-  const filteredBids =
-    filter === 'all' ? bids : bids.filter((b) => b.status === filter)
+  const filteredBids = filter === 'all' ? bids : bids.filter((b) => b.status === filter)
 
   return (
-    <InternalPageShell width="medium">
-      <PageHeader title="我的应标" onBack="back" />
-
-      <InternalContentBlock>
-        <SegmentedFilter options={[...BID_TABS]} value={filter} onChange={setFilter} />
+    <DesktopPageShell title="我的应标" subtitle="管理竞标状态与出价记录" density="compact">
+      <div className="dlp-tabs">
+        {BID_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            className={cn('dlp-tab', filter === tab.value && 'dlp-tab--active')}
+            onClick={() => setFilter(tab.value)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {loading && <LoadingState variant="internal" lines={3} />}
-
       {!loading && error && <ErrorState message={error} onRetry={fetchBids} />}
 
       {!loading && !error && filteredBids.length === 0 && (
-        <EmptyState
-          type="search"
-          variant="internal"
-          message="还没有发出过应标，去发现页寻找合适的需吧"
-          actionLabel="去发现"
-          onAction={() => navigate('/')}
-        />
+        <DlpGlass>
+          <DlpEmpty
+            title="还没有应标记录"
+            description="去发现页寻找合适的需求吧"
+            action={
+              <button type="button" className="dlp-btn-primary" onClick={() => navigate('/')}>
+                去发现
+              </button>
+            }
+          />
+        </DlpGlass>
       )}
 
       {!loading && !error && filteredBids.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {filteredBids.map((bid) => (
-            <TransactionListItem
-              key={bid.id}
-              title={bid.demand?.title || '未知需求'}
-              status={bid.status}
-              date={
-                bid.createdAt
-                  ? new Date(bid.createdAt).toLocaleDateString('zh-CN')
-                  : undefined
-              }
-              price={bid.offerPrice ?? bid.demand?.minPrice ?? 0}
-              completed={bid.status === 'ACCEPTED'}
-              onClick={() => {
-                if (bid.demand?.id) navigate(`/demands/${bid.demand.id}`)
-              }}
-            />
-          ))}
-        </div>
+        <DlpGlass>
+          <div className="dlp-table-wrap">
+            <table className="dlp-table">
+              <thead>
+                <tr>
+                  <th>需求标题</th>
+                  <th>出价</th>
+                  <th>状态</th>
+                  <th>更新时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBids.map((bid) => (
+                  <tr key={bid.id}>
+                    <td>
+                      <p className="dlp-table__primary">{bid.demand?.title || '未知需求'}</p>
+                      {bid.demand?.serviceType ? (
+                        <p className="dlp-table__muted mt-1">{bid.demand.serviceType}</p>
+                      ) : null}
+                    </td>
+                    <td className="dlp-table__gold">
+                      ¥{bid.offerPrice ?? bid.demand?.minPrice ?? 0}
+                    </td>
+                    <td>
+                      <DlpBadge tone={bidTone(bid.status)}>{bidLabel(bid.status)}</DlpBadge>
+                    </td>
+                    <td className="dlp-table__muted whitespace-nowrap">
+                      {bid.createdAt
+                        ? new Date(bid.createdAt).toLocaleDateString('zh-CN')
+                        : '—'}
+                    </td>
+                    <td>
+                      {bid.demand?.id ? (
+                        <DlpBtnGhost onClick={() => navigate(`/demands/${bid.demand!.id}`)}>
+                          查看
+                        </DlpBtnGhost>
+                      ) : (
+                        <span className="text-sm text-text-muted">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DlpGlass>
       )}
-      </InternalContentBlock>
-    </InternalPageShell>
+    </DesktopPageShell>
   )
 }

@@ -245,6 +245,98 @@ const termsSections = [
   { title: '法律适用', content: '本条款适用中华人民共和国法律。' },
 ]
 
+/**
+ * 计算周岁
+ */
+function birthdayAge(birthday: string): number {
+  if (!birthday) return 0
+  const d = new Date(birthday)
+  if (isNaN(d.getTime())) return 0
+  const now = new Date()
+  let age = now.getFullYear() - d.getFullYear()
+  const m = now.getMonth() - d.getMonth()
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--
+  return age
+}
+
+/**
+ * AI 服务协议（内测版 v0.1）
+ * 依据：《生成式 AI 服务管理暂行办法》§9-§15
+ */
+const aiServiceSections = [
+  {
+    title: '服务说明',
+    content:
+      '本平台提供由人工智能生成的文本回复与建议服务（以下称"AI 服务"），AI 服务处于内测阶段，可能产生错误、遗漏或不准确的内容，回复内容仅供参考，不构成任何专业建议。',
+  },
+  {
+    title: 'AI 生成内容标识',
+    content:
+      '依据《生成式人工智能服务管理暂行办法》第十二条，本平台对所有 AI 生成的文本内容在显著位置进行标识。请勿移除、遮挡或以其他方式妨碍该标识。',
+  },
+  {
+    title: '未成年人使用',
+    content:
+      '本平台不面向未满 14 周岁的未成年人。14 至 18 周岁用户须在监护人同意下使用。',
+  },
+  {
+    title: '禁止行为',
+    content:
+      '严禁将 AI 服务用于违法违规用途，包括但不限于生成违反法律法规、危害国家安全、破坏民族团结、宣扬恐怖主义、传播淫秽色情的内容。',
+  },
+  {
+    title: '内容审核',
+    content:
+      '本平台已部署内容安全过滤措施，对 AI 输出内容进行自动审核。如发现违规内容，请通过"举报"入口或客服邮箱反馈。',
+  },
+  {
+    title: '投诉举报',
+    content:
+      '您可通过设置页-举报中心、12377 网络违法举报平台（https://www.12377.cn）、12321 网络不良信息举报平台（https://www.12321.cn）进行投诉举报。',
+  },
+  {
+    title: '数据使用',
+    content:
+      '内测期间，您的对话内容仅用于提供 AI 回复与平台功能改进，不会用于训练任何对外发布的模型。您可在设置中随时清除对话历史。',
+  },
+  {
+    title: '免责声明',
+    content:
+      'AI 服务按"现状"提供，平台不对 AI 回复的准确性、完整性、可用性作出任何明示或暗示的保证。',
+  },
+]
+
+/**
+ * 内测知情同意书（v0.1）
+ */
+const betaSections = [
+  {
+    title: '内测性质',
+    content:
+      '本平台当前为内测版本（Beta），仅向受邀用户提供功能预览与体验。所有功能、数据、点数均为模拟，不构成真实交易、捐赠、奖励或有价承诺。',
+  },
+  {
+    title: '数据保留与清空',
+    content:
+      '内测期间的个人数据将在公测/商业化前按合规要求清理或迁移。您可通过设置页随时导出或删除个人数据。',
+  },
+  {
+    title: '功能变更',
+    content:
+      '内测期间平台可能随时调整、新增或下线功能，不另行单独通知。',
+  },
+  {
+    title: '免责',
+    content:
+      '本平台在内测期间不对功能可用性、数据持久性、服务连续性作出任何承诺。因内测造成的任何不便，敬请理解。',
+  },
+  {
+    title: '反馈',
+    content:
+      '欢迎通过设置页"意见反馈"入口提交 Bug 与建议。',
+  },
+]
+
 const privacySections = [
   {
     title: '信息收集',
@@ -435,6 +527,13 @@ export default function LoginPage() {
 
   // 隐私政策
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
+  // 合规：AI 服务协议 + 内测知情同意 + 出生日期 + 监护人同意
+  const [aiServiceAccepted, setAiServiceAccepted] = useState(false)
+  const [betaAccepted, setBetaAccepted] = useState(false)
+  const [birthday, setBirthday] = useState('')
+  const [guardianConsent, setGuardianConsent] = useState(false)
+  // 合规：敏感信息（手机号/位置/IP）单独同意（PIPL §29）
+  const [sensitiveConsent, setSensitiveConsent] = useState(false)
 
   // 预加载 hCaptcha 脚本（避免到验证步骤才加载）
   useEffect(() => {
@@ -556,7 +655,10 @@ export default function LoginPage() {
         setError('')
         setIsLoading(true)
         try {
-          const res = await authApi.register(phone, fullCode)
+          const res = await authApi.register(phone, fullCode, {
+            birthday,
+            guardianConsent,
+          })
           setAuth({ user: res.data.data.user, token: res.data.data.token })
           setTimeout(() => setStep('success'), 2000)
         } catch (e: unknown) {
@@ -806,7 +908,11 @@ export default function LoginPage() {
                                 disabled={
                                   phone.length < 11 ||
                                   isLoading ||
-                                  !privacyAccepted
+                                  !privacyAccepted ||
+                                  !aiServiceAccepted ||
+                                  !betaAccepted ||
+                                  !sensitiveConsent ||
+                                  !birthday
                                 }
                                 className={cn(
                                   'absolute right-1.5 top-1/2 -translate-y-1/2 text-white w-9 h-9 flex items-center justify-center rounded-full transition-colors group overflow-hidden',
@@ -824,6 +930,36 @@ export default function LoginPage() {
                                   </span>
                                 </span>
                               </button>
+                            </div>
+
+                            {/* 合规 PIPL §29：敏感信息（手机号/位置/IP）单独同意 — 独立于主协议 */}
+                            <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3">
+                              <label className="flex items-start gap-2 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={sensitiveConsent}
+                                  onChange={(e) =>
+                                    setSensitiveConsent(e.target.checked)
+                                  }
+                                  className="mt-0.5 w-4 h-4 rounded accent-amber-400 cursor-pointer shrink-0"
+                                />
+                                <span className="text-[11px] leading-relaxed text-amber-100/80">
+                                  <span className="font-semibold text-amber-200">敏感个人信息单独同意（必填）</span>
+                                  ：我同意平台为完成注册与基础服务目的，单独收集并处理我的：
+                                  <br />
+                                  · 手机号码（用于账号标识与登录验证）
+                                  <br />
+                                  · 出生日期（用于年龄合规校验）
+                                  <br />
+                                  · 网络 IP 与大致属地（用于安全风控，不含精确定位）
+                                  <br />
+                                  · 在使用位置相关功能时另行采集的地理位置
+                                  <br />
+                                  <span className="text-amber-200/60">
+                                    此项独立于上方"服务条款/隐私政策"勾选；可随时在设置中撤回，撤回将影响相关功能使用。
+                                  </span>
+                                </span>
+                              </label>
                             </div>
 
                             {/* 隐私政策接受 */}
@@ -859,6 +995,92 @@ export default function LoginPage() {
                                 />
                               </span>
                             </label>
+
+                            {/* 合规：AI 服务协议 */}
+                            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={aiServiceAccepted}
+                                onChange={(e) =>
+                                  setAiServiceAccepted(e.target.checked)
+                                }
+                                className="w-4 h-4 rounded accent-white cursor-pointer"
+                              />
+                              <span className="text-xs text-white/40">
+                                我已阅读并同意{' '}
+                                <LegalDialog
+                                  trigger={
+                                    <span className="underline hover:text-white/60 cursor-pointer">
+                                      AI 服务协议
+                                    </span>
+                                  }
+                                  title="AI 服务协议（内测版 v0.1）"
+                                  sections={aiServiceSections}
+                                />
+                              </span>
+                            </label>
+
+                            {/* 合规：内测知情同意 */}
+                            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={betaAccepted}
+                                onChange={(e) =>
+                                  setBetaAccepted(e.target.checked)
+                                }
+                                className="w-4 h-4 rounded accent-white cursor-pointer"
+                              />
+                              <span className="text-xs text-white/40">
+                                我已阅读并同意{' '}
+                                <LegalDialog
+                                  trigger={
+                                    <span className="underline hover:text-white/60 cursor-pointer">
+                                      内测知情同意书
+                                    </span>
+                                  }
+                                  title="内测知情同意书（v0.1）"
+                                  sections={betaSections}
+                                />
+                              </span>
+                            </label>
+
+                            {/* 合规：出生日期采集（< 14 岁禁止注册） */}
+                            <div className="flex flex-col items-center gap-1">
+                              <label className="text-xs text-white/40">
+                                出生日期（必填，14 周岁以下无法注册）
+                              </label>
+                              <input
+                                type="date"
+                                value={birthday}
+                                max={new Date().toISOString().slice(0, 10)}
+                                onChange={(e) => {
+                                  setBirthday(e.target.value)
+                                  const age = birthdayAge(e.target.value)
+                                  if (age >= 14 && age < 18) {
+                                    setGuardianConsent(false)
+                                  }
+                                }}
+                                className="w-full max-w-[220px] backdrop-blur-[1px] text-white border border-white/10 rounded-full py-2 px-4 focus:outline-none focus:border focus:border-white/30 text-center text-sm"
+                                required
+                              />
+                            </div>
+
+                            {/* 合规：14-18 岁监护人同意 */}
+                            {birthdayAge(birthday) >= 14 && birthdayAge(birthday) < 18 ? (
+                              <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={guardianConsent}
+                                  onChange={(e) =>
+                                    setGuardianConsent(e.target.checked)
+                                  }
+                                  className="w-4 h-4 rounded accent-white cursor-pointer"
+                                />
+                                <span className="text-xs text-white/40">
+                                  本人已征得监护人同意使用本平台（必填）
+                                </span>
+                              </label>
+                            ) : null}
                           </form>
 
                           {error && (
