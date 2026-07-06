@@ -1,9 +1,17 @@
-/* 点数钱包 · 暖金奢华（深浅色随 theme store 写入的 CSS 变量） */
+/* 点数钱包 · Stitch 暗金；随 html[data-appearance] 深/浅色切换（变量由 theme store 写入 :root） */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap');
 
+html[data-appearance='dark'] .wallet-page {
+  color-scheme: dark;
+}
+
+html[data-appearance='light'] .wallet-page {
+  color-scheme: light;
+}
 .wallet-page {
   position: relative;
   display: flex;
+  flex: 1;
   min-height: 100%;
   width: 100%;
   flex-direction: column;
@@ -25,11 +33,8 @@
   z-index: 0;
   background:
     var(--wallet-hero-radial),
-    radial-gradient(
-      circle at 100% 100%,
-      var(--wallet-glow-b) 0%,
-      transparent 45%
-    );
+    radial-gradient(circle at 100% 100%, var(--wallet-glow-b) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, var(--wallet-glow-a) 0%, transparent 45%);
 }
 
 .wallet-page__inner {
