@@ -134,4 +134,12 @@ connectRedis();
 
 httpServer.listen(config.port, () => {
   console.log(`[Ninewood] Server running on http://localhost:${config.port}`);
+  // 合规：内测期日志说明（《网络安全法》§21 — 公测前必须接入文件日志 + 6 个月留存）
+  console.log('');
+  console.log('  ⚠️  [INTERNAL-BETA] 当前为内测期：');
+  console.log('      - 日志仅输出到 stdout，未持久化（公测前必须接 winston/pino + 文件轮转）');
+  console.log('      - 未启用等保 2.0 测评（公测前完成二级测评）');
+  console.log('      - AI 输出内容安全过滤默认关闭（公测前启用并接入第三方审核 API）');
+  console.log('      - Sentry 上报为境外（公测前替换为境内方案）');
+  console.log('');
 });

@@ -23,7 +23,22 @@ export const config = {
   uploadDir: path.join(__dirname, '..', 'uploads'),
   corsOrigins: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
-    : ['http://localhost:5173', 'http://localhost:3000', 'app://.'],
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174', 'http://localhost:8088', 'app://.'],
+
+  /** Ninewood 运营后台（若依）调用 Admin API 的共享密钥 */
+  adminApiKey:
+    process.env.ADMIN_API_KEY ||
+    (process.env.NODE_ENV === 'production'
+      ? (() => {
+          console.error(
+            '[Ninewood] FATAL: ADMIN_API_KEY 未设置，拒绝启动（运营后台 API 需要）',
+          );
+          process.exit(1);
+        })()
+      : 'ninewood-local-admin-key'),
+
+  /** API Key 鉴权时的系统操作者（可选，争议裁决等写操作的消息发送方） */
+  adminSystemUserId: process.env.ADMIN_SYSTEM_USER_ID || '',
 
   // MiniMax / DeepSeek / Qwen（OpenAI 兼容接口）
   aiProvider: (process.env.AI_PROVIDER || 'minimax') as 'minimax' | 'deepseek' | 'qwen',
@@ -79,6 +94,13 @@ export const config = {
     sdkAppId: process.env.TENCENT_SMS_APPID || '',
     signName: process.env.TENCENT_SMS_SIGN || '乌鲁木齐往昔科技有限公司',
     templateId: process.env.TENCENT_SMS_TEMPLATE || '2631789',
+  },
+
+  // 合规：AI 输出内容安全过滤开关（《生成式 AI 办法》§14）
+  // 内测期默认 false（框架已就位）；公测前必须接入第三方审核 API + 本地分级词库后置为 true
+  contentFilter: {
+    enabled: process.env.AI_CONTENT_FILTER_ENABLED === 'true',
+    provider: process.env.AI_CONTENT_FILTER_PROVIDER || 'none',
   },
 };
 

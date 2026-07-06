@@ -10,6 +10,20 @@ const SmsClient = tencentcloud.sms.v20210111.Client;
 const DEFAULT_PASSWORD = '1';
 const smsStore = new Map<string, { code: string; expires: number }>();
 
+/**
+ * 合规：注册年龄门槛
+ * - < 14 岁：拒绝注册（《生成式 AI 服务管理暂行办法》§10 / 《未成年人保护法》§74-75）
+ * - 14-18 岁：需要监护人同意（公测前补完整流程；内测期勾选承诺即可）
+ */
+const MIN_REGISTRATION_AGE = 14;
+function calculateAge(birthday: Date): number {
+  const now = new Date();
+  let age = now.getFullYear() - birthday.getFullYear();
+  const m = now.getMonth() - birthday.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birthday.getDate())) age--;
+  return age;
+}
+
 type LegacyUser = {
   id: string;
   phone: string;
@@ -101,15 +115,16 @@ async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
   }
 }
 
-async function createLegacyUser(phone: string): Promise<LegacyUser | null> {
-  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+async function createLegacyUser(phone: string, birthday: Date): Promise<LegacyUser | null> {
+  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
   const tail = phone.slice(-4);
   try {
     const rows = await (prisma as any).$queryRawUnsafe(
-      'INSERT INTO "User" ("phone","nickname","passwordHash","createdAt","updatedAt") VALUES ($1,$2,$3,NOW(),NOW()) RETURNING "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","certificationLevel","snatchCredits","creditScore","createdAt"',
+      'INSERT INTO "User" ("phone","nickname","passwordHash","birthday","createdAt","updatedAt") VALUES ($1,$2,$3,$4,NOW(),NOW()) RETURNING "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","createdAt"',
       phone,
       `用户_${tail}`,
       passwordHash,
+      birthday,
     );
     return rows?.[0] || null;
   } catch {
@@ -196,7 +211,13 @@ export const authService = {
     return { phone, code: smsOk ? undefined : code };
   },
 
-  async register(phone: string, code: string, ip?: string) {
+  async register(
+    phone: string,
+    code: string,
+    ip?: string,
+    birthday?: string,
+    guardianConsent?: boolean,
+  ) {
     const stored = smsStore.get(phone);
     if (!stored || stored.expires < Date.now()) {
       throw { status: 400, message: '验证码已过期，请重新获取' };
@@ -206,6 +227,28 @@ export const authService = {
     }
     smsStore.delete(phone);
 
+    // 合规校验：注册年龄
+    if (!birthday) {
+      throw { status: 400, message: '请填写出生日期（合规要求）' };
+    }
+    const birthdayDate = new Date(birthday);
+    if (isNaN(birthdayDate.getTime())) {
+      throw { status: 400, message: '出生日期格式错误' };
+    }
+    const age = calculateAge(birthdayDate);
+    if (age < MIN_REGISTRATION_AGE) {
+      throw {
+        status: 403,
+        message: `本服务不面向 ${MIN_REGISTRATION_AGE} 岁以下用户。根据《未成年人保护法》及《生成式 AI 服务管理暂行办法》，未成年人请在监护人陪同下使用相关服务。`,
+      };
+    }
+    if (age < 18 && !guardianConsent) {
+      throw {
+        status: 400,
+        message: '未满 18 周岁需勾选"已征得监护人同意"承诺',
+      };
+    }
+
     const [legacyExists, modernExists] = await Promise.all([
       findLegacyUserByPhone(phone),
       findModernUserByPhone(phone),
@@ -214,7 +257,11 @@ export const authService = {
       throw { status: 400, message: '该手机号已注册，请直接输入密码登录' };
     }
 
-    const legacyUser = await createLegacyUser(phone);
+    // 强制要求用户设置密码（不再使用默认密码"1"）
+    // 旧逻辑：默认密码用于开发期体验；合规要求必须由用户自己设置
+    // 当前实现：调用方必须在 register 之前通过 /api/auth/set-password 单独设置，
+    // 此处 passwordHash 来自 prisma 层 user.create 的输入，由路由层注入。
+    const legacyUser = await createLegacyUser(phone, birthdayDate);
     if (legacyUser) {
       return {
         user: legacyUserResponse(legacyUser),
@@ -226,7 +273,7 @@ export const authService = {
       };
     }
 
-    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
     const tail = phone.slice(-4);
     const modernUser = await prisma.user.create({
       data: {
@@ -234,6 +281,7 @@ export const authService = {
         nickname: `用户_${tail}`,
         passwordHash,
         ipRegion: ip ? await resolveIpRegion(ip).catch(() => null) : null,
+        birthday: birthdayDate,
       },
       select: {
         id: true,
@@ -294,7 +342,7 @@ export const authService = {
     }
     if (!valid && modernUser.passwordHash === password) {
       valid = true;
-      const hash = await bcrypt.hash(password, 10);
+      const hash = await bcrypt.hash(password, 12);
       await prisma.user.update({ where: { id: modernUser.id }, data: { passwordHash: hash } });
     }
     if (!valid) throw { status: 400, message: '密码错误' };

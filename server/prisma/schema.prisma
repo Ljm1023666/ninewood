@@ -192,6 +192,8 @@ model User {
   role               String    @default("USER")
   passwordHash       String?
   bio                String?
+  // 合规：注册时强制采集，< 14 岁直接拒绝（生成式 AI 办法 §10 / 未保法 §74-75）
+  // 公测前需补：14-18 岁监护人同意流程
   birthday           DateTime?
   pushBlocklist      Json      @default("{\"tags\":[],\"keywords\":[],\"ageRanges\":[]}")
   hasVisitedCompletedList Boolean   @default(false)

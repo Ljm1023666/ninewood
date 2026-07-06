@@ -8,7 +8,7 @@ import { transactionService } from '../services/transaction.service.js'
 
 export const welfareRouter = Router()
 
-// POST /api/welfare/demands — 发布公益需求
+// POST /api/welfare/demands — 发布激励任务（内测占位：原"公益需求"）
 welfareRouter.post('/demands', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { title, description, expectedOutcome, minPrice, regionId } = req.body
@@ -16,7 +16,7 @@ welfareRouter.post('/demands', authMiddleware, async (req: Request, res: Respons
       return fail(res, '缺少必填字段', 400)
     }
 
-    // 公益需求: 15 天窗口
+    // 激励任务（内测占位）：15 天窗口
     const win = 15 * 24 * 60 // 15 days in minutes
     const visibleUntil = new Date(Date.now() + win * 60000)
 
@@ -28,7 +28,7 @@ welfareRouter.post('/demands', authMiddleware, async (req: Request, res: Respons
         expectedOutcome,
         minPrice,
         regionId: regionId || null,
-        category: '公益',
+        category: '激励',
         serviceType: 'OFFLINE',
         expireAt: new Date(Date.now() + win * 60000),
         visibilityWindow: win,
@@ -39,37 +39,17 @@ welfareRouter.post('/demands', authMiddleware, async (req: Request, res: Respons
       },
     })
 
-    // 确保公益圈存在
-    const circleName = `公益需求圈-${regionId || '全国'}`
-    let circle = await prisma.circle.findFirst({
-      where: { name: circleName },
-    })
-    if (!circle) {
-      circle = await prisma.circle.create({
-        data: {
-          name: circleName,
-          type: 'PUBLIC',
-          ownerId: req.user!.userId,
-          cityCode: regionId ? String(regionId) : undefined,
-        },
-      })
-    }
+    // 内测 v0.2：删除自动建圈 + CircleDemand 关联
+    // 原因：(1) PUBLIC 圈对外可见，不适合内测；(2) 业务价值低；(3) 私人圈已能覆盖后续场景
+    // 数据迁移：见 prisma/migrations/20260624_drop_welfare_circles/
 
-    // 关联需求到公益圈
-    await prisma.circleDemand.create({
-      data: {
-        circleId: circle.id,
-        demandId: demand.id,
-      },
-    })
-
-    success(res, { demand, circle }, '公益需求已发布', 201)
+    success(res, { demand }, '激励任务已发布（内测）', 201)
   } catch (e: any) {
     fail(res, e.message || 'server error', 500)
   }
 })
 
-// GET /api/welfare/demands — 列出可认领的公益需求
+// GET /api/welfare/demands — 列出可认领的激励任务
 welfareRouter.get('/demands', async (req: Request, res: Response) => {
   try {
     const page = Number(req.query.page) || 1
@@ -107,7 +87,7 @@ welfareRouter.get('/demands', async (req: Request, res: Response) => {
   }
 })
 
-// GET /api/welfare/rewards — 我的公益奖励历史
+// GET /api/welfare/rewards — 我的激励记录（模拟）
 welfareRouter.get('/rewards', authMiddleware, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1
@@ -134,14 +114,14 @@ welfareRouter.get('/fund-pool/:regionId', async (req: Request, res: Response) =>
   }
 })
 
-// POST /api/welfare/claim — 认领公益需求（先到先得 → PENDING，comm 双消息起算）
+// POST /api/welfare/claim — 认领激励任务（先到先得 → PENDING，comm 双消息起算）
 welfareRouter.post('/claim/:demandId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const demand = await prisma.demand.findUnique({
       where: { id: req.params.demandId },
     })
     if (!demand) return fail(res, '需求不存在', 404)
-    if (!demand.isPublicWelfare) return fail(res, '非公益需求', 400)
+    if (!demand.isPublicWelfare) return fail(res, '非激励任务', 400)
     if (demand.status !== 'ACTIVE') return fail(res, '需求已过期', 400)
 
     // 先到先得: 检查是否已被认领
@@ -160,7 +140,7 @@ welfareRouter.post('/claim/:demandId', authMiddleware, async (req: Request, res:
       data: {
         demandId: demand.id,
         userId: req.user!.userId,
-        message: '公益认领',
+        message: '激励认领（内测）',
         status: 'PENDING',
       },
     })
@@ -171,7 +151,7 @@ welfareRouter.post('/claim/:demandId', authMiddleware, async (req: Request, res:
   }
 })
 
-// POST /api/welfare/complete — 完成公益需求
+// POST /api/welfare/complete — 完成激励任务（内测占位）
 welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const demand = await prisma.demand.findUnique({
@@ -193,7 +173,7 @@ welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, r
     // 创建结算记录
     const settlement = await transactionService.createWelfareSettlement(demand.id, finalPrice)
 
-    // 抽成划入公益资金池
+    // 抽成划入激励池（沿用 WelfareFundPool 实体；前端标注"模拟"）
     await prisma.welfareFundPool.upsert({
       where: { regionId },
       update: {
@@ -213,7 +193,7 @@ welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, r
       data: { status: 'COMPLETED' },
     })
 
-    // 随机奖励
+    // 随机奖励（模拟）
     const provider = await prisma.demandApplicantV2.findFirst({
       where: { demandId: demand.id, status: 'ACCEPTED' },
     })
@@ -225,7 +205,7 @@ welfareRouter.post('/complete/:demandId', authMiddleware, async (req: Request, r
       })
     }
 
-    success(res, { settlement, reward, finalPrice }, '公益需求已完成')
+    success(res, { settlement, reward, finalPrice }, '激励任务已完成（内测模拟数据）')
   } catch (e: any) {
     fail(res, e.message || 'server error', 500)
   }

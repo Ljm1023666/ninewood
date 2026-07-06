@@ -99,3 +99,98 @@ export async function refreshTagStats(tagName?: string, regionId?: number) {
 
   return { groupsUpdated: groups.length }
 }
+
+/** 本周一 00:00（本地时区） */
+function startOfWeek(date = new Date()): Date {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = day === 0 ? 6 : day - 1
+  d.setDate(d.getDate() - diff)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+/** 平台 30 日趋势：按日聚合订单/需求/用户 */
+export async function getPlatformTrends(days = 30) {
+  const clampedDays = Math.min(Math.max(days, 7), 90)
+  const end = new Date()
+  end.setHours(23, 59, 59, 999)
+  const start = new Date(end)
+  start.setDate(start.getDate() - (clampedDays - 1))
+  start.setHours(0, 0, 0, 0)
+
+  type DayBucket = {
+    date: string
+    label: string
+    revenue: number
+    orders: number
+    demands: number
+    users: number
+  }
+
+  const buckets = new Map<string, DayBucket>()
+  for (let i = 0; i < clampedDays; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    const date = d.toISOString().slice(0, 10)
+    const label = `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    buckets.set(date, { date, label, revenue: 0, orders: 0, demands: 0, users: 0 })
+  }
+
+  const [orders, demands, users] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        status: 'COMPLETED',
+        OR: [
+          { completedAt: { gte: start, lte: end } },
+          { completedAt: null, createdAt: { gte: start, lte: end } },
+        ],
+      },
+      select: { completedAt: true, createdAt: true, agreedPrice: true },
+    }),
+    prisma.demand.findMany({
+      where: { createdAt: { gte: start, lte: end } },
+      select: { createdAt: true },
+    }),
+    prisma.user.findMany({
+      where: { createdAt: { gte: start, lte: end } },
+      select: { createdAt: true },
+    }),
+  ])
+
+  for (const o of orders) {
+    const at = o.completedAt ?? o.createdAt
+    const key = at.toISOString().slice(0, 10)
+    const bucket = buckets.get(key)
+    if (!bucket) continue
+    bucket.orders += 1
+    bucket.revenue += Number(o.agreedPrice)
+  }
+
+  for (const d of demands) {
+    const key = d.createdAt.toISOString().slice(0, 10)
+    const bucket = buckets.get(key)
+    if (bucket) bucket.demands += 1
+  }
+
+  for (const u of users) {
+    const key = u.createdAt.toISOString().slice(0, 10)
+    const bucket = buckets.get(key)
+    if (bucket) bucket.users += 1
+  }
+
+  return {
+    days: clampedDays,
+    series: [...buckets.values()].sort((a, b) => a.date.localeCompare(b.date)),
+  }
+}
+
+/** 总览补充指标 */
+export async function getOverviewExtras() {
+  const weekStart = startOfWeek()
+  const [newDemandsThisWeek, activeDemandsCount] = await Promise.all([
+    prisma.demand.count({ where: { createdAt: { gte: weekStart } } }),
+    prisma.demand.count({ where: { status: { in: ['ACTIVE', 'PENDING'] } } }),
+  ])
+  return { newDemandsThisWeek, activeDemandsCount }
+}

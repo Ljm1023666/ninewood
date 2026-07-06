@@ -9,6 +9,7 @@ import {
   extendComm,
 } from './comm.service.js';
 import { isVisibleInMarketplace } from '../utils/demand-search-visibility.js';
+import { circleHubService } from './circle-hub.service.js';
 
 export { extendComm };
 import { ServiceType, DemandStatus, DemandStage, Prisma } from '@prisma/client';
@@ -161,6 +162,17 @@ export const demandService = {
       await triggerAutoReceivePush(demand.id, io).catch((err) => {
         console.error('[auto-receive] failed for demand', demand.id, err)
       })
+    }
+
+    if (params.circleId) {
+      await circleHubService.recordActivity({
+        circleId: params.circleId,
+        actorId: params.userId,
+        type: 'DEMAND',
+        title: '发布了新需求',
+        summary: params.title,
+        refId: demand.id,
+      });
     }
 
     return demand;

@@ -112,7 +112,7 @@ describe("POST /api/welfare/claim (阶段 1.6 WC-A/B/C)", () => {
       data: {
         demandId: "d1",
         userId: "claimer-1",
-        message: "公益认领",
+        message: "激励认领（内测）",
         status: "PENDING",
       },
     });

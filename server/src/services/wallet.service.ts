@@ -378,7 +378,7 @@ export const walletService = {
           {
             referenceType: 'DEMAND',
             referenceId: demandId,
-            memo: isWelfare ? '公益服务费(10%)' : '平台服务费(5%)',
+            memo: isWelfare ? '激励服务费(10%,内测模拟)' : '平台服务费(5%)',
           },
           tx,
         )

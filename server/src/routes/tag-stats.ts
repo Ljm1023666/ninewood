@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { success, fail } from '../utils/response.js'
 import { prisma } from '../lib/prisma.js'
-import { refreshTagStats } from '../services/tag-stats.js'
+import { refreshTagStats, getPlatformTrends, getOverviewExtras } from '../services/tag-stats.js'
 
 export const tagStatsRouter = Router()
 
@@ -32,8 +32,11 @@ tagStatsRouter.get('/', async (req: Request, res: Response) => {
     }
 
     success(res, {
-      stats,
-      // 色条颜色计算
+      stats: stats.map((s) => ({
+        ...s,
+        // 前端统一使用 completedOrders，与 DB totalCards 对齐
+        completedOrders: s.totalCards,
+      })),
       colors: stats.map((s) => ({
         tagName: s.tagName,
         regionId: s.regionId,
@@ -49,7 +52,7 @@ tagStatsRouter.get('/', async (req: Request, res: Response) => {
 // GET /api/tag-stats/overview — 主要指标总览（P2-01）
 tagStatsRouter.get('/overview', async (_req: Request, res: Response) => {
   try {
-    const [userCount, orderCount, demandCount, completedOrderAgg, allStats] = await Promise.all([
+    const [userCount, orderCount, demandCount, completedOrderAgg, allStats, extras] = await Promise.all([
       prisma.user.count(),
       prisma.order.count(),
       prisma.demand.count(),
@@ -59,6 +62,7 @@ tagStatsRouter.get('/overview', async (_req: Request, res: Response) => {
         _count: { id: true },
       }),
       prisma.tagStats.findMany({ select: { totalCards: true, activeProviders: true, activeDemands: true } }),
+      getOverviewExtras(),
     ])
     const totalTags = allStats.length
     const activeTags = allStats.filter(
@@ -74,9 +78,21 @@ tagStatsRouter.get('/overview', async (_req: Request, res: Response) => {
         totalTags,
         activeTags,
         completedOrders: completedOrderAgg._count.id,
-        relatedDemands: allStats.reduce((s, x) => s + (x.totalCards || 0) + (x.activeDemands || 0), 0),
+        newDemandsThisWeek: extras.newDemandsThisWeek,
+        relatedDemands: extras.activeDemandsCount,
       },
     })
+  } catch (e: any) {
+    fail(res, e.message || 'server error', 500)
+  }
+})
+
+// GET /api/tag-stats/trends?days=30 — 平台时间序列
+tagStatsRouter.get('/trends', async (req: Request, res: Response) => {
+  try {
+    const days = req.query.days ? Number(req.query.days) : 30
+    const trends = await getPlatformTrends(Number.isFinite(days) ? days : 30)
+    success(res, trends)
   } catch (e: any) {
     fail(res, e.message || 'server error', 500)
   }
