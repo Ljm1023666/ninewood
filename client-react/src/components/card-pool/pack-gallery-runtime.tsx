@@ -32,6 +32,9 @@ const PLACEHOLDER_IMAGES: PackCardImageItem[] = [
   { src: PLACEHOLDER_PIXEL, backSrc: PLACEHOLDER_PIXEL, alt: '' },
 ]
 
+/** 滚轮无操作后恢复中央 Logo */
+const GALLERY_TITLE_IDLE_MS = 3000
+
 type FrameLoopMode = 'always' | 'never'
 
 type DisplayFlags = {
@@ -60,6 +63,8 @@ export type PackGalleryRuntime = {
   isSceneReady: () => boolean
   subscribeSceneReady: (listener: () => void) => () => void
   setCardNavigateHandler: (handler: ((id: string) => void) | null) => void
+  /** 画廊滚轮/键盘交互：中央 Logo 淡出，空闲 3s 后淡入 */
+  notifyGalleryWheelActivity: () => void
 }
 
 const PackGalleryRuntimeContext = createContext<PackGalleryRuntime | null>(null)
@@ -92,12 +97,21 @@ export function PackGalleryProvider({
   const sceneReadyRef = useRef(false)
   const sceneReadyListenersRef = useRef(new Set<() => void>())
   const cardNavigateHandlerRef = useRef<((id: string) => void) | null>(null)
+  const titleIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const textureSwapPausedRef = useRef(false)
+  const titleShownRef = useRef(false)
+  const pendingImagesRef = useRef<{
+    cacheKey: string
+    items: PackCardImageItem[]
+  } | null>(null)
 
   const [images, setImagesState] = useState<PackCardImageItem[]>(PLACEHOLDER_IMAGES)
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [galleryMountKey, setGalleryMountKey] = useState(0)
   const [visible, setVisible] = useState(false)
   const [sceneReady, setSceneReady] = useState(false)
+  /** 中央 Logo 是否显示（滚轮时淡出并卸载，避免 mix-blend 导致 Canvas 闪烁） */
+  const [titleShown, setTitleShown] = useState(false)
   const [displayFlags, setDisplayFlags] = useState<DisplayFlags>({
     onTop: false,
     showTitle: false,
@@ -109,18 +123,130 @@ export function PackGalleryProvider({
     setSceneReady(false)
   }, [])
 
-  const syncDisplayFlags = useCallback(
-    (opacity: number) => {
-      const onTop = visibleRef.current && opacity > 0.01
-      const showTitle =
-        sceneReadyRef.current && onTop && imagesReadyRef.current && opacity >= 0.98
-      setDisplayFlags((prev) => {
-        if (prev.onTop === onTop && prev.showTitle === showTitle) return prev
-        return { onTop, showTitle }
+  const syncDisplayFlags = useCallback((opacity: number) => {
+    const onTop = visibleRef.current && opacity > 0.01
+    const showTitle =
+      sceneReadyRef.current && onTop && imagesReadyRef.current && opacity >= 0.98
+    setDisplayFlags((prev) => {
+      if (prev.onTop === onTop && prev.showTitle === showTitle) return prev
+      return { onTop, showTitle }
+    })
+  }, [])
+
+  const setTitleShownState = useCallback((shown: boolean) => {
+    titleShownRef.current = shown
+    setTitleShown(shown)
+  }, [])
+
+  const resetTitleWheelFade = useCallback(() => {
+    if (titleIdleTimerRef.current) {
+      clearTimeout(titleIdleTimerRef.current)
+      titleIdleTimerRef.current = null
+    }
+    textureSwapPausedRef.current = false
+    pendingImagesRef.current = null
+    setTitleShownState(false)
+  }, [setTitleShownState])
+
+  const applyImagesInner = useCallback(
+    (cacheKey: string, items: PackCardImageItem[]) => {
+      if (items.length === 0) return false
+      const prev = prevImagesRef.current
+      imagesByKeyRef.current.set(cacheKey, items)
+      activeKeyRef.current = cacheKey
+      hasPackImagesRef.current = true
+
+      let changed = true
+      setImagesState((prevState) => {
+        if (sameImageList(prevState, items)) {
+          changed = false
+          return prevState
+        }
+        return items
       })
+
+      if (!changed) {
+        prevImagesRef.current = items
+        return true
+      }
+
+      const wasReady = isRealGalleryImages(prev)
+      imagesReadyRef.current = isRealGalleryImages(items)
+      setActiveKey(cacheKey)
+
+      if (!wasReady && imagesReadyRef.current) {
+        resetSceneReady()
+        setGalleryMountKey((k) => k + 1)
+        prevImagesRef.current = items
+      } else {
+        preloadPackGalleryGpuTexturesDelta(prev, items)
+        prevImagesRef.current = items
+      }
+
+      syncDisplayFlags(layerOpacityRef.current)
+      return true
     },
-    [],
+    [syncDisplayFlags, resetSceneReady],
   )
+
+  const flushPendingGalleryImages = useCallback(() => {
+    const pending = pendingImagesRef.current
+    if (!pending) return
+    pendingImagesRef.current = null
+    applyImagesInner(pending.cacheKey, pending.items)
+  }, [applyImagesInner])
+
+  const scheduleTitleRestore = useCallback(() => {
+    if (titleIdleTimerRef.current) {
+      clearTimeout(titleIdleTimerRef.current)
+    }
+    titleIdleTimerRef.current = setTimeout(() => {
+      titleIdleTimerRef.current = null
+      setTitleShownState(false)
+      textureSwapPausedRef.current = false
+      flushPendingGalleryImages()
+      const canShow =
+        sceneReadyRef.current &&
+        visibleRef.current &&
+        imagesReadyRef.current &&
+        layerOpacityRef.current >= 0.98
+      if (!canShow) return
+      // 先完成纹理热更新，再显示 mix-blend Logo，避免叠层动画与换图同时触发闪烁
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (
+            sceneReadyRef.current &&
+            visibleRef.current &&
+            layerOpacityRef.current >= 0.98
+          ) {
+            setTitleShownState(true)
+          }
+        })
+      })
+    }, GALLERY_TITLE_IDLE_MS)
+  }, [flushPendingGalleryImages, setTitleShownState])
+
+  const notifyGalleryWheelActivity = useCallback(() => {
+    setTitleShownState(false)
+    textureSwapPausedRef.current = true
+    scheduleTitleRestore()
+  }, [scheduleTitleRestore, setTitleShownState])
+
+  useEffect(() => {
+    return () => {
+      if (titleIdleTimerRef.current) {
+        clearTimeout(titleIdleTimerRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (displayFlags.showTitle && !textureSwapPausedRef.current) {
+      setTitleShownState(true)
+    } else if (!displayFlags.showTitle) {
+      setTitleShownState(false)
+    }
+  }, [displayFlags.showTitle, setTitleShownState])
 
   const markSceneReady = useCallback(() => {
     if (sceneReadyRef.current) return
@@ -168,43 +294,22 @@ export function PackGalleryProvider({
     [syncDisplayFlags],
   )
 
-  const applyImages = useCallback((cacheKey: string, items: PackCardImageItem[]) => {
-    if (items.length === 0) return false
-    const prev = prevImagesRef.current
-    imagesByKeyRef.current.set(cacheKey, items)
-    activeKeyRef.current = cacheKey
-    hasPackImagesRef.current = true
-
-    let changed = true
-    setImagesState((prevState) => {
-      if (sameImageList(prevState, items)) {
-        changed = false
-        return prevState
+  const applyImages = useCallback(
+    (cacheKey: string, items: PackCardImageItem[]) => {
+      if (
+        (textureSwapPausedRef.current || titleShownRef.current) &&
+        visibleRef.current &&
+        layerOpacityRef.current > 0.5 &&
+        isRealGalleryImages(prevImagesRef.current)
+      ) {
+        imagesByKeyRef.current.set(cacheKey, items)
+        pendingImagesRef.current = { cacheKey, items }
+        return true
       }
-      return items
-    })
-
-    if (!changed) {
-      prevImagesRef.current = items
-      return true
-    }
-
-    const wasReady = isRealGalleryImages(prev)
-    imagesReadyRef.current = isRealGalleryImages(items)
-    setActiveKey(cacheKey)
-
-    if (!wasReady && imagesReadyRef.current) {
-      resetSceneReady()
-      setGalleryMountKey((k) => k + 1)
-      prevImagesRef.current = items
-    } else {
-      preloadPackGalleryGpuTexturesDelta(prev, items)
-      prevImagesRef.current = items
-    }
-
-    syncDisplayFlags(layerOpacityRef.current)
-    return true
-  }, [syncDisplayFlags, resetSceneReady])
+      return applyImagesInner(cacheKey, items)
+    },
+    [applyImagesInner],
+  )
 
   const load = useCallback(
     (cacheKey: string, items: PackCardImageItem[]) => {
@@ -300,9 +405,10 @@ export function PackGalleryProvider({
     setVisible(false)
     setFrameLoop('never')
     resetSceneReady()
+    resetTitleWheelFade()
     syncDisplayFlags(layerOpacityRef.current)
     sceneControlRef.current?.resetMotion()
-  }, [resetSceneReady, syncDisplayFlags])
+  }, [resetSceneReady, resetTitleWheelFade, syncDisplayFlags])
 
   const runtime = useMemo<PackGalleryRuntime>(
     () => ({
@@ -313,8 +419,9 @@ export function PackGalleryProvider({
       isSceneReady,
       subscribeSceneReady,
       setCardNavigateHandler,
+      notifyGalleryWheelActivity,
     }),
-    [show, hide, setLayerOpacity, isSceneReady, subscribeSceneReady, setCardNavigateHandler],
+    [show, hide, setLayerOpacity, isSceneReady, subscribeSceneReady, setCardNavigateHandler, notifyGalleryWheelActivity],
   )
 
   return (
@@ -326,6 +433,7 @@ export function PackGalleryProvider({
         galleryMountKey={galleryMountKey}
         visible={visible}
         displayFlags={displayFlags}
+        titleShown={titleShown}
         frameLoop={frameLoop}
         wheelImpulseRef={wheelImpulseRef}
         sceneControlRef={sceneControlRef}
@@ -342,6 +450,7 @@ function PackGalleryHost({
   galleryMountKey,
   visible,
   displayFlags,
+  titleShown,
   frameLoop,
   wheelImpulseRef,
   sceneControlRef,
@@ -353,6 +462,7 @@ function PackGalleryHost({
   galleryMountKey: number
   visible: boolean
   displayFlags: DisplayFlags
+  titleShown: boolean
   frameLoop: FrameLoopMode
   wheelImpulseRef: MutableRefObject<((deltaY: number) => void) | null>
   sceneControlRef: MutableRefObject<GallerySceneControl | null>
@@ -373,7 +483,7 @@ function PackGalleryHost({
     >
       <div
         ref={blackLayerRef}
-        className="absolute inset-0 bg-black will-change-[opacity]"
+        className="absolute inset-0 isolate bg-black will-change-[opacity]"
         style={{ opacity: 0 }}
       >
         {mountGallery ? (
@@ -405,7 +515,8 @@ function PackGalleryHost({
           </div>
         ) : null}
       </div>
-      {displayFlags.showTitle ? (
+      {/* mix-blend 层禁止做 opacity 动画（会迫使 WebGL 每帧重合成）；滚轮时直接卸载 */}
+      {displayFlags.showTitle && titleShown ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-3 mix-blend-exclusion">
           <h1 className="text-center font-serif text-4xl font-bold tracking-tighter text-white md:text-7xl">
             <span className="italic">Ninewood</span>

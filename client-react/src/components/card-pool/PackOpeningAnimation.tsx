@@ -17,7 +17,11 @@ import type { BlackScope } from '@/components/card-pool/types'
 import { usePackGallery } from '@/hooks/use-pack-card-textures'
 import { usePackGalleryRuntime } from '@/components/card-pool/pack-gallery-runtime'
 import { activatePackGalleryImages } from '@/utils/pack-gallery-bridge'
-import { warmPackGalleryFromCards } from '@/utils/pack-gallery-cache'
+import {
+  preloadPackGalleryGpuForScope,
+  resumePackGalleryHdUpgrade,
+  warmPackGalleryFromCards,
+} from '@/utils/pack-gallery-cache'
 import {
   MorphingCardStack,
   type CardData,
@@ -29,7 +33,10 @@ type ViewMode = 'opening' | 'falling' | 'loading' | 'gallery'
 const BASE_CARD_W = 190
 const BASE_CARD_H = 336
 const SCROLL_PER_CARD = 50
+/** 底弧拉满后继续下滑，累计超过该值触发掉落进画廊 */
 const OVERSCROLL_THRESHOLD = 160
+/** 单次滚轮事件位移上限，避免首滑 delta 过大直接跳到满弧 */
+const WHEEL_DELTA_CLAMP = 56
 /** 掉落时长（放缓，为画廊纹理合成争取时间） */
 const FALL_MS = 2400
 
@@ -604,12 +611,8 @@ function PackGalleryLoadingOverlay({ label }: { label: string }) {
   )
 }
 
-function packGalleryLoadingLabel(
-  ready: boolean,
-  texturesComplete: boolean,
-): string {
+function packGalleryLoadingLabel(ready: boolean): string {
   if (!ready) return '正在合成卡面纹理…'
-  if (!texturesComplete) return '正在优化画廊资源…'
   return '正在初始化场景…'
 }
 
@@ -629,10 +632,13 @@ export function PackOpeningAnimation({
   const containerRef = useRef<HTMLDivElement>(null)
   const galleryRuntime = usePackGalleryRuntime()
   const galleryWheelRef = galleryRuntime.wheelImpulseRef
+  const galleryNotifyWheelRef = useRef(galleryRuntime.notifyGalleryWheelActivity)
+  galleryNotifyWheelRef.current = galleryRuntime.notifyGalleryWheelActivity
 
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const [phase, setPhase] = useState<AnimationPhase>('scatter')
   const [viewMode, setViewMode] = useState<ViewMode>('opening')
+  const [fallComplete, setFallComplete] = useState(false)
   const fallProgress = useMotionValue(0)
   const [showCardStack, setShowCardStack] = useState(false)
   const [gatherOrigins, setGatherOrigins] = useState<CardTarget[] | null>(null)
@@ -646,17 +652,21 @@ export function PackOpeningAnimation({
   viewModeRef.current = viewMode
 
   const galleryLoadActive = viewMode === 'loading' || viewMode === 'gallery'
-  const { ready: galleryReady, texturesComplete: galleryTexturesComplete } =
-    usePackGallery(galleryLoadActive ? galleryCacheKey : null, cards)
+  const { ready: galleryReady } = usePackGallery(galleryCacheKey, cards)
 
   const galleryVisible = viewMode === 'gallery'
 
   const galleryRuntimeRef = useRef(galleryRuntime)
   galleryRuntimeRef.current = galleryRuntime
 
-  const galleryFullyReady = galleryReady && galleryTexturesComplete
+  // 快纹理就绪即可进入画廊，HD 升级在后台进行
+  const galleryFullyReady = galleryReady
 
-  // 开包/掉落：完全不碰画廊；loading 起才合成纹理、挂载 Canvas
+  // 开包起即预热纹理（与开包动画并行），loading 阶段才挂载 Canvas
+  useEffect(() => {
+    void warmPackGalleryFromCards(galleryScope, cards)
+  }, [galleryScope, cards])
+
   useEffect(() => {
     const rt = galleryRuntimeRef.current
 
@@ -669,12 +679,14 @@ export function PackOpeningAnimation({
     if (viewMode === 'loading' && !galleryLoadStartedRef.current) {
       galleryLoadStartedRef.current = true
       galleryRevealedRef.current = false
-      void warmPackGalleryFromCards(galleryScope, cards)
     }
 
     rt.show(galleryCacheKey)
     if (galleryReady) {
       activatePackGalleryImages(galleryCacheKey)
+      if (viewMode === 'loading') {
+        preloadPackGalleryGpuForScope(galleryScope)
+      }
     }
 
     if (viewMode === 'loading') {
@@ -691,8 +703,20 @@ export function PackOpeningAnimation({
     const revealGallery = () => {
       if (galleryRevealedRef.current) return
       galleryRevealedRef.current = true
-      rt.setLayerOpacity(1)
-      setViewMode('gallery')
+      const rt = galleryRuntimeRef.current
+      const REVEAL_MS = 480
+      const start = performance.now()
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / REVEAL_MS)
+        const eased = t * t * (3 - 2 * t)
+        rt.setLayerOpacity(eased)
+        if (t < 1) {
+          requestAnimationFrame(tick)
+        } else {
+          setViewMode('gallery')
+        }
+      }
+      requestAnimationFrame(tick)
     }
 
     if (rt.isSceneReady()) {
@@ -702,6 +726,15 @@ export function PackOpeningAnimation({
 
     return rt.subscribeSceneReady(revealGallery)
   }, [viewMode, galleryFullyReady])
+
+  /** 入画廊约 2.5s 后再启动 HD 升级，避免首屏卡顿 */
+  useEffect(() => {
+    if (viewMode !== 'gallery') return
+    const timer = window.setTimeout(() => {
+      resumePackGalleryHdUpgrade(galleryScope)
+    }, 2500)
+    return () => clearTimeout(timer)
+  }, [viewMode, galleryScope])
 
   useEffect(() => {
     return () => {
@@ -737,6 +770,7 @@ export function PackOpeningAnimation({
 
   useEffect(() => {
     if (viewMode !== 'falling') return
+    setFallComplete(false)
     fallProgress.set(0)
     const start = performance.now()
     let frame = 0
@@ -752,6 +786,10 @@ export function PackOpeningAnimation({
         frame = requestAnimationFrame(tick)
       } else {
         fallProgress.set(1)
+        if (containerRef.current) {
+          containerRef.current.style.opacity = '0'
+        }
+        setFallComplete(true)
         galleryRevealedRef.current = false
         setViewMode('loading')
       }
@@ -778,16 +816,32 @@ export function PackOpeningAnimation({
   )
 
   const [scrollAtMax, setScrollAtMax] = useState(false)
-  const [arcScrollActive, setArcScrollActive] = useState(false)
+  const [wheelScroll, setWheelScroll] = useState(0)
   const [arcMorphReady, setArcMorphReady] = useState(false)
   const morphValueRef = useRef(0)
   const rotateValueRef = useRef(0)
 
+  const syncScrollDerived = useCallback(
+    (scroll: number) => {
+      const morphValue = Math.min(1, Math.max(0, scroll / MORPH_END))
+      const rotateValue =
+        scroll <= MORPH_END
+          ? 0
+          : ((scroll - MORPH_END) / Math.max(MAX_SCROLL - MORPH_END, 1)) * 360
+      morphValueRef.current = morphValue
+      rotateValueRef.current = rotateValue
+      setArcMorphReady((prev) => {
+        const ready = morphValue > 0.85
+        return prev === ready ? prev : ready
+      })
+      return { morphValue, rotateValue }
+    },
+    [MORPH_END, MAX_SCROLL],
+  )
+
   useEffect(() => {
     const unsub1 = morphProgress.on('change', (v) => {
       morphValueRef.current = v
-      const ready = v > 0.85
-      setArcMorphReady((prev) => (prev === ready ? prev : ready))
     })
     const unsub2 = scrollRotate.on('change', (v) => {
       rotateValueRef.current = v
@@ -811,11 +865,17 @@ export function PackOpeningAnimation({
       }
 
       const atBottom = scrollRef.current >= MAX_SCROLL - 2
+      const { morphValue } = syncScrollDerived(scrollRef.current)
 
-      if (atBottom && e.deltaY > 0 && morphValueRef.current > 0.85) {
+      if (atBottom && e.deltaY > 0 && morphValue > 0.85) {
         overscrollRef.current += e.deltaY
         const t = Math.min(1, overscrollRef.current / OVERSCROLL_THRESHOLD)
         if (t >= 1 && viewModeRef.current === 'opening') {
+          scrollRef.current = MAX_SCROLL
+          virtualScroll.set(MAX_SCROLL)
+          setWheelScroll(MAX_SCROLL)
+          syncScrollDerived(MAX_SCROLL)
+          setFallComplete(false)
           fallProgress.set(0)
           if (containerRef.current) containerRef.current.style.opacity = '1'
           setViewMode('falling')
@@ -829,18 +889,23 @@ export function PackOpeningAnimation({
 
       const progress = scrollRef.current / MAX_SCROLL
       const sensitivity = progress > 0.2 ? 0.5 - (progress - 0.2) * 0.4 : 0.5
+      const rawStep = e.deltaY * sensitivity
+      const step =
+        Math.sign(rawStep) *
+        Math.min(Math.abs(rawStep), WHEEL_DELTA_CLAMP)
       scrollRef.current = Math.min(
-        Math.max(scrollRef.current + e.deltaY * sensitivity, 0),
+        Math.max(scrollRef.current + step, 0),
         MAX_SCROLL,
       )
       setScrollAtMax(scrollRef.current >= MAX_SCROLL - 2)
-      if (scrollRef.current > 0) setArcScrollActive(true)
+      setWheelScroll(scrollRef.current)
       virtualScroll.set(scrollRef.current)
+      syncScrollDerived(scrollRef.current)
     }
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [virtualScroll, MAX_SCROLL, phase, showCardStack, fallProgress])
+  }, [virtualScroll, MAX_SCROLL, phase, showCardStack, fallProgress, syncScrollDerived])
 
   // 画廊阶段：window 捕获滚轮/键盘，避免 Canvas 不冒泡 & 底层卡池 scroll 抢事件
   useEffect(() => {
@@ -848,15 +913,18 @@ export function PackOpeningAnimation({
       if (viewModeRef.current !== 'gallery') return
       e.preventDefault()
       galleryWheelRef.current?.(e.deltaY)
+      galleryNotifyWheelRef.current()
     }
     const onGalleryKey = (e: KeyboardEvent) => {
       if (viewModeRef.current !== 'gallery') return
       if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
         e.preventDefault()
         galleryWheelRef.current?.(-120)
+        galleryNotifyWheelRef.current()
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
         e.preventDefault()
         galleryWheelRef.current?.(120)
+        galleryNotifyWheelRef.current()
       }
     }
     window.addEventListener('wheel', onGalleryWheel, { passive: false, capture: true })
@@ -925,16 +993,16 @@ export function PackOpeningAnimation({
   const exitGalleryToArc = useCallback(() => {
     scrollRef.current = MAX_SCROLL
     virtualScroll.set(MAX_SCROLL)
-    morphValueRef.current = 1
-    rotateValueRef.current = 360
+    syncScrollDerived(MAX_SCROLL)
+    setWheelScroll(MAX_SCROLL)
     setArcMorphReady(true)
-    setArcScrollActive(true)
     setScrollAtMax(true)
     overscrollRef.current = 0
     fallProgress.set(0)
+    setFallComplete(false)
     if (containerRef.current) containerRef.current.style.opacity = '1'
     setViewMode('opening')
-  }, [MAX_SCROLL, virtualScroll, fallProgress])
+  }, [MAX_SCROLL, virtualScroll, fallProgress, syncScrollDerived])
 
   const atArcBottom =
     viewMode === 'opening' &&
@@ -946,8 +1014,10 @@ export function PackOpeningAnimation({
   const useMotionCards =
     phase === 'circle' &&
     !showCardStack &&
-    (viewMode === 'falling' ||
-      (viewMode === 'opening' && arcScrollActive))
+    (viewMode === 'falling' || (viewMode === 'loading' && fallComplete))
+
+  const cardsFalling =
+    viewMode === 'falling' || (viewMode === 'loading' && fallComplete)
 
   return (
     <AnimatePresence>
@@ -967,7 +1037,7 @@ export function PackOpeningAnimation({
       >
         {viewMode === 'loading' ? (
           <PackGalleryLoadingOverlay
-            label={packGalleryLoadingLabel(galleryReady, galleryTexturesComplete)}
+            label={packGalleryLoadingLabel(galleryReady)}
           />
         ) : null}
 
@@ -1064,7 +1134,7 @@ export function PackOpeningAnimation({
                       morphProgress={morphProgress}
                       scrollRotate={scrollRotate}
                       fallProgress={fallProgress}
-                      isFalling={viewMode === 'falling'}
+                      isFalling={cardsFalling}
                       onNavigate={handleNavigate}
                     />
                   )
@@ -1102,7 +1172,21 @@ export function PackOpeningAnimation({
                 } else if (phase === 'circle') {
                   const w = containerSize.width || containerRef.current?.offsetWidth || 0
                   const h = containerSize.height || containerRef.current?.offsetHeight || 0
-                  target = computeCircleArcTarget(i, total, w, h, 0, 0)
+                  const morphValue = Math.min(1, Math.max(0, wheelScroll / MORPH_END))
+                  const rotateValue =
+                    wheelScroll <= MORPH_END
+                      ? 0
+                      : ((wheelScroll - MORPH_END) /
+                          Math.max(MAX_SCROLL - MORPH_END, 1)) *
+                        360
+                  target = computeCircleArcTarget(
+                    i,
+                    total,
+                    w,
+                    h,
+                    morphValue,
+                    rotateValue,
+                  )
                 }
 
                 return (

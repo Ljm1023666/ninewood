@@ -458,18 +458,22 @@ export async function buildPackCardGalleryItem(input: {
   title: string
   price: string
 }) {
-  const back = await buildPackCardBackTextureUrl(
-    {
-      src: input.detailImageUrl,
-      title: input.title,
-      price: input.price,
-    },
-    GALLERY_TEXTURE_MIN_W,
-  )
-  return { front: input.detailImageUrl, back }
+  const coverImage = await loadCoverImage(input.detailImageUrl)
+  const cardW = GALLERY_TEXTURE_MIN_W
+  const textureInput: PackCardTextureInput = {
+    src: input.detailImageUrl,
+    fallbackSrc: input.detailImageUrl,
+    title: input.title,
+    price: input.price,
+  }
+  const [front, back] = await Promise.all([
+    buildPackCardFrontTextureUrl(textureInput, coverImage, cardW),
+    buildPackCardBackTextureUrl(textureInput, cardW),
+  ])
+  return { front, back }
 }
 
-/** 快速路径：正面 detail 直链，仅背面 canvas（预取首屏，后台再升级 HD 正面） */
+/** 快速路径：800px 合成正面（含色条）+ 背面 canvas，后台再升级 HD */
 export async function buildPackCardFastGalleryItem(input: {
   detailImageUrl: string
   title: string

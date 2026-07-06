@@ -27,6 +27,7 @@ import {
   evictPackGallery,
   getPackGalleryKey,
   getPackGallerySnapshot,
+  warmPackGalleryFromCards,
 } from '@/utils/pack-gallery-cache'
 import { loadPackGalleryImages } from '@/utils/pack-gallery-bridge'
 import { cn } from '@/lib/utils'
@@ -279,6 +280,7 @@ export default function CardPool() {
     const cached = getPackGallerySnapshot(cacheKey)
 
     if (cached.cards.length > 0) {
+      void warmPackGalleryFromCards(entry.scope, cached.cards)
       setPackOpening({ cards: cached.cards, cacheKey, scope: entry.scope })
       return
     }
@@ -290,6 +292,7 @@ export default function CardPool() {
           toast('当前范围内暂无需求', 'error')
           return
         }
+        void warmPackGalleryFromCards(entry.scope, cards)
         setPackOpening({ cards, cacheKey, scope: entry.scope })
       })
       .catch((e: unknown) => {

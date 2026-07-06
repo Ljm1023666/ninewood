@@ -276,6 +276,19 @@ async function mapPool<T, R>(
 
 const FAST_TEXTURE_CONCURRENCY = 4
 
+/** HD 升级每张卡之间的间隔，避免连续 canvas 合成占满主线程 */
+const HD_TEXTURE_CARD_GAP_MS = 100
+
+type GalleryBuildOptions = {
+  /** 开包路径：延后 HD，入画廊后再升级 */
+  deferHdUpgrade?: boolean
+  /** 开包路径：GPU 预载改到 loading 阶段 */
+  deferGpuPreload?: boolean
+}
+
+/** 已合成快纹理、等待入画廊后再启动 HD 的 cache key */
+const deferredHdKeys = new Set<string>()
+
 async function buildFastTexturesForCards(
 
   cards: PackCardData[],
@@ -330,27 +343,28 @@ async function upgradeTexturesInBackground(
     revokeItemBlobs(previous)
     upgraded[index] = hd
 
-    const base = snapshots.get(key)
-    if (!base) return
-
-    const texturesComplete = cards.every((c) => {
-      const itemIndex = indexById.get(c.id)
-      if (itemIndex == null) return true
-      return upgraded[itemIndex]?.src.startsWith('blob:') ?? false
-    })
-
-    publishSnapshot(key, {
-      ...base,
-      items: [...upgraded],
-      texturesComplete,
-    })
-    preloadPackGalleryGpuTexturesDelta([previous], [hd])
+    if (HD_TEXTURE_CARD_GAP_MS > 0) {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, HD_TEXTURE_CARD_GAP_MS)
+      })
+    }
   }
 
   const base = snapshots.get(key)
-  if (base && !base.texturesComplete) {
-    publishSnapshot(key, { ...base, items: upgraded, texturesComplete: true })
-  }
+  if (!base) return
+
+  const texturesComplete = cards.every((c) => {
+    const itemIndex = indexById.get(c.id)
+    if (itemIndex == null) return true
+    return upgraded[itemIndex]?.src.startsWith('blob:') ?? false
+  })
+
+  publishSnapshot(key, {
+    ...base,
+    items: upgraded,
+    texturesComplete,
+  })
+  preloadPackGalleryGpuTexturesDelta(seedItems, upgraded)
 }
 
 
@@ -390,6 +404,7 @@ function scheduleTextureUpgrade(
 async function buildGallerySnapshotFromCards(
   key: string,
   cards: PackCardData[],
+  options?: GalleryBuildOptions,
 ): Promise<PackGallerySnapshot> {
   const fastItems = await buildFastTexturesForCards(cards)
 
@@ -401,10 +416,17 @@ async function buildGallerySnapshotFromCards(
   }
 
   publishSnapshot(key, snapshot)
-  preloadPackGalleryGpuTextures(fastItems)
+
+  if (!options?.deferGpuPreload) {
+    preloadPackGalleryGpuTextures(fastItems)
+  }
 
   if (!snapshot.texturesComplete) {
-    scheduleTextureUpgrade(key, cards, fastItems)
+    if (options?.deferHdUpgrade) {
+      deferredHdKeys.add(key)
+    } else {
+      scheduleTextureUpgrade(key, cards, fastItems)
+    }
   }
 
   return snapshot
@@ -416,7 +438,7 @@ async function loadPackGallery(scope: BlackScope, key: string): Promise<PackGall
 }
 
 /**
- * 合成画廊纹理（背面 canvas / HD 正面）。应在开包 loading 中间态调用，避免干扰开包动画与滚轮。
+ * 合成画廊快纹理。开包路径默认延后 HD 与 GPU 预载，避免入画廊瞬间卡顿。
  */
 export function warmPackGalleryFromCards(
   scope: BlackScope,
@@ -424,11 +446,15 @@ export function warmPackGalleryFromCards(
 ): Promise<PackGallerySnapshot> {
   const key = getPackGalleryKey(scope)
   const existing = snapshots.get(key)
+  const packOpenOpts: GalleryBuildOptions = {
+    deferHdUpgrade: true,
+    deferGpuPreload: true,
+  }
 
   if (existing?.ready) {
     loadPackGalleryImages(key, existing.items)
     if (!existing.texturesComplete) {
-      scheduleTextureUpgrade(key, existing.cards, existing.items)
+      deferredHdKeys.add(key)
     }
     return Promise.resolve(existing)
   }
@@ -438,7 +464,7 @@ export function warmPackGalleryFromCards(
 
   snapshots.set(key, { cards, items: [], ready: false, texturesComplete: false })
 
-  const promise = buildGallerySnapshotFromCards(key, cards)
+  const promise = buildGallerySnapshotFromCards(key, cards, packOpenOpts)
     .then((snapshot) => {
       inflight.delete(key)
       return snapshot
@@ -458,6 +484,26 @@ export function warmPackGalleryFromCards(
 
   inflight.set(key, promise)
   return promise
+}
+
+/** loading 阶段触发 GPU 纹理预载（与 Canvas 挂载并行，opacity=0） */
+export function preloadPackGalleryGpuForScope(scope: BlackScope): void {
+  const key = getPackGalleryKey(scope)
+  const snap = snapshots.get(key)
+  if (snap?.items.length) {
+    preloadPackGalleryGpuTextures(snap.items)
+  }
+}
+
+/** 入画廊稳定后再启动 HD 升级，避免与首屏 3D 渲染争抢主线程 */
+export function resumePackGalleryHdUpgrade(scope: BlackScope): void {
+  const key = getPackGalleryKey(scope)
+  if (!deferredHdKeys.has(key)) return
+  deferredHdKeys.delete(key)
+
+  const snap = snapshots.get(key)
+  if (!snap?.ready || snap.texturesComplete) return
+  scheduleTextureUpgrade(key, snap.cards, snap.items)
 }
 
 
@@ -601,6 +647,8 @@ export function evictPackGallery(scope: BlackScope): void {
   inflight.delete(key)
 
   upgradeTasks.delete(key)
+
+  deferredHdKeys.delete(key)
 
   emit(key)
 

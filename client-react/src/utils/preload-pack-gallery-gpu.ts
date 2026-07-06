@@ -2,7 +2,7 @@ import { useTexture } from '@react-three/drei'
 
 import type { PackCardImageItem } from '@/components/ui/3d-gallery-photography'
 
-const GPU_PRELOAD_BATCH = 4
+const GPU_PRELOAD_BATCH = 2
 
 function collectTextureUrls(items: PackCardImageItem[]): string[] {
   return [
