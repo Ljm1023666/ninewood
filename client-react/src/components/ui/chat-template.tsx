@@ -55,6 +55,7 @@ import {
 
 import { cn } from '@/lib/utils'
 import { BackButton } from '@/components/ui/back-button'
+import { formatChatTime } from '@/utils/time'
 
 /** 与模板一致的联系人条目（应用侧可带 id 用于路由） */
 export type TemplateContact = {
@@ -63,6 +64,8 @@ export type TemplateContact = {
   message: string
   image: string
   unreadCount?: number
+  /** 最后一条消息时间（ISO） */
+  lastMessageAt?: string
   /** 'user' | 'merge'，用于区分群聊与会话 */
   type?: 'user' | 'merge'
 }
@@ -218,10 +221,54 @@ export function TemplateChatRightShell({
 }) {
   const fb =
     avatarFallback?.trim() ||
-    (currentChat?.name ? currentChat.name.slice(0, 2) : '?')
+    (currentChat?.name ? currentChat.name.charAt(0) : '?')
 
   const showAvatar =
     currentChat && currentChat.name && currentChat.name.trim() !== ''
+
+  const showHeaderAvatar = variant !== 'internal' && showAvatar
+
+  const nameBlock = showAvatar ? (
+    onProfileClick ? (
+      <button
+        type="button"
+        onClick={onProfileClick}
+        className="msg-chat-header__profile min-w-0 flex-1 cursor-pointer overflow-hidden text-left hover:opacity-80"
+      >
+        <CardTitle
+          className={cn(
+            'truncate font-semibold text-text-primary',
+            variant === 'internal'
+              ? 'msg-chat-header__title text-[15px]'
+              : 'text-base',
+          )}
+        >
+          {currentChat?.name}
+        </CardTitle>
+        <CardDescription
+          className={cn(
+            'text-text-muted',
+            variant === 'internal' && 'msg-chat-header__sub text-[11px]',
+          )}
+        >
+          查看主页
+        </CardDescription>
+      </button>
+    ) : (
+      <div className="min-w-0 flex-1 overflow-hidden">
+        <CardTitle
+          className={cn(
+            'truncate font-semibold text-text-primary',
+            variant === 'internal'
+              ? 'msg-chat-header__title text-[15px]'
+              : 'text-base',
+          )}
+        >
+          {currentChat?.name}
+        </CardTitle>
+      </div>
+    )
+  ) : null
 
   return (
     <div
@@ -235,45 +282,35 @@ export function TemplateChatRightShell({
     >
       <div
         className={cn(
-          'flex shrink-0 items-center border-b px-2',
+          'flex shrink-0 items-center gap-2 border-b px-2',
           variant === 'internal'
-            ? 'h-12 border-[var(--internal-hairline)] px-6'
+            ? 'msg-chat-header--internal h-11 border-[var(--internal-hairline)] px-4'
             : 'h-16 border-border',
         )}
       >
         {headerLeading ? (
-          <div className="mr-1 flex shrink-0 items-center">{headerLeading}</div>
+          <div className="flex shrink-0 items-center">{headerLeading}</div>
         ) : null}
-        {showAvatar ? (
-          <Avatar className="size-12 shrink-0">
-            <AvatarImage src={currentChat?.image} />
-            <AvatarFallback className="text-sm font-semibold">
-              {fb}
-            </AvatarFallback>
-          </Avatar>
-        ) : null}
-        {showAvatar ? (
-          onProfileClick ? (
-            <button
-              type="button"
-              onClick={onProfileClick}
-              className="ml-2 min-w-0 flex-1 cursor-pointer text-left hover:opacity-80"
+        {showHeaderAvatar ? (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Avatar
+              className={cn(
+                'msg-chat-header__avatar shrink-0 basis-8',
+                variant === 'internal' ? 'size-8' : 'size-12',
+              )}
             >
-              <CardTitle className="truncate text-base font-semibold text-text-primary">
-                {currentChat?.name}
-              </CardTitle>
-              <CardDescription className="text-sm text-text-muted">
-                查看主页
-              </CardDescription>
-            </button>
-          ) : (
-            <div className="ml-2 min-w-0 flex-1">
-              <CardTitle className="truncate text-base font-semibold text-text-primary">
-                {currentChat?.name}
-              </CardTitle>
-            </div>
-          )
-        ) : null}
+              {currentChat?.image ? (
+                <AvatarImage src={currentChat.image} alt="" />
+              ) : null}
+              <AvatarFallback className="text-sm font-semibold">
+                {fb}
+              </AvatarFallback>
+            </Avatar>
+            {nameBlock}
+          </div>
+        ) : (
+          nameBlock
+        )}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -375,6 +412,15 @@ function LeftChatListPanel({
           <BackButton compact />
           <h1 className="internal-display-title ml-4">消息</h1>
         </header>
+        <div className="shrink-0 border-b border-[var(--internal-hairline)] px-4 py-2">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="搜索会话"
+            className="msg-list-search"
+          />
+        </div>
         <ScrollArea className="min-h-0 flex-1">
           {filtered.map(({ contact, origIndex }) => {
             const selected = !!contact.id && contact.id === selectedContactId
@@ -407,12 +453,30 @@ function LeftChatListPanel({
                     <span className="truncate text-sm font-medium text-text-primary">
                       {contact.name}
                     </span>
-                    {(contact.unreadCount ?? 0) > 0 ? (
-                      <span className="mt-1 size-2 shrink-0 rounded-full bg-[var(--internal-accent)]" />
-                    ) : null}
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      {contact.lastMessageAt ? (
+                        <span className="text-[11px] tabular-nums text-text-muted">
+                          {formatChatTime(contact.lastMessageAt)}
+                        </span>
+                      ) : null}
+                      {(contact.unreadCount ?? 0) > 0 ? (
+                        <span className="msg-list-unread-badge">
+                          {(contact.unreadCount ?? 0) > 99
+                            ? '99+'
+                            : contact.unreadCount}
+                        </span>
+                      ) : null}
+                    </span>
                   </div>
-                  <p className="mt-1 truncate text-sm text-text-muted">
-                    {contact.message}
+                  <p
+                    className={cn(
+                      'mt-1 truncate text-sm',
+                      (contact.unreadCount ?? 0) > 0
+                        ? 'font-medium text-text-primary'
+                        : 'text-text-muted',
+                    )}
+                  >
+                    {contact.message || '暂无消息'}
                   </p>
                 </div>
               </button>

@@ -32,6 +32,20 @@ export function formatChatTime(ts: string | undefined): string {
   return `${d.getMonth() + 1}/${d.getDate()}`
 }
 
+/** 消息气泡旁显示的短时间（今天仅 HH:mm） */
+export function formatMessageTime(ts: string | undefined): string {
+  if (!ts) return ''
+  const d = new Date(ts)
+  if (isNaN(d.getTime())) return ''
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  if (msgDay.getTime() === today.getTime()) {
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  }
+  return formatChatTime(ts)
+}
+
 export function formatDuration(sec: number): string {
   const m = Math.floor(sec / 60)
   const s = Math.floor(sec % 60)

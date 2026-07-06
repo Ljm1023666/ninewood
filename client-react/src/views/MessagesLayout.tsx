@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { SUBPAGE_NAV } from '@/utils/subpage-nav'
 import { messageApi } from '@/api/message'
 import { useChatStore } from '@/stores/chat'
 import { Home, type TemplateContact } from '@/components/ui/chat-template'
@@ -32,7 +33,7 @@ export default function MessagesLayout() {
       ])
       const list = (convRes.data.data ?? []) as {
         user: { id: string; nickname: string; avatarUrl?: string | null }
-        lastMessage?: { content?: string }
+        lastMessage?: { content?: string; createdAt?: string }
         unreadCount?: number
       }[]
       const merges = (mergeRes.data.data ?? []) as {
@@ -48,6 +49,7 @@ export default function MessagesLayout() {
         message: c.lastMessage?.content || '',
         image: c.user.avatarUrl || '',
         unreadCount: (c as { unreadCount?: number }).unreadCount ?? 0,
+        lastMessageAt: c.lastMessage?.createdAt,
         type: 'user' as const,
       }))
 
@@ -93,16 +95,21 @@ export default function MessagesLayout() {
           selectedContactId={threadUserId}
           onSelectContact={(c) => {
             if (!c.id) return
+            const navOpts =
+              location.pathname.startsWith('/messages/') &&
+              location.pathname !== '/messages/new-group'
+                ? SUBPAGE_NAV
+                : undefined
             if (c.type === 'merge') {
               const mergeId = c.id.replace('merge:', '')
-              navigate(`/messages/merge/${mergeId}`)
+              navigate(`/messages/merge/${mergeId}`, navOpts)
             } else {
-              navigate(`/messages/${c.id}`)
+              navigate(`/messages/${c.id}`, navOpts)
             }
           }}
           rightColumn={
             <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-              <Outlet />
+              <Outlet context={{ threadContact: currentChat }} />
             </div>
           }
         />

@@ -1,4 +1,14 @@
+import { useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { formatMessageTime } from '@/utils/time'
+import {
+  MessageContextMenu,
+  SendStatusIndicator,
+} from '@/components/ui/message-chat-extras'
+import { toast } from '@/components/ui/confirm-dialog'
+
+export type MessageSendStatus = 'sending' | 'failed'
 
 interface MessageBubbleProps {
   content: string
@@ -6,16 +16,44 @@ interface MessageBubbleProps {
   type?: string
   avatarUrl?: string
   nickname?: string
-  /** 同发送者连续消息中非最后一条：隐藏头像并收紧与下一条的间距 */
   hideAvatar?: boolean
-  /** 上一条为同发送者：用于气泡圆角分组样式 */
   isGroupedWithPrev?: boolean
+  isGroupedWithNext?: boolean
+  showTimestamp?: boolean
   timestamp?: string
+  sendStatus?: MessageSendStatus
+  onRetry?: () => void
+  onImageClick?: (src: string) => void
   className?: string
 }
 
 const imageExts = /\.(jpg|jpeg|png|gif|webp)(\?|$)/i
 const videoExts = /\.(mp4|mov|mkv)(\?|$)/i
+const AGENT_TASK_TAG = '[AGENT_TASK]'
+
+function SystemMessage({ content }: { content: string }) {
+  if (content.includes(AGENT_TASK_TAG)) {
+    const lines = content.replace(AGENT_TASK_TAG, '').trim().split('\n')
+    const title = lines[0]?.trim() || '自动化任务'
+    const body = lines.slice(1).join('\n').trim() || content
+    return (
+      <div className="msg-agent-card">
+        <p className="msg-agent-card__label">自动化推送</p>
+        <p className="msg-agent-card__title">{title}</p>
+        <p className="msg-agent-card__body">{body}</p>
+        <Link to="/agent/tasks" className="msg-agent-card__link">
+          查看结果箱 →
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="msg-system">
+      <span className="msg-system__pill">{content}</span>
+    </div>
+  )
+}
 
 export function MessageBubble({
   content,
@@ -24,102 +62,159 @@ export function MessageBubble({
   avatarUrl,
   nickname,
   hideAvatar,
+  isGroupedWithPrev = false,
+  isGroupedWithNext = false,
+  showTimestamp = false,
   timestamp,
+  sendStatus,
+  onRetry,
+  onImageClick,
   className,
 }: MessageBubbleProps) {
+  const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null)
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(content)
+      toast('已复制', 'success')
+    } catch {
+      toast('复制失败', 'error')
+    }
+  }, [content])
+
   if (type === 'SYSTEM') {
-    return (
-      <div className="flex justify-center py-2">
-        <span className="text-sm px-3 py-1 rounded-full bg-bg-secondary/70 text-text-muted">
-          {content}
-        </span>
-      </div>
-    )
+    return <SystemMessage content={content} />
   }
 
   const isImage = imageExts.test(content)
   const isVideo = videoExts.test(content)
-
+  const isMedia = isImage || isVideo
   const showAvatar = !hideAvatar
+  const timeLabel =
+    timestamp && showTimestamp && !sendStatus
+      ? formatMessageTime(timestamp)
+      : null
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-2 px-3',
-        isMine ? 'flex-row-reverse' : 'flex-row',
-        className,
-      )}
-    >
-      {showAvatar ? (
+    <>
+      <div
+        className={cn(
+          'msg-row',
+          isGroupedWithNext && 'msg-row--grouped',
+          className,
+        )}
+        onContextMenu={(e) => {
+          if (isMedia) return
+          e.preventDefault()
+          setMenuPos({ x: e.clientX, y: e.clientY })
+        }}
+      >
         <div
           className={cn(
-            'w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-sm font-medium',
-            isMine
-              ? 'bg-[var(--accent-color)] text-white'
-              : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]',
+            'msg-row__inner',
+            isMine && 'msg-row__inner--mine',
           )}
         >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+          {showAvatar ? (
+            <div className="msg-avatar">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" />
+              ) : (
+                (nickname || '?')[0]
+              )}
+            </div>
           ) : (
-            (nickname || '?')[0]
+            <div className="msg-avatar msg-avatar--placeholder" aria-hidden />
           )}
-        </div>
-      ) : (
-        <div className="w-10 shrink-0" aria-hidden />
-      )}
 
-      <div className="flex flex-col gap-0.5 max-w-[72%]">
-        {!isMine && nickname && (
-          <span className="text-sm text-text-muted px-1">{nickname}</span>
-        )}
-
-        <div className="flex items-end gap-1.5">
-          <div
-            className={cn(
-              'rounded-xl px-4 py-2.5 text-sm leading-relaxed',
-              isMine
-                ? 'bg-[var(--accent-color)] text-white'
-                : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)]',
+          <div className={cn('msg-body', isMine && 'msg-body--mine')}>
+            {!isMine && nickname && !isGroupedWithPrev && (
+              <span className="msg-nickname">{nickname}</span>
             )}
-          >
-            {isImage ? (
-              <img
-                src={content}
-                alt=""
-                className="max-w-[200px] rounded-lg"
-                loading="lazy"
-              />
-            ) : isVideo ? (
-              <video
-                src={content}
-                controls
-                className="max-w-[200px] rounded-lg"
-                preload="metadata"
-              />
-            ) : (
-              <p className="whitespace-pre-wrap break-words leading-relaxed">
-                {content}
-              </p>
-            )}
-          </div>
 
-          {timestamp && (
-            <span
+            <div
               className={cn(
-                'text-sm mt-0.5',
-                isMine ? 'text-white/50' : 'text-[var(--text-muted)]',
+                'msg-bubble-wrap',
+                isMine && 'msg-bubble-wrap--mine',
               )}
             >
-              {timestamp}
-            </span>
-          )}
+              {sendStatus && isMine && (
+                <SendStatusIndicator
+                  status={sendStatus}
+                  onRetry={onRetry}
+                />
+              )}
+
+              <div
+                className={cn(
+                  'msg-bubble',
+                  isMine ? 'msg-bubble--mine' : 'msg-bubble--peer',
+                  isGroupedWithPrev && 'msg-bubble--group-prev',
+                  isGroupedWithNext && 'msg-bubble--group-next',
+                  isMedia && 'msg-bubble--media',
+                  isImage && onImageClick && 'msg-bubble--clickable',
+                )}
+                onClick={
+                  isImage && onImageClick
+                    ? () => onImageClick(content)
+                    : undefined
+                }
+                onKeyDown={
+                  isImage && onImageClick
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onImageClick(content)
+                        }
+                      }
+                    : undefined
+                }
+                role={isImage && onImageClick ? 'button' : undefined}
+                tabIndex={isImage && onImageClick ? 0 : undefined}
+              >
+                {isImage ? (
+                  <img
+                    src={content}
+                    alt=""
+                    className="msg-bubble__image"
+                    loading="lazy"
+                    draggable={false}
+                  />
+                ) : isVideo ? (
+                  <video
+                    src={content}
+                    controls
+                    className="msg-bubble__video"
+                    preload="metadata"
+                  />
+                ) : (
+                  <p className="msg-bubble__text">{content}</p>
+                )}
+              </div>
+
+              {timeLabel && (
+                <span
+                  className={cn(
+                    'msg-time',
+                    showTimestamp && 'msg-time--visible',
+                  )}
+                >
+                  {timeLabel}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      {menuPos && (
+        <MessageContextMenu
+          x={menuPos.x}
+          y={menuPos.y}
+          onCopy={handleCopy}
+          onClose={() => setMenuPos(null)}
+        />
+      )}
+    </>
   )
 }
