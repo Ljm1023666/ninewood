@@ -142,7 +142,7 @@ export default function Circles() {
             description: c?.description,
             memberCount: c?._count?.members ?? 1,
             badge: roleLabel[m.role] ?? m.role,
-            badgeTone: 'gold' as const,
+            badgeTone: 'default' as const,
           }
         })
       : circles.map((c) => ({

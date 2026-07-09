@@ -62,7 +62,7 @@ router.get('/health/services', async (_req, res) => {
     checkPostgres(),
     checkRedis(),
     checkHttp('语义分类器', 'http://127.0.0.1:8001/health', 8001),
-    checkHttp('Vite Dev Server', 'http://localhost:5174/', 5174, 2000),
+    checkHttp('Vite Dev Server', 'http://localhost:3080/', 3080, 2000),
   ])
 
   const expressCheck: ServiceHealth = {

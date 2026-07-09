@@ -31,6 +31,7 @@ const INTERNAL_AMBIENT_PREFIXES = [
   '/circle-list',
   '/my-tags',
   '/tax-visualizer',
+  '/path-search',
 ] as const
 
 export function suppressLayoutAmbient(pathname: string): boolean {

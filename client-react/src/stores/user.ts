@@ -4,7 +4,9 @@ import { userApi } from '@/api/user'
 
 export interface User {
   id: string
+  accountNo?: number | null
   phone: string
+  email?: string | null
   nickname: string
   avatarUrl: string | null
   coverUrl: string | null

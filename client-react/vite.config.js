@@ -14,8 +14,8 @@ export default defineConfig({
     },
     server: {
         host: true,
-        port: 5174,
-        /** 避免端口被占用时静默换端口，导致 Electron 仍加载 5174 失败 */
+        port: 3080,
+        /** 避免端口被占用时静默换端口，导致 Electron 仍加载 3080 失败 */
         strictPort: true,
         allowedHosts: ['ninewood.local', 'localhost'],
         proxy: {

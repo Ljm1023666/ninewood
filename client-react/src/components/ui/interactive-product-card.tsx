@@ -18,10 +18,7 @@ import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
 import { InfoCard } from '@/components/ui/info-card'
 import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
-import {
-  publisherUserCoverPreset,
-  resolveProfileBackCoverUrl,
-} from '@/utils/user-cover-presets'
+import { publisherUserCoverPreset } from '@/utils/user-cover-presets'
 import {
   getImageAvgLuminance,
   LIGHT_IMAGE_LUMINANCE_THRESHOLD,
@@ -51,9 +48,7 @@ export interface InteractiveProductCardProps extends HTMLAttributes<HTMLDivEleme
   innerSheen?: boolean
   /** 点击翻面：正面标题置于橙色横条内 + 左下角红色价格；背面 InfoCard 完整描述 */
   flipDescription?: boolean
-  /** 背面顶部大图：个人中心封面；未传时用 publisherUserId 映射预设图（与全站个人中心一致） */
-  profileCoverUrl?: string | null
-  /** 与 profileCoverUrl 搭配：发布者 id，用于无封面时的预设封面 */
+  /** 发布者 id：用于无封面时的预设封面映射 */
   publisherUserId?: string | null
 }
 
@@ -79,7 +74,6 @@ export function InteractiveProductCard({
   disableSurfaceTilt = false,
   innerSheen = false,
   flipDescription = false,
-  profileCoverUrl,
   publisherUserId,
   onAddToHand,
   ...props
@@ -256,10 +250,8 @@ export function InteractiveProductCard({
   const safeActive = Math.min(Math.max(activeDotIndex, 0), safeDots - 1)
 
   const isFlipLayout = flipDescription && description.trim().length > 0
-  const profileBackImageUrl = resolveProfileBackCoverUrl(
-    profileCoverUrl?.trim() ||
-      publisherUserCoverPreset(publisherUserId ?? undefined),
-  )
+  /** 背面顶图 = 发布者头像(avatarUrl)，点击进入其主页；无头像时回退占位图 */
+  const profileBackImageUrl = logoUrl?.trim() || '/favicon.svg'
   const numericPrice = parsePriceNumber(price)
   /** 翻面标题色条：按价格档次选用 CSS shimmer 类（绿/蓝/紫/橙/红/金/虹彩） */
   const titleBarShimmerVariant = cn(
@@ -408,45 +400,34 @@ export function InteractiveProductCard({
                 </>
               ) : null}
 
+              {/* 正面：纯封面；价格档位色条仅装饰，完整标题在背面 InfoCard */}
               <div
-                className="absolute inset-0 z-10 flex min-h-0 flex-col pt-16"
+                className={cn(
+                  'pointer-events-none absolute left-0 right-0 top-0 z-10 h-1.5',
+                  titleBarShimmerVariant,
+                )}
+                style={{ transform: 'translateZ(40px)' }}
+                aria-hidden
+              />
+
+              <div
+                className="pointer-events-none absolute bottom-5 left-1/2 z-[11] flex -translate-x-1/2 gap-2"
                 style={{ transform: 'translateZ(40px)' }}
               >
-                <div
-                  className={cn(
-                    'relative shrink-0 flex w-full justify-center overflow-hidden px-4 backdrop-blur-sm [text-rendering:optimizeLegibility]',
-                    titleBarShimmerVariant,
-                  )}
-                  style={{ paddingTop: 16, paddingBottom: 16 }}
-                >
-                  <h3
-                    className={cn(
-                      'relative z-10 m-0 w-full text-center text-[22px] font-bold leading-tight tracking-tight',
-                      isDark
-                        ? 'text-white [text-shadow:none]'
-                        : 'text-black [text-shadow:none]',
-                    )}
+                {Array.from({ length: safeDots }).map((_, index) => (
+                  <div
+                    key={index}
+                    data-active={index === safeActive ? 'true' : 'false'}
+                    className="flip-card-front-dot h-1.5 w-1.5 shrink-0"
                   >
-                    {title}
-                  </h3>
-                </div>
-
-                <div className="pointer-events-none absolute bottom-5 left-1/2 z-[11] flex -translate-x-1/2 gap-2">
-                  {Array.from({ length: safeDots }).map((_, index) => (
-                    <div
-                      key={index}
-                      data-active={index === safeActive ? 'true' : 'false'}
-                      className="flip-card-front-dot h-1.5 w-1.5 shrink-0"
-                    >
-                      <span
-                        className="flip-card-front-dot-shine"
-                        style={{
-                          animationDelay: `${index * 0.14}s`,
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                    <span
+                      className="flip-card-front-dot-shine"
+                      style={{
+                        animationDelay: `${index * 0.14}s`,
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 

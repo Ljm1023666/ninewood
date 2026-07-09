@@ -1,47 +1,58 @@
-/* 桌面奢华内部页 · 深色 Stitch 暗金；浅色随全局 theme / wallet 变量 */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap');
+/* 桌面内部页 · 统一 Design System（SaaS / 社区产品） */
 
-/* 深色：Stitch 暗金局部调色板 */
+/* 深色：冷色中性专业调色板 */
 html[data-appearance='dark'] .dlp-page {
   color-scheme: dark;
-  --bg-primary: #0a0e17;
-  --bg-secondary: #10141f;
-  --bg-tertiary: #1f1b13;
-  --bg-card: #10141f;
-  --text-primary: #eae1d4;
-  --text-secondary: #d0c5af;
-  --text-muted: #99907c;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-card: #111111;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a0a0a0;
+  --text-muted: #707070;
   --border-color: rgba(255, 255, 255, 0.08);
-  --price-foreground: #f2ca50;
-  --price-surface: rgba(242, 202, 80, 0.12);
-  --price-border: rgba(212, 175, 55, 0.32);
+  --price-foreground: #e8e8e8;
+  --price-surface: rgba(255, 255, 255, 0.08);
+  --price-border: rgba(255, 255, 255, 0.16);
   --wallet-panel-bg: rgba(255, 255, 255, 0.04);
   --wallet-row-hover: rgba(255, 255, 255, 0.05);
-  --wallet-glass-bg: rgba(16, 20, 31, 0.6);
-  --wallet-glass-border: rgba(212, 175, 55, 0.15);
-  --wallet-glow-a: rgba(212, 175, 55, 0.08);
-  --wallet-glow-b: rgba(212, 175, 55, 0.05);
+  --wallet-glass-bg: rgba(17, 17, 17, 0.85);
+  --wallet-glass-border: rgba(255, 255, 255, 0.1);
+  --wallet-glow-a: rgba(255, 255, 255, 0.03);
+  --wallet-glow-b: rgba(255, 255, 255, 0.02);
   --wallet-hero-radial: radial-gradient(
     circle at 0% 0%,
-    rgba(212, 175, 55, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 0%,
     transparent 50%
   );
-  --wallet-accent-gradient: linear-gradient(135deg, #d4af37, #f4d03f);
-  --wallet-on-accent: #241a00;
-  --wallet-watermark-opacity: 0.07;
-  --wallet-stat-icon: rgba(242, 202, 80, 0.45);
+  --wallet-accent-gradient: linear-gradient(135deg, #f0f0f0, #cccccc);
+  --wallet-on-accent: #111111;
+  --wallet-watermark-opacity: 0.05;
+  --wallet-stat-icon: rgba(255, 255, 255, 0.35);
   --wallet-btn-ghost-bg: rgba(255, 255, 255, 0.05);
   --wallet-divider: rgba(255, 255, 255, 0.06);
   --wallet-table-head-bg: rgba(255, 255, 255, 0.02);
-  --wallet-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --wallet-serif: 'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif;
   --success-color: #10b981;
 }
 
-/* 浅色：继承 :root 上 theme store 写入的变量 */
+/* 浅色：纯白底 + 中性灰阶，无暖色渗透 */
 html[data-appearance='light'] .dlp-page {
   color-scheme: light;
-  --wallet-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --wallet-serif: 'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif;
   --success-color: #10b981;
+  --price-foreground: #111111;
+  --price-surface: rgba(0, 0, 0, 0.05);
+  --price-border: rgba(0, 0, 0, 0.12);
+  --wallet-panel-bg: rgba(0, 0, 0, 0.03);
+  --wallet-glass-bg: var(--bg-card);
+  --wallet-glass-border: var(--border-color);
+  --wallet-glow-a: rgba(0, 0, 0, 0.015);
+  --wallet-glow-b: rgba(0, 0, 0, 0.008);
+  --wallet-hero-radial: none;
+  --wallet-accent-gradient: linear-gradient(135deg, #111111, #333333);
+  --wallet-on-accent: #ffffff;
+  --wallet-divider: rgba(0, 0, 0, 0.08);
 }
 
 .dlp-page {
@@ -55,27 +66,30 @@ html[data-appearance='light'] .dlp-page {
   overflow-y: auto;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-family);
-  /* 桌面稀疏内容：正文字号偏大，27 寸屏可读 */
-  --dlp-font-display: clamp(2rem, 2.6vw, 2.875rem);
-  --dlp-font-lead: max(20px, 1.25rem);
-  --dlp-font-body: max(18px, 1.125rem);
-  --dlp-font-meta: max(16px, 1rem);
-  --dlp-font-label: max(14px, 0.875rem);
-  --dlp-font-micro: max(13px, 0.8125rem);
+  font-family: var(--font-sans, var(--font-family));
+  --dlp-font-display: var(--text-h1, clamp(2.375rem, 3vw, 2.75rem));
+  --dlp-font-lead: var(--text-h2, clamp(1.5rem, 2.2vw, 1.875rem));
+  --dlp-font-section: var(--text-h3, clamp(1.25rem, 1.8vw, 1.5rem));
+  --dlp-font-emphasis: var(--text-emphasis, clamp(1.75rem, 2.8vw, 2.375rem));
+  --dlp-font-body: var(--text-body-lg, 1.125rem);
+  --dlp-font-meta: var(--text-body, 1.0625rem);
+  --dlp-font-label: var(--text-caption, 0.9375rem);
+  --dlp-font-micro: var(--text-caption-sm, 0.8125rem);
   --lm-label-size: 16px;
   font-size: var(--dlp-font-body);
 }
 
-/* 表格/仪表盘等高密度页：字号回落，接近控制台信息密度 */
+/* 表格/仪表盘等高密度页：略紧凑但仍保持可读 */
 .dlp-page.dlp-density-compact {
-  --dlp-font-display: clamp(1.75rem, 2.4vw, 2.5rem);
-  --dlp-font-lead: max(17px, 1.0625rem);
-  --dlp-font-body: max(15px, 0.9375rem);
-  --dlp-font-meta: max(14px, 0.875rem);
-  --dlp-font-label: max(13px, 0.8125rem);
-  --dlp-font-micro: max(12px, 0.75rem);
-  --lm-label-size: 14px;
+  --dlp-font-display: clamp(2rem, 2.8vw, 2.5rem);
+  --dlp-font-lead: max(20px, 1.25rem);
+  --dlp-font-section: max(18px, 1.125rem);
+  --dlp-font-emphasis: max(24px, 1.5rem);
+  --dlp-font-body: max(17px, 1.0625rem);
+  --dlp-font-meta: max(16px, 1rem);
+  --dlp-font-label: max(15px, 0.9375rem);
+  --dlp-font-micro: max(14px, 0.875rem);
+  --lm-label-size: 16px;
   font-size: var(--dlp-font-body);
 }
 
@@ -95,8 +109,15 @@ html[data-appearance='light'] .dlp-page {
   z-index: 1;
   margin: 0 auto;
   width: 100%;
-  max-width: 1440px;
-  padding: 28px 48px 72px;
+  max-width: var(--page-max-width, 1200px);
+  padding: 32px 40px 80px;
+}
+
+.dlp-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-section, 32px);
+  min-height: var(--page-content-min-height, min(68vh, 720px));
 }
 
 .dlp-page__inner--flush {
@@ -109,8 +130,9 @@ html[data-appearance='light'] .dlp-page {
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 32px;
-  padding-bottom: 20px;
+  min-height: var(--page-header-min-height, 108px);
+  margin-bottom: var(--space-section, 32px);
+  padding-bottom: 24px;
   border-bottom: 1px solid var(--wallet-divider);
 }
 
@@ -134,35 +156,37 @@ html[data-appearance='light'] .dlp-page {
 
 .dlp-title {
   margin: 0;
-  font-family: var(--wallet-serif);
+  font-family: var(--font-display, var(--font-sans, var(--font-family)));
   font-size: var(--dlp-font-display);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--price-foreground);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--text-primary);
 }
 
 .dlp-subtitle {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: var(--dlp-font-body);
   line-height: 1.6;
-  color: var(--text-secondary);
-  max-width: 56rem;
+  color: var(--ds-text-secondary, var(--text-secondary));
+  max-width: 40rem;
 }
 
 .dlp-glass {
-  border-radius: 16px;
-  border: 1px solid var(--wallet-glass-border);
-  background: var(--wallet-glass-bg);
-  backdrop-filter: blur(24px);
-  box-shadow: var(--elevation-2);
+  border-radius: var(--card-radius, 16px);
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.06));
+  background: var(--card-bg, var(--wallet-glass-bg));
+  box-shadow: var(--card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06));
 }
 
 .dlp-glass--gold {
-  border-color: rgba(212, 175, 55, 0.22);
-  box-shadow:
-    0 0 20px rgba(212, 175, 55, 0.15),
-    0 20px 40px -12px rgba(212, 175, 55, 0.12);
+  border-color: color-mix(in srgb, var(--primary-color, var(--price-foreground)) 28%, transparent);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--primary-color, var(--price-foreground)) 6%, var(--card-bg, var(--bg-card))),
+    var(--card-bg, var(--wallet-glass-bg))
+  );
+  box-shadow: var(--card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06));
 }
 
 .dlp-glass__head {
@@ -173,13 +197,13 @@ html[data-appearance='light'] .dlp-page {
 .dlp-glass__head h2,
 .dlp-glass__head h3 {
   margin: 0;
-  font-size: var(--dlp-font-lead);
-  font-weight: 700;
+  font-size: var(--dlp-font-section);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .dlp-glass__head p {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: var(--dlp-font-meta);
   color: var(--text-muted);
 }
@@ -196,9 +220,9 @@ html[data-appearance='light'] .dlp-page {
   border: none;
   border-radius: 999px;
   background: var(--wallet-accent-gradient);
-  padding: 12px 24px;
-  font-size: var(--dlp-font-body);
-  font-weight: 700;
+  padding: 14px 28px;
+  font-size: var(--dlp-font-meta);
+  font-weight: 600;
   color: var(--wallet-on-accent);
   box-shadow: 0 10px 24px color-mix(in srgb, var(--price-foreground) 22%, transparent);
   cursor: pointer;
@@ -264,11 +288,11 @@ html[data-appearance='light'] .dlp-page {
 .dlp-stat {
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
-  border: 1px solid var(--wallet-glass-border);
-  background: var(--wallet-glass-bg);
-  backdrop-filter: blur(20px);
-  padding: 22px 20px;
+  border-radius: var(--card-radius, 16px);
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.06));
+  background: var(--card-bg, var(--wallet-glass-bg));
+  box-shadow: var(--card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06));
+  padding: 20px;
 }
 
 .dlp-stat--gold {
@@ -285,11 +309,10 @@ html[data-appearance='light'] .dlp-page {
 
 .dlp-stat__label {
   margin: 0;
-  font-size: var(--font-size-caption);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  font-size: var(--dlp-font-label);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ds-text-tertiary, var(--text-muted));
 }
 
 .dlp-stat__value {
@@ -306,8 +329,8 @@ html[data-appearance='light'] .dlp-page {
 }
 
 .dlp-stat__num {
-  font-family: var(--wallet-serif);
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-family: var(--font-numeric, 'Inter', var(--font-family));
+  font-size: var(--dlp-font-emphasis);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
@@ -448,10 +471,10 @@ html[data-appearance='light'] .dlp-page {
 .dlp-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: var(--font-size-caption);
-  font-weight: 700;
+  font-size: var(--dlp-font-label);
+  font-weight: 600;
   border: 1px solid var(--wallet-glass-border);
   background: var(--wallet-panel-bg);
   color: var(--text-secondary);
@@ -510,7 +533,7 @@ html[data-appearance='light'] .dlp-page {
 
 .dlp-record-row__title {
   margin: 0;
-  font-size: var(--dlp-font-lead);
+  font-size: var(--dlp-font-section);
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.35;
@@ -580,7 +603,7 @@ html[data-appearance='light'] .dlp-page {
 
 .dlp-step {
   position: relative;
-  padding: 0 0 28px 20px;
+  padding: 0 0 36px 24px;
 }
 
 .dlp-step:last-child {
@@ -622,19 +645,21 @@ html[data-appearance='light'] .dlp-page {
 
 .dlp-step__title {
   margin: 0;
-  font-size: var(--font-size-body);
-  font-weight: 700;
+  font-size: var(--dlp-font-body);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .dlp-step--current .dlp-step__title {
-  color: var(--price-foreground);
+  font-weight: 700;
+  color: var(--primary-color, var(--price-foreground));
 }
 
 .dlp-step__desc {
-  margin: 4px 0 0;
-  font-size: var(--font-size-caption);
-  color: var(--text-muted);
+  margin: 6px 0 0;
+  font-size: var(--dlp-font-label);
+  line-height: 1.5;
+  color: var(--ds-text-tertiary, var(--text-muted));
 }
 
 .dlp-progress {
@@ -683,11 +708,99 @@ html[data-appearance='light'] .dlp-page {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-stack, 24px);
 }
 
 .dlp-search-row .dlp-input {
   flex: 1;
+}
+
+/* ── 集成搜索框 ── */
+.dlp-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: var(--search-height, 50px);
+  margin-bottom: var(--space-stack, 24px);
+  padding: 0 6px 0 16px;
+  border-radius: var(--search-radius, 12px);
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.06));
+  background: var(--card-bg, var(--bg-card));
+  box-shadow: var(--card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06));
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dlp-search-bar:focus-within {
+  border-color: color-mix(in srgb, var(--primary-color, var(--price-foreground)) 40%, transparent);
+  box-shadow:
+    var(--card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06)),
+    0 0 0 3px var(--primary-color-subtle, rgba(0, 0, 0, 0.04));
+}
+
+.dlp-search-bar__icon {
+  flex-shrink: 0;
+  margin-right: 12px;
+  color: var(--ds-text-tertiary, var(--text-muted));
+}
+
+.dlp-search-bar__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: var(--dlp-font-body);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.dlp-search-bar__input::placeholder {
+  color: var(--ds-text-tertiary, var(--text-muted));
+}
+
+.dlp-search-bar__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ds-text-tertiary, var(--text-muted));
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dlp-search-bar__clear:hover {
+  background: var(--wallet-row-hover);
+  color: var(--text-primary);
+}
+
+.dlp-search-bar__submit {
+  flex-shrink: 0;
+  height: calc(var(--search-height, 50px) - 12px);
+  margin-left: 8px;
+  padding: 0 22px;
+  border: none;
+  border-radius: calc(var(--search-radius, 12px) - 4px);
+  background: var(--primary-color, var(--price-foreground));
+  font-size: var(--dlp-font-meta);
+  font-weight: 600;
+  color: var(--wallet-on-accent, #fffef8);
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.dlp-search-bar__submit:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.dlp-search-bar__submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .dlp-card-grid {
@@ -722,7 +835,8 @@ html[data-appearance='light'] .dlp-page {
 }
 
 .dlp-page:not(.dlp-density-compact) .dlp-user-card h3 {
-  font-size: var(--dlp-font-lead);
+  font-size: var(--dlp-font-section);
+  font-weight: 600;
 }
 
 .dlp-page:not(.dlp-density-compact) .dlp-user-card p {
@@ -768,14 +882,25 @@ html[data-appearance='light'] .dlp-page {
 }
 
 .dlp-empty {
-  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 56px 32px;
   text-align: center;
 }
 
 .dlp-empty__icon {
-  margin: 0 auto 16px;
-  color: var(--text-muted);
-  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: var(--control-radius, 12px);
+  background: var(--primary-color-subtle, rgba(0, 0, 0, 0.04));
+  color: var(--text-secondary);
 }
 
 .dlp-empty__title {
@@ -786,11 +911,11 @@ html[data-appearance='light'] .dlp-page {
 }
 
 .dlp-empty__desc {
-  margin: 10px auto 0;
-  max-width: 28rem;
-  font-size: var(--dlp-font-meta);
-  line-height: 1.55;
-  color: var(--text-muted);
+  margin: 12px auto 0;
+  max-width: 26rem;
+  font-size: var(--dlp-font-body);
+  line-height: 1.6;
+  color: var(--ds-text-secondary, var(--text-muted));
 }
 
 .dlp-empty__action {
@@ -1013,14 +1138,14 @@ html[data-appearance='light'] .dlp-page {
 
 .dlp-kpi__label {
   margin: 0;
-  font-size: var(--font-size-caption);
+  font-size: var(--dlp-font-label);
   color: var(--text-muted);
 }
 
 .dlp-kpi__value {
   margin: 8px 0 0;
-  font-family: var(--wallet-serif);
-  font-size: 1.5rem;
+  font-family: var(--font-numeric, 'Inter', var(--font-family));
+  font-size: var(--dlp-font-lead);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -1088,4 +1213,489 @@ html[data-appearance='light'] .dlp-page .dlp-textarea::placeholder {
   border-radius: 999px;
   border-color: var(--wallet-glass-border);
   background: var(--wallet-panel-bg);
+}
+
+/* ── 等级身份展示卡 ── */
+.dlp-level-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--card-radius, 16px);
+  border: var(--card-border, 1px solid rgba(0, 0, 0, 0.06));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-color, var(--price-foreground)) 10%, var(--card-bg, var(--bg-card))),
+    var(--card-bg, var(--bg-card))
+  );
+  box-shadow: var(--card-shadow, 0 8px 30px rgba(0, 0, 0, 0.06));
+  padding: 28px 32px;
+}
+
+.dlp-level-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  border-radius: var(--pill-radius, 999px);
+  background: var(--primary-color-muted, rgba(0, 0, 0, 0.08));
+  font-size: var(--dlp-font-label);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.dlp-level-hero__title {
+  margin: 0;
+  font-size: var(--dlp-font-emphasis);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.dlp-level-hero__subtitle {
+  margin: 12px 0 0;
+  font-size: var(--dlp-font-body);
+  color: var(--ds-text-secondary, var(--text-secondary));
+}
+
+.dlp-level-hero__icon {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.1;
+  color: var(--primary-color, var(--price-foreground));
+  pointer-events: none;
+}
+
+.dlp-level-hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--wallet-divider);
+}
+
+.dlp-level-hero__stat-label {
+  margin: 0;
+  font-size: var(--dlp-font-label);
+  color: var(--ds-text-tertiary, var(--text-muted));
+}
+
+.dlp-level-hero__stat-value {
+  margin: 6px 0 0;
+  font-family: var(--font-numeric, 'Inter', var(--font-family));
+  font-size: var(--dlp-font-lead);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+/* ── 权益展示网格 ── */
+.dlp-benefit-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+}
+
+.dlp-benefit {
+  display: flex;
+  gap: 14px;
+  padding: 14px 12px;
+  border-radius: var(--control-radius, 12px);
+  transition: background-color 0.15s ease;
+}
+
+.dlp-benefit:hover {
+  background: var(--wallet-row-hover);
+}
+
+.dlp-benefit__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary-color-subtle, rgba(0, 0, 0, 0.04));
+  color: var(--text-secondary);
+}
+
+.dlp-benefit__title {
+  margin: 0;
+  font-size: var(--dlp-font-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dlp-benefit__desc {
+  margin: 6px 0 0;
+  font-size: var(--dlp-font-meta);
+  line-height: 1.55;
+  color: var(--ds-text-tertiary, var(--text-muted));
+}
+
+.dlp-glass__head h2,
+.dlp-glass__head h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dlp-split--3 {
+  gap: var(--space-stack, 24px);
+}
+
+@media (min-width: 1100px) {
+  .dlp-split--3 {
+    grid-template-columns: 260px 1fr 280px;
+  }
+}
+
+/* ── 提示侧栏 ── */
+.dlp-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dlp-tips-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: var(--dlp-font-meta);
+  line-height: 1.5;
+  color: var(--ds-text-secondary, var(--text-secondary));
+}
+
+.dlp-tips-list li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--primary-color, var(--price-foreground));
+  opacity: 0.5;
+}
+
+/* ── 认证中心 · cert-intro + cert-center 融合布局 ── */
+.dlp-cert-intro-hero {
+  margin-bottom: 40px;
+}
+
+.dlp-cert-dashboard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+@media (min-width: 1280px) {
+  .dlp-cert-dashboard {
+    grid-template-columns: minmax(220px, 3fr) minmax(0, 5fr) minmax(240px, 4fr);
+    align-items: stretch;
+  }
+}
+
+.dlp-cert-path-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.dlp-cert-timeline {
+  position: relative;
+  margin: 0;
+  padding: 0 0 4px 16px;
+  border-left: 1px solid color-mix(in srgb, var(--wallet-glass-border) 80%, transparent);
+  list-style: none;
+}
+
+.dlp-cert-timeline__step {
+  position: relative;
+  padding: 0 0 28px 16px;
+}
+
+.dlp-cert-timeline__step:last-child {
+  padding-bottom: 0;
+}
+
+.dlp-cert-timeline__step::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border-color);
+  border: 1px solid var(--wallet-glass-border);
+}
+
+.dlp-cert-timeline__step--done::before,
+.dlp-cert-timeline__step--current::before {
+  background: var(--price-foreground);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--price-foreground) 18%, transparent);
+}
+
+.dlp-cert-timeline__step--current::before {
+  left: -22px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  background: var(--bg-primary);
+  border: 2px solid var(--price-foreground);
+  box-shadow: none;
+}
+
+.dlp-cert-timeline__step--current::after {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: 9px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--price-foreground);
+}
+
+.dlp-cert-timeline__step--locked {
+  opacity: 0.55;
+}
+
+.dlp-cert-timeline__title {
+  margin: 0;
+  font-size: var(--dlp-font-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dlp-cert-timeline__step--current .dlp-cert-timeline__title {
+  font-weight: 700;
+  color: var(--price-foreground);
+}
+
+.dlp-cert-timeline__desc {
+  margin: 4px 0 0;
+  font-size: var(--dlp-font-label);
+  color: var(--text-muted);
+}
+
+.dlp-cert-status-card {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 32px;
+}
+
+.dlp-cert-status-card__glow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 240px;
+  height: 240px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--price-foreground) 8%, transparent);
+  filter: blur(48px);
+  transform: translate(30%, -40%);
+  pointer-events: none;
+}
+
+.dlp-cert-status-card__head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dlp-cert-status-card__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dlp-cert-status-card__level {
+  margin: 6px 0 0;
+  font-family: var(--wallet-serif);
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--price-foreground);
+}
+
+.dlp-cert-status-card__shield {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--price-foreground) 80%, white);
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--price-foreground) 35%, transparent));
+}
+
+.dlp-cert-status-card__stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dlp-cert-status-card__stat {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--wallet-glass-border) 70%, transparent);
+  background: color-mix(in srgb, var(--wallet-panel-bg) 80%, transparent);
+}
+
+.dlp-cert-status-card__stat p {
+  margin: 0;
+  font-size: var(--dlp-font-label);
+  color: var(--text-muted);
+}
+
+.dlp-cert-status-card__stat strong {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-numeric, 'Inter', var(--font-family));
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dlp-cert-status-card__progress {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 20px;
+}
+
+.dlp-cert-status-card__progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: var(--dlp-font-meta);
+  color: var(--text-secondary);
+}
+
+.dlp-cert-status-card__bar {
+  height: 6px;
+}
+
+.dlp-cert-status-card__rows {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--wallet-divider);
+}
+
+.dlp-cert-status-card__rows > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--dlp-font-meta);
+}
+
+.dlp-cert-status-card__rows span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.dlp-cert-status-card__rows strong {
+  font-family: var(--font-numeric, 'Inter', var(--font-family));
+  color: var(--text-primary);
+}
+
+.dlp-cert-status-card__verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--success-color) 12%, transparent);
+  font-size: var(--dlp-font-label);
+  color: var(--success-color);
+}
+
+.dlp-cert-status-card__pending {
+  color: var(--text-muted);
+}
+
+.dlp-cert-rights-panel .dlp-table thead th {
+  text-align: center;
+}
+
+.dlp-cert-rights-panel .dlp-table thead th:first-child,
+.dlp-cert-rights-panel .dlp-table tbody td:first-child {
+  text-align: left;
+}
+
+.dlp-cert-features {
+  margin-bottom: 36px;
+}
+
+.dlp-cert-feature-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.dlp-cert-feature-card__icon {
+  display: flex;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px solid var(--wallet-glass-border);
+  background: var(--wallet-panel-bg);
+}
+
+.dlp-cert-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.dlp-cert-cta h3 {
+  margin: 0;
+  font-family: var(--wallet-serif);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dlp-cert-cta p {
+  margin: 14px auto 0;
+  max-width: 40rem;
+  font-size: var(--dlp-font-body);
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.dlp-cert-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.dlp-cert-tier-card {
+  overflow: hidden;
 }

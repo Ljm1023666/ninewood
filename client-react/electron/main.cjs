@@ -27,7 +27,7 @@ function createWindow() {
   });
 
   // 与 vite.config.ts 中 server.port 一致；basicSsl 已移除，须用 http
-  const devURL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5174';
+  const devURL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:3080';
 
   async function loadApp() {
     for (let i = 0; i < 10; i++) {

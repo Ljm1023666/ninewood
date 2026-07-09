@@ -65,7 +65,7 @@ e:/Ninewood
 
 - React 19
 - TypeScript 6
-- Vite 8（开发端口 `5174`）
+- Vite 8（开发端口 `3080`）
 - Tailwind CSS v4
 - Radix UI + 自定义 UI 组件
 - Zustand（用户、聊天、主题等 store）
@@ -160,7 +160,7 @@ e:/Ninewood
 
 ### 7.2 常见端口
 
-- 前端 Vite：`5174`
+- 前端 Vite：`3080`
 - 后端 Express：`3001`
 
 ---
@@ -199,7 +199,7 @@ e:/Ninewood
 ## 10. 快速排障清单
 
 - 前端起不来：
-  - 检查 `5174` 是否被占用
+  - 检查 `3080` 是否被占用
   - 检查 `client-react` 依赖是否完整
 - 后端连不上：
   - 检查 `3001` 是否启动

@@ -149,7 +149,7 @@ ECS → 安全组 → 入方向 → 允许：
 | | 本地开发 | 云服务器 |
 |------|------|------|
 | **目的** | 写代码、调试 | 对外提供服务 |
-| **访问方式** | `ninewood.local:5174` | `https://tothetomorrow.com` |
+| **访问方式** | `ninewood.local:3080` | `https://tothetomorrow.com` |
 | **数据库** | `localhost:5432` (本机 PG) | `localhost:5432` (ECS PG) |
 | **API** | Vite 代理 → `localhost:3001` | nginx → `localhost:3001` |
 | **前端** | Vite dev server (HMR) | nginx 托管构建产物 |

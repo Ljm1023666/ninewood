@@ -10,14 +10,21 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:import-massive": "tsx scripts/import-massive-seed.ts",
+    "db:backfill-account-no": "tsx scripts/backfill-account-no.ts",
     "assets:sync": "node scripts/sync-picture-assets.mjs",
     "assets:thumbs": "node scripts/generate-card-cover-thumbs.mjs",
     "assets:assign": "tsx prisma/seed-assets.ts",
+    "assets:backfill": "tsx scripts/backfill-image-assignments.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:path-coverage": "tsx scripts/check-path-coverage.ts",
+    "audit:demand-paths": "tsx scripts/audit-demand-paths.ts",
+    "seed:coverage-gaps": "tsx scripts/seed-coverage-gaps.ts"
   },
   "dependencies": {
+    "@node-rs/jieba": "^2.0.1",
     "@prisma/client": "^6.2.0",
     "@sentry/node": "^10.53.1",
     "bcryptjs": "^2.4.3",

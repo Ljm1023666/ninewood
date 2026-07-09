@@ -21,18 +21,18 @@ export function formatCompact(value: number) {
 /* ── 图表主题（克制配色） ── */
 
 export const ADMIN_CHART_COLORS = [
-  '#3388FF',
-  '#111111',
-  '#71717A',
-  '#A1A1AA',
-  '#D4D4D8',
-  '#E4E4E7',
+  '#2563EB',
+  '#111113',
+  '#4B5563',
+  '#9CA3AF',
+  '#D1D5DB',
+  '#E5E7EB',
 ]
 
 export const adminChartGrid = { stroke: 'var(--admin-hairline)', strokeDasharray: '3 3' }
 
 export const adminChartAxis = {
-  tick: { fill: '#9A9A9A', fontSize: 11, fontFamily: 'var(--admin-mono)' },
+  tick: { fill: '#6B7280', fontSize: 11, fontFamily: 'var(--admin-mono)' },
   axisLine: false as const,
   tickLine: false as const,
 }
@@ -40,13 +40,13 @@ export const adminChartAxis = {
 export const adminChartTooltipStyle = {
   background: '#fff',
   border: '1px solid var(--admin-hairline)',
-  borderRadius: 4,
+  borderRadius: 'var(--admin-radius-sm)',
   fontSize: 12,
   fontFamily: 'var(--admin-mono)',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+  boxShadow: 'var(--admin-shadow-md)',
 }
 
-/* ── 指标网格（发丝线连接） ── */
+/* ── 指标网格（卡片间隙布局） ── */
 
 export function AdminMetricGrid({
   children,
@@ -66,7 +66,7 @@ export function AdminMetricGrid({
   return (
     <div
       className={cn(
-        'grid gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]',
+        'grid gap-4',
         colClass,
         className,
       )}
@@ -85,7 +85,8 @@ interface MetricTileProps {
 
 export function AdminMetricTile({ label, value, hint, delta }: MetricTileProps) {
   return (
-    <div className="min-h-24 bg-[var(--admin-card-bg)] px-[18px] py-5">
+    <div className="group relative min-h-24 overflow-hidden rounded-[var(--admin-radius-sm)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-[18px] py-5 shadow-[var(--admin-shadow-sm)] transition-[box-shadow,transform,border-color] duration-[var(--admin-duration)] hover:border-[var(--admin-border)] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--admin-accent)] to-transparent opacity-0 transition-opacity duration-[var(--admin-duration)] group-hover:opacity-100" />
       <p className="font-[family-name:var(--admin-mono)] text-[10px] uppercase tracking-[0.08em] text-[var(--admin-text-muted)]">
         {label}
       </p>
@@ -151,7 +152,7 @@ export function AdminPanel({
           {sectionLabel}
         </p>
       )}
-      <div className="border border-[var(--admin-hairline)]">
+      <div className="overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] shadow-[var(--admin-shadow-sm)] transition-shadow duration-[var(--admin-duration)] hover:shadow-[var(--admin-shadow-md)]">
         <div className="flex items-start justify-between gap-4 border-b border-[var(--admin-hairline)] px-5 py-4">
           <div>
             <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--admin-text)]">
@@ -171,7 +172,7 @@ export function AdminPanel({
   )
 }
 
-/* ── 图表网格（2fr + 1fr） ── */
+/* ── 图表网格（卡片间隙布局） ── */
 
 export function AdminChartGrid({
   children,
@@ -183,7 +184,7 @@ export function AdminChartGrid({
   return (
     <div
       className={cn(
-        'grid grid-cols-3 gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]',
+        'grid grid-cols-3 gap-4',
         className,
       )}
     >
@@ -209,7 +210,7 @@ export function AdminChartCell({
     <div
       id={id}
       className={cn(
-        'min-h-[280px] bg-[var(--admin-card-bg)] p-5',
+        'min-h-[280px] overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5 shadow-[var(--admin-shadow-sm)] transition-[box-shadow,transform] duration-[var(--admin-duration)] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5',
         spanClass,
         className,
       )}
@@ -261,14 +262,14 @@ export function AdminStatusBadge({
 }) {
   const accent =
     status === 'COMPLETED'
-      ? 'text-[var(--admin-accent-green)]'
+      ? 'text-[var(--admin-accent-green)] bg-[rgba(22,163,74,0.08)] border-[rgba(22,163,74,0.18)]'
       : status === 'WAITING_REVIEW' || status === 'PENDING'
-        ? 'text-[var(--admin-accent)]'
+        ? 'text-[var(--admin-accent)] bg-[rgba(37,99,235,0.08)] border-[rgba(37,99,235,0.18)]'
         : ''
   return (
     <span
       className={cn(
-        'inline-flex border border-[var(--admin-hairline)] px-2 py-0.5 font-[family-name:var(--admin-mono)] text-[10px] tracking-[0.04em] text-[var(--admin-text-secondary)]',
+        'inline-flex rounded-full border border-[var(--admin-hairline)] px-2.5 py-1 font-[family-name:var(--admin-mono)] text-[10px] tracking-[0.04em] text-[var(--admin-text-secondary)] transition-colors duration-[var(--admin-duration)]',
         accent,
       )}
     >
@@ -293,8 +294,8 @@ export function AdminListRow({
   badge?: React.ReactNode
 }) {
   return (
-    <div className="grid min-h-12 grid-cols-[40px_1fr_auto_auto] items-center gap-4 border-b border-[var(--admin-hairline)] px-4 py-3 transition-colors duration-150 last:border-b-0 hover:bg-black/[0.02]">
-      <div className="flex size-8 items-center justify-center border border-[var(--admin-hairline)] text-[var(--admin-text-muted)]">
+    <div className="grid min-h-12 grid-cols-[40px_1fr_auto_auto] items-center gap-4 border-b border-[var(--admin-hairline)] px-4 py-3 transition-colors duration-[var(--admin-duration)] last:rounded-b-[var(--admin-radius)] last:border-b-0 hover:bg-black/[0.02]">
+      <div className="flex size-8 items-center justify-center rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] text-[var(--admin-text-muted)] transition-colors duration-[var(--admin-duration)] group-hover:border-[var(--admin-border)]">
         {Icon && <Icon className="size-3.5" strokeWidth={1.75} />}
       </div>
       <div className="min-w-0">
@@ -319,7 +320,7 @@ export function AdminListRow({
 
 export function AdminList({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)]">
+    <div className="overflow-hidden rounded-b-[var(--admin-radius)] border border-[var(--admin-hairline)] border-t-0 bg-[var(--admin-card-bg)]">
       {children}
     </div>
   )
@@ -330,18 +331,20 @@ export function AdminList({ children }: { children: React.ReactNode }) {
 export function AdminSearchInput({
   placeholder = '搜索…',
   className,
+  ...inputProps
 }: {
   placeholder?: string
   className?: string
-}) {
+} & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       type="text"
       placeholder={placeholder}
       className={cn(
-        'w-full max-w-[360px] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-3.5 py-2.5 text-sm text-[var(--admin-text)] outline-none transition-[border-color] duration-150 placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)]',
+        'w-full max-w-[360px] rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-3.5 py-2.5 text-sm text-[var(--admin-text)] outline-none shadow-[var(--admin-shadow-sm)] transition-[border-color,box-shadow] duration-[var(--admin-duration)] placeholder:text-[var(--admin-text-muted)] focus:border-[var(--admin-accent)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]',
         className,
       )}
+      {...inputProps}
     />
   )
 }
@@ -382,14 +385,14 @@ export function AdminErrorState({
 }) {
   return (
     <div className="flex h-full min-h-[480px] items-center justify-center">
-      <div className="w-full max-w-sm border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-8 py-12 text-center">
+      <div className="w-full max-w-sm overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-8 py-12 text-center shadow-[var(--admin-shadow-md)]">
         <p className="mb-4 text-sm text-[var(--admin-text-secondary)]">
           {message}
         </p>
         <button
           type="button"
           onClick={onRetry}
-          className="border border-[var(--admin-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--admin-text)] transition-colors duration-150 hover:bg-black/[0.02]"
+          className="rounded-[var(--admin-radius-xs)] border border-[var(--admin-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--admin-text)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-black/[0.02] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0"
         >
           重试
         </button>
@@ -406,17 +409,17 @@ export function AdminMetricSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div
       className={cn(
-        'grid gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]',
+        'grid gap-4',
         colClass,
       )}
     >
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="animate-pulse min-h-24 bg-[var(--admin-card-bg)] px-[18px] py-5"
+          className="animate-pulse min-h-24 overflow-hidden rounded-[var(--admin-radius-sm)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-[18px] py-5 shadow-[var(--admin-shadow-sm)]"
         >
-          <div className="mb-3 h-2.5 w-16 bg-zinc-200" />
-          <div className="h-8 w-20 bg-zinc-200" />
+          <div className="mb-3 h-2.5 w-16 rounded bg-zinc-200" />
+          <div className="h-8 w-20 rounded bg-zinc-200" />
         </div>
       ))}
     </div>
@@ -431,12 +434,12 @@ export function AdminPanelSkeleton({
   return (
     <div
       className={cn(
-        'animate-pulse border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5',
+        'animate-pulse overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5 shadow-[var(--admin-shadow-sm)]',
         height,
       )}
     >
-      <div className="mb-4 h-4 w-28 bg-zinc-200" />
-      <div className="h-[calc(100%-2rem)] bg-zinc-100" />
+      <div className="mb-4 h-4 w-28 rounded bg-zinc-200" />
+      <div className="h-[calc(100%-2rem)] rounded bg-zinc-100" />
     </div>
   )
 }

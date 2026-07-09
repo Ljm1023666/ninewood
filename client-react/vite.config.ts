@@ -21,7 +21,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 5174,
+    port: 3080,
     strictPort: true,
     allowedHosts: ['ninewood.local', 'localhost'],
     proxy: {

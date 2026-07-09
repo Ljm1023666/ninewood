@@ -1,204 +1,18 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
 import { LegalDialog } from '@/components/ui/terms-conditions'
 import { captchaApi } from '@/api/captcha'
-import { BackgroundBeams } from '@/components/ui/background-beams'
+import {
+  SignInFlowBackground,
+  SignInFlowNavbar,
+} from '@/components/ui/sign-in-flow-1'
+import '@/components/ui/sign-in-flow.css'
 
 const SMS_LENGTH = 6
-
-// ---- AnimatedNavLink ----
-
-function AnimatedNavLink({
-  to,
-  children,
-}: {
-  to: string
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      to={to}
-      className="group relative inline-block overflow-hidden h-5 flex items-center text-sm"
-    >
-      <div className="flex flex-col transition-transform duration-400 ease-out transform group-hover:-translate-y-1/2">
-        <span className="text-gray-300">{children}</span>
-        <span className="text-white">{children}</span>
-      </div>
-    </Link>
-  )
-}
-
-// ---- MiniNavbar ----
-
-function MiniNavbar({
-  isLogin,
-  onToggleMode,
-}: {
-  isLogin: boolean
-  onToggleMode: (v: boolean) => void
-}) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [headerShapeClass, setHeaderShapeClass] = useState('rounded-full')
-  const shapeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const toggleMenu = () => setIsOpen(!isOpen)
-
-  useEffect(() => {
-    if (shapeTimeoutRef.current) clearTimeout(shapeTimeoutRef.current)
-    if (isOpen) {
-      setHeaderShapeClass('rounded-xl')
-    } else {
-      shapeTimeoutRef.current = setTimeout(
-        () => setHeaderShapeClass('rounded-full'),
-        300,
-      )
-    }
-    return () => {
-      if (shapeTimeoutRef.current) clearTimeout(shapeTimeoutRef.current)
-    }
-  }, [isOpen])
-
-  const logoElement = (
-    <div className="relative w-5 h-5 flex items-center justify-center">
-      <span className="absolute w-1.5 h-1.5 rounded-full bg-gray-200 top-0 left-1/2 transform -translate-x-1/2 opacity-80" />
-      <span className="absolute w-1.5 h-1.5 rounded-full bg-gray-200 left-0 top-1/2 transform -translate-y-1/2 opacity-80" />
-      <span className="absolute w-1.5 h-1.5 rounded-full bg-gray-200 right-0 top-1/2 transform -translate-y-1/2 opacity-80" />
-      <span className="absolute w-1.5 h-1.5 rounded-full bg-gray-200 bottom-0 left-1/2 transform -translate-x-1/2 opacity-80" />
-    </div>
-  )
-
-  const navLinksData = [
-    { label: '首页', to: '/' },
-    { label: '发现', to: '/' },
-    { label: '圈子', to: '/circles' },
-  ]
-
-  const loginButtonElement = (
-    <button
-      onClick={() => onToggleMode(true)}
-      className={cn(
-        'px-4 py-2 sm:px-3 text-sm sm:text-sm rounded-md transition-all duration-200 w-full sm:w-auto',
-        isLogin
-          ? 'font-semibold text-black bg-gradient-to-br from-gray-100 to-gray-300'
-          : 'border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 hover:border-white/50 hover:text-white',
-      )}
-    >
-      登录
-    </button>
-  )
-
-  const signupButtonElement = (
-    <button
-      onClick={() => onToggleMode(false)}
-      className={cn(
-        'px-4 py-2 sm:px-3 text-sm sm:text-sm rounded-md transition-all duration-200 w-full sm:w-auto',
-        !isLogin
-          ? 'font-semibold text-black bg-gradient-to-br from-gray-100 to-gray-300'
-          : 'border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 hover:border-white/50 hover:text-white',
-      )}
-    >
-      注册
-    </button>
-  )
-
-  return (
-    <header
-      className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center pl-6 pr-6 py-3 backdrop-blur-sm ${headerShapeClass} border border-[#333] bg-[#1f1f1f57] w-[calc(100%-2rem)] sm:w-auto transition-[border-radius] duration-0 ease-in-out`}
-    >
-      <div className="flex items-center justify-between w-full gap-x-6 sm:gap-x-8">
-        <div className="flex items-center">{logoElement}</div>
-
-        <nav className="hidden sm:flex items-center space-x-4 sm:space-x-6 text-sm">
-          {navLinksData.map((link) => (
-            <AnimatedNavLink key={link.to} to={link.to}>
-              {link.label}
-            </AnimatedNavLink>
-          ))}
-        </nav>
-
-        <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-          {isLogin ? (
-            <>
-              {loginButtonElement}
-              <div className="relative group">
-                <div className="absolute inset-0 -m-2 rounded-md hidden sm:block bg-gray-100 opacity-40 filter blur-lg pointer-events-none transition-all duration-300 ease-out group-hover:opacity-60 group-hover:blur-xl group-hover:-m-3" />
-                {signupButtonElement}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="relative group">
-                <div className="absolute inset-0 -m-2 rounded-md hidden sm:block bg-gray-100 opacity-40 filter blur-lg pointer-events-none transition-all duration-300 ease-out group-hover:opacity-60 group-hover:blur-xl group-hover:-m-3" />
-                {loginButtonElement}
-              </div>
-              {signupButtonElement}
-            </>
-          )}
-        </div>
-
-        <button
-          className="sm:hidden flex items-center justify-center w-8 h-8 text-gray-300 focus:outline-none"
-          onClick={toggleMenu}
-          aria-label={isOpen ? '关闭菜单' : '打开菜单'}
-        >
-          {isOpen ? (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
-
-      <div
-        className={`sm:hidden flex flex-col items-center w-full transition-all ease-in-out duration-300 overflow-hidden ${isOpen ? 'max-h-[1000px] opacity-100 pt-4' : 'max-h-0 opacity-0 pt-0 pointer-events-none'}`}
-      >
-        <nav className="flex flex-col items-center space-y-4 text-base w-full">
-          {navLinksData.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className="text-gray-300 hover:text-white transition-colors w-full text-center"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="flex flex-col items-center space-y-4 mt-4 w-full">
-          {loginButtonElement}
-          {signupButtonElement}
-        </div>
-      </div>
-    </header>
-  )
-}
 
 // ---- 法律条文 ----
 
@@ -369,6 +183,24 @@ const privacySections = [
   },
 ]
 
+const personalInfoCollectSections = [
+  {
+    title: '敏感个人信息单独同意',
+    content: [
+      '手机号码：用于账号标识与登录验证',
+      '出生年份：用于年龄合规校验（未满 14 周岁无法注册）',
+      '网络 IP 与大致属地：用于安全风控，不含精确定位',
+      '在使用位置相关功能时另行采集的地理位置',
+      '您可随时在设置中撤回同意；撤回将影响相关功能使用。',
+    ],
+  },
+  ...aiServiceSections,
+  ...betaSections,
+]
+
+const BIRTH_YEAR_MIN = new Date().getFullYear() - 100
+const BIRTH_YEAR_MAX = new Date().getFullYear() - 14
+
 // ---- hCaptcha 组件 ----
 
 function HCaptchaWidget({
@@ -466,7 +298,7 @@ function CodeInput({
   }, [])
 
   return (
-    <div className="relative rounded-full py-4 px-5 border border-white/10 bg-transparent">
+    <div className="relative rounded-full border border-white/10 bg-transparent px-4 py-3.5">
       <div className="flex items-center justify-center">
         {code.map((digit, i) => (
           <div key={i} className="flex items-center">
@@ -484,16 +316,16 @@ function CodeInput({
                 disabled={disabled}
                 onChange={(e) => onChange(i, e.target.value)}
                 onKeyDown={(e) => onKeyDown(i, e)}
-                className="w-8 text-center text-xl bg-transparent text-white border-none focus:outline-none focus:ring-0 appearance-none disabled:opacity-50"
+                className="sign-in-flow-sms-digit w-9 text-center bg-transparent text-white border-none focus:outline-none focus:ring-0 appearance-none disabled:opacity-50"
                 style={{ caretColor: 'transparent' }}
               />
               {!digit && (
                 <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                  <span className="text-xl text-white/20">0</span>
+                  <span className="sign-in-flow-sms-digit text-white/20">0</span>
                 </div>
               )}
             </div>
-            {i < length - 1 && <span className="text-white/20 text-xl">|</span>}
+            {i < length - 1 && <span className="sign-in-flow-sms-digit text-white/20">|</span>}
           </div>
         ))}
       </div>
@@ -508,9 +340,14 @@ export default function LoginPage() {
   const setAuth = useUserStore((s) => s.setAuth)
 
   const [phone, setPhone] = useState('')
+  const [accountId, setAccountId] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLogin, setIsLogin] = useState(true)
+  const [loginChannel, setLoginChannel] = useState<'id' | 'phone' | 'email'>(
+    'phone',
+  )
   const [step, setStep] = useState<'phone' | 'captcha' | 'sms' | 'success'>(
     'phone',
   )
@@ -531,9 +368,45 @@ export default function LoginPage() {
   const [aiServiceAccepted, setAiServiceAccepted] = useState(false)
   const [betaAccepted, setBetaAccepted] = useState(false)
   const [birthday, setBirthday] = useState('')
+  const [birthYear, setBirthYear] = useState('')
   const [guardianConsent, setGuardianConsent] = useState(false)
   // 合规：敏感信息（手机号/位置/IP）单独同意（PIPL §29）
   const [sensitiveConsent, setSensitiveConsent] = useState(false)
+  const [codeDelivery, setCodeDelivery] = useState<
+    'phone-register' | 'email-login'
+  >('phone-register')
+  const [initialCanvasVisible, setInitialCanvasVisible] = useState(true)
+  const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false)
+
+  const playSuccessAnimation = useCallback(() => {
+    setReverseCanvasVisible(true)
+    setTimeout(() => setInitialCanvasVisible(false), 50)
+    setTimeout(() => setStep('success'), 2000)
+  }, [])
+
+  const setAllLegalAccepted = (accepted: boolean) => {
+    setPrivacyAccepted(accepted)
+    setAiServiceAccepted(accepted)
+    setBetaAccepted(accepted)
+    setSensitiveConsent(accepted)
+  }
+
+  const allLegalAccepted =
+    privacyAccepted &&
+    aiServiceAccepted &&
+    betaAccepted &&
+    sensitiveConsent
+
+  const registerAge = birthYear ? birthdayAge(`${birthYear}-01-01`) : 0
+  const needsGuardianConsent =
+    birthYear !== '' && registerAge >= 14 && registerAge < 18
+  const canSubmitRegister =
+    phone.length === 11 &&
+    allLegalAccepted &&
+    birthYear !== '' &&
+    registerAge >= 14 &&
+    (!needsGuardianConsent || guardianConsent) &&
+    !isLoading
 
   // 预加载 hCaptcha 脚本（避免到验证步骤才加载）
   useEffect(() => {
@@ -552,7 +425,7 @@ export default function LoginPage() {
     return () => clearInterval(t)
   }, [countdown])
 
-  // hCaptcha 验证回调 → 发送短信
+  // hCaptcha 验证回调 → 发送短信/邮箱验证码
   const handleHCaptchaVerify = useCallback(
     async (token: string) => {
       setCaptchaError('')
@@ -563,7 +436,11 @@ export default function LoginPage() {
           setCaptchaError(result.message || '验证失败')
           return
         }
-        await authApi.sendCode(phone, token)
+        if (codeDelivery === 'email-login') {
+          await authApi.sendEmailCode(email.trim().toLowerCase(), token)
+        } else {
+          await authApi.sendCode(phone, token)
+        }
         setStep('sms')
         setCountdown(60)
       } catch (e: any) {
@@ -574,7 +451,7 @@ export default function LoginPage() {
         setIsLoading(false)
       }
     },
-    [phone],
+    [phone, email, codeDelivery],
   )
 
   // ── 进入人机验证步骤 ──
@@ -603,6 +480,20 @@ export default function LoginPage() {
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!phone || phone.length < 11) return
+    setCodeDelivery('phone-register')
+    await handleFetchCaptcha()
+  }
+
+  const handleEmailLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const normalized = email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      setError('请输入有效的邮箱地址')
+      return
+    }
+    setEmail(normalized)
+    setError('')
+    setCodeDelivery('email-login')
     await handleFetchCaptcha()
   }
 
@@ -612,7 +503,29 @@ export default function LoginPage() {
     await handleFetchCaptcha()
   }
 
-  // ── 密码登录 → 人机验证 → API ──
+  // ── ID 登录 ──
+  const handleIdLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!accountId.trim() || !password) return
+    setError('')
+    setIsLoading(true)
+    try {
+      const res = await authApi.loginById(accountId.trim(), password)
+      setAuth({ user: res.data.data.user, token: res.data.data.token })
+      playSuccessAnimation()
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data
+              ?.message
+          : undefined
+      setError(msg || '登录失败')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // ── 密码登录 → API ──
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!phone || phone.length < 11 || !password) return
@@ -621,7 +534,7 @@ export default function LoginPage() {
     try {
       const res = await authApi.login(phone, password)
       setAuth({ user: res.data.data.user, token: res.data.data.token })
-      setTimeout(() => setStep('success'), 2000)
+      playSuccessAnimation()
     } catch (e: unknown) {
       const msg =
         e && typeof e === 'object' && 'response' in e
@@ -655,12 +568,21 @@ export default function LoginPage() {
         setError('')
         setIsLoading(true)
         try {
-          const res = await authApi.register(phone, fullCode, {
-            birthday,
-            guardianConsent,
-          })
-          setAuth({ user: res.data.data.user, token: res.data.data.token })
-          setTimeout(() => setStep('success'), 2000)
+          if (codeDelivery === 'email-login') {
+            const res = await authApi.loginEmail(
+              email.trim().toLowerCase(),
+              fullCode,
+            )
+            setAuth({ user: res.data.data.user, token: res.data.data.token })
+            playSuccessAnimation()
+          } else {
+            const res = await authApi.register(phone, fullCode, {
+              birthday,
+              guardianConsent,
+            })
+            setAuth({ user: res.data.data.user, token: res.data.data.token })
+            playSuccessAnimation()
+          }
         } catch (e: unknown) {
           const msg =
             e && typeof e === 'object' && 'response' in e
@@ -693,47 +615,42 @@ export default function LoginPage() {
     setSmsDigits(Array(SMS_LENGTH).fill(''))
     setError('')
     setCaptchaError('')
-    setCaptchaMode('register')
     setPrivacyAccepted(false)
+    setBirthYear('')
+    setBirthday('')
+    setCodeDelivery('phone-register')
   }
-
-  const isDev = (import.meta as any).env?.DEV
 
   return (
     <div
-      className={cn('flex w-[100%] flex-col min-h-screen bg-black relative')}
-    >
-      {isDev && (
-        <div className="relative z-30 w-full border-b border-amber-500/30 bg-amber-500/10 px-4 py-1 text-center text-[10px] font-mono uppercase tracking-widest text-amber-300">
-          dev · 验证码跳过 hCaptcha，请查看后端控制台
-        </div>
+      className={cn(
+        'sign-in-flow-root relative flex min-h-screen w-full flex-col bg-black',
       )}
-      {/* 背景层 */}
-      <div className="absolute inset-0 z-0">
-        <BackgroundBeams className="[mask-image:radial-gradient(ellipse_at_center,white_50%,transparent_85%)]!" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0.4)_0%,_transparent_80%)]" />
-        <div className="absolute top-0 left-0 right-0 h-[15%] bg-gradient-to-b from-black/80 to-transparent" />
-      </div>
+    >
+      <SignInFlowBackground
+        initialVisible={initialCanvasVisible}
+        reverseVisible={reverseCanvasVisible}
+      />
 
-      {/* 内容层 */}
-      <div className="relative z-10 flex flex-col flex-1">
-        <MiniNavbar
+      <div className="relative z-10 flex min-h-screen flex-1 flex-col">
+        <SignInFlowNavbar
           isLogin={isLogin}
           onToggleMode={(v) => {
             setIsLogin(v)
             setError('')
             setPrivacyAccepted(false)
+            setLoginChannel('phone')
+            setBirthYear('')
+            setBirthday('')
             if (step !== 'phone') {
               setStep('phone')
               setSmsDigits(Array(SMS_LENGTH).fill(''))
-              setCaptchaSelected([])
             }
           }}
         />
 
-        <div className="flex flex-1 flex-col lg:flex-row">
-          <div className="flex-1 flex flex-col justify-center items-center">
-            <div className="w-full mt-[120px] max-w-sm">
+        <div className="flex flex-1 flex-col items-center justify-center px-6">
+          <div className="w-full max-w-lg">
               <AnimatePresence mode="wait">
                 {/* ── Step 1: 手机号 ── */}
                 {step === 'phone' && (
@@ -743,251 +660,295 @@ export default function LoginPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="space-y-6 text-center"
+                    className={cn(isLogin ? '' : 'sign-in-flow-stack text-center')}
                   >
-                    <div className="space-y-1">
-                      <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">
-                        {isLogin ? '欢迎回来' : '加入九木'}
-                      </h1>
-                      <p className="text-[1.8rem] text-white/70 font-light">
-                        {isLogin ? '使用密码登录' : '验证手机号以注册'}
-                      </p>
-                    </div>
+                    {isLogin ? (
+                      <div className="sign-in-flow-register-card">
+                        <div>
+                          <h1 className="sign-in-flow-register-title">
+                            欢迎回来
+                          </h1>
+                          <p className="sign-in-flow-register-subtitle">
+                            {loginChannel === 'id'
+                              ? '使用账号 ID 登录'
+                              : loginChannel === 'email'
+                                ? '使用 QQ 邮箱登录'
+                                : '使用手机号登录'}
+                          </p>
+                        </div>
 
-                    <div className="space-y-4">
-                      <button
-                        type="button"
-                        disabled
-                        title="Google 登录即将推出\uff0c请使用手机号登录"
-                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-2 bg-white/[0.02] text-white/30 border border-white/5 rounded-full py-3 px-4 cursor-not-allowed"
-                      >
-                        <span className="text-lg">G</span>
-                        <span>Google 登录\uff08即将推出\uff09</span>
-                      </button>
-
-                      <div className="flex items-center gap-4">
-                        <div className="h-px bg-white/10 flex-1" />
-                        <span className="text-white/40 text-sm">or</span>
-                        <div className="h-px bg-white/10 flex-1" />
-                      </div>
-
-                      {isLogin ? (
-                        /* 登录表单 */
-                        <form
-                          onSubmit={handlePasswordLogin}
-                          className="space-y-3"
-                        >
-                          <input
-                            type="tel"
-                            inputMode="numeric"
-                            placeholder="手机号"
-                            value={phone}
-                            maxLength={11}
-                            onChange={(e) =>
-                              setPhone(e.target.value.replace(/\D/g, ''))
-                            }
-                            className="w-full backdrop-blur-[1px] text-white border border-white/10 rounded-full py-3 px-4 focus:outline-none focus:border focus:border-white/30 text-center"
-                            required
-                          />
-                          <div className="relative">
-                            <input
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder="密码"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              className="w-full backdrop-blur-[1px] text-white border border-white/10 rounded-full py-3 pl-4 pr-12 focus:outline-none focus:border focus:border-white/30 text-center"
-                              required
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors w-9 h-9 flex items-center justify-center cursor-pointer"
-                            >
-                              {showPassword ? (
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                                  />
-                                </svg>
-                              ) : (
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                  />
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                </svg>
-                              )}
-                            </button>
-                          </div>
-
-                          {error && (
-                            <motion.p
-                              initial={{ opacity: 0, y: -4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-sm text-red-400/80"
-                            >
-                              {error}
-                            </motion.p>
-                          )}
-
+                        <div className="sign-in-flow-register-stack">
                           <button
-                            type="submit"
-                            disabled={
-                              !phone ||
-                              phone.length < 11 ||
-                              !password ||
-                              isLoading
-                            }
+                            type="button"
+                            onClick={() => {
+                              setLoginChannel('id')
+                              setError('')
+                            }}
                             className={cn(
-                              'w-full rounded-full text-sm font-semibold py-3 transition-all duration-300',
-                              phone.length === 11 && password && !isLoading
-                                ? 'bg-white text-black hover:bg-white/90 cursor-pointer'
-                                : 'bg-white/5 text-white/30 cursor-not-allowed',
+                              'flex w-full items-center justify-center gap-2 rounded-xl border px-4 transition-colors',
+                              loginChannel === 'id'
+                                ? 'border-white/25 bg-white/10 text-white'
+                                : 'border-white/10 bg-white/[0.03] text-white hover:border-white/18 hover:bg-white/[0.06]',
                             )}
+                            style={{ height: '52px' }}
                           >
-                            {isLoading ? '登录中...' : '登录'}
+                            <span className="text-xl font-mono">#</span>
+                            <span>Sign in with ID</span>
                           </button>
 
-                          <p className="text-sm text-white/30 pt-2">
+                          <div className="flex items-center gap-4">
+                            <div className="h-px flex-1 bg-white/10" />
+                            <span className="text-sm text-white/35">or</span>
+                            <div className="h-px flex-1 bg-white/10" />
+                          </div>
+
+                          {loginChannel === 'id' && (
+                            <form
+                              onSubmit={handleIdLogin}
+                              className="sign-in-flow-register-stack"
+                            >
+                              <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
+                                <input
+                                  type="text"
+                                  placeholder="账号 ID（如 0、1、2）"
+                                  value={accountId}
+                                  onChange={(e) => setAccountId(e.target.value)}
+                                  required
+                                />
+                              </div>
+                              <div className="sign-in-flow-auth-field-wrap">
+                                <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
+                                  <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="密码"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center text-white/35 transition-colors hover:text-white/65"
+                                >
+                                  {showPassword ? '隐藏' : '显示'}
+                                </button>
+                              </div>
+                              {error ? (
+                                <p className="sign-in-flow-register-error">
+                                  {error}
+                                </p>
+                              ) : null}
+                              <button
+                                type="submit"
+                                disabled={
+                                  !accountId.trim() || !password || isLoading
+                                }
+                                className="sign-in-flow-register-btn"
+                              >
+                                {isLoading ? '登录中...' : '登录'}
+                              </button>
+                            </form>
+                          )}
+
+                          {loginChannel === 'phone' && (
+                            <form
+                              onSubmit={handlePasswordLogin}
+                              className="sign-in-flow-register-stack"
+                            >
+                              <div className="sign-in-flow-phone-input">
+                                <span className="sign-in-flow-phone-prefix">
+                                  +86
+                                </span>
+                                <input
+                                  type="tel"
+                                  inputMode="numeric"
+                                  placeholder="输入手机号"
+                                  value={phone}
+                                  maxLength={11}
+                                  onChange={(e) =>
+                                    setPhone(e.target.value.replace(/\D/g, ''))
+                                  }
+                                  required
+                                />
+                              </div>
+                              <div className="sign-in-flow-auth-field-wrap">
+                                <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
+                                  <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="密码"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center text-white/35 transition-colors hover:text-white/65"
+                                >
+                                  {showPassword ? '隐藏' : '显示'}
+                                </button>
+                              </div>
+                              {error ? (
+                                <p className="sign-in-flow-register-error">
+                                  {error}
+                                </p>
+                              ) : null}
+                              <button
+                                type="submit"
+                                disabled={
+                                  !phone ||
+                                  phone.length < 11 ||
+                                  !password ||
+                                  isLoading
+                                }
+                                className="sign-in-flow-register-btn"
+                              >
+                                {isLoading ? '登录中...' : '登录'}
+                              </button>
+                            </form>
+                          )}
+
+                          {loginChannel === 'email' && (
+                            <form
+                              onSubmit={handleEmailLoginSubmit}
+                              className="sign-in-flow-register-stack"
+                            >
+                              <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
+                                <input
+                                  type="email"
+                                  placeholder="name@qq.com"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  required
+                                />
+                              </div>
+                              {error ? (
+                                <p className="sign-in-flow-register-error">
+                                  {error}
+                                </p>
+                              ) : null}
+                              <button
+                                type="submit"
+                                disabled={!email.trim() || isLoading}
+                                className="sign-in-flow-register-btn"
+                              >
+                                {isLoading ? '发送中...' : '获取验证码'}
+                              </button>
+                              <p className="sign-in-flow-login-soon">
+                                验证码将发送至邮箱。登录后可在设置中绑定手机号。
+                              </p>
+                            </form>
+                          )}
+
+                          <div className="sign-in-flow-login-channels">
+                            {loginChannel !== 'id' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoginChannel('id')
+                                  setError('')
+                                }}
+                              >
+                                ID 登录
+                              </button>
+                            )}
+                            {loginChannel !== 'phone' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoginChannel('phone')
+                                  setError('')
+                                }}
+                              >
+                                手机号登录
+                              </button>
+                            )}
+                            {loginChannel !== 'email' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoginChannel('email')
+                                  setError('')
+                                }}
+                              >
+                                QQ 邮箱登录
+                              </button>
+                            )}
+                          </div>
+
+                          <p className="sign-in-flow-register-footer">
                             没有账号？
                             <button
                               type="button"
                               onClick={() => {
                                 setIsLogin(false)
                                 setError('')
+                                setLoginChannel('phone')
                               }}
-                              className="text-white/50 hover:text-white/70 underline ml-1 transition-colors cursor-pointer"
                             >
                               手机号注册
                             </button>
                           </p>
-                        </form>
-                      ) : (
-                        /* 注册 → 手机号输入 */
-                        <>
+                        </div>
+                      </div>
+                    ) : (
+                        <div className="sign-in-flow-register-card">
+                          <div>
+                            <h1 className="sign-in-flow-register-title">
+                              加入九木
+                            </h1>
+                            <p className="sign-in-flow-register-subtitle">
+                              使用手机号快速创建账号
+                            </p>
+                          </div>
+
                           <form
                             onSubmit={handlePhoneSubmit}
-                            className="space-y-3"
+                            className="sign-in-flow-register-stack"
                           >
-                            <div className="relative">
+                            <div className="sign-in-flow-phone-input">
+                              <span className="sign-in-flow-phone-prefix">
+                                +86
+                              </span>
                               <input
                                 type="tel"
                                 inputMode="numeric"
-                                placeholder="手机号"
+                                placeholder="输入手机号"
                                 value={phone}
                                 maxLength={11}
                                 onChange={(e) =>
                                   setPhone(e.target.value.replace(/\D/g, ''))
                                 }
-                                className="w-full backdrop-blur-[1px] text-white border border-white/10 rounded-full py-3 px-4 focus:outline-none focus:border focus:border-white/30 text-center"
                                 required
                               />
-                              <button
-                                type="submit"
-                                disabled={
-                                  phone.length < 11 ||
-                                  isLoading ||
-                                  !privacyAccepted ||
-                                  !aiServiceAccepted ||
-                                  !betaAccepted ||
-                                  !sensitiveConsent ||
-                                  !birthday
-                                }
-                                className={cn(
-                                  'absolute right-1.5 top-1/2 -translate-y-1/2 text-white w-9 h-9 flex items-center justify-center rounded-full transition-colors group overflow-hidden',
-                                  phone.length === 11 && privacyAccepted
-                                    ? 'bg-white/10 hover:bg-white/20 cursor-pointer'
-                                    : 'bg-white/5 cursor-not-allowed',
-                                )}
-                              >
-                                <span className="relative w-full h-full block overflow-hidden">
-                                  <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
-                                    →
-                                  </span>
-                                  <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 -translate-x-full group-hover:translate-x-0">
-                                    →
-                                  </span>
-                                </span>
-                              </button>
                             </div>
 
-                            {/* 合规 PIPL §29：敏感信息（手机号/位置/IP）单独同意 — 独立于主协议 */}
-                            <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3">
-                              <label className="flex items-start gap-2 cursor-pointer select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={sensitiveConsent}
-                                  onChange={(e) =>
-                                    setSensitiveConsent(e.target.checked)
-                                  }
-                                  className="mt-0.5 w-4 h-4 rounded accent-amber-400 cursor-pointer shrink-0"
-                                />
-                                <span className="text-[11px] leading-relaxed text-amber-100/80">
-                                  <span className="font-semibold text-amber-200">敏感个人信息单独同意（必填）</span>
-                                  ：我同意平台为完成注册与基础服务目的，单独收集并处理我的：
-                                  <br />
-                                  · 手机号码（用于账号标识与登录验证）
-                                  <br />
-                                  · 出生日期（用于年龄合规校验）
-                                  <br />
-                                  · 网络 IP 与大致属地（用于安全风控，不含精确定位）
-                                  <br />
-                                  · 在使用位置相关功能时另行采集的地理位置
-                                  <br />
-                                  <span className="text-amber-200/60">
-                                    此项独立于上方"服务条款/隐私政策"勾选；可随时在设置中撤回，撤回将影响相关功能使用。
-                                  </span>
-                                </span>
-                              </label>
-                            </div>
-
-                            {/* 隐私政策接受 */}
-                            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
+                            <label className="sign-in-flow-register-legal">
                               <input
                                 type="checkbox"
-                                checked={privacyAccepted}
+                                checked={allLegalAccepted}
                                 onChange={(e) =>
-                                  setPrivacyAccepted(e.target.checked)
+                                  setAllLegalAccepted(e.target.checked)
                                 }
-                                className="w-4 h-4 rounded accent-white cursor-pointer"
                               />
-                              <span className="text-xs text-white/40">
-                                我已阅读并同意{' '}
+                              <span className="sign-in-flow-register-legal-text">
+                                我已阅读并同意
                                 <LegalDialog
                                   trigger={
-                                    <span className="underline hover:text-white/60 cursor-pointer">
-                                      服务条款
+                                    <span className="underline">
+                                      《用户协议》
                                     </span>
                                   }
-                                  title="服务条款"
+                                  title="用户协议"
                                   sections={termsSections}
-                                />{' '}
-                                和{' '}
+                                />
+                                和
                                 <LegalDialog
                                   trigger={
-                                    <span className="underline hover:text-white/60 cursor-pointer">
-                                      隐私政策
+                                    <span className="underline">
+                                      《隐私政策》
                                     </span>
                                   }
                                   title="隐私政策"
@@ -996,104 +957,90 @@ export default function LoginPage() {
                               </span>
                             </label>
 
-                            {/* 合规：AI 服务协议 */}
-                            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={aiServiceAccepted}
-                                onChange={(e) =>
-                                  setAiServiceAccepted(e.target.checked)
-                                }
-                                className="w-4 h-4 rounded accent-white cursor-pointer"
-                              />
-                              <span className="text-xs text-white/40">
-                                我已阅读并同意{' '}
-                                <LegalDialog
-                                  trigger={
-                                    <span className="underline hover:text-white/60 cursor-pointer">
-                                      AI 服务协议
-                                    </span>
-                                  }
-                                  title="AI 服务协议（内测版 v0.1）"
-                                  sections={aiServiceSections}
-                                />
-                              </span>
-                            </label>
+                            <LegalDialog
+                              trigger={
+                                <button
+                                  type="button"
+                                  className="sign-in-flow-register-info-link"
+                                >
+                                  个人信息收集说明 &gt;
+                                </button>
+                              }
+                              title="个人信息收集说明"
+                              sections={personalInfoCollectSections}
+                            />
 
-                            {/* 合规：内测知情同意 */}
-                            <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={betaAccepted}
-                                onChange={(e) =>
-                                  setBetaAccepted(e.target.checked)
-                                }
-                                className="w-4 h-4 rounded accent-white cursor-pointer"
-                              />
-                              <span className="text-xs text-white/40">
-                                我已阅读并同意{' '}
-                                <LegalDialog
-                                  trigger={
-                                    <span className="underline hover:text-white/60 cursor-pointer">
-                                      内测知情同意书
-                                    </span>
-                                  }
-                                  title="内测知情同意书（v0.1）"
-                                  sections={betaSections}
-                                />
-                              </span>
-                            </label>
-
-                            {/* 合规：出生日期采集（< 14 岁禁止注册） */}
-                            <div className="flex flex-col items-center gap-1">
-                              <label className="text-xs text-white/40">
-                                出生日期（必填，14 周岁以下无法注册）
+                            <div className="sign-in-flow-register-birth">
+                              <label htmlFor="register-birth-year">
+                                出生年份
                               </label>
-                              <input
-                                type="date"
-                                value={birthday}
-                                max={new Date().toISOString().slice(0, 10)}
+                              <select
+                                id="register-birth-year"
+                                value={birthYear}
                                 onChange={(e) => {
-                                  setBirthday(e.target.value)
-                                  const age = birthdayAge(e.target.value)
-                                  if (age >= 14 && age < 18) {
+                                  const year = e.target.value
+                                  setBirthYear(year)
+                                  setBirthday(year ? `${year}-01-01` : '')
+                                  if (
+                                    year &&
+                                    birthdayAge(`${year}-01-01`) >= 14 &&
+                                    birthdayAge(`${year}-01-01`) < 18
+                                  ) {
                                     setGuardianConsent(false)
                                   }
                                 }}
-                                className="w-full max-w-[220px] backdrop-blur-[1px] text-white border border-white/10 rounded-full py-2 px-4 focus:outline-none focus:border focus:border-white/30 text-center text-sm"
                                 required
-                              />
+                              >
+                                <option value="" disabled>
+                                  选择年份
+                                </option>
+                                {Array.from(
+                                  {
+                                    length: BIRTH_YEAR_MAX - BIRTH_YEAR_MIN + 1,
+                                  },
+                                  (_, i) => BIRTH_YEAR_MAX - i,
+                                ).map((year) => (
+                                  <option key={year} value={String(year)}>
+                                    {year}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
 
-                            {/* 合规：14-18 岁监护人同意 */}
-                            {birthdayAge(birthday) >= 14 && birthdayAge(birthday) < 18 ? (
-                              <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
+                            {needsGuardianConsent ? (
+                              <label className="sign-in-flow-register-guardian">
                                 <input
                                   type="checkbox"
                                   checked={guardianConsent}
                                   onChange={(e) =>
                                     setGuardianConsent(e.target.checked)
                                   }
-                                  className="w-4 h-4 rounded accent-white cursor-pointer"
+                                  className="mt-0.5 shrink-0 accent-white"
                                 />
-                                <span className="text-xs text-white/40">
-                                  本人已征得监护人同意使用本平台（必填）
-                                </span>
+                                <span>本人已征得监护人同意使用本平台</span>
                               </label>
                             ) : null}
+
+                            {error ? (
+                              <motion.p
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="sign-in-flow-register-error"
+                              >
+                                {error}
+                              </motion.p>
+                            ) : null}
+
+                            <button
+                              type="submit"
+                              disabled={!canSubmitRegister}
+                              className="sign-in-flow-register-btn"
+                            >
+                              {isLoading ? '发送中...' : '下一步'}
+                            </button>
                           </form>
 
-                          {error && (
-                            <motion.p
-                              initial={{ opacity: 0, y: -4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="text-sm text-red-400/80"
-                            >
-                              {error}
-                            </motion.p>
-                          )}
-
-                          <p className="text-sm text-white/30">
+                          <p className="sign-in-flow-register-footer">
                             已有账号？
                             <button
                               type="button"
@@ -1101,37 +1048,12 @@ export default function LoginPage() {
                                 setIsLogin(true)
                                 setError('')
                               }}
-                              className="text-white/50 hover:text-white/70 underline ml-1 transition-colors cursor-pointer"
                             >
                               密码登录
                             </button>
                           </p>
-
-                          <div className="text-sm text-white/40 pt-10">
-                            注册即表示同意{' '}
-                            <LegalDialog
-                              trigger={
-                                <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
-                                  服务条款
-                                </span>
-                              }
-                              title="服务条款"
-                              sections={termsSections}
-                            />{' '}
-                            和{' '}
-                            <LegalDialog
-                              trigger={
-                                <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
-                                  隐私政策
-                                </span>
-                              }
-                              title="隐私政策"
-                              sections={privacySections}
-                            />
-                          </div>
-                        </>
-                      )}
-                    </div>
+                        </div>
+                    )}
                   </motion.div>
                 )}
 
@@ -1143,13 +1065,13 @@ export default function LoginPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 100 }}
                     transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="space-y-6 text-center"
+                    className="sign-in-flow-stack text-center"
                   >
-                    <div className="space-y-1">
-                      <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">
+                    <div className="sign-in-flow-stack-xs">
+                      <h1 className="font-bold tracking-tight text-white">
                         人机验证
                       </h1>
-                      <p className="text-[1.25rem] text-white/50 font-light">
+                      <p className="sign-in-flow-subtitle-sm text-white/50 font-light">
                         完成下方验证
                       </p>
                     </div>
@@ -1163,14 +1085,14 @@ export default function LoginPage() {
                     )}
 
                     {isLoading && (
-                      <p className="text-sm text-white/40">验证中，请稍候...</p>
+                      <p className="text-base text-white/40">验证中，请稍候...</p>
                     )}
 
                     {captchaError && (
                       <motion.p
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-sm text-red-400/80"
+                        className="text-base text-red-400/80"
                       >
                         {captchaError}
                       </motion.p>
@@ -1198,14 +1120,15 @@ export default function LoginPage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 100 }}
                     transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="space-y-6 text-center"
+                    className="sign-in-flow-stack text-center"
                   >
-                    <div className="space-y-1">
-                      <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">
+                    <div className="sign-in-flow-stack-xs">
+                      <h1 className="font-bold tracking-tight text-white">
                         输入验证码
                       </h1>
-                      <p className="text-[1.25rem] text-white/50 font-light">
-                        已发送至 {phone}
+                      <p className="sign-in-flow-subtitle-sm text-white/50 font-light">
+                        已发送至{' '}
+                        {codeDelivery === 'email-login' ? email : phone}
                       </p>
                     </div>
 
@@ -1221,7 +1144,7 @@ export default function LoginPage() {
                       <motion.p
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-sm text-red-400/80"
+                        className="text-base text-red-400/80"
                       >
                         {error}
                       </motion.p>
@@ -1230,13 +1153,17 @@ export default function LoginPage() {
                     <div>
                       <motion.button
                         type="button"
-                        className="text-white/50 hover:text-white/70 transition-colors cursor-pointer text-sm"
+                        className="text-white/50 hover:text-white/70 transition-colors cursor-pointer text-base"
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                         onClick={handleResendSms}
                         disabled={isLoading || countdown > 0}
                       >
-                        {countdown > 0 ? `${countdown}秒后重发` : '重新发送'}
+                        {countdown > 0
+                          ? `${countdown}秒后重发`
+                          : codeDelivery === 'email-login'
+                            ? '重新发送邮件'
+                            : '重新发送'}
                       </motion.button>
                     </div>
 
@@ -1253,30 +1180,32 @@ export default function LoginPage() {
                       <div className="flex-1" />
                     </div>
 
-                    <div className="pt-10">
-                      <div className="text-sm text-white/40">
-                        注册即表示同意{' '}
-                        <LegalDialog
-                          trigger={
-                            <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
-                              服务条款
-                            </span>
-                          }
-                          title="服务条款"
-                          sections={termsSections}
-                        />{' '}
-                        和{' '}
-                        <LegalDialog
-                          trigger={
-                            <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-sm">
-                              隐私政策
-                            </span>
-                          }
-                          title="隐私政策"
-                          sections={privacySections}
-                        />
+                    {codeDelivery === 'phone-register' ? (
+                      <div className="pt-10">
+                        <div className="text-base text-white/40">
+                          注册即表示同意{' '}
+                          <LegalDialog
+                            trigger={
+                              <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-base">
+                                服务条款
+                              </span>
+                            }
+                            title="服务条款"
+                            sections={termsSections}
+                          />{' '}
+                          和{' '}
+                          <LegalDialog
+                            trigger={
+                              <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-base">
+                                隐私政策
+                              </span>
+                            }
+                            title="隐私政策"
+                            sections={privacySections}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    ) : null}
                   </motion.div>
                 )}
 
@@ -1287,13 +1216,13 @@ export default function LoginPage() {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: 'easeOut', delay: 0.3 }}
-                    className="space-y-6 text-center"
+                    className="sign-in-flow-stack text-center"
                   >
-                    <div className="space-y-1">
-                      <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">
+                    <div className="sign-in-flow-stack-xs">
+                      <h1 className="font-bold tracking-tight text-white">
                         欢迎你！
                       </h1>
-                      <p className="text-[1.25rem] text-white/50 font-light">
+                      <p className="sign-in-flow-subtitle-sm text-white/50 font-light">
                         加入九木社区
                       </p>
                     </div>
@@ -1330,7 +1259,6 @@ export default function LoginPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
           </div>
         </div>
       </div>

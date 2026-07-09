@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/design-tokens.css";
 @import "./styles/agent-codex.css";
 @import "./styles/agent-tasks.css";
 @import "./styles/messages-chat.css";
@@ -7,6 +8,8 @@
 @import "./styles/wallet.css";
 @import "./styles/desktop-luxury.css";
 @import "./styles/tax-visualizer.css";
+@import "./styles/path-search-aurora.css";
+@import "./styles/cert-stitch.css";
 
 /* Stitch Material Symbols Outlined */
 .ms-icon {
@@ -106,14 +109,14 @@
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── 字体 ── */
-  --font-family: 'Montserrat', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
-  --font-mono: 'Roboto Mono', 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-family: 'HarmonyOS Sans', 'PingFang SC', 'Microsoft YaHei', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Inter', 'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace;
   /* 桌面全局字号缩放：Stitch 稿中 9–12px 标签在宽屏下过小 */
-  --ui-type-scale: 1.3;
-  --font-size-micro: max(13px, 0.8125rem);
-  --font-size-caption: max(14px, 0.875rem);
-  --font-size-body: max(16px, 1rem);
-  --font-size-subtitle: max(18px, 1.125rem);
+  --ui-type-scale: 1.45;
+  --font-size-micro: max(14px, 0.875rem);
+  --font-size-caption: max(15px, 0.9375rem);
+  --font-size-body: max(17px, 1.0625rem);
+  --font-size-subtitle: max(20px, 1.25rem);
 
   /* ── Z-index 层级体系 ── */
   --z-base: 1;
@@ -125,24 +128,24 @@
   --z-max: 400;
 
   /* 点数钱包（由 theme store 按深浅色写入） */
-  --price-foreground: #fbbf24;
-  --price-surface: rgba(251, 191, 36, 0.12);
-  --price-border: rgba(251, 191, 36, 0.32);
+  --price-foreground: #e8e8e8;
+  --price-surface: rgba(255, 255, 255, 0.08);
+  --price-border: rgba(255, 255, 255, 0.16);
   --wallet-panel-bg: rgba(255, 255, 255, 0.04);
   --wallet-row-hover: rgba(255, 255, 255, 0.03);
   --wallet-glass-bg: color-mix(in srgb, var(--bg-card) 68%, transparent);
-  --wallet-glass-border: color-mix(in srgb, var(--price-foreground) 22%, var(--border-color));
-  --wallet-glow-a: color-mix(in srgb, var(--price-foreground) 11%, transparent);
-  --wallet-glow-b: color-mix(in srgb, var(--price-foreground) 6%, transparent);
+  --wallet-glass-border: var(--border-color);
+  --wallet-glow-a: rgba(255, 255, 255, 0.03);
+  --wallet-glow-b: rgba(255, 255, 255, 0.02);
   --wallet-hero-radial: radial-gradient(ellipse 85% 65% at 50% -15%, var(--wallet-glow-a), transparent 72%);
-  --wallet-accent-gradient: linear-gradient(135deg, var(--price-foreground), color-mix(in srgb, var(--price-foreground) 72%, white));
-  --wallet-on-accent: #1a1400;
-  --wallet-watermark-opacity: 0.07;
-  --wallet-stat-icon: color-mix(in srgb, var(--price-foreground) 58%, transparent);
+  --wallet-accent-gradient: linear-gradient(135deg, #f0f0f0, #cccccc);
+  --wallet-on-accent: #111111;
+  --wallet-watermark-opacity: 0.05;
+  --wallet-stat-icon: rgba(255, 255, 255, 0.35);
   --wallet-btn-ghost-bg: color-mix(in srgb, var(--text-primary) 5%, transparent);
   --wallet-divider: color-mix(in srgb, var(--text-primary) 6%, transparent);
   --wallet-table-head-bg: color-mix(in srgb, var(--text-primary) 2%, transparent);
-  --wallet-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --wallet-serif: 'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif;
 }
 
 /* ── Tailwind 主题扩展 ── */
@@ -2393,40 +2396,86 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
 
 /* ── 管理后台 Achromatic Precision ── */
 .admin-light {
-  --admin-bg: #FAFAFA;
+  --admin-bg: #F7F7F8;
   --admin-card-bg: #FFFFFF;
-  --admin-border: rgba(0, 0, 0, 0.08);
-  --admin-hairline: rgba(0, 0, 0, 0.06);
-  --admin-text: #111111;
-  --admin-text-secondary: #5A5A5A;
-  --admin-text-muted: #9A9A9A;
-  --admin-primary: #111111;
-  --admin-sidebar-bg: #0A0A0A;
+  --admin-border: rgba(0, 0, 0, 0.07);
+  --admin-hairline: rgba(0, 0, 0, 0.05);
+  --admin-text: #111113;
+  --admin-text-secondary: #4B5563;
+  --admin-text-muted: #9CA3AF;
+  --admin-primary: #111113;
+  --admin-sidebar-bg: #0B0B0D;
   --admin-sidebar-border: rgba(255, 255, 255, 0.06);
   --admin-sidebar-text: #A1A1AA;
-  --admin-sidebar-active-bg: rgba(255, 255, 255, 0.1);
-  --admin-sidebar-hover: rgba(255, 255, 255, 0.08);
-  --admin-accent: #3388FF;
-  --admin-accent-blue: #3388FF;
-  --admin-accent-green: #22C55E;
-  --admin-accent-red: #EF4444;
-  --admin-accent-orange: #3388FF;
-  --admin-accent-teal: #71717A;
-  --admin-radius: 0;
+  --admin-sidebar-active-bg: rgba(255, 255, 255, 0.10);
+  --admin-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --admin-accent: #2563EB;
+  --admin-accent-blue: #2563EB;
+  --admin-accent-green: #16A34A;
+  --admin-accent-red: #DC2626;
+  --admin-accent-orange: #EA580C;
+  --admin-accent-teal: #0891B2;
+  --admin-radius: 14px;
+  --admin-radius-lg: 18px;
+  --admin-radius-sm: 10px;
+  --admin-radius-xs: 6px;
+  --admin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.02);
+  --admin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --admin-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.07), 0 4px 8px rgba(0, 0, 0, 0.03);
+  --admin-duration: 0.25s;
+  --admin-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --admin-transition: var(--admin-duration) var(--admin-ease);
   --admin-mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace;
-  --admin-font: Montserrat, 'Segoe UI', system-ui, sans-serif;
+  --admin-font: Inter, 'Segoe UI', system-ui, sans-serif;
   font-family: var(--admin-font);
-  font-size: 18px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
+
+@keyframes admin-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes admin-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-admin-fade-up {
+  animation: admin-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-admin-fade-in {
+  animation: admin-fade-in 0.35s ease both;
+}
+
+/* Staggered entrance for dashboard content sections */
+.admin-dashboard-content > .space-y-6 > * {
+  animation: admin-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.admin-dashboard-content > .space-y-6 > *:nth-child(1) { animation-delay: 0ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(2) { animation-delay: 60ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(3) { animation-delay: 120ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(4) { animation-delay: 180ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(5) { animation-delay: 240ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(6) { animation-delay: 300ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(7) { animation-delay: 360ms; }
+.admin-dashboard-content > .space-y-6 > *:nth-child(8) { animation-delay: 420ms; }
 
 .admin-dashboard-content {
   background-color: var(--admin-bg);
   padding: 24px;
 }
 
-/* ── 管理后台侧栏（像素对齐预览稿） ── */
+/* ── 管理后台侧栏 ── */
 .admin-sidebar {
   display: flex;
   width: 248px;
@@ -2437,13 +2486,13 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   background: var(--admin-sidebar-bg);
   color: #e5e5e5;
   font-family: var(--admin-font);
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.5;
 }
 
 .admin-sidebar__brand {
   display: flex;
-  height: 56px;
+  height: 60px;
   align-items: center;
   gap: 10px;
   border-bottom: 1px solid var(--admin-sidebar-border);
@@ -2457,7 +2506,8 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   flex-shrink: 0;
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  font-size: 18px;
+  border-radius: var(--admin-radius-xs);
+  font-size: 16px;
   color: #fb923c;
 }
 
@@ -2465,8 +2515,8 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 17px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: #f4f4f5;
 }
@@ -2476,7 +2526,7 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--admin-mono);
-  font-size: 18px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #71717a;
@@ -2488,26 +2538,29 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
 }
 
 .admin-sidebar__nav-btn {
+  position: relative;
   display: flex;
   width: 100%;
   align-items: center;
   gap: 12px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   border: none;
+  border-radius: var(--admin-radius-xs);
   background: transparent;
   padding: 10px 12px;
   text-align: left;
   font: inherit;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--admin-sidebar-text);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--admin-transition), color var(--admin-transition), transform var(--admin-transition);
 }
 
 .admin-sidebar__nav-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--admin-sidebar-hover);
   color: #e4e4e7;
+  transform: translateX(1px);
 }
 
 .admin-sidebar__nav-btn.is-active {
@@ -2515,15 +2568,29 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   color: #fff;
 }
 
+.admin-sidebar__nav-btn.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 0 2px 2px 0;
+  background: var(--admin-accent);
+}
+
 .admin-sidebar__nav-btn svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  opacity: 0.75;
+  opacity: 0.7;
+  transition: opacity var(--admin-transition);
 }
 
 .admin-sidebar__nav-btn.is-active svg {
   opacity: 1;
+  color: var(--admin-accent);
 }
 
 .admin-sidebar__foot {
@@ -2539,16 +2606,18 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   gap: 8px;
   margin-bottom: 8px;
   border: none;
+  border-radius: var(--admin-radius-xs);
   background: transparent;
   padding: 8px 12px;
   font: inherit;
-  font-size: 17px;
+  font-size: 15px;
   color: #71717a;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: background var(--admin-transition), color var(--admin-transition);
 }
 
 .admin-sidebar__back:hover {
+  background: var(--admin-sidebar-hover);
   color: #d4d4d8;
 }
 
@@ -2557,26 +2626,33 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   align-items: center;
   gap: 10px;
   border: 1px solid var(--admin-sidebar-border);
+  border-radius: var(--admin-radius-sm);
   background: rgba(255, 255, 255, 0.04);
   padding: 10px;
+  transition: background var(--admin-transition), border-color var(--admin-transition);
+}
+
+.admin-sidebar__user:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .admin-sidebar__avatar {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   place-items: center;
   border-radius: 50%;
   background: #3f3f46;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #f4f4f5;
 }
 
 .admin-sidebar__avatar img {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -2585,7 +2661,7 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.25;
   color: #e4e4e7;
@@ -2596,43 +2672,52 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--admin-mono);
-  font-size: 18px;
+  font-size: 12px;
   color: #71717a;
 }
 
-/* ── 管理后台顶栏 / 子导航（像素对齐预览稿） ── */
+/* ── 管理后台顶栏 / 子导航 ── */
 .admin-topbar {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--admin-border);
-  background: rgba(255, 255, 255, 0.82);
-  padding: 16px 24px;
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 14px 24px;
+  backdrop-filter: blur(12px);
+  transition: box-shadow var(--admin-transition);
+}
+
+.admin-topbar:hover {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
 .admin-topbar__title {
-  font-size: 17px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--admin-text);
 }
 
 .admin-topbar__badge {
-  margin-left: 8px;
+  margin-left: 10px;
   border: 1px solid var(--admin-hairline);
-  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.02);
+  padding: 3px 10px;
   font-family: var(--admin-mono);
-  font-size: 18px;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  letter-spacing: 0.02em;
   color: var(--admin-text-secondary);
   vertical-align: middle;
 }
 
 .admin-topbar__sub {
-  margin-top: 2px;
-  font-size: 16px;
+  margin-top: 3px;
+  font-size: 13px;
   color: var(--admin-text-muted);
 }
 
@@ -2641,59 +2726,79 @@ html[data-appearance="light"] .internal-shell .internal-skeleton {
   align-items: center;
   gap: 8px;
   font-family: var(--admin-mono);
-  font-size: 15px;
+  font-size: 13px;
   color: var(--admin-text-muted);
 }
 
 .admin-topbar__refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-xs);
   background: #fff;
   padding: 8px 14px;
   font: inherit;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--admin-text-secondary);
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  box-shadow: var(--admin-shadow-sm);
+  transition: border-color var(--admin-transition), color var(--admin-transition), background var(--admin-transition), box-shadow var(--admin-transition), transform var(--admin-transition);
 }
 
 .admin-topbar__refresh:hover {
-  border-color: rgba(0, 0, 0, 0.18);
+  border-color: rgba(0, 0, 0, 0.14);
+  background: #fff;
   color: var(--admin-text);
+  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-1px);
+}
+
+.admin-topbar__refresh:active {
+  transform: translateY(0);
 }
 
 .admin-subnav {
   display: flex;
   flex-shrink: 0;
-  gap: 0;
+  gap: 4px;
   overflow-x: auto;
   border-bottom: 1px solid var(--admin-hairline);
   background: var(--admin-bg);
   padding: 0 24px;
+  scrollbar-width: none;
+}
+
+.admin-subnav::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-subnav__btn {
   border: none;
   border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
   background: transparent;
-  padding: 12px 16px;
+  padding: 12px 14px;
   font-family: var(--admin-mono);
-  font-size: 15px;
-  letter-spacing: 0.06em;
+  font-size: 13px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--admin-text-muted);
   white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color var(--admin-transition), border-color var(--admin-transition), background var(--admin-transition);
 }
 
 .admin-subnav__btn:hover {
+  background: rgba(0, 0, 0, 0.02);
   color: var(--admin-text-secondary);
 }
 
 .admin-subnav__btn.is-active {
   border-bottom-color: var(--admin-accent);
   color: var(--admin-text);
+  background: rgba(37, 99, 235, 0.04);
 }
 
 /* ── Agent 聊天动画 ── */

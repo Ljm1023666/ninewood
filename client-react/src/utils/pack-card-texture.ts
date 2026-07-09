@@ -360,10 +360,6 @@ async function buildPackCardFrontTextureUrl(
 
   }
 
-  if (input.title.trim()) {
-    drawFrontTitleBar(ctx, input.title, input.price, m)
-  }
-
   ctx.restore()
 
 

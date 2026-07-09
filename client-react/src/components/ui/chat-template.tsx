@@ -43,7 +43,6 @@ import {
   Menu,
   MessageCircle,
   MessageSquareDot,
-  Paperclip,
   Send,
   Settings,
   Smile,
@@ -329,35 +328,43 @@ export function TemplateChatInputRow({
   attachMenu,
   smileButtonProps,
 }: {
-  inputProps: React.ComponentProps<typeof Input>
+  inputProps: React.ComponentProps<'input'>
   onSendClick?: () => void
   /** 可选：替换 Paperclip 下拉的交互（如隐藏文件 input） */
   attachMenu?: React.ReactNode
-  smileButtonProps?: React.ComponentProps<typeof Button>
+  smileButtonProps?: React.ComponentProps<'button'>
 }) {
+  const inactive = inputProps.disabled || inputProps.readOnly
+
   return (
-    <div className="flex h-10 pt-2 border-t">
-      <Button variant="ghost" size="icon" type="button" {...smileButtonProps}>
-        <Smile />
-      </Button>
-      {attachMenu && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" type="button">
-              <Paperclip />
-            </Button>
-          </DropdownMenuTrigger>
-          {attachMenu}
-        </DropdownMenu>
-      )}
-      <Input
-        placeholder="输入消息…"
-        className="flex-grow border-0"
-        {...inputProps}
-      />
-      <Button variant="ghost" size="icon" type="button" onClick={onSendClick}>
-        <Send />
-      </Button>
+    <div className="msg-composer">
+      <div className="msg-composer__bar">
+        <button
+          type="button"
+          className="msg-composer__icon-btn"
+          disabled={inactive}
+          {...smileButtonProps}
+        >
+          <Smile className="size-5" />
+        </button>
+        {attachMenu}
+        <input
+          placeholder="输入消息…"
+          className="msg-composer__input"
+          {...inputProps}
+        />
+        <button
+          type="button"
+          className={cn(
+            'msg-composer__send',
+            !inactive && onSendClick && 'msg-composer__send--active',
+          )}
+          onClick={onSendClick}
+          disabled={inactive}
+        >
+          <Send className="size-5" />
+        </button>
+      </div>
     </div>
   )
 }
@@ -617,7 +624,9 @@ function DefaultRightChatPanel({
       <TemplateChatRightShell
         currentChat={currentChat}
         middle={<div className="h-full w-full" />}
-        inputRow={<TemplateChatInputRow inputProps={{ readOnly: true }} />}
+        inputRow={
+          currentChat ? <TemplateChatInputRow inputProps={{ readOnly: true }} /> : null
+        }
         embedInLayout={embedInLayout}
         variant="internal"
         onProfileClick={() => {
@@ -630,7 +639,9 @@ function DefaultRightChatPanel({
       <TemplateChatRightShell
         currentChat={currentChat}
         middle={<div className="h-full w-full" />}
-        inputRow={<TemplateChatInputRow inputProps={{ readOnly: true }} />}
+        inputRow={
+          currentChat ? <TemplateChatInputRow inputProps={{ readOnly: true }} /> : null
+        }
         embedInLayout={embedInLayout}
         onProfileClick={() => {
           if (currentChat?.id) navigateTo(`/profile/${currentChat.id}`)

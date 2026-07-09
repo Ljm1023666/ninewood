@@ -47,11 +47,11 @@ export default function AdminOrdersTab({ data, loading, activeItem }: Props) {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse h-[200px] border border-[var(--admin-hairline)] bg-white" />
+        <div className="animate-pulse h-[200px] overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-white shadow-[var(--admin-shadow-sm)]" />
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="animate-pulse flex h-12 items-center gap-4 border border-[var(--admin-hairline)] bg-white px-4"
+            className="animate-pulse flex h-12 items-center gap-4 overflow-hidden rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-white px-4 shadow-[var(--admin-shadow-sm)]"
           />
         ))}
       </div>
@@ -142,7 +142,7 @@ export default function AdminOrdersTab({ data, loading, activeItem }: Props) {
                     contentStyle={adminChartTooltipStyle}
                     formatter={(val: number) => [formatCurrency(val), '金额']}
                   />
-                  <Bar dataKey="amount" fill="#3388FF" radius={[2, 2, 0, 0]} barSize={28} />
+                  <Bar dataKey="amount" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

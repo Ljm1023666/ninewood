@@ -256,7 +256,7 @@ async function main() {
   console.log('🚀 开始生成完整种子数据…\n')
 
   // ── 1. 创建管理员 ──
-  const adminPhone = '13800000001'
+  const adminPhone = '13800000000'
   let admin = await prisma.user.findUnique({ where: { phone: adminPhone } })
   if (!admin) {
     admin = await prisma.user.create({

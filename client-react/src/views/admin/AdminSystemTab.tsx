@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Server, Gauge, FileText, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import {
   AdminPanel,
   AdminEmpty,
@@ -47,8 +47,8 @@ export default function AdminSystemTab() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="animate-pulse h-24 border border-[var(--admin-hairline)] bg-white" />
-        <div className="animate-pulse h-64 border border-[var(--admin-hairline)] bg-white" />
+        <div className="animate-pulse h-24 overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-white shadow-[var(--admin-shadow-sm)]" />
+        <div className="animate-pulse h-64 overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-white shadow-[var(--admin-shadow-sm)]" />
       </div>
     )
   }
@@ -65,7 +65,7 @@ export default function AdminSystemTab() {
         <button
           type="button"
           onClick={load}
-          className="inline-flex items-center gap-1 border border-[var(--admin-hairline)] bg-white px-2 py-1 text-xs text-[var(--admin-text-secondary)] transition-colors hover:bg-black/[0.02]"
+          className="inline-flex items-center gap-1 rounded-[var(--admin-radius-xs)] border border-[var(--admin-border)] bg-white px-2 py-1 text-xs font-medium text-[var(--admin-text-secondary)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-black/[0.02] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0"
         >
           <RefreshCw className="size-3" />
           刷新
@@ -106,12 +106,12 @@ export default function AdminSystemTab() {
               {services.map((s) => (
                 <div key={`p-${s.name}`} className="flex items-center gap-3">
                   <span className="w-32 truncate text-xs text-[var(--admin-text-secondary)]">{s.name}</span>
-                  <div className="relative h-2 flex-1 bg-[var(--admin-hairline)]">
+                  <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-[var(--admin-hairline)]">
                     <div
-                      className="absolute left-0 top-0 h-full"
+                      className="absolute left-0 top-0 h-full rounded-full transition-[width] duration-500"
                       style={{
                         width: `${Math.min(100, s.responseTime / 5)}%`,
-                        background: s.status === 'online' ? '#22C55E' : s.status === 'offline' ? '#71717A' : '#F97316',
+                        background: s.status === 'online' ? '#16A34A' : s.status === 'offline' ? '#6B7280' : '#EA580C',
                       }}
                     />
                   </div>
@@ -131,12 +131,12 @@ export default function AdminSystemTab() {
           <ul className="space-y-2">
             {services.map((s) => (
               <li key={`l-${s.name}-${s.port}`} className="flex items-center gap-2 text-xs">
-                <span
-                  className="size-1.5"
-                  style={{
-                    background: s.status === 'online' ? '#22C55E' : s.status === 'offline' ? '#71717A' : '#F97316',
-                  }}
-                />
+                  <span
+                    className="size-1.5 rounded-full"
+                    style={{
+                      background: s.status === 'online' ? '#16A34A' : s.status === 'offline' ? '#6B7280' : '#EA580C',
+                    }}
+                  />
                 <span className="font-[family-name:var(--admin-mono)] text-[var(--admin-text-secondary)]">
                   :{s.port} {s.name}
                 </span>
@@ -152,7 +152,7 @@ export default function AdminSystemTab() {
         ) : (
           <div className="space-y-0 font-[family-name:var(--admin-mono)] text-[11px] leading-relaxed text-[var(--admin-text-secondary)]">
             {services.map((s) => (
-              <div key={`log-${s.name}-${s.port}`} className="flex items-center gap-2 border-b border-[var(--admin-hairline)] py-2 last:border-b-0">
+              <div key={`log-${s.name}-${s.port}`} className="flex items-center gap-2 border-b border-[var(--admin-hairline)] py-2 transition-colors duration-[var(--admin-duration)] last:border-b-0 hover:bg-black/[0.02]">
                 <span className="text-[var(--admin-text-muted)]">{data?.timestamp ? new Date(data.timestamp).toLocaleString('zh-CN') : '—'}</span>
                 <span className={s.status === 'online' ? 'text-emerald-600' : s.status === 'offline' ? 'text-zinc-500' : 'text-amber-500'}>
                   [{s.status.toUpperCase()}]

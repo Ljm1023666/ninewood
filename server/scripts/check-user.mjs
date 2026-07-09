@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
-const phone = process.argv[2] || '13901001001'
+const phone = process.argv[2] || '13800000000'
 const password = process.argv[3] || '1'
 
 const prisma = new PrismaClient()

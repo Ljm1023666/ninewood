@@ -211,11 +211,12 @@ export function InfoCard({
           }}
         >
           <h1
+            className="line-clamp-2 break-words"
             style={{
               fontSize: 21,
               fontWeight: 'bold',
               letterSpacing: '-.01em',
-              lineHeight: 'normal',
+              lineHeight: 1.35,
               marginBottom: 5,
               color: hovered ? hoverTextColor : textColor,
               transition: 'color 0.3s ease',
@@ -223,10 +224,11 @@ export function InfoCard({
               overflow: 'hidden',
               direction: titleDirection,
               width: 'auto',
-              flexShrink: descriptionMode === 'scroll' ? 0 : undefined,
+              flexShrink: 0,
               textRendering: 'auto',
               WebkitFontSmoothing: 'auto',
             }}
+            title={title}
           >
             <span
               style={{

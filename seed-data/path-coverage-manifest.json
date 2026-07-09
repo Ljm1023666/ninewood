@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "description": "高频检索词覆盖门禁：requiredPaths 必须在 Demand.paths 池中出现，且满足最低 active 需求数",
+  "entries": [
+    {
+      "query": "外包",
+      "requiredPaths": ["tag:财务外包", "tag:客服外包"],
+      "minActiveDemands": 8,
+      "notes": "短词「外包」通过复合 tag 子串挂上；禁止仅依赖独立 tag:外包"
+    },
+    {
+      "query": "打车",
+      "requiredPaths": ["tag:网约车", "tag:叫车"],
+      "excludePaths": ["tag:包车"],
+      "minActiveDemands": 10,
+      "notes": "即时叫车；与出租车包车区分"
+    },
+    {
+      "query": "叫车",
+      "requiredPaths": ["tag:网约车", "tag:叫车"],
+      "excludePaths": ["tag:包车"],
+      "minActiveDemands": 8
+    },
+    {
+      "query": "租车",
+      "requiredPaths": ["tag:租车", "tag:自驾租车"],
+      "excludePaths": ["tag:出租车", "tag:包车"],
+      "minActiveDemands": 8,
+      "notes": "自驾租车，非出租车/包车"
+    },
+    {
+      "query": "出租车",
+      "requiredPaths": ["tag:出租车"],
+      "excludePaths": ["tag:租车", "tag:自驾租车"],
+      "minActiveDemands": 5
+    },
+    {
+      "query": "南京 租车",
+      "requiredPaths": ["tag:租车"],
+      "requiredFacets": ["rgn:320100"],
+      "excludePaths": ["tag:出租车"],
+      "minActiveDemands": 3
+    },
+    {
+      "query": "代驾",
+      "requiredPaths": ["tag:代驾"],
+      "minActiveDemands": 10
+    },
+    {
+      "query": "保洁",
+      "requiredPaths": ["tag:保洁"],
+      "minActiveDemands": 15
+    },
+    {
+      "query": "代理记账",
+      "requiredPaths": ["tag:代理记账"],
+      "minActiveDemands": 8
+    },
+    {
+      "query": "平面设计",
+      "requiredPaths": ["tag:平面设计"],
+      "minActiveDemands": 10
+    }
+  ]
+}

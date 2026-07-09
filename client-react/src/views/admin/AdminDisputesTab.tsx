@@ -4,7 +4,6 @@ import {
   AdminPanel,
   AdminEmpty,
   AdminList,
-  AdminListRow,
   AdminStatusBadge,
 } from './admin-ui'
 import { toast } from '@/components/ui/confirm-dialog'
@@ -60,9 +59,9 @@ export default function AdminDisputesTab() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="animate-pulse h-12 border border-[var(--admin-hairline)] bg-white" />
+        <div className="animate-pulse h-12 overflow-hidden rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-white shadow-[var(--admin-shadow-sm)]" />
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="animate-pulse h-16 border border-[var(--admin-hairline)] bg-white" />
+          <div key={i} className="animate-pulse h-16 overflow-hidden rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-white shadow-[var(--admin-shadow-sm)]" />
         ))}
       </div>
     )
@@ -90,7 +89,7 @@ export default function AdminDisputesTab() {
             {disputes.map((d) => (
               <div
                 key={d.id}
-                className="flex flex-col gap-2 border-b border-[var(--admin-hairline)] px-4 py-3 last:border-b-0"
+                className="flex flex-col gap-2 border-b border-[var(--admin-hairline)] px-4 py-3 transition-colors duration-[var(--admin-duration)] last:rounded-b-[var(--admin-radius)] last:border-b-0 hover:bg-black/[0.02]"
               >
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="size-4 text-amber-500" />
@@ -112,7 +111,7 @@ export default function AdminDisputesTab() {
                     type="button"
                     disabled={busyId === d.id}
                     onClick={() => resolve(d.id, 'refund')}
-                    className="inline-flex items-center gap-1 border border-[var(--admin-hairline)] bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-white px-3 py-1.5 text-xs font-medium text-red-600 shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-red-50 hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:hover:shadow-[var(--admin-shadow-sm)]"
                   >
                     <XCircle className="size-3" />
                     退款关闭
@@ -121,7 +120,7 @@ export default function AdminDisputesTab() {
                     type="button"
                     disabled={busyId === d.id}
                     onClick={() => resolve(d.id, 'complete')}
-                    className="inline-flex items-center gap-1 border border-[var(--admin-accent)] bg-[var(--admin-accent)]/10 px-3 py-1.5 text-xs font-medium text-[var(--admin-accent)] transition-colors hover:bg-[var(--admin-accent)]/20 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-[var(--admin-radius-xs)] border border-[var(--admin-accent)] bg-[var(--admin-accent)]/10 px-3 py-1.5 text-xs font-medium text-[var(--admin-accent)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-[var(--admin-accent)]/20 hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:hover:shadow-[var(--admin-shadow-sm)]"
                   >
                     <CheckCircle2 className="size-3" />
                     完成放款

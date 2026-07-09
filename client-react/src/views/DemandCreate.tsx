@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { demandApi } from '@/api/demand'
 import { toast } from '@/components/ui/confirm-dialog'
 import { PromptInputBox } from '@/components/ui/prompt-input-box'
 import { WorkspaceSummary } from '@/components/demand/WorkspaceSummary'
@@ -187,8 +186,6 @@ export default function DemandCreate() {
   const thinkAccRef = useRef('')
   const abortRef = useRef<AbortController | null>(null)
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-  const [publishing, setPublishing] = useState(false)
-  const [forcePublishing, setForcePublishing] = useState(false)
   const [draftInput, setDraftInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -861,81 +858,22 @@ export default function DemandCreate() {
   handleDefaultModeRef.current = handleDefaultMode
 
   const doPublish = useCallback(
-    async (force = false) => {
+    (force = false) => {
       const f = useDemandWorkspaceStore.getState().fields
       if (!f.title.trim() && !force) {
         toast('请先填写需求标题', 'error')
         return
       }
-
-      if (force) setForcePublishing(true)
-      else setPublishing(true)
-
-      try {
-        const fd = new FormData()
-        fd.append('title', f.title.trim() || '未命名需求')
-        fd.append('description', f.description.trim() || f.title.trim())
-        fd.append(
-          'minPrice',
-          f.budget ? String(extractMinPrice(f.budget)) : '1',
-        )
-        fd.append(
-          'category',
-          f.category ||
-            (force
-              ? '__force__'
-              : f.serviceType === 'OFFLINE'
-                ? 'of-move'
-                : 'ol-game'),
-        )
-        if (f.taxonomyLeafId) fd.append('taxonomyLeafId', f.taxonomyLeafId)
-        fd.append(
-          'serviceType',
-          f.serviceType === 'OFFLINE' ? 'OFFLINE' : 'ONLINE',
-        )
-        fd.append('expireAt', new Date(Date.now() + 7 * 86400000).toISOString())
-        // 新字段
-        if (f.regionId) fd.append('regionId', String(f.regionId))
-        if (f.tagName) fd.append('tagName', f.tagName)
-        if (f.isCertifiedOnly) fd.append('isCertifiedOnly', 'true')
-        if (f.amountEstimate)
-          fd.append('amountEstimate', String(f.amountEstimate))
-        if (f.pushConfig) fd.append('pushConfig', JSON.stringify(f.pushConfig))
-        if (f.coverImage) fd.append('coverImage', f.coverImage)
-        // AI 2.5 新字段
-        if (f.expectedOutcome) fd.append('expectedOutcome', f.expectedOutcome)
-        if (f.visibilityWindow !== 15)
-          fd.append('visibilityWindow', String(f.visibilityWindow))
-        if (f.maxApplicants !== 10)
-          fd.append('maxApplicants', String(f.maxApplicants))
-        // Stage 1.3: 可选服务时限(分钟),未填则不发字段(后端保持 timeLimit=null)
-        if (f.timeLimitMinutes != null) {
-          fd.append('timeLimitMinutes', String(f.timeLimitMinutes))
-        }
-        if (f.tags.length > 0) fd.append('tags', f.tags.join(','))
-        if (f.tagsConfirmed) fd.append('tagsConfirmed', 'true')
-        await demandApi.create(fd)
-        toast(force ? '已发布至无差别池' : '发布成功', 'success')
-        resetWorkspace()
-        navigate('/my-demands')
-      } catch (e: unknown) {
-        const err = e as { response?: { data?: { message?: string } } }
-        toast(err.response?.data?.message || '发布失败', 'error')
-      } finally {
-        setPublishing(false)
-        setForcePublishing(false)
-      }
+      navigate(force ? '/demands/create/paths?force=true' : '/demands/create/paths')
     },
-    [navigate, resetWorkspace],
+    [navigate],
   )
 
   const handlePublishFromChat = useCallback(
     async (toolCall: NonNullable<ChatMsg['toolCall']>) => {
-      // 如果工作区已有用户编辑过的内容，直接用工作区发布
       if (workspaceReady || workspaceFields.title) {
         return doPublish()
       }
-      // 否则用 toolCall 的参数先填充再发布
       applyAgent(toolCall.arguments)
       setTimeout(() => doPublish(), 50)
     },
@@ -985,26 +923,16 @@ export default function DemandCreate() {
             type="button"
             className="ws-btn ws-btn--danger"
             onClick={() => doPublish(true)}
-            disabled={forcePublishing || publishing}
           >
-            {forcePublishing ? (
-              <span className="ws-spinner" style={{ width: 12, height: 12 }} />
-            ) : (
-              <Zap className="size-3.5" />
-            )}
+            <Zap className="size-3.5" />
             强制发布
           </button>
           <button
             type="button"
             className="ws-btn ws-btn--primary"
             onClick={() => doPublish()}
-            disabled={publishing || forcePublishing}
           >
-            {publishing ? (
-              <span className="ws-spinner" style={{ width: 12, height: 12, borderTopColor: 'currentColor' }} />
-            ) : (
-              <Send className="size-3.5" />
-            )}
+            <Send className="size-3.5" />
             发布
           </button>
         </div>
@@ -1176,14 +1104,9 @@ export default function DemandCreate() {
                           <button
                             type="button"
                             onClick={() => handlePublishFromChat(msg.toolCall!)}
-                            disabled={publishing}
                             className="ws-btn ws-btn--primary"
                           >
-                            {publishing ? (
-                              <span className="ws-spinner" style={{ width: 12, height: 12, borderTopColor: 'currentColor' }} />
-                            ) : (
-                              <Send className="size-3.5" />
-                            )}
+                            <Send className="size-3.5" />
                             确认发布
                           </button>
                         </div>
@@ -1407,11 +1330,4 @@ function parseBudgetStr(budget: string): number {
   if (!budget) return 0
   const n = Number(budget.replace(/[^\d.]/g, ''))
   return Number.isFinite(n) ? n : 0
-}
-
-/** 从预算字符串中提取最小价格数字 */
-function extractMinPrice(budget: string): number {
-  const nums = budget.match(/\d+/g)
-  if (!nums || nums.length === 0) return 1
-  return Math.min(...nums.map(Number))
 }

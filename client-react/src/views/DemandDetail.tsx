@@ -26,6 +26,7 @@ import { MsIcon } from '@/components/ui/ms-icon'
 import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
 import { toast } from '@/components/ui/confirm-dialog'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PathFlowEntryLink } from '@/components/path/PathFlowEntryLink'
 
 function stripDebugFromTitle(title: string): string {
   return title
@@ -52,6 +53,7 @@ function preloadImageSrc(url: string | undefined | null) {
 }
 
 function collectDemandImageUrls(d: {
+  coverImage?: string | null
   userId?: string
   user?: {
     avatarUrl?: string
@@ -61,9 +63,14 @@ function collectDemandImageUrls(d: {
   mediaUrls?: string[]
 }) {
   const urls: string[] = []
-  urls.push(resolveDemandCardCoverDetailUrl({ userId: d.userId, demandCardCoverUrl: d.user?.demandCardCoverUrl, mediaUrls: d.mediaUrls }))
-  const demandCover = d.user?.demandCardCoverUrl
-  if (demandCover?.trim()) urls.push(resolveDemandCardCoverDetailUrl({ demandCardCoverUrl: demandCover, userId: d.userId }))
+  urls.push(
+    resolveDemandCardCoverDetailUrl({
+      coverImage: d.coverImage,
+      userId: d.userId,
+      demandCardCoverUrl: d.user?.demandCardCoverUrl,
+      mediaUrls: d.mediaUrls,
+    }),
+  )
   const cv = d.user?.coverUrl
   if (cv?.trim()) urls.push(cv.trim())
   const av = d.user?.avatarUrl
@@ -448,7 +455,6 @@ export default function DemandDetail() {
                   flipDescription
                   imageUrl={publisherCoverUrl}
                   logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
-                  profileCoverUrl={demand.user?.coverUrl}
                   publisherUserId={demand.userId}
                   title={cardTitle}
                   description={cardDescription}
@@ -491,6 +497,15 @@ export default function DemandDetail() {
           <InProgressPanel demand={demand} userId={currentUserId} />
         ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
           <SettlementPanel demandId={demand.id} />
+        ) : null}
+
+        {demand.userId === currentUserId ? (
+          <div className="relative z-10 mx-auto mt-6 flex w-full max-w-md justify-center px-3">
+            <PathFlowEntryLink
+              to={`/demands/${demand.id}/paths`}
+              label="编辑匹配路径"
+            />
+          </div>
         ) : null}
       </div>
     </div>

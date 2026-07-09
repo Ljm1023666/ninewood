@@ -23,7 +23,7 @@ export const config = {
   uploadDir: path.join(__dirname, '..', 'uploads'),
   corsOrigins: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174', 'http://localhost:8088', 'app://.'],
+    : ['http://localhost:3080', 'http://localhost:3000', 'http://localhost:8088', 'app://.'],
 
   /** Ninewood 运营后台（若依）调用 Admin API 的共享密钥 */
   adminApiKey:

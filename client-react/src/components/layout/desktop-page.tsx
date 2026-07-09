@@ -1,6 +1,7 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackButton } from '@/components/ui/back-button'
+import { MsIcon } from '@/components/ui/ms-icon'
 import { cn } from '@/lib/utils'
 
 /** Stitch 奢华桌面页壳层：深色固定暗金 palette，浅色跟随全局 theme 变量 */
@@ -48,7 +49,7 @@ export function DesktopPageShell({
           </div>
           {actions ? <div className="dlp-cmdbar__actions">{actions}</div> : null}
         </header>
-        {children}
+        <div className="dlp-page__content">{children}</div>
       </div>
     </div>
   )
@@ -207,6 +208,108 @@ export function DlpGlassBody({
   className?: string
 }) {
   return <div className={cn('dlp-glass__body', className)}>{children}</div>
+}
+
+export function DlpSearchBar({
+  value,
+  onChange,
+  onSearch,
+  onClear,
+  loading,
+  placeholder = '搜索用户、手机号、标签',
+}: {
+  value: string
+  onChange: (v: string) => void
+  onSearch: () => void
+  onClear?: () => void
+  loading?: boolean
+  placeholder?: string
+}) {
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') onSearch()
+  }
+
+  return (
+    <div className="dlp-search-bar">
+      <MsIcon name="search" size={20} className="dlp-search-bar__icon" />
+      <input
+        className="dlp-search-bar__input"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+      />
+      {value && onClear ? (
+        <button type="button" className="dlp-search-bar__clear" onClick={onClear} aria-label="清空">
+          <MsIcon name="close" size={16} />
+        </button>
+      ) : null}
+      <button
+        type="button"
+        className="dlp-search-bar__submit"
+        onClick={onSearch}
+        disabled={loading || !value.trim()}
+      >
+        {loading ? '搜索中…' : '搜索'}
+      </button>
+    </div>
+  )
+}
+
+export function DlpLevelHero({
+  levelLabel,
+  statusLabel,
+  subtitle,
+  icon,
+  stats,
+}: {
+  levelLabel: string
+  statusLabel?: string
+  subtitle?: string
+  icon?: ReactNode
+  stats?: { label: string; value: ReactNode; suffix?: string }[]
+}) {
+  return (
+    <div className="dlp-level-hero">
+      {icon ? <div className="dlp-level-hero__icon">{icon}</div> : null}
+      {statusLabel ? <div className="dlp-level-hero__badge">{statusLabel}</div> : null}
+      <h2 className="dlp-level-hero__title">{levelLabel}</h2>
+      {subtitle ? <p className="dlp-level-hero__subtitle">{subtitle}</p> : null}
+      {stats && stats.length > 0 ? (
+        <div className="dlp-level-hero__stats">
+          {stats.map((s) => (
+            <div key={s.label}>
+              <p className="dlp-level-hero__stat-label">{s.label}</p>
+              <p className="dlp-level-hero__stat-value">
+                {s.value}
+                {s.suffix ? <span className="text-base font-medium"> {s.suffix}</span> : null}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+export function DlpBenefitItem({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="dlp-benefit">
+      <div className="dlp-benefit__icon">{icon}</div>
+      <div>
+        <p className="dlp-benefit__title">{title}</p>
+        <p className="dlp-benefit__desc">{description}</p>
+      </div>
+    </div>
+  )
 }
 
 export function DlpToggleRow({

@@ -161,22 +161,21 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={`fixed top-0 left-0 right-0 z-50 bg-black/99 backdrop-blur-xl border-b border-white/10 ${className}`}
       >
-        <div className="max-w-7xl mx-auto pl-2 pr-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 w-full max-w-3xl">
-            {/* Logo */}
-            <motion.div
-              className="flex-shrink-0"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Link to="/" className="text-2xl font-bold text-white">
-                Ninewood
-              </Link>
-            </motion.div>
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center h-16 w-full">
+            {/* 桌面端：Logo + 导航整体居中 */}
+            <div className="hidden md:flex items-center justify-center gap-8">
+              <motion.div
+                className="flex-shrink-0"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link to="/" className="text-2xl font-bold text-white">
+                  Ninewood
+                </Link>
+              </motion.div>
 
-            {/* 桌面导航 */}
-            <div className="hidden md:block">
-              <div className="ml-4 flex items-baseline gap-3">
+              <div className="flex items-center justify-center gap-3">
                 {allItems.map((item) => (
                   <motion.div
                     key={item.id}
@@ -203,11 +202,21 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
               </div>
             </div>
 
-            {/* 菜单按钮 */}
-            <div className="md:hidden">
+            {/* 移动端：Logo 左、菜单右 */}
+            <div className="flex md:hidden w-full items-center justify-between">
+              <motion.div
+                className="flex-shrink-0"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link to="/" className="text-2xl font-bold text-white">
+                  Ninewood
+                </Link>
+              </motion.div>
+
               <motion.button
                 onClick={toggleMenu}
-                className="p-2 rounded-md text-white  focus:outline-none"
+                className="p-2 rounded-md text-white focus:outline-none"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >

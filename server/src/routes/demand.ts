@@ -1,5 +1,5 @@
-﻿import { Router, Request, Response } from 'express';
-import { snatchLimiter } from '../middleware/rate-limit.js';
+import { Router, Request, Response } from 'express';
+import { snatchLimiter, demandPathsLimiter } from '../middleware/rate-limit.js';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth.js';
 import { upload, verifyUpload } from '../middleware/upload.js';
@@ -9,6 +9,8 @@ import { q } from '../utils/query.js';
 import { poolService } from '../services/pool.service.js';
 import { bidService } from '../services/bid.service.js';
 import { pushService } from '../services/push.service.js';
+import { getDemandPaths, updateDemandPaths } from '../services/path-search.js';
+import { PathCodecError } from '../services/path-codec.js';
 
 export const demandRouter = Router();
 
@@ -45,6 +47,10 @@ export const createSchema = z.object({
   tagsConfirmed: z.coerce.boolean().optional(),
   lat: z.coerce.number().min(-90).max(90).optional(),
   lng: z.coerce.number().min(-180).max(180).optional(),
+  paths: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (typeof v === 'string' ? v.split(',').filter(Boolean) : v))
+    .optional(),
 });
 
 /**
@@ -277,6 +283,36 @@ demandRouter.get('/dead', async (req: Request, res: Response) => {
     fail(res, e.message || '服务器错误', e.status || 500);
   }
 });
+
+// GET /api/demands/:id/paths — TASK-11
+demandRouter.get('/:id/paths', async (req: Request, res: Response) => {
+  try {
+    const data = await getDemandPaths(req.params.id as string)
+    success(res, data)
+  } catch (e: unknown) {
+    const err = e as { status?: number; message?: string }
+    fail(res, err.message || '服务器错误', err.status || 500)
+  }
+})
+
+// PUT /api/demands/:id/paths
+demandRouter.put('/:id/paths', authMiddleware, demandPathsLimiter, async (req: Request, res: Response) => {
+  try {
+    const paths = Array.isArray(req.body?.paths) ? req.body.paths : []
+    const updated = await updateDemandPaths(
+      req.params.id as string,
+      req.user!.userId,
+      paths,
+    )
+    success(res, updated)
+  } catch (e: unknown) {
+    if (e instanceof PathCodecError) {
+      return fail(res, e.message, e.status, { code: e.code })
+    }
+    const err = e as { status?: number; message?: string }
+    fail(res, err.message || '服务器错误', err.status || 500)
+  }
+})
 
 // GET /api/demands/:id
 demandRouter.get('/:id', async (req: Request, res: Response) => {

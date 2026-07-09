@@ -281,6 +281,8 @@ export default function ChatDetail() {
     '❌', '🤝', '🍳', '🚗', '☕', '📖', '🎵', '🌙', '✨', '🎂',
   ]
 
+  const hasChat = isMergeChat ? !!currentMergeId : !!peerId
+
   return (
     <>
       <MessageImagePreview
@@ -429,7 +431,7 @@ export default function ChatDetail() {
           </div>
         </div>
       }
-      inputRow={
+      inputRow={hasChat ? (
         <div className="msg-composer">
           {showEmoji ? (
             <div className="msg-composer__emoji">
@@ -490,7 +492,7 @@ export default function ChatDetail() {
             </button>
           </div>
         </div>
-      }
+      ) : null}
     />
     </>
   )

@@ -93,7 +93,7 @@ pnpm run dev:electron
 
 | 服务 | 地址 |
 |------|------|
-| 前端 | http://localhost:5174 |
+| 前端 | http://localhost:3080 |
 | 后端 API | http://localhost:3001/api |
 | Swagger | http://localhost:3001/api-docs |
 | 上传静态 | http://localhost:3001/uploads |
@@ -143,7 +143,7 @@ ninewood/
 
 | 角色 | 手机号 | 说明 |
 |------|--------|------|
-| 管理员 | `13901001001` | 可访问管理后台 `/dashboard` |
+| 管理员 | `13800000000` | 可访问管理后台 `/dashboard` |
 | 普通用户 | `13901001002` | 设计师示例账号 |
 | 更多用户 | `13901001003` … | 见 `server/prisma/seed.ts` |
 

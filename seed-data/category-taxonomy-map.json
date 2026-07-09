@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "count": 30,
+  "map": {
+    "家政服务": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofhcd-2h"
+    },
+    "装修维修": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofre-circuit"
+    },
+    "教育培训": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofs-interview"
+    },
+    "设计创意": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "oldumi-social"
+    },
+    "IT技术": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "oldvwf-react"
+    },
+    "摄影摄像": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofev-photo"
+    },
+    "医疗健康": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofha-general"
+    },
+    "法律咨询": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olpl-contract"
+    },
+    "翻译服务": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "ol-write"
+    },
+    "餐饮美食": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofhck-daily"
+    },
+    "健身运动": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofhm-tui"
+    },
+    "搬家货运": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofhmm-studio"
+    },
+    "宠物服务": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofpb-home"
+    },
+    "美容美发": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofb-hair"
+    },
+    "音乐艺术": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "ol-music"
+    },
+    "跑腿代办": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofm-labor"
+    },
+    "汽车服务": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofac-drunk"
+    },
+    "农业园艺": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofpp-garden"
+    },
+    "游戏代练": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olgb-other"
+    },
+    "游戏陪玩": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olgc-other"
+    },
+    "咨询服务": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olps-consult"
+    },
+    "维修服务": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofre-circuit"
+    },
+    "技术开发": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "oldvwf-react"
+    },
+    "设计": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "oldumi-social"
+    },
+    "同城跑腿": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofm-labor"
+    },
+    "婚庆摄影": {
+      "serviceType": "OFFLINE",
+      "taxonomyLeafId": "ofevw-photo"
+    },
+    "法律法务": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olpl-contract"
+    },
+    "翻译语言": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "ol-write"
+    },
+    "电商运营": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olecs-tb"
+    },
+    "企业服务": {
+      "serviceType": "ONLINE",
+      "taxonomyLeafId": "olpf-book"
+    }
+  }
+}

@@ -16,7 +16,7 @@ start "Ninewood-Electron" cmd /c "node scripts/electron-dev.mjs"
 echo.
 echo Ninewood running:
 echo   Server : http://localhost:3001
-echo   Client : http://localhost:5174
+echo   Client : http://localhost:3080
 echo.
 echo Close this window when done.
 pause

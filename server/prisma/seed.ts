@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { resolveDemandPaths } from '../src/services/path-search.js';
 
 const prisma = new PrismaClient();
 const DEFAULT_PASSWORD = '1';
@@ -9,7 +10,7 @@ const DEFAULT_PASSWORD = '1';
 // ====================================================================
 const realUsers = [
   // 北京 (110000)
-  { phone: '13901001001', nickname: '张师傅水电', cityCode: '110000', cert: 'ADVANCED' as const, credit: 92, orders: 68, role: 'ADMIN' as const, bio: '20年水电维修经验，持电工证，朝阳区随叫随到，擅长老旧线路改造和智能家居安装' },
+  { phone: '13800000000', nickname: '张师傅水电', cityCode: '110000', cert: 'ADVANCED' as const, credit: 92, orders: 68, role: 'ADMIN' as const, bio: '20年水电维修经验，持电工证，朝阳区随叫随到，擅长老旧线路改造和智能家居安装' },
   { phone: '13901001002', nickname: '李设计师', cityCode: '110000', cert: 'INTERMEDIATE' as const, credit: 78, orders: 25, bio: 'UI/UX设计师，5年互联网大厂经验，擅长B端SaaS产品和企业品牌视觉' },
   { phone: '13901001003', nickname: '王同学接单', cityCode: '110000', cert: 'BASIC' as const, credit: 62, orders: 6, bio: '北邮计算机大三，课余接前端/爬虫/自动化脚本，性价比高，沟通响应快' },
   { phone: '13901001004', nickname: '赵律师说法', cityCode: '110000', cert: 'ADVANCED' as const, credit: 90, orders: 55, bio: '执业律师12年，律所合伙人，擅长公司法、合同纠纷、知识产权' },
@@ -263,6 +264,7 @@ async function main() {
     const user = await prisma.user.create({
       data: {
         phone: u.phone,
+        accountNo: i,
         nickname: u.nickname,
         passwordHash,
         bio: u.bio,
@@ -287,6 +289,20 @@ async function main() {
     const city = cityLatLng[creator.cityCode] || cityLatLng['110000'];
     // 线上需求不一定有坐标
     const isOnline = dt.type === 'ONLINE';
+    const paths = resolveDemandPaths(
+      {
+        category: dt.cat,
+        taxonomyLeafId: null,
+        serviceType: dt.type,
+        minPrice: dt.price,
+        regionId: null,
+        isCertifiedOnly: false,
+        tags: [dt.cat],
+        tagsConfirmed: true,
+        title: dt.title,
+        description: dt.desc,
+      },
+    );
     const demand = await prisma.demand.create({
       data: {
         userId: creator.id,
@@ -297,12 +313,14 @@ async function main() {
         serviceType: dt.type,
         cityCode: creator.cityCode,
         expireAt: new Date(now.getTime() + (7 + Math.floor(Math.random() * 60)) * 24 * 60 * 60 * 1000),
-        status: ['ACTIVE', 'ACTIVE', 'ACTIVE', 'PENDING', 'IN_PROGRESS', 'COMPLETED'][Math.floor(Math.random() * 6)] as any,
+        status: (['ACTIVE', 'ACTIVE', 'ACTIVE', 'ACTIVE', 'ACTIVE', 'PENDING'][Math.floor(Math.random() * 6)] as any),
         isExample: false,
         isPublic: true,
         fuzzyLat: isOnline ? undefined : city.lat + (Math.random() - 0.5) * 0.1,
         fuzzyLng: isOnline ? undefined : city.lng + (Math.random() - 0.5) * 0.1,
         tags: [dt.cat],
+        tagsConfirmed: true,
+        paths,
         aiTags: [],
         stage: 'active',
         lifecycleStage: 'ACTIVE',

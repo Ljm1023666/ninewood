@@ -94,8 +94,7 @@
 |------|------|
 | https://tothetomorrow.com | 正式域名 |
 | https://www.tothetomorrow.com | www 子域名 |
-| http://localhost:5173 | 本地 Vite 开发 |
-| http://localhost:5174 | 本地 Vite (备用端口) |
+| http://localhost:3080 | 本地 Vite 开发 |
 | app://. | Electron 客户端 |
 
 ## 本地素材库（头像 / 主页背景 / 卡面）
@@ -117,7 +116,7 @@
 |------|-----|
 | 脚本 | E:\Ninewood\scripts\start-ninewood.bat |
 | 快捷方式 | 桌面\Ninewood.lnk |
-| 启动内容 | Server(3001) + Client(5174) + Electron |
+| 启动内容 | Server(3001) + Client(3080) + Electron |
 
 ## GitHub
 

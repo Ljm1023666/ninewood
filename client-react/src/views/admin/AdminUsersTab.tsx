@@ -109,7 +109,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as any)}
-          className="border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-3 py-2.5 text-sm text-[var(--admin-text)] outline-none"
+          className="rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] px-3 py-2.5 text-sm text-[var(--admin-text)] outline-none shadow-[var(--admin-shadow-sm)] transition-[border-color,box-shadow] duration-[var(--admin-duration)] focus:border-[var(--admin-accent)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.08)]"
         >
           <option value="ALL">全部角色</option>
           <option value="USER">普通用户</option>
@@ -119,7 +119,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
           type="button"
           onClick={loadUsers}
           disabled={usersLoading}
-          className="border border-[var(--admin-hairline)] bg-white px-3 py-2.5 text-sm font-medium text-[var(--admin-text)] transition-colors hover:bg-black/[0.02] disabled:opacity-50"
+          className="rounded-[var(--admin-radius-xs)] border border-[var(--admin-border)] bg-white px-3 py-2.5 text-sm font-medium text-[var(--admin-text)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-black/[0.02] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:hover:shadow-[var(--admin-shadow-sm)]"
         >
           {usersLoading ? '加载中' : '查询'}
         </button>
@@ -131,8 +131,8 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
         <AdminMetricTile label="需求者估算" value={demanders} />
       </AdminMetricGrid>
 
-      <div className="grid grid-cols-2 gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]">
-        <div id="admin-section-all-users" className="min-h-[260px] bg-[var(--admin-card-bg)] p-5">
+      <div className="grid grid-cols-2 gap-4">
+        <div id="admin-section-all-users" className="min-h-[260px] overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5 shadow-[var(--admin-shadow-sm)] transition-shadow duration-[var(--admin-duration)] hover:shadow-[var(--admin-shadow-md)]">
           <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
             用户角色分布
           </h3>
@@ -169,7 +169,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
             {roleData.map((r, i) => (
               <span key={r.name} className="flex items-center gap-1.5">
                 <span
-                  className="size-2"
+                  className="size-2 rounded-full"
                   style={{ background: ADMIN_CHART_COLORS[i] }}
                 />
                 {r.name} {r.value}
@@ -178,7 +178,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
           </div>
         </div>
 
-        <div id="admin-section-demanders" className="min-h-[260px] bg-[var(--admin-card-bg)] p-5">
+        <div id="admin-section-demanders" className="min-h-[260px] overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5 shadow-[var(--admin-shadow-sm)] transition-shadow duration-[var(--admin-duration)] hover:shadow-[var(--admin-shadow-md)]">
           <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
             需求者分布
           </h3>
@@ -188,7 +188,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
           </div>
         </div>
 
-        <div id="admin-section-admins" className="min-h-[260px] bg-[var(--admin-card-bg)] p-5">
+        <div id="admin-section-admins" className="col-span-2 min-h-[260px] overflow-hidden rounded-[var(--admin-radius)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] p-5 shadow-[var(--admin-shadow-sm)] transition-shadow duration-[var(--admin-duration)] hover:shadow-[var(--admin-shadow-md)]">
           <h3 className="mb-4 text-[13px] font-semibold text-[var(--admin-text)]">
             用户增长曲线
           </h3>
@@ -198,15 +198,15 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
                 <AreaChart data={growthSpark} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                   <defs>
                     <linearGradient id="userGrowthGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3388FF" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#3388FF" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <Tooltip contentStyle={adminChartTooltipStyle} />
                   <Area
                     type="monotone"
                     dataKey="users"
-                    stroke="#3388FF"
+                    stroke="#2563EB"
                     strokeWidth={2}
                     fill="url(#userGrowthGrad)"
                     dot={false}
@@ -234,7 +234,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
           <div className="divide-y divide-[var(--admin-hairline)]">
             {users.map((u) => (
               <div key={u.id} className="flex items-center gap-4 px-5 py-3">
-                <div className="flex size-8 shrink-0 items-center justify-center border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] font-mono text-xs">
+                <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-[var(--admin-radius-xs)] border border-[var(--admin-hairline)] bg-[var(--admin-card-bg)] font-mono text-xs shadow-[var(--admin-shadow-sm)]">
                   {u.avatarUrl ? (
                     <img src={u.avatarUrl} alt="" className="size-full object-cover" />
                   ) : (
@@ -245,7 +245,7 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
                   <p className="truncate text-sm font-medium text-[var(--admin-text)]">
                     {u.nickname}
                     {u.role === 'ADMIN' && (
-                      <span className="ml-2 border border-amber-300 px-1.5 py-0.5 font-mono text-[10px] text-amber-600">ADMIN</span>
+                      <span className="ml-2 rounded-[var(--admin-radius-xs)] border border-amber-300 bg-amber-50 px-1.5 py-0.5 font-mono text-[10px] text-amber-600">ADMIN</span>
                     )}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-[var(--admin-text-muted)]">

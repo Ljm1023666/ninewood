@@ -76,5 +76,5 @@ client-react/src/
 pnpm run typecheck                 # TypeScript 检查(必须通过)
 pnpm --filter client-react run lint # ESLint
 pnpm --filter client-react exec vitest run src/data/tax-rules # 57 个单测
-pnpm run dev:client                # http://localhost:5174/tax-visualizer
+pnpm run dev:client                # http://localhost:3080/tax-visualizer
 ```

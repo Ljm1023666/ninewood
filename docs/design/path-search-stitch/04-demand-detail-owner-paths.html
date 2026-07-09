@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - Demand Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed-variant": "#004590",
+                        "on-surface": "#e5e2e1",
+                        "on-primary-fixed": "#001b3f",
+                        "on-secondary-fixed-variant": "#544600",
+                        "on-background": "#e5e2e1",
+                        "outline": "#8b919f",
+                        "on-tertiary-container": "#471e00",
+                        "primary": "#abc7ff",
+                        "surface-container": "#201f1f",
+                        "inverse-primary": "#005cbc",
+                        "on-error": "#690005",
+                        "primary-container": "#458fff",
+                        "on-tertiary": "#512300",
+                        "error": "#ffb4ab",
+                        "on-primary-container": "#00285a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-fixed": "#d7e2ff",
+                        "on-secondary": "#3a3000",
+                        "secondary-fixed-dim": "#e9c400",
+                        "surface-variant": "#353534",
+                        "surface-bright": "#393939",
+                        "surface-tint": "#abc7ff",
+                        "secondary-container": "#ffdb3c",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-fixed": "#ffdbc8",
+                        "on-surface-variant": "#c1c6d6",
+                        "surface-container-highest": "#353534",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-on-surface": "#313030",
+                        "background": "#131313",
+                        "on-secondary-container": "#725f00",
+                        "outline-variant": "#414754",
+                        "on-secondary-fixed": "#221b00",
+                        "tertiary-container": "#e4700c",
+                        "surface": "#131313",
+                        "secondary-fixed": "#ffe16d",
+                        "tertiary": "#ffb689",
+                        "on-primary": "#002f66",
+                        "on-tertiary-fixed": "#321300",
+                        "secondary": "#fff9ef",
+                        "primary-fixed-dim": "#abc7ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "panel-width-side": "240px",
+                        "margin-page": "32px",
+                        "unit": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "title-sm": ["Geist"],
+                        "label-mono": ["Geist"],
+                        "body-md": ["Geist"],
+                        "display-lg": ["Geist"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["11px", { "lineHeight": "1.0", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "title-sm": ["18px", { "lineHeight": "1.5", "fontWeight": "500" }],
+                        "label-mono": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #121212;
+            color: #e5e2e1;
+        }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(171, 199, 255, 0.25);
+            box-shadow: 0 0 15px -5px rgba(171, 199, 255, 0.5);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .hero-comet {
+            background: linear-gradient(135deg, rgba(0, 27, 63, 0.8) 0%, rgba(0, 40, 90, 0.6) 100%);
+            border: 1px solid rgba(171, 199, 255, 0.3);
+            box-shadow: inset 0 0 40px rgba(171, 199, 255, 0.1), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        .path-chip {
+            background-color: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .badge-tag { color: #abc7ff; border-color: #abc7ff; }
+        .badge-attr { color: #ffe16d; border-color: #ffe16d; }
+        .badge-bkt { color: #e5e2e1; border-color: #e5e2e1; }
+        .badge-tx { color: #ffb689; border-color: #ffb689; }
+        .badge-cat { color: #ffdb3c; border-color: #ffdb3c; }
+        .badge-rgn { color: #ffb689; border-color: #ffb689; }
+        
+        .nav-active {
+            border-left: 2px solid #abc7ff;
+            background: linear-gradient(to right, rgba(171, 199, 255, 0.1), transparent);
+            color: #abc7ff;
+        }
+        .input-minimal {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0;
+            color: #e5e2e1;
+        }
+        .input-minimal:focus {
+            outline: none;
+            border-bottom: 2px solid #abc7ff;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-background">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col h-full py-gutter fixed left-0 top-0 h-full w-panel-width-side bg-[#0A0A0A] border-r border-white/10 z-20">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Ninewood</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">Logistics Platform</p>
+</div>
+<div class="flex-1 overflow-y-auto space-y-1">
+<a class="flex items-center px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-colors duration-200 active:scale-95 transition-transform font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-3">explore</span>
+                Discover
+            </a>
+<a class="flex items-center px-6 py-3 nav-active font-body-md text-body-md active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">publish</span>
+                Publish
+            </a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-colors duration-200 active:scale-95 transition-transform font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-3">search_check</span>
+                Path Search
+            </a>
+</div>
+<div class="mt-auto border-t border-white/10 pt-4 space-y-1">
+<a class="flex items-center px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-colors duration-200 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-3">help</span>
+                Support
+            </a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-colors duration-200 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                Account
+            </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col ml-0 md:ml-[240px] relative h-full">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-page h-16 fixed top-0 right-0 left-0 md:left-panel-width-side bg-white/3 backdrop-blur-20 border-b border-white/10 shadow-sm z-10">
+<div class="flex items-center w-1/3">
+<div class="relative w-full max-w-md focus-within:border-b-2 focus-within:border-primary transition-all">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-transparent border-none text-on-surface pl-10 py-2 focus:outline-none font-body-md text-body-md" placeholder="Search paths..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors hover:bg-white/5 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors hover:bg-white/5 rounded-full">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-surface-variant border border-outline flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A highly detailed close-up portrait of a futuristic cyberpunk logistics operator, softly lit by blue holographic UI panels in a dark control room setting, high contrast, cinematic lighting, photorealistic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7YNLMq73QC3rGXXXvmRBDvWn7q7ESdzUdDXBNYu05fbIMInA2AIsgKGDE4iCElzM21Qchwm7vhhEwl5ys47czOzVieX1THE2j0hZoUJ9QC_3iGk7XbdorGgy17313wQ9ol4Kui2bTu01XVTv4dpYgaVLgxxwW5sQeA-ujPDHMYiH3-ffLhNO_XKHcH1bH3yfH1HFrqRBvtjd1Dg3w2wTDOWJfF8XMCHH9m4qDOA8qR-0ewXG-S65B0OspWnr7LLHuBO3kmZmF2aU"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto pt-24 pb-12 px-margin-page bg-background">
+<div class="max-w-4xl mx-auto space-y-gutter">
+<!-- Hero Comet Card -->
+<div class="hero-comet rounded-xl p-8 relative overflow-hidden backdrop-blur-xl">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none"></div>
+<div class="relative z-10 flex justify-between items-start">
+<div>
+<div class="flex items-center space-x-2 mb-2">
+<span class="px-2 py-1 bg-surface-container/50 border border-outline/30 rounded text-label-mono font-label-mono text-on-surface-variant">ID: REQ-8942A</span>
+<span class="px-2 py-1 bg-primary/20 border border-primary/50 rounded text-label-mono font-label-mono text-primary">STATUS: ACTIVE</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface mt-2 tracking-tight">React 前端组件开发</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-4 max-w-2xl">
+                                High-performance UI component development required for global logistics dashboard. Strict adherence to design tokens and atomic design principles expected.
+                            </p>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-headline-md text-headline-md text-secondary-fixed">¥800</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">Fixed Budget</span>
+</div>
+</div>
+</div>
+<!-- Owner Path Editor -->
+<div class="glass-panel rounded-xl p-6">
+<div class="border-b border-white/10 pb-4 mb-6 flex justify-between items-end">
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">匹配路径 (Match Path)</h3>
+<p class="font-label-sm text-label-sm text-error mt-1 flex items-center">
+<span class="material-symbols-outlined text-[14px] mr-1">lock</span>
+                                仅发布者可见 (Only visible to publisher)
+                            </p>
+</div>
+</div>
+<!-- Path Chips Area -->
+<div class="flex flex-wrap gap-3 mb-8 p-4 bg-surface-container-lowest/50 rounded-lg border border-white/5">
+<div class="path-chip flex items-center rounded-sm pl-1 pr-2 py-1 font-label-mono text-label-mono">
+<span class="badge-tx border px-1 rounded-sm mr-2 text-[10px]">TX</span>
+<span class="text-on-surface">oldvwf-react</span>
+<button class="ml-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<div class="path-chip flex items-center rounded-sm pl-1 pr-2 py-1 font-label-mono text-label-mono">
+<span class="badge-cat border px-1 rounded-sm mr-2 text-[10px]">CAT</span>
+<span class="text-on-surface">it技术</span>
+<button class="ml-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<div class="path-chip flex items-center rounded-sm pl-1 pr-2 py-1 font-label-mono text-label-mono">
+<span class="badge-tag border px-1 rounded-sm mr-2 text-[10px]">TAG</span>
+<span class="text-on-surface">react</span>
+<button class="ml-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[14px]">close</span></button>
+<span class="ml-2 bg-secondary/20 text-secondary-fixed rounded-sm px-1 text-[10px]">24</span>
+</div>
+<div class="path-chip flex items-center rounded-sm pl-1 pr-2 py-1 font-label-mono text-label-mono">
+<span class="badge-attr border px-1 rounded-sm mr-2 text-[10px]">ATTR</span>
+<span class="text-on-surface">servicetype=online</span>
+<button class="ml-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<div class="path-chip flex items-center rounded-sm pl-1 pr-2 py-1 font-label-mono text-label-mono">
+<span class="badge-bkt border px-1 rounded-sm mr-2 text-[10px]">BKT</span>
+<span class="text-on-surface">price=500_1000</span>
+<button class="ml-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+<div class="path-chip flex items-center rounded-sm pl-1 pr-2 py-1 font-label-mono text-label-mono">
+<span class="badge-rgn border px-1 rounded-sm mr-2 text-[10px]">RGN</span>
+<span class="text-on-surface">110105</span>
+<button class="ml-2 text-on-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</div>
+</div>
+<!-- Add Row -->
+<div class="flex items-end gap-4 mb-8">
+<div class="w-1/4">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Type</label>
+<div class="relative">
+<select class="w-full input-minimal py-2 font-label-mono text-label-mono appearance-none pr-8 bg-surface-container-low">
+<option value="tag">TAG</option>
+<option value="attr">ATTR</option>
+<option value="cat">CAT</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">arrow_drop_down</span>
+</div>
+</div>
+<div class="flex-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Value Expression</label>
+<input class="w-full input-minimal py-2 font-label-mono text-label-mono" placeholder="e.g. framework=nextjs" type="text"/>
+</div>
+<button class="px-4 py-2 border border-white/10 text-on-surface hover:text-primary hover:border-primary/50 transition-colors rounded-sm font-label-mono text-label-mono flex items-center h-[37px]">
+<span class="material-symbols-outlined mr-2 text-[18px]">add</span> Add Node
+                        </button>
+<button class="px-4 py-2 border border-transparent text-on-surface-variant hover:text-primary transition-colors rounded-sm font-label-mono text-label-mono flex items-center h-[37px] bg-white/5 hover:bg-white/10">
+<span class="material-symbols-outlined mr-2 text-[18px]">refresh</span> 恢复自动
+                        </button>
+</div>
+<!-- Action -->
+<div class="mt-8 flex justify-end pt-6 border-t border-white/10">
+<button class="bg-primary hover:bg-primary-container text-on-primary px-8 py-3 rounded-md font-title-sm text-title-sm font-bold transition-colors shadow-[0_0_15px_rgba(171,199,255,0.3)] hover:shadow-[0_0_25px_rgba(171,199,255,0.5)]">
+                            保存路径 (Save Path)
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

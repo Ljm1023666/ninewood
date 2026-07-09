@@ -176,7 +176,9 @@ enum TagCategory {
 
 model User {
   id                 String    @id @default(uuid())
+  accountNo          Int?      @unique // 易记账号 ID：0=管理员，1、2…递增
   phone              String    @unique
+  email              String?   @unique
   nickname           String
   avatarUrl          String?
   coverUrl           String?
@@ -296,6 +298,10 @@ model Demand {
   // ── AI 2.5: 公益 ──
   isPublicWelfare  Boolean      @default(false)
 
+  // ── TASK-11: 路径检索 ──
+  paths          String[]  @default([])
+  pathsEditedAt  DateTime?
+
   applications     DemandApplication[]
   applicantsV2     DemandApplicantV2[]
   circleDemands    CircleDemand[]
@@ -316,6 +322,7 @@ model Demand {
   @@index([stage, createdAt])
   @@index([status, visibleUntil])
   @@index([frozenAt])
+  @@index([paths], type: Gin)
 }
 
 model DemandApplication {

@@ -50,7 +50,7 @@ export default function AdminOverviewTab({
       <div className="space-y-6">
         <AdminMetricSkeleton count={6} />
         <AdminPanelSkeleton height="min-h-[340px]" />
-        <div className="grid grid-cols-2 gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]">
+        <div className="grid grid-cols-2 gap-4">
           <AdminPanelSkeleton />
           <AdminPanelSkeleton />
         </div>
@@ -126,8 +126,8 @@ export default function AdminOverviewTab({
                 >
                   <defs>
                     <linearGradient id="adminRevenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3388FF" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#3388FF" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid {...adminChartGrid} vertical={false} />
@@ -143,11 +143,11 @@ export default function AdminOverviewTab({
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#3388FF"
+                    stroke="#2563EB"
                     strokeWidth={2}
                     fill="url(#adminRevenueGrad)"
                     dot={false}
-                    activeDot={{ r: 3, fill: '#3388FF', stroke: '#fff', strokeWidth: 2 }}
+                    activeDot={{ r: 3, fill: '#2563EB', stroke: '#fff', strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -237,7 +237,7 @@ export default function AdminOverviewTab({
                     {...adminChartAxis}
                   />
                   <Tooltip contentStyle={adminChartTooltipStyle} />
-                  <Bar dataKey="value" fill="#3388FF" radius={[0, 2, 2, 0]} barSize={16} />
+                  <Bar dataKey="value" fill="#2563EB" radius={[0, 6, 6, 0]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

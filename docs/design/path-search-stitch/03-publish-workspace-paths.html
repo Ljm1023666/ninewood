@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - Demand Publish Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#353534",
+                        "primary-fixed": "#d7e2ff",
+                        "on-primary-container": "#00285a",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "error-container": "#93000a",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "primary-container": "#458fff",
+                        "on-secondary-fixed": "#221b00",
+                        "surface-tint": "#abc7ff",
+                        "on-secondary-fixed-variant": "#544600",
+                        "on-primary-fixed-variant": "#004590",
+                        "tertiary-container": "#e4700c",
+                        "primary-fixed-dim": "#abc7ff",
+                        "surface-dim": "#131313",
+                        "surface": "#131313",
+                        "on-tertiary-fixed": "#321300",
+                        "on-primary-fixed": "#001b3f",
+                        "inverse-primary": "#005cbc",
+                        "on-surface": "#e5e2e1",
+                        "error": "#ffb4ab",
+                        "tertiary": "#ffb689",
+                        "on-secondary": "#3a3000",
+                        "on-primary": "#002f66",
+                        "surface-container": "#201f1f",
+                        "secondary-fixed-dim": "#e9c400",
+                        "on-tertiary": "#512300",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "secondary": "#fff9ef",
+                        "primary": "#abc7ff",
+                        "secondary-fixed": "#ffe16d",
+                        "tertiary-fixed": "#ffdbc8",
+                        "background": "#131313",
+                        "on-background": "#e5e2e1",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-surface-variant": "#c1c6d6",
+                        "surface-bright": "#393939",
+                        "secondary-container": "#ffdb3c",
+                        "on-tertiary-container": "#471e00",
+                        "on-secondary-container": "#725f00",
+                        "outline-variant": "#414754",
+                        "on-error": "#690005",
+                        "surface-container-highest": "#353534",
+                        "surface-container-low": "#1c1b1b",
+                        "outline": "#8b919f",
+                        "on-error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin-page": "32px",
+                        "unit": "4px",
+                        "panel-width-side": "240px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Geist", "sans-serif"],
+                        "label-mono": ["Geist", "monospace"],
+                        "body-md": ["Geist", "sans-serif"],
+                        "title-sm": ["Geist", "sans-serif"],
+                        "display-lg": ["Geist", "sans-serif"],
+                        "headline-md": ["Geist", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["11px", { "lineHeight": "1.0", "fontWeight": "400" }],
+                        "label-mono": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "title-sm": ["18px", { "lineHeight": "1.5", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #121212; color: #e5e2e1; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px -5px #abc7ff;
+        }
+        .input-underlined {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e2e1;
+            padding: 8px 0;
+            transition: border-bottom-color 0.2s, border-width 0.2s;
+        }
+        .input-underlined:focus {
+            outline: none;
+            border-bottom: 2px solid #abc7ff;
+            box-shadow: none;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+    </style>
+</head>
+<body class="font-body-md text-body-md min-h-screen overflow-hidden flex flex-col selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="bg-surface/30 backdrop-blur-xl border-b border-white/10 flex justify-between items-center px-gutter h-16 w-full z-50 fixed top-0">
+<div class="flex items-center gap-6">
+<span class="font-display-lg text-display-lg text-primary tracking-tighter text-2xl font-bold">Codex Workspace</span>
+<div class="hidden md:flex items-center gap-1 border-l border-white/10 pl-6 ml-2">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-variation-settings: 'FILL' 0;">search</span>
+<input class="bg-transparent border-none text-on-surface focus:ring-0 w-64 text-sm placeholder-on-surface-variant/50" placeholder="Search rules..." type="text"/>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-8 h-full">
+<a class="text-on-surface-variant hover:text-primary transition-colors scale-95 duration-200 flex items-center h-full pt-1" href="#">Discovery</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors scale-95 duration-200 flex items-center h-full pt-1" href="#">Rules</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors scale-95 duration-200 flex items-center h-full pt-1" href="#">Assets</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-on-primary px-4 py-1.5 rounded-DEFAULT font-label-mono hover:bg-primary-fixed transition-colors">Publish</button>
+<div class="flex items-center gap-2 border-l border-white/10 pl-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined">notifications</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined">settings</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-1"><span class="material-symbols-outlined">help</span></button>
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-white/10 ml-2 object-cover" data-alt="A highly detailed close-up of a futuristic user profile avatar placeholder. The avatar consists of glowing blue geometric lines forming a stylized human silhouette against a deep black background. Lighting is high-contrast, casting a luminous cyan edge on the shape. The aesthetic is cyber-technical and sleek, fitting a dark mode command center interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8ftg71OXoZj_-Csrzu5rI9D8sLe4-SB-6C1DBwiEO7ULBeEbtpuqT_8HtbOCGBPhX_Dthe6xlPaEp41-kwdF5HtnEI7qNZOtX8TRvP1YLKJugToF5pAN61_WYvdBGW7rDyjemsC4zPiDZYHVKdm3GYZRmaJsid7ytZWNmdXeLctWhXMYkVk34CnS6gx--AM83oEQSdvrhr-GoV7eTbL-7aUsPhEeCqmUWLRqXJZfKFLItj3WLeZZYsQWKMpYkVkSMllIh21vYKT0"/>
+</div>
+</div>
+</header>
+<div class="flex h-screen pt-16">
+<!-- SideNavBar -->
+<aside class="bg-[#0A0A0A] border-r border-white/10 docked left-0 h-full w-panel-width-side hidden md:flex flex-col z-40 fixed">
+<div class="p-6 pb-4 border-b border-white/5">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-primary">account_tree</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-on-surface text-lg">Project Alpha</div>
+<div class="font-label-mono text-label-mono text-on-surface-variant/60 mt-1">Demand Analysis</div>
+</div>
+</div>
+<button class="w-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-all rounded py-2 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span> New Rule
+                </button>
+</div>
+<nav class="flex-1 py-4 flex flex-col gap-1 px-3">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 transition-all text-on-surface-variant/60 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 duration-300">dashboard</span>
+<span class="font-label-mono text-label-mono">Home</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 transition-all text-on-surface-variant/60 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 duration-300">search</span>
+<span class="font-label-mono text-label-mono">Queries</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent text-primary group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 duration-300">alt_route</span>
+<span class="font-label-mono text-label-mono">Paths</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 transition-all text-on-surface-variant/60 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 duration-300">terminal</span>
+<span class="font-label-mono text-label-mono">Logic</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded hover:bg-white/5 transition-all text-on-surface-variant/60 group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 duration-300">history</span>
+<span class="font-label-mono text-label-mono">History</span>
+</a>
+</nav>
+<div class="mt-auto p-4 border-t border-white/5 flex flex-col gap-1 px-3">
+<a class="flex items-center gap-3 px-3 py-2 rounded hover:bg-white/5 transition-all text-on-surface-variant/60" href="#">
+<span class="material-symbols-outlined text-[18px]">contact_support</span>
+<span class="font-label-sm text-label-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded hover:bg-white/5 transition-all text-on-surface-variant/60" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-[240px] p-gutter flex gap-4 overflow-hidden">
+<!-- Collapsed Hint Area -->
+<div class="w-16 glass-panel rounded-lg flex flex-col items-center py-4 gap-6 shrink-0 transition-all duration-300 hover:w-64 group relative overflow-hidden">
+<span class="material-symbols-outlined text-on-surface-variant mb-2">auto_awesome</span>
+<div class="w-full flex flex-col items-center group-hover:items-start group-hover:px-4 gap-4 transition-all">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border border-white/10 shrink-0 cursor-pointer hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">chat</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border border-white/10 shrink-0 cursor-pointer hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed">tips_and_updates</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center border border-white/10 shrink-0 cursor-pointer hover:border-primary/50 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-tertiary">warning</span>
+</div>
+</div>
+<div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pl-16 pt-16 pointer-events-none">
+<p class="font-label-sm text-label-sm text-on-surface-variant/70 mb-4 whitespace-nowrap">Assistant active. Path matches 85% of logic rules.</p>
+</div>
+</div>
+<!-- Main Workspace Container -->
+<div class="flex-1 glass-panel rounded-lg p-6 flex flex-col overflow-y-auto">
+<div class="flex justify-between items-end mb-8 border-b border-white/10 pb-4">
+<div>
+<h1 class="font-title-sm text-title-sm text-primary mb-1">Demand Publish Workspace</h1>
+<p class="font-label-mono text-label-mono text-on-surface-variant">ID: D-9942-B</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-transparent border border-white/10 text-on-surface px-4 py-1.5 rounded-DEFAULT font-label-mono hover:border-primary hover:text-primary transition-all text-sm">Save Draft</button>
+</div>
+</div>
+<!-- Refinement Tools -->
+<div class="mb-8">
+<h2 class="font-label-mono text-label-mono text-on-surface-variant mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">edit_note</span> 润色工具
+                    </h2>
+<div class="flex gap-2">
+<button class="bg-surface-container border border-white/10 text-on-surface px-3 py-1.5 rounded text-sm hover:border-primary/50 hover:bg-surface-container-high transition-colors">缩短</button>
+<button class="bg-surface-container border border-white/10 text-on-surface px-3 py-1.5 rounded text-sm hover:border-primary/50 hover:bg-surface-container-high transition-colors">扩写</button>
+<button class="bg-surface-container border border-white/10 text-on-surface px-3 py-1.5 rounded text-sm hover:border-primary/50 hover:bg-surface-container-high transition-colors">正式版</button>
+<button class="bg-surface-container border border-white/10 text-on-surface px-3 py-1.5 rounded text-sm hover:border-primary/50 hover:bg-surface-container-high transition-colors">口语版</button>
+</div>
+</div>
+<!-- Matching Paths Section -->
+<div class="glass-panel p-5 rounded-lg mb-8 border-l-2 border-l-primary">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-label-mono text-label-mono text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">alt_route</span> 匹配路径
+                        </h2>
+<span class="bg-secondary-fixed/10 text-secondary-fixed px-2 py-0.5 rounded-full font-label-sm text-label-sm border border-secondary-fixed/20">5 Active</span>
+</div>
+<div class="flex flex-wrap gap-2 mb-6">
+<!-- Chips -->
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-sm text-sm group">
+<span class="px-2 py-1 border-r border-white/10 text-primary font-label-mono text-[10px] bg-primary/5">TAG</span>
+<span class="px-3 py-1 text-on-surface">cat:it技术</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 hover:text-error px-2 cursor-pointer transition-colors">close</span>
+</div>
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-sm text-sm group">
+<span class="px-2 py-1 border-r border-white/10 text-primary font-label-mono text-[10px] bg-primary/5">TAG</span>
+<span class="px-3 py-1 text-on-surface">tag:react</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 hover:text-error px-2 cursor-pointer transition-colors">close</span>
+</div>
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-sm text-sm group">
+<span class="px-2 py-1 border-r border-white/10 text-primary font-label-mono text-[10px] bg-primary/5">TAG</span>
+<span class="px-3 py-1 text-on-surface">tag:前端</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 hover:text-error px-2 cursor-pointer transition-colors">close</span>
+</div>
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-sm text-sm group">
+<span class="px-2 py-1 border-r border-white/10 text-secondary-fixed font-label-mono text-[10px] bg-secondary-fixed/5">ATTR</span>
+<span class="px-3 py-1 text-on-surface">servicetype=online</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 hover:text-error px-2 cursor-pointer transition-colors">close</span>
+</div>
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-sm text-sm group">
+<span class="px-2 py-1 border-r border-white/10 text-on-surface-variant font-label-mono text-[10px] bg-white/5">BKT</span>
+<span class="px-3 py-1 text-on-surface">price=500_1000</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant/50 hover:text-error px-2 cursor-pointer transition-colors">close</span>
+</div>
+</div>
+<!-- Editor Row -->
+<div class="flex items-center gap-3 bg-surface-container-low p-2 rounded border border-white/5">
+<select class="bg-transparent border-none text-on-surface font-label-mono text-sm focus:ring-0 w-24">
+<option>TAG</option>
+<option>ATTR</option>
+<option>BKT</option>
+</select>
+<div class="w-px h-4 bg-white/10"></div>
+<input class="input-underlined flex-1 text-sm font-label-mono" placeholder="输入路径键值..." type="text" value=""/>
+<div class="flex gap-2 ml-auto">
+<button class="bg-primary text-on-primary px-3 py-1 rounded font-label-mono text-xs hover:bg-primary-fixed transition-colors">添加</button>
+<button class="bg-transparent border border-white/20 text-on-surface-variant px-3 py-1 rounded font-label-mono text-xs hover:border-primary hover:text-primary transition-colors">恢复自动</button>
+</div>
+</div>
+</div>
+<!-- Form Fields -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div class="flex flex-col gap-1">
+<label class="font-label-mono text-label-mono text-on-surface-variant">需求标题</label>
+<input class="input-underlined w-full" type="text" value="React 前端性能优化咨询"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-mono text-label-mono text-on-surface-variant">需求分类</label>
+<input class="input-underlined w-full" type="text" value="IT技术 / 前端开发"/>
+</div>
+<div class="flex flex-col gap-1 col-span-1 lg:col-span-2">
+<label class="font-label-mono text-label-mono text-on-surface-variant">预算范围</label>
+<div class="flex items-center gap-4">
+<input class="input-underlined w-32 text-center" type="text" value="500"/>
+<span class="text-on-surface-variant">-</span>
+<input class="input-underlined w-32 text-center" type="text" value="1000"/>
+<span class="text-on-surface-variant ml-2 text-sm">CNY</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 col-span-1 lg:col-span-2 mt-4">
+<label class="font-label-mono text-label-mono text-on-surface-variant mb-2">详细描述</label>
+<textarea class="bg-surface-container-low border border-white/10 rounded p-4 text-on-surface min-h-[120px] focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none">需要一位有经验的React开发者协助排查和优化当前单页应用的渲染性能问题，特别是大型列表的虚拟滚动和组件的重渲染控制。</textarea>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ninewood - Path Search</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-dim": "#131313",
+                      "on-background": "#e5e2e1",
+                      "on-secondary-fixed-variant": "#544600",
+                      "surface-tint": "#abc7ff",
+                      "tertiary-container": "#e4700c",
+                      "on-primary-container": "#00285a",
+                      "secondary-fixed": "#ffe16d",
+                      "surface-container-low": "#1c1b1b",
+                      "surface-container-highest": "#353534",
+                      "outline-variant": "#414754",
+                      "primary-fixed": "#d7e2ff",
+                      "inverse-on-surface": "#313030",
+                      "error": "#ffb4ab",
+                      "on-tertiary-fixed": "#321300",
+                      "background": "#121212", // Custom override for requirements
+                      "error-container": "#93000a",
+                      "on-secondary": "#3a3000",
+                      "surface-variant": "#353534",
+                      "secondary-fixed-dim": "#e9c400",
+                      "primary-container": "#458fff",
+                      "on-primary": "#002f66",
+                      "surface-container-high": "#2a2a2a",
+                      "inverse-primary": "#005cbc",
+                      "on-tertiary-fixed-variant": "#743500",
+                      "on-surface": "#e5e2e1",
+                      "tertiary-fixed": "#ffdbc8",
+                      "surface-container-lowest": "#0e0e0e",
+                      "outline": "#8b919f",
+                      "tertiary-fixed-dim": "#ffb689",
+                      "secondary-container": "#ffdb3c",
+                      "on-tertiary": "#512300",
+                      "surface": "#121212", // Custom override
+                      "on-surface-variant": "#c1c6d6",
+                      "primary-fixed-dim": "#abc7ff",
+                      "on-tertiary-container": "#471e00",
+                      "on-secondary-container": "#725f00",
+                      "on-primary-fixed": "#001b3f",
+                      "surface-bright": "#393939",
+                      "primary": "#3388FF", // Custom override for requirements
+                      "tertiary": "#ffb689",
+                      "surface-container": "#201f1f",
+                      "on-error-container": "#ffdad6",
+                      "on-error": "#690005",
+                      "secondary": "#ffe16d", // Using gold for secondary
+                      "inverse-surface": "#e5e2e1",
+                      "on-secondary-fixed": "#221b00",
+                      "on-primary-fixed-variant": "#004590"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "panel-width-side": "260px", // Adjusted to 260px per prompt
+                      "margin-page": "32px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "display-lg": ["Geist", "sans-serif"],
+                      "body-md": ["Geist", "sans-serif"],
+                      "label-mono": ["Geist", "monospace"],
+                      "headline-md": ["Geist", "sans-serif"],
+                      "title-sm": ["Geist", "sans-serif"],
+                      "label-sm": ["Geist", "sans-serif"]
+              },
+              "fontSize": {
+                      "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["14px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-mono": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "title-sm": ["18px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                      "label-sm": ["11px", {"lineHeight": "1.0", "fontWeight": "400"}]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body {
+            background-color: #121212;
+            color: #e5e2e1;
+            font-family: 'Geist', sans-serif;
+        }
+        
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(51, 136, 255, 0.25);
+            box-shadow: 0 0 15px -5px rgba(51, 136, 255, 0.5);
+        }
+        
+        .path-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0;
+            color: white;
+            transition: all 0.2s;
+        }
+        
+        .path-input:focus {
+            outline: none;
+            box-shadow: none;
+            border-bottom: 2px solid #3388FF;
+        }
+        
+        /* Select dropdown styling */
+        select.path-input option {
+            background-color: #1a1a1a;
+            color: white;
+        }
+        
+        /* Hide scrollbar for clean UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-on-surface antialiased selection:bg-primary/30">
+<!-- SideNavBar (Shared Component JSON injected styling + structural mandates) -->
+<nav class="bg-[#0A0A0A] w-panel-width-side h-screen fixed left-0 top-0 border-r border-white/10 flex flex-col h-full py-margin-page z-50 hidden md:flex">
+<!-- Brand Header -->
+<div class="px-6 mb-12">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-high overflow-hidden border border-white/10 flex-shrink-0">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A futuristic minimalist abstract avatar in dark tones with a subtle electric blue glow, high resolution, dark mode aesthetic, clean design, geometric shapes." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7_YaMmpXswiys-jZNTT1n1PCUyNHJP_I4JxMrUoiwT0NHoHiMmU8ICsn4A6xZD9U8KZpjwbZ7S0OAfxs0eUUra2EyWoV4G_rYTG95dnGIyBVu8VFW-9cXpTyg3SjAgskimJikVlvwUvwDY9fKGA979cFfqsr9eCeW99z7gCmCCgMe8m4LqGy9BQRBXk7eszCHhPnRvPt0muD2d7j6jhlA1B8cU2IGZF3QEY3UM6T1JKzpEmhQmd9WeReStjv4Eff2gVKwElm1z_Q"/>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-primary tracking-tight">Ninewood</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70 uppercase tracking-widest mt-1">Command Center</p>
+</div>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<ul class="flex flex-col gap-2 px-4 flex-grow">
+<!-- Discover (Inactive) -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant opacity-70 hover:opacity-100 hover:bg-white/5 transition-colors duration-200 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-[20px]">search_insights</span>
+<span>Discover</span>
+</a>
+</li>
+<!-- Publish (Inactive) -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant opacity-70 hover:opacity-100 hover:bg-white/5 transition-colors duration-200 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-[20px]">publish</span>
+<span>Publish</span>
+</a>
+</li>
+<!-- Path Search (Active) -->
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg border-l-2 border-primary bg-gradient-to-r from-primary/10 to-transparent text-primary font-bold transition-colors duration-200 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary">account_tree</span>
+<span>Path Search</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-panel-width-side flex flex-col min-h-screen">
+<!-- TopAppBar (Structural representation) -->
+<header class="h-16 px-gutter flex justify-between items-center bg-white/3 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 w-full">
+<div class="flex items-center gap-4 flex-1">
+<button class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex items-baseline gap-4">
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight">路径检索</h2>
+<span class="font-body-md text-body-md text-on-surface-variant">按路径交叉命中排序 · 无黑箱 · 结果可复现</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Discovery Canvas -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-[1100px] mx-auto w-full flex flex-col gap-6">
+<!-- Search Paths (检索路径) Section -->
+<section class="glass-panel rounded-xl p-6 flex flex-col gap-6">
+<h3 class="font-title-sm text-title-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">filter_alt</span>
+                        检索路径
+                    </h3>
+<!-- Path Chips Row -->
+<div class="flex flex-wrap gap-3">
+<!-- Chip 1: TAG -->
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-full pl-1 pr-3 py-1 group hover:border-white/20 transition-colors">
+<span class="font-label-mono text-[10px] text-primary border border-primary/30 rounded px-1.5 py-0.5 mr-2">TAG</span>
+<span class="font-body-md text-[13px] text-on-surface">tag:react</span>
+<span class="ml-2 bg-surface-container-high text-secondary text-[10px] font-mono px-1.5 rounded-sm">25</span>
+<button class="ml-2 text-on-surface-variant opacity-50 hover:opacity-100 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Chip 2: ATTR -->
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-full pl-1 pr-3 py-1 group hover:border-white/20 transition-colors">
+<span class="font-label-mono text-[10px] text-secondary border border-secondary/30 rounded px-1.5 py-0.5 mr-2">ATTR</span>
+<span class="font-body-md text-[13px] text-on-surface">attr:servicetype=online</span>
+<span class="ml-2 bg-surface-container-high text-secondary text-[10px] font-mono px-1.5 rounded-sm">28</span>
+<button class="ml-2 text-on-surface-variant opacity-50 hover:opacity-100 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Chip 3: BKT -->
+<div class="flex items-center bg-[#1e1e1e] border border-white/10 rounded-full pl-1 pr-3 py-1 group hover:border-white/20 transition-colors">
+<span class="font-label-mono text-[10px] text-on-surface-variant border border-white/20 rounded px-1.5 py-0.5 mr-2">BKT</span>
+<span class="font-body-md text-[13px] text-on-surface">bkt:price=500_1000</span>
+<span class="ml-2 bg-surface-container-high text-secondary text-[10px] font-mono px-1.5 rounded-sm">12</span>
+<button class="ml-2 text-on-surface-variant opacity-50 hover:opacity-100 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+</div>
+<!-- Stats Line -->
+<div class="font-body-md text-sm text-on-surface-variant flex items-center gap-2">
+<span class="w-1 h-4 bg-primary/50 rounded-full"></span>
+                        本次 3 条路径，共命中 <span class="text-primary font-bold text-base px-1">12</span> 条需求
+                    </div>
+<hr class="border-white/10 my-1"/>
+<!-- Interaction Row -->
+<div class="flex items-end gap-4">
+<div class="flex-shrink-0 w-32">
+<label class="block font-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Type</label>
+<select class="path-input w-full pb-2 text-sm appearance-none cursor-pointer bg-transparent">
+<option>标签 (TAG)</option>
+<option>分类 (CAT)</option>
+<option>属性 (ATTR)</option>
+<option>预算 (BKT)</option>
+<option>地区 (LOC)</option>
+<option>关键词 (KWD)</option>
+</select>
+</div>
+<div class="flex-grow">
+<label class="block font-label-sm text-on-surface-variant mb-1 uppercase tracking-wider">Value</label>
+<div class="relative">
+<input class="path-input w-full pb-2 text-sm pl-1 focus:ring-0" placeholder="如 react、it技术" type="text"/>
+<span class="material-symbols-outlined absolute right-0 bottom-2 text-on-surface-variant text-[18px]">keyboard</span>
+</div>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white font-body-md text-sm px-6 py-2 rounded flex items-center gap-2 transition-colors flex-shrink-0 shadow-[0_0_15px_-5px_rgba(51,136,255,0.4)]">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            添加路径
+                        </button>
+<button class="bg-transparent border border-white/10 hover:border-primary hover:text-primary text-on-surface-variant font-body-md text-sm px-6 py-2 rounded transition-colors flex-shrink-0">
+                            清空
+                        </button>
+</div>
+</section>
+<!-- Results Header -->
+<div class="flex justify-between items-end mt-4 px-2">
+<h3 class="font-title-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">dataset</span>
+                        匹配结果
+                    </h3>
+<div class="flex items-center gap-4 text-sm text-on-surface-variant">
+<span class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">sort</span> 相关度排序</span>
+</div>
+</div>
+<!-- Result Cards Stack -->
+<div class="flex flex-col gap-4">
+<!-- Result 1 -->
+<div class="glass-card rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group">
+<div class="flex flex-col gap-3 flex-grow">
+<div class="flex items-center gap-3">
+<h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">React 前端组件开发</h4>
+<span class="bg-primary/20 text-primary border border-primary/30 font-label-mono text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> 命中 3/3
+                                </span>
+</div>
+<div class="flex items-center gap-4 font-label-mono text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">category</span> IT技术</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="text-secondary font-bold">¥800</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> 小林</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="opacity-60">10 mins ago</span>
+</div>
+<!-- Matched Paths within result -->
+<div class="flex flex-wrap gap-2 mt-1">
+<span class="bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] font-mono text-on-surface-variant flex items-center gap-1">
+<span class="text-primary/70">tx:</span>oldvwf-react
+                                </span>
+<span class="bg-primary/10 border border-primary/30 rounded px-2 py-1 text-[11px] font-mono text-primary flex items-center gap-1">
+<span class="text-primary/70">tag:</span>react
+                                </span>
+<span class="bg-secondary/10 border border-secondary/30 rounded px-2 py-1 text-[11px] font-mono text-secondary flex items-center gap-1">
+<span class="text-secondary/70">attr:</span>servicetype=online
+                                </span>
+</div>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">chevron_right</span>
+</div>
+</div>
+<!-- Result 2 -->
+<div class="glass-card rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group">
+<div class="flex flex-col gap-3 flex-grow">
+<div class="flex items-center gap-3">
+<h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">王者荣耀陪玩上分</h4>
+<span class="bg-surface-container-highest text-on-surface-variant border border-white/10 font-label-mono text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    命中 2/3
+                                </span>
+</div>
+<div class="flex items-center gap-4 font-label-mono text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">sports_esports</span> 游戏</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="text-secondary font-bold">¥200</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> 阿杰</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="opacity-60">1 hour ago</span>
+</div>
+<!-- Matched Paths within result -->
+<div class="flex flex-wrap gap-2 mt-1 opacity-70">
+<span class="bg-secondary/10 border border-secondary/30 rounded px-2 py-1 text-[11px] font-mono text-secondary flex items-center gap-1">
+<span class="text-secondary/70">attr:</span>servicetype=online
+                                </span>
+<span class="bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] font-mono text-on-surface-variant flex items-center gap-1">
+<span class="text-white/50">bkt:</span>price=500_1000
+                                </span>
+</div>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">chevron_right</span>
+</div>
+</div>
+<!-- Result 3 -->
+<div class="glass-card rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group opacity-90">
+<div class="flex flex-col gap-3 flex-grow">
+<div class="flex items-center gap-3">
+<h4 class="font-headline-md text-lg text-on-surface group-hover:text-primary transition-colors">Logo 品牌设计</h4>
+<span class="bg-surface-container-highest text-on-surface-variant border border-white/10 font-label-mono text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    命中 2/3
+                                </span>
+</div>
+<div class="flex items-center gap-4 font-label-mono text-xs text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">brush</span> 设计</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="text-secondary font-bold">¥1500</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> 设计师Mia</span>
+<span class="w-1 h-1 rounded-full bg-white/20"></span>
+<span class="opacity-60">3 hours ago</span>
+</div>
+<!-- Matched Paths within result -->
+<div class="flex flex-wrap gap-2 mt-1 opacity-70">
+<span class="bg-secondary/10 border border-secondary/30 rounded px-2 py-1 text-[11px] font-mono text-secondary flex items-center gap-1">
+<span class="text-secondary/70">attr:</span>servicetype=online
+                                </span>
+<span class="bg-white/5 border border-white/10 rounded px-2 py-1 text-[11px] font-mono text-on-surface-variant flex items-center gap-1">
+<span class="text-white/50">bkt:</span>price=500_1000
+                                </span>
+</div>
+</div>
+<div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">chevron_right</span>
+</div>
+</div>
+<!-- Loading state indicator -->
+<div class="flex justify-center py-6">
+<span class="material-symbols-outlined text-primary animate-spin opacity-50">sync</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

@@ -9,7 +9,7 @@
 ## 技术栈
 
 - React 19 + TypeScript 6
-- Vite 8（开发端口 **5174**）
+- Vite 8（开发端口 **3080**）
 - Tailwind CSS v4（`@tailwindcss/vite`）
 - React Router 7
 - Zustand
@@ -28,7 +28,7 @@ pnpm run dev               # 前后端并行（推荐）
 pnpm run dev:electron      # Electron 桌面模式
 ```
 
-本地地址：http://localhost:5174
+本地地址：http://localhost:3080
 
 Vite 将 `/api`、`/uploads`、`/socket.io` 代理到 `http://localhost:3001`。
 

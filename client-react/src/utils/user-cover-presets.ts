@@ -125,19 +125,48 @@ export function resolveProfileCoverDetailUrl(coverUrl?: string | null): string |
   return toProfileCoverDetailUrl(trimmed)
 }
 
+/** 将 detail / thumb / infocard 档还原为 card-covers 原图路径 */
+export function normalizeCardCoverOriginalUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return trimmed
+  const prefixes = [
+    '/uploads/card-covers-detail/',
+    '/uploads/card-covers-thumb/',
+    '/uploads/card-covers-infocard/',
+  ] as const
+  for (const prefix of prefixes) {
+    if (trimmed.startsWith(prefix)) {
+      const base = trimmed.slice(prefix.length).replace(/\.[^.]+$/, '')
+      return `/uploads/card-covers/${base}.jpg`
+    }
+  }
+  return trimmed
+}
+
 /** InfoCard 顶图（翻面卡背面 / 发布预览背面等） */
 export function resolveProfileBackCoverUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim()
   if (!trimmed) {
     return toCardCoverInfoCardUrl(publisherUserCoverPreset(undefined))
   }
+  const cardOriginal = normalizeCardCoverOriginalUrl(trimmed)
+  if (cardOriginal.startsWith('/uploads/card-covers/')) {
+    return toCardCoverInfoCardUrl(cardOriginal)
+  }
   if (trimmed.startsWith('/uploads/covers/')) {
     return toProfileCoverInfoCardUrl(trimmed)
   }
-  if (trimmed.startsWith('/uploads/card-covers/')) {
-    return toCardCoverInfoCardUrl(trimmed)
-  }
   return trimmed
+}
+
+/** 翻面卡背面顶图：与正面同源卡面素材，仅裁切为 InfoCard 比例 */
+export function resolveDemandCardBackHeroUrl(input: {
+  coverImage?: string | null
+  demandCardCoverUrl?: string | null
+  mediaUrls?: string[] | null
+  userId?: string | null
+}): string {
+  return resolveProfileBackCoverUrl(resolveDemandCardCoverUrl(input))
 }
 
 /** display 档 404 时回退原图（兼容 .webp / .avif 请求） */

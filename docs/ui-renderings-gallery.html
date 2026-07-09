@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280" />
+  <title>UI 渲染稿总览 · Ninewood</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #080a10;
+      --panel: rgba(20, 24, 34, 0.92);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e8eaf2;
+      --muted: #8b93a8;
+      --accent: #6eb4ff;
+      --gold: #d4af37;
+      --mark: #34d399;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-width: 1280px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      border-right: 1px solid var(--border);
+      background: rgba(12, 14, 20, 0.96);
+      padding: 24px 16px 40px;
+    }
+    aside h1 {
+      font-size: 15px;
+      margin: 0 0 4px;
+      letter-spacing: 0.02em;
+    }
+    .aside-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .stat {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+    .stat strong { color: var(--gold); }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      margin: 2px 0;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: background 0.12s, color 0.12s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(110, 180, 255, 0.1);
+      color: var(--text);
+    }
+    .nav-count {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 16px 0 8px;
+    }
+    .toolbar button {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .toolbar button:hover { border-color: rgba(110,180,255,0.4); }
+    .selection-panel {
+      margin-top: 16px;
+      padding: 12px;
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: 10px;
+      background: rgba(52, 211, 153, 0.06);
+      font-size: 12px;
+      line-height: 1.6;
+      display: none;
+    }
+    .selection-panel.visible { display: block; }
+    .selection-panel code {
+      font-family: ui-monospace, monospace;
+      color: var(--mark);
+    }
+    main {
+      padding: 32px 40px 80px;
+      max-width: 1600px;
+    }
+    .hero h2 {
+      font-size: 28px;
+      margin: 0 0 8px;
+    }
+    .hero p {
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.65;
+      margin: 0;
+    }
+    .category { margin-top: 48px; }
+    .cat-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-header h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+      color: #abc7ff;
+    }
+    .cat-header p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .cat-range {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: ui-monospace, monospace;
+      white-space: nowrap;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--panel);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .card.marked {
+      border-color: rgba(52, 211, 153, 0.55);
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2);
+    }
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 0;
+    }
+    .num {
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .mark-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .mark-btn:hover { color: var(--gold); background: rgba(255,255,255,0.05); }
+    .card.marked .mark-btn { color: var(--mark); }
+    .thumb-link {
+      display: block;
+      margin: 8px 12px 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .thumb-link img {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+      background: #0f1218;
+    }
+    .iframe-wrap {
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #0f1218;
+      position: relative;
+    }
+    .iframe-wrap iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1280px;
+      height: 800px;
+      border: 0;
+      transform-origin: top left;
+      pointer-events: none;
+    }
+    .placeholder {
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #121620, #1a2030);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .meta { padding: 12px 14px 14px; }
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .format-badge {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .format-badge.html {
+      background: rgba(110, 180, 255, 0.12);
+      color: var(--accent);
+    }
+    .open-html.muted { opacity: 0.85; }
+    .route {
+      margin-top: 4px;
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+      color: var(--muted);
+    }
+    .sub {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #a8b0c4;
+      line-height: 1.45;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .copy-btn, .open-html {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .copy-btn:hover, .open-html:hover {
+      color: var(--accent);
+      border-color: rgba(110,180,255,0.35);
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: rgba(20, 28, 40, 0.95);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .filter-marked .card:not(.marked) { display: none; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h1>UI 渲染稿总览</h1>
+      <p class="aside-sub">全局编号 <strong>#001–#078</strong>，点击 ☆ 标记即将构建的页面，复制编号告诉我即可。</p>
+      <div class="stat">共 <strong>78</strong> 张渲染稿 · 10 个分类</div>
+      <nav><a class="nav-link" href="#cat-thesis-demo" data-cat="thesis-demo">论文演示截图<span class="nav-count">15</span></a>
+<a class="nav-link" href="#cat-login" data-cat="login">登录 / 注册<span class="nav-count">3</span></a>
+<a class="nav-link" href="#cat-path-search" data-cat="path-search">路径搜索<span class="nav-count">8</span></a>
+<a class="nav-link" href="#cat-path-search-styles" data-cat="path-search-styles">路径搜索 · 风格探索<span class="nav-count">3</span></a>
+<a class="nav-link" href="#cat-desktop-redesign" data-cat="desktop-redesign">桌面端重设计<span class="nav-count">10</span></a>
+<a class="nav-link" href="#cat-circle-detail" data-cat="circle-detail">圈子详情<span class="nav-count">4</span></a>
+<a class="nav-link" href="#cat-circle-hub" data-cat="circle-hub">圈子 Hub 子页<span class="nav-count">18</span></a>
+<a class="nav-link" href="#cat-wallet-hub" data-cat="wallet-hub">钱包 Hub 子页<span class="nav-count">7</span></a>
+<a class="nav-link" href="#cat-points-wallet" data-cat="points-wallet">点数钱包<span class="nav-count">5</span></a>
+<a class="nav-link" href="#cat-tax-visualizer" data-cat="tax-visualizer">税务可视化<span class="nav-count">5</span></a></nav>
+      <div class="toolbar">
+        <button type="button" id="btn-copy-selected">复制已选编号</button>
+        <button type="button" id="btn-clear-selected">清空标记</button>
+        <button type="button" id="btn-filter-marked">只看已选</button>
+      </div>
+      <div class="selection-panel" id="selection-panel">
+        已标记：<code id="selection-list"></code>
+      </div>
+    </aside>
+    <main id="main">
+      <header class="hero">
+        <h2>Ninewood UI 渲染稿库</h2>
+        <p>整合 Stitch 设计稿、风格探索 PNG 与论文演示实机截图。每张卡片左上角有全局编号（如 #042），请用编号指定要落地的 UI。</p>
+      </header>
+      <section class="category" id="cat-thesis-demo" data-cat="thesis-demo">
+  <header class="cat-header">
+    <div>
+      <h2>论文演示截图</h2>
+      <p>当前产品实机截图，作为基线对照</p>
+    </div>
+    <span class="cat-range">#001 – #015</span>
+  </header>
+  <div class="grid"><article class="card" id="item-001" data-id="001" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#001</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/01-login.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/01-login.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 登录</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#001">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-002" data-id="002" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#002</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/02-discover.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/02-discover.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 发现</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#002">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-003" data-id="003" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#003</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/03-demand-create.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/03-demand-create.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 发布需求</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#003">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-004" data-id="004" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#004</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/04-my-demands.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/04-my-demands.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 我的需求</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#004">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-005" data-id="005" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#005</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/05-orders.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/05-orders.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 订单</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#005">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-006" data-id="006" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#006</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/06-messages.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/06-messages.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 消息</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#006">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-007" data-id="007" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#007</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/07-circles.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/07-circles.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 圈子</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#007">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-008" data-id="008" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#008</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/08-card-pool.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/08-card-pool.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 卡池</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#008">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-009" data-id="009" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#009</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/09-tag-stats.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/09-tag-stats.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 标签统计</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#009">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-010" data-id="010" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#010</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/10-agent-chat.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/10-agent-chat.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · Agent 对话</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#010">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-011" data-id="011" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#011</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/11-wallet.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/11-wallet.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 钱包</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#011">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-012" data-id="012" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#012</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/12-cert-center.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/12-cert-center.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 认证中心</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#012">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-013" data-id="013" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#013</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/13-help.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/13-help.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 帮助</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#013">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-014" data-id="014" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#014</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/14-admin-dashboard.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/14-admin-dashboard.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 管理后台</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#014">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-015" data-id="015" data-cat="thesis-demo">
+  <div class="card-top">
+    <span class="num">#015</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="thesis-demo-screenshots/15-path-search.png" target="_blank" rel="noopener"><img src="thesis-demo-screenshots/15-path-search.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">实机 · 路径搜索</div><span class="format-badge">实机截图</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#015">复制编号</button>
+      
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-login" data-cat="login">
+  <header class="cat-header">
+    <div>
+      <h2>登录 / 注册</h2>
+      <p>Stitch 登录流三屏</p>
+    </div>
+    <span class="cat-range">#016 – #018</span>
+  </header>
+  <div class="grid"><article class="card" id="item-016" data-id="016" data-cat="login">
+  <div class="card-top">
+    <span class="num">#016</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/login-stitch/01-login-password.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/login-stitch/01-login-password.html">
+    <iframe src="design/login-stitch/01-login-password.html" title="密码登录" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">密码登录</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/login</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#016">复制编号</button>
+      <a class="open-html" href="design/login-stitch/01-login-password.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-017" data-id="017" data-cat="login">
+  <div class="card-top">
+    <span class="num">#017</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/login-stitch/02-register.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/login-stitch/02-register.html">
+    <iframe src="design/login-stitch/02-register.html" title="注册账号" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">注册账号</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/login</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#017">复制编号</button>
+      <a class="open-html" href="design/login-stitch/02-register.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-018" data-id="018" data-cat="login">
+  <div class="card-top">
+    <span class="num">#018</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/login-stitch/03-sms-verification.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/login-stitch/03-sms-verification.html">
+    <iframe src="design/login-stitch/03-sms-verification.html" title="短信验证" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">短信验证</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/login</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#018">复制编号</button>
+      <a class="open-html" href="design/login-stitch/03-sms-verification.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-path-search" data-cat="path-search">
+  <header class="cat-header">
+    <div>
+      <h2>路径搜索</h2>
+      <p>Aurora 路径搜索与发布工作区</p>
+    </div>
+    <span class="cat-range">#019 – #026</span>
+  </header>
+  <div class="grid"><article class="card" id="item-019" data-id="019" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#019</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/00-premium-aurora-neural.html" target="_blank" rel="noopener"><img src="design/path-search-stitch/00-premium-aurora-neural.png" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="design/path-search-stitch/00-premium-aurora-neural.html" data-title="Premium Aurora Neural" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Premium Aurora Neural</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/path-search</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#019">复制编号</button>
+      <a class="open-html" href="design/path-search-stitch/00-premium-aurora-neural.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-020" data-id="020" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#020</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/00-premium-aurora-neural.png" target="_blank" rel="noopener"><img src="design/path-search-stitch/00-premium-aurora-neural.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">00 Premium Aurora Neural</div></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#020">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-021" data-id="021" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#021</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/01-path-search-results.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/path-search-stitch/01-path-search-results.html">
+    <iframe src="design/path-search-stitch/01-path-search-results.html" title="路径搜索结果" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">路径搜索结果</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/path-search</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#021">复制编号</button>
+      <a class="open-html" href="design/path-search-stitch/01-path-search-results.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-022" data-id="022" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#022</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/02-path-search-empty.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/path-search-stitch/02-path-search-empty.html">
+    <iframe src="design/path-search-stitch/02-path-search-empty.html" title="路径搜索空态" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">路径搜索空态</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/path-search</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#022">复制编号</button>
+      <a class="open-html" href="design/path-search-stitch/02-path-search-empty.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-023" data-id="023" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#023</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/03-publish-workspace-paths.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/path-search-stitch/03-publish-workspace-paths.html">
+    <iframe src="design/path-search-stitch/03-publish-workspace-paths.html" title="发布工作区路径" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">发布工作区路径</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/path-search</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#023">复制编号</button>
+      <a class="open-html" href="design/path-search-stitch/03-publish-workspace-paths.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-024" data-id="024" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#024</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/04-demand-detail-owner-paths.html" target="_blank" rel="noopener"><div class="iframe-wrap" data-src="design/path-search-stitch/04-demand-detail-owner-paths.html">
+    <iframe src="design/path-search-stitch/04-demand-detail-owner-paths.html" title="需求详情 · 发布者路径" loading="lazy" tabindex="-1"></iframe>
+  </div></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">需求详情 · 发布者路径</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/path-search</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#024">复制编号</button>
+      <a class="open-html" href="design/path-search-stitch/04-demand-detail-owner-paths.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-025" data-id="025" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#025</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/10-flagship-aurora.html" target="_blank" rel="noopener"><img src="design/path-search-stitch/10-flagship-aurora.png" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="design/path-search-stitch/10-flagship-aurora.html" data-title="Flagship Aurora" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Flagship Aurora</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/path-search</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#025">复制编号</button>
+      <a class="open-html" href="design/path-search-stitch/10-flagship-aurora.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-026" data-id="026" data-cat="path-search">
+  <div class="card-top">
+    <span class="num">#026</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="design/path-search-stitch/10-flagship-aurora.png" target="_blank" rel="noopener"><img src="design/path-search-stitch/10-flagship-aurora.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">10 Flagship Aurora</div></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#026">复制编号</button>
+      
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-path-search-styles" data-cat="path-search-styles">
+  <header class="cat-header">
+    <div>
+      <h2>路径搜索 · 风格探索</h2>
+      <p>仅 Stitch 概念 PNG（赛博 / 全息 / 瑞士），仓库内无对应 HTML。可交互稿见上一分类「路径搜索」#019 起</p>
+    </div>
+    <span class="cat-range">#027 – #029</span>
+  </header>
+  <div class="grid"><article class="card" id="item-027" data-id="027" data-cat="path-search-styles">
+  <div class="card-top">
+    <span class="num">#027</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="designs/path-search-stitch/style-a-cyberpunk-terminal.png" target="_blank" rel="noopener"><img src="designs/path-search-stitch/style-a-cyberpunk-terminal.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">赛博终端</div><span class="format-badge">概念 PNG · 无 HTML</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#027">复制编号</button>
+      <a class="open-html muted" href="designs/path-search-stitch/style-a-cyberpunk-terminal.png" target="_blank" rel="noopener">查看大图 ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-028" data-id="028" data-cat="path-search-styles">
+  <div class="card-top">
+    <span class="num">#028</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="designs/path-search-stitch/style-b-holographic-lab.png" target="_blank" rel="noopener"><img src="designs/path-search-stitch/style-b-holographic-lab.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">全息实验室</div><span class="format-badge">概念 PNG · 无 HTML</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#028">复制编号</button>
+      <a class="open-html muted" href="designs/path-search-stitch/style-b-holographic-lab.png" target="_blank" rel="noopener">查看大图 ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-029" data-id="029" data-cat="path-search-styles">
+  <div class="card-top">
+    <span class="num">#029</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="designs/path-search-stitch/style-c-swiss-engineering.png" target="_blank" rel="noopener"><img src="designs/path-search-stitch/style-c-swiss-engineering.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">瑞士工程</div><span class="format-badge">概念 PNG · 无 HTML</span></div>
+    
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#029">复制编号</button>
+      <a class="open-html muted" href="designs/path-search-stitch/style-c-swiss-engineering.png" target="_blank" rel="noopener">查看大图 ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-desktop-redesign" data-cat="desktop-redesign">
+  <header class="cat-header">
+    <div>
+      <h2>桌面端重设计</h2>
+      <p>窄栏页面 → 桌面多栏布局</p>
+    </div>
+    <span class="cat-range">#030 – #039</span>
+  </header>
+  <div class="grid"><article class="card" id="item-030" data-id="030" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#030</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/cert-center.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvmNH5u3jLI7c7yrF3jr_BHGTEihCa9TZVqms0fUIBJ0Aag4YWg0kfzM2HSL8j6E4dSo2aKbA9EW3zX3xheOh8GbH9SCmiT7eNND0ZYkxxEw_CHsQfw0dg0os_aIARrhnewNqQHC7No49gpE0fwPcHWqRIL4_AK0lcHBENlK-NLOzJqEYuUjgGpsWwE4EH_eouaLojY-bgcbYNRRkNcaZciLEsakm_Ji0apov6vP5GPxVfCqvMDMIrTdKQ" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/cert-center.html" data-title="认证中心 - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">认证中心 - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/cert-center</div>
+    <div class="sub">P0</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#030">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/cert-center.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-031" data-id="031" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#031</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/cert-intro.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsShoQ2eHkBkNwlf_tXN-DkqeEHWyI4TRxnvJG_K9XceO09VHobN3-gw0quhDs9ChonmMNm0shPNdjXO76dFlhKbPlTuLGx9lbwDo2unEv5-4y_b_4Tw_buzmRFMyg0GzoJV4hqF17YcjkOWKmJQls4lENP1NUrV1HKO-dfk1AfPU6Kh3LQ4N5uU9WObJ8yP9jc0Ir1NjFECUyvgpD5cYwM_PM5qMw2QCrfEuYaBCPt0O-RbbUFNTTIfDs" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/cert-intro.html" data-title="认证介绍 - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">认证介绍 - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/cert-intro</div>
+    <div class="sub">P1</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#031">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/cert-intro.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-032" data-id="032" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#032</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/follows.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsagTO9Fo5lWw3LgiBm7VqOl17QajLnyQNyoitVb0jmdWuFl27JibTMSbPdhO6ZBfXFgiQAK__KnzAfU9k4qzsDmeh5c8z_rEhhh8Qly7ExrN2dCl9fc6ccwsJLm-L0aIUdXAUYCBZegQJOY1cqWV8taUr6gUENrm77vfFRTTtQIOeYSsloi3cConfGMOTaTUsTnJAKPxUZllGTRznk6808ASUUaDY7z-YlQmspPkLkmbynX_QFYetFG4o" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/follows.html" data-title="关注/粉丝 - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">关注/粉丝 - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/follows/:userId</div>
+    <div class="sub">P1</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#032">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/follows.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-033" data-id="033" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#033</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/my-bids.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLuPkeEN6NfJbAByT82ZLOk7nafWLEH1FQa_RlZdIka8N9RjLGT-JpxikSnQYrKZHYkb3Hpfwc_L221TFQV_XM4CmjXB1vKGSKf9OJJ7J7Jzk-OMtigTS1geXMUiTfKngoDblyUKQHs-rrR5ol4A_UOv92Z8V00XFDaHGexU4GT6yvWE26ae0mxEjT8UnrKc8ZIuAdhCTpIVARug9SN2wkdx-d_wIo4UT5gw1oENuV8tKRa2IQTE7Mkyc_o" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/my-bids.html" data-title="我的应标 - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">我的应标 - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/my-bids</div>
+    <div class="sub">P1</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#033">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/my-bids.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-034" data-id="034" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#034</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/my-tags.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ_dmOy4uC_cP3wQcxR7Fg1E9YUgAIan1gVx80NgpZSq1HGleJf_YPaPLUU3JOXRDud5ebhPwvxvITGIOIzJWGJaTPRtSUc-I656fiEnLDV1IoAf1uRQJxBSRqajbe6pzVrDdS9DT-_LaNvbiu0FXbVLF3B9hsLeCJd28UHLPR9Vh4DkHvbO6p9kk9QDLUAJDuBfurnVPQBv_XVgg2DyF4RIaknNfXJ_ZryHbamsBiAmC8DnJdcQJ9BG8" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/my-tags.html" data-title="我的标签 - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">我的标签 - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/my-tags</div>
+    <div class="sub">P0</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#034">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/my-tags.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-035" data-id="035" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#035</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/not-found.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLu1E7UceD2ZGjWuL6cCtGXwtUR8biQqAydoUjP_N6Wm_ylxfD4m64za1xBVR91m598IPT-sEYMY5yTA7hB0nq9NFckREqTVDlNSk6oNukKSVe7o0T8O8EUo6Vwof1RqDGAxIEIb6p3Hsitq51Xg-FNPTELhPyhk-3OK9PzdBI1gX40bO87B5USbBuZfvHD5IlCi-0dl-sN1w5y9-X_PN5zy4w4qwM6kr8P0s3jMAnl824Fu69QyYIU8ZA" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/not-found.html" data-title="404 Not Found - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">404 Not Found - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/*</div>
+    <div class="sub">P2</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#035">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/not-found.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-036" data-id="036" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#036</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/payment.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLuJ2elyqKsnYd8r01rSHddFh9ko8Z62zsVfV8Jtyfb3UDnEWCAO2bQHInD0AI6TB5QqAP5RxlUGszRmoDpqUe3sxjFHcb4brzcaJE2ytiTOur188KpuNnH45JKMnvno8a5xnW9zXqslsZUyGSQhRo8l8LkSpEvwMbgxl0CSptai6SvwKW9LTxvL1Bbrg-K9xNGgIkvU9bNtFjWmRLpePFiSOYYBhd3dtiJs3VjWW3XUe0D9XyUyXk_p7M8" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/payment.html" data-title="点数支付 - Ninewood Elite" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">点数支付 - Ninewood Elite</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/payment/:id</div>
+    <div class="sub">P1</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#036">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/payment.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-037" data-id="037" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#037</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/providers.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsyzJYlA5Cw8JVHExGjcdsvAll6WY6pVX8Cd4EZ2JFOEpKm__gLzn5SwSbIqpRt3zYKdNV4KSmqreSmAdaTTuZzLr-XdlWzzIymPp3qad9kRN9YZxMnTGHnZH1_mcOIlm1xsYBV0jNGXPA99jt7r1GCMaEL9BKEBIK49hnAb3r9q5QsxuVnRR5HA-Ic__KFJIZvX_qQ8mBSFE_p0X4UZJycMCD2TPCUgdlSkuFZxC0GoPnTV3jBg1b3tA" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/providers.html" data-title="找服务者 - Ninewood Desktop" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">找服务者 - Ninewood Desktop</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/providers</div>
+    <div class="sub">P1</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#037">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/providers.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-038" data-id="038" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#038</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/search.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLv9dTETk2YwOYInTVTzy7YLePJLmtgdm-QsUasL2xIDBcRW2BNEP6Ny8rTGB1fuFB38qW1OHt5UCrPp3Ucj0OzUFjSjlMmolEHAafrIvNW3Btz08v3qIHlpi3mjN_ofYPN4ms8VirSWd7dMI5mcdiYX2i-jbQbsdsCZyiLMLEQKLWGotP-_czH4k8SV1SeSFvm0eZkYld5Vw4mTENjx7bT_0HXNTI9CSmL0z_H_YYE3cUIXLY35W9pVcvU" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/search.html" data-title="找人 - Desktop Search Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">找人 - Desktop Search Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/search</div>
+    <div class="sub">P0</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#038">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/search.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-039" data-id="039" data-cat="desktop-redesign">
+  <div class="card-top">
+    <span class="num">#039</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-desktop-redesign/welfare.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLu7yXgO8ECUl3LVUnnD--cHSo6rVW602dq6KE6mxVPpC2EpCqp1EN_ye5l2FXWRJQk301WkTiwyJy7AKGsZEWLcbQxsubZ_vCJ_v-VQAi4CbxyyNNRyPekyLGFm-g1uQu8pK8GWc-cwDeukLHpIE-gT-ZWl9m3POm9Q7PMG4xBt72nxmKqy3-ch5Ghg33Kgea3kaDaxSFOjnWiNPlBXudXIJ-oIPTQ0dqvm8PuSygu6l4nNdiH5sR0idQ" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-desktop-redesign/welfare.html" data-title="公益中心 - Fluent Desktop Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">公益中心 - Fluent Desktop Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/welfare</div>
+    <div class="sub">P0</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#039">复制编号</button>
+      <a class="open-html" href="stitch-desktop-redesign/welfare.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-circle-detail" data-cat="circle-detail">
+  <header class="cat-header">
+    <div>
+      <h2>圈子详情</h2>
+      <p>圈子落地页 4 套方案</p>
+    </div>
+    <span class="cat-range">#040 – #043</span>
+  </header>
+  <div class="grid"><article class="card" id="item-040" data-id="040" data-cat="circle-detail">
+  <div class="card-top">
+    <span class="num">#040</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-detail/variant-a-glass-dark.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvxlrE-RWnPArr8RI9BYLYKKv9HM_EzNko7FCswpd7WfYEyQ50AXu4evMxHlIe_B4OtvWSX02ah9T4Njtm-SpFMksSyypvuacrXtDFbHf1tUxFDb7IK8iQ0TtUZnr7Cx3ZUpg_GJ1LnHwwgxUNae_V2EPr224CXR1jcHrRX5vLbs2bup-FexUVNh-fMDGP9xB3rDIgRcB_awYkBS30_ujMo6oo3LFBbaCHPAOwpBbGiWy2SQL0BGfy3L_Q" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-detail/variant-a-glass-dark.html" data-title="方案 A · 暗色玻璃" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 A · 暗色玻璃</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#040">复制编号</button>
+      <a class="open-html" href="stitch-circle-detail/variant-a-glass-dark.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-041" data-id="041" data-cat="circle-detail">
+  <div class="card-top">
+    <span class="num">#041</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-detail/variant-b-cinematic.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLu1TS6FTOU-ykz8p9G0HkRhsjy_nfFmqltVYK0Eqqjlc9jYCPBwvwpI3OGE_1IbGKVvTabe1TQRSotlGvO2hA0BDvGK0QjysSZUTKpULoGdp2xIHSJJLUIgYcz8o52A6R3d-UPWnPkFm9Ap6nx48dXMn7axay5yrSY5pyOEKAd6uDeMdCG7Um1lSoKJUFKaBn3rvQqmrXyt2lfroTy6cyaTA1Hs9kg6XKhH1FzI1AxOZ96-dmk_gfLQxLc" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-detail/variant-b-cinematic.html" data-title="方案 B · 电影感 Hero" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 B · 电影感 Hero</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#041">复制编号</button>
+      <a class="open-html" href="stitch-circle-detail/variant-b-cinematic.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-042" data-id="042" data-cat="circle-detail">
+  <div class="card-top">
+    <span class="num">#042</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-detail/variant-c-split.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtZ3TuJlEJX4wAW5X8MyF7ZA9p0a5LYbESIykWwiYdkzXr5oXFhw1UuUotg6Atc6p2CQnhPOp8FXbjVk7sHbsShR0n8bojKv9yKWf3QkC7CtPMrudJp0pmsIjcgPYrG7sMYC0FgMQw45AENwGYtMs4Wpj90O7yhsO3YXNYjxbVbofPoA9Z6nRKjEVQoDW1bVp5oxy6y2tFBVXAhBaDX-HxLbzDK-jZ4dw2LOYT04t-RuFVXYgacn63sitM" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-detail/variant-c-split.html" data-title="方案 C · 左右分栏" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 C · 左右分栏</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#042">复制编号</button>
+      <a class="open-html" href="stitch-circle-detail/variant-c-split.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-043" data-id="043" data-cat="circle-detail">
+  <div class="card-top">
+    <span class="num">#043</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-detail/variant-d-bento.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvD9F8nN503t1OmK9W-2Bu8_E2hCYkfbnsEXUpLOP9bDfSD31Pb931F_z-fDhQcg9eUlRtzszChMYeQX-krA9_5bleLoaGNL3Eg5eCFuyYmzSjKCTANP8rSEM6rFt4wO6vqr3sC7YEjUI2NhyqCFRFYyvi6QHfC2BbDMLnkjZoq-XyYFhAKXDaZwfchD65bx_2zBb9El36FXXI8TZjSchK_Gs7ZzOo0Fz3dWMkO9aRY_aYv3GHGiV0t_Q" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-detail/variant-d-bento.html" data-title="方案 D · Bento 网格" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 D · Bento 网格</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#043">复制编号</button>
+      <a class="open-html" href="stitch-circle-detail/variant-d-bento.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-circle-hub" data-cat="circle-hub">
+  <header class="cat-header">
+    <div>
+      <h2>圈子 Hub 子页</h2>
+      <p>侧栏子路由，每页 3 种布局变体</p>
+    </div>
+    <span class="cat-range">#044 – #061</span>
+  </header>
+  <div class="grid"><article class="card" id="item-044" data-id="044" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#044</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/analytics-variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsn09CkRIK7D3aU1DOtb-jFtFrNGhkVXalYPHkVZs9H2OI5Q5hEoPmYAhK3lCov_9nrVoXdO6FigIuAtwDv8buGu3PjNy9D698k5ubXl4dNWBjcpFgEpIagX1wxtawi74K4QlAJM8-ZX17gzesvIeJ7LY_QpTN1c89F4M97TxHyHg2quvS2soZG6Lx9Zea0jkMz_Gm8J09urRUuHcWb2lvHD15tBerZ68giIvILnQFVmTJkYUBTA7-WrPs" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/analytics-variant-a.html" data-title="分析数据 · 方案 A" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">分析数据 · 方案 A</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/analytics</div>
+    <div class="sub">Circle Analytics - Grid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#044">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/analytics-variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-045" data-id="045" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#045</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/analytics-variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtosOnmmMxZdcGAQfMzZ1zIOH8CN2fToeRwCxTlASJD2e_Yua0qdpu4cnyL2m1-keqlhZFpBf2s_zoA0vwefv1X9tgXcZVxQiVfpdHHrBYmRx5-JOcLaFfRXmGEj-o9ZsVfXbb1-bIMsP-IDgnabwn5WmUnPx2t_TvCpS-mlAAnfJYZbGIOzOnrqLP0Rz8lnqL36scQdM1_mhvYSp_k77tqMIvCUdlOzoDQ23OnCptjwzRWMDGi6dR5vQ" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/analytics-variant-b.html" data-title="分析数据 · 方案 B" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">分析数据 · 方案 B</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/analytics</div>
+    <div class="sub">Circle Analytics - Split Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#045">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/analytics-variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-046" data-id="046" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#046</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/analytics-variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvTfO7-qC2nLt89e339YDhPX4fhEPHH4bIa29y_g3lv6kaOzMN2AEfpFcwIHeuRW_MZ66PmS-ELrzKeZupm4Z7i-XYzSeiT8XNRlTksogd15SvINGCEuheYMorUmLqBNYo8s_p-Y-K7WoP9_23NsUQY8wLVPkYyodHr58zkx1TipN0zqMMBwic_Fzo4CpUweuQwSBH65CCDb15_DPqZQiwIIkHGSKu06ivw-3FIAbAXhaiZtOM4DF2Q39M" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/analytics-variant-c.html" data-title="分析数据 · 方案 C" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">分析数据 · 方案 C</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/analytics</div>
+    <div class="sub">Circle Analytics - Command Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#046">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/analytics-variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-047" data-id="047" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#047</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/community-variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsTm7fjLhfcU0LXcQ7LJke_HumHPcvQxM5GBVVJANMH654i9XDZZ8droiD5T7euOolIH13rgGyhiCTaXxl4p40pDYzCW34gv4wlc_RVLljkva2BQuju-aM6xZE2tJw8AkQGRDW6VL_-Ka-0JzLWvUfQX6yHocPNB1Uf047JaQK_RLHw5VG51tj4PihbNnnw5ad19n-iBkqYKTpuofAXNChjpIrJqv22J7j855DALtD8OrGpD0xnN1aoLg" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/community-variant-a.html" data-title="圈子社区 · 方案 A" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">圈子社区 · 方案 A</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/community</div>
+    <div class="sub">Circle Detail - Dynamic Grid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#047">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/community-variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-048" data-id="048" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#048</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/community-variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLv5Ux5y3UVpxEV_8YLG9NjVgrDsvIFvSGib_ZgVmKB7djA-BKwWTPBp2tnpw0C3Lp0BI_TZit9Tj03580SbrkeREv9TL1Ot4Szoav39oPXJXqz7MK-wfC0xuvivZWSosln5h2RnUi4i2_BMF2frHBpLKK2QhK36R95GzEvSamEUsGsTxyhU3jApylvqv3n7NBuH18rWJLj7z56XhFY3adJFZempc1RIkyxvWIkp1dROx1uROzYjZ0Sk" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/community-variant-b.html" data-title="圈子社区 · 方案 B" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">圈子社区 · 方案 B</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/community</div>
+    <div class="sub">Circle Detail - Analytical Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#048">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/community-variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-049" data-id="049" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#049</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/community-variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvAW3sM_IdTa05vyB8nKxQgtt7F06f8spL4J0Vif0_3Gk4jtiGj79PSRQjl0liCrs00X602rXkbf92dFdJ7tsP6HWtAW4uDUSzsSV_EC8xmlnxHuQJvcjnEIBVe16-lpnrPH8H9zSlHR5APc89dW-k0uE1giPhIB3aOPti2tQwd0ywubm0L06dk7VFNWKSD3AwThrbmtklh5JxXJVbB-WSSRZt70k7wlRZlVutpCL7Vpx5mLWTuEBNZ5o4" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/community-variant-c.html" data-title="圈子社区 · 方案 C" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">圈子社区 · 方案 C</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/community</div>
+    <div class="sub">Circle Detail - Action-Focused Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#049">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/community-variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-050" data-id="050" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#050</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/help-variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtz25oleBRohhYePc7-0HbepejID4MJ_7rSIbkkgd_CYcx-vsliuP-mIVNLcgodMMY50SceUvwHLMBNEpPadwc8yIaK38mSX93k643vDvy6ewhtN19vXuVae6vbef80QTCCXfaGIc-_oHarGWeJ2RvrATh7MqJ6DU663zu-ZeLPdyAOE4Cc7FqfAP2mBoYxjez3PzPpD0FH8M0Cy6DgRGakn2ASZ646rCjZgJaVAduoKmwU3y7RwI9DsHU" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/help-variant-a.html" data-title="帮助中心 · 方案 A" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">帮助中心 · 方案 A</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/help</div>
+    <div class="sub">Circle Help - Asymmetric Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#050">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/help-variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-051" data-id="051" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#051</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/help-variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLunkT2KuN5pv0TbsSC5sLMqm4nyu1q5xq8LLG3IKoKUHSjSfbq273iV83yRTSN6HHZ5KuENh5YlXlF3htCyyVGVLNDgidnBDFUrLRj5QtoyT06cTVKV-3GyPsoUc5GVxQ652YllyXIyyhuPVQvAA1lMyKuXtZlB6NiiYjzVYfhODCJpeTVXX6ZP0Mz76GcBdI349__3JAdS7SfZfyxB1P_oTU0Tr19RFBn2Wp8i88uPnH3exHGXcnoCCQ" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/help-variant-b.html" data-title="帮助中心 · 方案 B" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">帮助中心 · 方案 B</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/help</div>
+    <div class="sub">Circle Help - Structured Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#051">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/help-variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-052" data-id="052" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#052</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/help-variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt8mpwj-kJlQ9khmkp3zFw9aQnL6X2X9u6TUYuU_mIkBRodeQHeg0gNpKoDkFo4SsdKxc7r27jmVPvyMSSrLXpgt8gHHw004chvQB4GcdeJAGO3xWdChkmv0eWSne_vlCALeUPNL-DRECXSaH8JXkBrG-TWZcEUxioNowH9VvU6xqGbtfipjpquE1ICfjsDbYJQbDKiXP-qvakhcWY7u6LpYkUYajDP2k4UpKNRTXX7UOs1q9cvKR7z6AY" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/help-variant-c.html" data-title="帮助中心 · 方案 C" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">帮助中心 · 方案 C</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/help</div>
+    <div class="sub">Circle Help - Bento Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#052">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/help-variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-053" data-id="053" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#053</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/home-variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvbFMTryDWST5_QAvNYT6CBDbc87r6Jv8S5PaNwmOpIsAozZkmzGY7Tha0Mx22uh2t64nf2szS5DI8Tz6sTz4tjH4PV_QV3uRlH3SGJpTwnEEbGiZyKrVxoUr9vjP6tBVONqhLmf1OlRiiKVzqXgmiZVa_GqCblBVkvVaE_EgbjRkHwqfZVqFym4vaY7ghinBQBkePexiZRzL_QehUYSi146awD56G8JINkWJDeGW6NAMUeVUlrs3uK7w" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/home-variant-a.html" data-title="首页 · 方案 A" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">首页 · 方案 A</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/home</div>
+    <div class="sub">Circle Home - Structured Grid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#053">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/home-variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-054" data-id="054" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#054</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/home-variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLuCdISkuthLl5Zcaujbf6-PrcURr59r8msQgwPbmdmIT4-YoiS8oaW5sfn6agUDR7prUS5Ny-lNI_qaNgkfhGRamwUGqwE2pE2KN-2u2WqpnallguG4y3c1d8_W0UVtd7UvFC5p3wO6qVybQI0sByHaAgyHmddUYNJaROMvSsH3VC40uLdVqNR6ttEnYCvUdZhuXjTAYT6l3wQDSBYYeedGSrTDHAT2Bxg_xn0FgTkT2dLc9H3uSSAAMA" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/home-variant-b.html" data-title="首页 · 方案 B" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">首页 · 方案 B</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/home</div>
+    <div class="sub">Circle Home - Asymmetric Layout Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#054">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/home-variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-055" data-id="055" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#055</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/home-variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtPmDyZWRiCISxWN2jqygPyV3FDoVmbgm_xFE5sMOSwz-B5U_i0RyXsoC5KIsniAcCV72kzKop3oPf2T9K_PvV3Tbb0PCpP2s4PY3xyEy2HVatkGWzIDLxrmlAwY75LwiBiqak8lZtYtq32rlTR02sB3SkfkMlnTJ74DzMaLl-VDoLIqviQSMpYE5nkc14IquTgmbKXbfofoqflPP0i9NZB5uPyS5m9qZUzCaFdWYhAlqzM8p0Dy3fakM0" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/home-variant-c.html" data-title="首页 · 方案 C" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">首页 · 方案 C</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/home</div>
+    <div class="sub">Circle Home - Focus Center Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#055">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/home-variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-056" data-id="056" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#056</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/resources-variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsU9VtNOp7Tcznz5YfBp0i4KzHxRz0W_Fka1lbqHVpsf4hLpsUpLm_82hT9UvZavgra3-0iW4vnN2zycQqV-YcMpYOTy6RDVGzQm95xeUqJn18E2sJO7q6wovX8YzjdBHcXNqsXZ17R3TSOEaorb8hbx_NgKKZYQNNEoDNHy7d71Bp0v8MAl8Ku-hGubon6oTwOQGlhsftKP_Q4H-8gYP4DDcXAEoVOGmuOG-3gAja7V-h9fzmdJBd0ig" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/resources-variant-a.html" data-title="资源文件 · 方案 A" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">资源文件 · 方案 A</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/resources</div>
+    <div class="sub">Resources - Asymmetric Filter Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#056">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/resources-variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-057" data-id="057" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#057</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/resources-variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtlf6WfwtZEZOKw_sRxKqEybppD5-EufPWE2Byu2s0WDpoF8rzE9yfAOhfL7Ng70ac4daxVSxFFaVQEOgtdgWEyj6QrcMiqtSNo66KEOJg2aC1YXfzGn-o2qrwHQB3LSFT3o_nYxq70xsMaZcGW5avHBmZoJ5bpa1UoKhyWQo10rMzmpj93TaIkpmQCPTBBUCjwMSLYTkuE2GJQ7sxULfnw_W20YpfGXlRbB26fkDM9D4sL2_JXY4VU6Q0" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/resources-variant-b.html" data-title="资源文件 · 方案 B" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">资源文件 · 方案 B</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/resources</div>
+    <div class="sub">Resources - Structured Grid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#057">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/resources-variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-058" data-id="058" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#058</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/resources-variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLuCYBgRxxxHxNI-9SJ7z55iypOb7PVlrEfNzFvn_O5z5c0IS6azU71DLdfIq6HYJfbcXwKYcvTBCYGO5vJc3x7gIl_RMIw0Lwrag8ujqf1XfZ0AzftPoGDsAYKDc7zjbsuDOxDjMuOvc7Hc7B81c_BZYtvvBLq1WXluzmFdpmLvL7SJw-44yh5IUz7-RTDrho0L_ioaXR1Lk6OqxNxf_Di3TsnHzFa6Q2FulkMcGg3SsrfgBmUl8N1dkTA" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/resources-variant-c.html" data-title="资源文件 · 方案 C" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">资源文件 · 方案 C</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/resources</div>
+    <div class="sub">Resources - Bento Hybrid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#058">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/resources-variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-059" data-id="059" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#059</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/teams-variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLubqar9mQJwSRHnqwGFzyqUH7lrmoRcuO0ro0ejOX5I5GjpIvkUL7jx6z5LDChgmCB6ryGKdK-mKUU6tbaRMXiaTC0PJ1ENlczhfBNyWl988evYx9tMYQkDAdXxDvWgfyuoeOoso6s6tlTgFCJ6NnfTuZ92C4OGnaTg3HF0axFq89M2gEO8trjH-R4Jy2uzmgfG08o_31iqHaCctEoQfm5haQJLfC-w46qIcZAzcY5vOcMKGD_QyPfCiw" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/teams-variant-a.html" data-title="我的团队 · 方案 A" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">我的团队 · 方案 A</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/teams</div>
+    <div class="sub">My Team - Bento Hybrid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#059">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/teams-variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-060" data-id="060" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#060</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/teams-variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvFWb7ITEITm-fwFdPqJNnd2g0qeucmZVbMYibXhmoprxo9uMNEIbxW2THbJolfZIJ_n72X3jVNi7KvdOJ-FfdBo6AQoX2An0ltdOxGd8RzYksBjNd7LD_U47e5myDfKVBk8pZ9M_RgQAUQLwYF98Qic1AeJ3A1CpFtO3ASdRUX48Q8CYaYUatxJpiZz3m3RJboko1SrkRsRm1AdTF7LIw-WpGncTchY_fIu_-YRYulQMvKJnmXzxcbNg" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/teams-variant-b.html" data-title="我的团队 · 方案 B" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">我的团队 · 方案 B</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/teams</div>
+    <div class="sub">My Team - Split Management Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#060">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/teams-variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-061" data-id="061" data-cat="circle-hub">
+  <div class="card-top">
+    <span class="num">#061</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-circle-hub-subpages/teams-variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtHmGGJ0Gyg8PegAjBMl4aE0urbi2uaAxIlV9VVzNQLuc1ZaIss6RCYuzx4Bk4oTIh2HHRthM6kcs_IfdH9HjhJlRa2TNjmcXgPX6GQvg6Ot4IW2YadyJ_-xHaeuobxC16RliavZsvKfMj8rLj8Bu60m_thflQ90Rm1kplv8_e8-E0LDOf8fvKzX24JIvsQa3IIpi4mojm03pNiQ1xO8kt-GrirYVZHx2qhjzdzLuyO5W4L386-sOuN5QY" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-circle-hub-subpages/teams-variant-c.html" data-title="我的团队 · 方案 C" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">我的团队 · 方案 C</div><span class="format-badge html">HTML 可交互</span></div>
+    <div class="route">/circles/:id/teams</div>
+    <div class="sub">My Team - Structured Grid Variant</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#061">复制编号</button>
+      <a class="open-html" href="stitch-circle-hub-subpages/teams-variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-wallet-hub" data-cat="wallet-hub">
+  <header class="cat-header">
+    <div>
+      <h2>钱包 Hub 子页</h2>
+      <p>暖金奢华统一风格子页</p>
+    </div>
+    <span class="cat-range">#062 – #068</span>
+  </header>
+  <div class="grid"><article class="card" id="item-062" data-id="062" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#062</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/analytics.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvHcJYq87NdFBCphcAiGi-GAbZI0T9kYae0kDb8NBLAqlvz83_sRxijMMPS_kH3YU0CUQ1Qy18y_Wj2CxxZDPhPvw1LAtbMIyt1Nz_RuR6FXeiSbTIHRAiFsK-4BirJfz1aWVDM1MeMroVjoO5hmarWaXv3e1zQK42XQUWb1esg1ftYuznYUR2Gnxe9V0Lsav4Lm2Q6sPRF0eA1nIJNuejHdqXmtCG0GzEtSF3e1w8AvYkK4Vhgw-KssEk" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/analytics.html" data-title="分析数据 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">分析数据 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">analytics</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#062">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/analytics.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-063" data-id="063" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#063</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/community.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtLBYkHLP3DLqSODhhsZLXm_fJTsXVzddZ8TWTYrK0bLV3KRpYcTaOhYF1NnFCjxGDceFr4RPY3uWu1O8eI97VtnG6oAfmMSztKSrHt8FgAL42ZuTz-I1NgxkDDNhRKXPA9Pd24gM1aQ6vX_WXlxSbJzyqMETj6FkWHL7uLtxsr6YjZy8U4lYEkY0hQbbgIR_xqUxKkT5hPEMlDi3enZN-KIvNuuAY557d5vYCCXG5GfWS_eK8CJil1HIo" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/community.html" data-title="圈子社区 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">圈子社区 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">community</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#063">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/community.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-064" data-id="064" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#064</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/help.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLsc0fNs2SDSutjyTfFahDydcemEwAm6AtYQYuLWXvZmTOJPlJwTrmgN_XbaDzV0mv7tB7oKSZgSbM3Mbx4kFMXEYgsqovqxkJgza9xQYDmKUlC34kVoXiVrDdTQuj2PYpAtfyGyaCjHlWSgShBcTEg4QHzmq7sLqKbGVHym8V8o-u3lW0c-ugL00PMw661gUlW9MDtBOMkjRLsOiZ-g06O6BsCfoGk8nG77n9ow2iosa0EmqC2FnDvuezg" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/help.html" data-title="帮助中心 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">帮助中心 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">help</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#064">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/help.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-065" data-id="065" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#065</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/home.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvRxAVN7HdulQ5cx61dh6qO-1GUt7ngb7hsNknEMi4rC5ww9Mm3iYL113sKB8UlWWWHTbmYjeiZdDPW9cNlgjt5mVOrK8H7qaJ6hiFo4ouF19mRxg1SYbz7erYWPLADn2XqQL8cnTLZqiinRg-vWIg0MHhZY5qx1G7Ao8tVrSInQRQeG9dRZyU-8xSlRCNERyjOi4_BQ4to5aifabp7G3s57tgPqSQg-vOLmzQ28DYLK5WPFADfEZJSNg" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/home.html" data-title="首页 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">首页 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">home</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#065">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/home.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-066" data-id="066" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#066</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/resources.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLv7jTA1iHYntJWxz1SC9l1YdDsEmaHn7FFeF92VdL1WrVD1i-kLTk-schbRiDvwQ_vqisB_7FLn0SYLDeAcxRBCOeys9SDLS1uQMqpBZ6y-kV4sU3iVQZtlN7jv_S-N1aatQk-VkH86r6tNCWnR5NHZfrKqd5Gs9pKmw1xlmUECNCNcSrkwCgvWEES4wqAixKB9Ul4z-oRAM7GLdd4-PoIGhmavAieSijHpgkyk35Ue9h81xO66tGNXO5E" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/resources.html" data-title="资源文件 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">资源文件 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">resources</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#066">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/resources.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-067" data-id="067" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#067</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/teams.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLumVZLXq7-R9yFEo_jjPq2pFERHeaYp-SI48-MWHlhWbGBUHdzbzLznpLiLjdmFzRphKO-Tayl3MVnA6pteCHKf94ESE03UOnoU918TUgdhRBRSN-7sJ-o7TsIoSx_UT14Nq14uRY_5sERrbHaV8ks57DqEsxmzye4p7vILVlWGvSqRQEgp09MiU6HAU14me0rEhwMym0sD242sAxMznUqXCtD0LFaus4YNr3b--xUl8ntnY51BOv0PbPU" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/teams.html" data-title="我的团队 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">我的团队 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">teams</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#067">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/teams.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-068" data-id="068" data-cat="wallet-hub">
+  <div class="card-top">
+    <span class="num">#068</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-wallet-hub-subpages/wallet.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLurQDP7RwpRXgRxFpbMKgvlMOD7aGvUfMgcNpeCNd4wARta8IqC5_HDtt2aATqlA0VG43S7j_KMefCXk3jLlrNrKsUzKo0W4zES82MobVk9L3hd_pWcGQ8b9MK7dl80qNlbiuHkhvzEUznNJLU9mEDCDIlNg6NZweu5m4-692v05CXgRRDJsy7HJ7Vrqg3YaWwwYi2PhhW4-ntQ0tO4x6qscgWp8M60WAk-hXMUx46tQ0LzJyUszteN_A" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-wallet-hub-subpages/wallet.html" data-title="点数钱包 - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">点数钱包 - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">wallet</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#068">复制编号</button>
+      <a class="open-html" href="stitch-wallet-hub-subpages/wallet.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-points-wallet" data-cat="points-wallet">
+  <header class="cat-header">
+    <div>
+      <h2>点数钱包</h2>
+      <p>钱包页 5 种视觉变体</p>
+    </div>
+    <span class="cat-range">#069 – #073</span>
+  </header>
+  <div class="grid"><article class="card" id="item-069" data-id="069" data-cat="points-wallet">
+  <div class="card-top">
+    <span class="num">#069</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-points-wallet/variant-a.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvGlna3Wjn2isASbNdqBXsbItuBKUeC7GFDM5TzaNnVGb9sIBgp8CMSiXNBXJwAo8B5UKh8sfRkf7Gz9MBAihS0tX1Y3nwzgXx3o1BbRIQHKhkwjM4T89IM0TYKdUp-hXw2fT_JYpDeazUe9o7BJq5OYpBloLmKCBVAnWbsogkKSXrkB88NVz3V6l8GqQwWHYbgsVtkuuo7zn8Bwa7dT1fU6JQwbgM6ZuBUUXxY8nuldyq0XoAqZz_-zRk" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-points-wallet/variant-a.html" data-title="Points Wallet - Dark Glass Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Points Wallet - Dark Glass Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">暗色玻璃 · 品牌默认</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#069">复制编号</button>
+      <a class="open-html" href="stitch-points-wallet/variant-a.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-070" data-id="070" data-cat="points-wallet">
+  <div class="card-top">
+    <span class="num">#070</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-points-wallet/variant-b.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLvzBf-4XfGytNn40MUQxpT-gEQnI_cp3D7MgCdxQKzZ3sMYRkzittrmkM90lgccg9nVyeNi9SlFggI8_zgZOWioHV86v7VwoFWwrLkdKINOOp-DaWTZYJzKYa-941deMz9eeMRcYOOiTaAT8doPOz_9pSRQVnMJbi8wUhn5tXXBLpt3MgPg-CSDp9FVPH6wB4Nfh3_K47ayy1ePACjyGUuKPskZRALMZCXx-JZLpKJICCm58_bYluzw6og" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-points-wallet/variant-b.html" data-title="Points Wallet - Bento Dashboard Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Points Wallet - Bento Dashboard Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">Bento 仪表盘</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#070">复制编号</button>
+      <a class="open-html" href="stitch-points-wallet/variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-071" data-id="071" data-cat="points-wallet">
+  <div class="card-top">
+    <span class="num">#071</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-points-wallet/variant-c.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLtMDbYc4EfUosn1ItY657PqMvJn_oniy2atr2QkcevydAJKLnmxTMhzcGWiY2MlwY7As6H35L5aE_fLgzIff165xsXlB4s_a_japJZNSi-0RoJF2Bu68pyUwo5dHkQ_K-CwcmIVvRuloTJdcbDnHRspRlm9bftkXZ0HjZfxba7JZ51SR97cO9p1KgnqQ05D_GVgMLjOQOUEUC9XIfhGnEZ0KMYl0BQIaJ9u7w_iR5gSTKIIaFsQySN8Mg" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-points-wallet/variant-c.html" data-title="Points Wallet - Split Ledger Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Points Wallet - Split Ledger Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">左右分栏 · 流水账</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#071">复制编号</button>
+      <a class="open-html" href="stitch-points-wallet/variant-c.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-072" data-id="072" data-cat="points-wallet">
+  <div class="card-top">
+    <span class="num">#072</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-points-wallet/variant-d.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLurQDP7RwpRXgRxFpbMKgvlMOD7aGvUfMgcNpeCNd4wARta8IqC5_HDtt2aATqlA0VG43S7j_KMefCXk3jLlrNrKsUzKo0W4zES82MobVk9L3hd_pWcGQ8b9MK7dl80qNlbiuHkhvzEUznNJLU9mEDCDIlNg6NZweu5m4-692v05CXgRRDJsy7HJ7Vrqg3YaWwwYi2PhhW4-ntQ0tO4x6qscgWp8M60WAk-hXMUx46tQ0LzJyUszteN_A" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-points-wallet/variant-d.html" data-title="Points Wallet - Warm Luxury Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Points Wallet - Warm Luxury Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">暖金奢华 · 金融感</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#072">复制编号</button>
+      <a class="open-html" href="stitch-points-wallet/variant-d.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-073" data-id="073" data-cat="points-wallet">
+  <div class="card-top">
+    <span class="num">#073</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-points-wallet/variant-e.html" target="_blank" rel="noopener"><img src="https://lh3.googleusercontent.com/aida/AP1WRLt8ciN9gTKrfoipXzAApkD0ArVQtbsKdEXooEfzEJlFLeE2gKTeGkl-wbEmwH28MOQY0k6TPGCDzYxfJNKtNnneJhggfNicY-Rumu2PzlLwxp4Wkrlf0A304x7zzx5GUGe_l7VAaC4N8tK2gxPe4NPu2xlkjdQh8OrqcED73NCBrQbNQD8vckWFifsIRReiz2CNaqgFjxRlcMhP5pd7_LtdZ0M5VgiLjm4j1b4sEt1E7ivx4Xjhkb1TLg" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-points-wallet/variant-e.html" data-title="Points Wallet - Terminal Brutalist Variant" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">Points Wallet - Terminal Brutalist Variant</div><span class="format-badge html">HTML 可交互</span></div>
+    
+    <div class="sub">终端风 · 硬核数据</div>
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#073">复制编号</button>
+      <a class="open-html" href="stitch-points-wallet/variant-e.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article></div>
+</section>
+<section class="category" id="cat-tax-visualizer" data-cat="tax-visualizer">
+  <header class="cat-header">
+    <div>
+      <h2>税务可视化</h2>
+      <p>标签统计 / 税务终端</p>
+    </div>
+    <span class="cat-range">#074 – #078</span>
+  </header>
+  <div class="grid"><article class="card" id="item-074" data-id="074" data-cat="tax-visualizer">
+  <div class="card-top">
+    <span class="num">#074</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-tax-visualizer/baseline.png" target="_blank" rel="noopener"><img src="stitch-tax-visualizer/baseline.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">基线截图</div><span class="format-badge">渲染 PNG</span></div>
+    <div class="route">/my-tags</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#074">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-075" data-id="075" data-cat="tax-visualizer">
+  <div class="card-top">
+    <span class="num">#075</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-tax-visualizer/variant-a-hero-driven.png" target="_blank" rel="noopener"><img src="stitch-tax-visualizer/variant-a-hero-driven.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 A · Hero 驱动</div><span class="format-badge">渲染 PNG</span></div>
+    <div class="route">/my-tags</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#075">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-076" data-id="076" data-cat="tax-visualizer">
+  <div class="card-top">
+    <span class="num">#076</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-tax-visualizer/variant-b-analytical-split.png" target="_blank" rel="noopener"><img src="stitch-tax-visualizer/variant-b-analytical-split.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 B · 分析分栏</div><span class="format-badge">渲染 PNG</span></div>
+    <div class="route">/my-tags</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#076">复制编号</button>
+      
+    </div>
+  </div>
+</article>
+<article class="card" id="item-077" data-id="077" data-cat="tax-visualizer">
+  <div class="card-top">
+    <span class="num">#077</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-tax-visualizer/variant-b.html" target="_blank" rel="noopener"><img src="stitch-tax-visualizer/variant-b.html" alt="" loading="lazy" class="preview-img" data-fallback="iframe" data-href="stitch-tax-visualizer/variant-b.html" data-title="方案 B · 分析分栏（HTML）" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 B · 分析分栏（HTML）</div><span class="format-badge">渲染 PNG</span></div>
+    <div class="route">/my-tags</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#077">复制编号</button>
+      <a class="open-html" href="stitch-tax-visualizer/variant-b.html" target="_blank" rel="noopener">打开 HTML ↗</a>
+    </div>
+  </div>
+</article>
+<article class="card" id="item-078" data-id="078" data-cat="tax-visualizer">
+  <div class="card-top">
+    <span class="num">#078</span>
+    <button type="button" class="mark-btn" title="标记为即将构建" aria-pressed="false">☆</button>
+  </div>
+  <a class="thumb-link" href="stitch-tax-visualizer/variant-c-modular-grid.png" target="_blank" rel="noopener"><img src="stitch-tax-visualizer/variant-c-modular-grid.png" alt="" loading="lazy" /></a>
+  <div class="meta">
+    <div class="title-row"><div class="title">方案 C · 模块化网格</div><span class="format-badge">渲染 PNG</span></div>
+    <div class="route">/my-tags</div>
+    
+    <div class="actions">
+      <button type="button" class="copy-btn" data-copy="#078">复制编号</button>
+      
+    </div>
+  </div>
+</article></div>
+</section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const STORAGE_KEY = 'ninewood-ui-gallery-marked';
+    const marked = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+    let filterMarked = false;
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...marked].sort()));
+      updateUI();
+    }
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 1800);
+    }
+
+    function updateUI() {
+      document.querySelectorAll('.card').forEach((card) => {
+        const id = card.dataset.id;
+        const on = marked.has(id);
+        card.classList.toggle('marked', on);
+        const btn = card.querySelector('.mark-btn');
+        if (btn) {
+          btn.textContent = on ? '★' : '☆';
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+      });
+
+      const list = [...marked].sort();
+      const panel = document.getElementById('selection-panel');
+      const listEl = document.getElementById('selection-list');
+      if (list.length) {
+        panel.classList.add('visible');
+        listEl.textContent = list.map((n) => '#' + n).join(', ');
+      } else {
+        panel.classList.remove('visible');
+      }
+
+      document.getElementById('main').classList.toggle('filter-marked', filterMarked);
+      document.getElementById('btn-filter-marked').textContent = filterMarked ? '显示全部' : '只看已选';
+    }
+
+    document.querySelectorAll('.mark-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = btn.closest('.card');
+        const id = card.dataset.id;
+        if (marked.has(id)) marked.delete(id);
+        else marked.add(id);
+        save();
+      });
+    });
+
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const text = btn.dataset.copy;
+        await navigator.clipboard.writeText(text);
+        toast('已复制 ' + text);
+      });
+    });
+
+    document.getElementById('btn-copy-selected').addEventListener('click', async () => {
+      const text = [...marked].sort().map((n) => '#' + n).join(', ');
+      if (!text) { toast('尚未标记任何渲染稿'); return; }
+      await navigator.clipboard.writeText(text);
+      toast('已复制 ' + text);
+    });
+
+    document.getElementById('btn-clear-selected').addEventListener('click', () => {
+      marked.clear();
+      save();
+      toast('已清空标记');
+    });
+
+    document.getElementById('btn-filter-marked').addEventListener('click', () => {
+      filterMarked = !filterMarked;
+      updateUI();
+    });
+
+    const sections = document.querySelectorAll('.category');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.dataset.cat;
+            navLinks.forEach((a) => a.classList.toggle('active', a.dataset.cat === id));
+          }
+        });
+      },
+      { rootMargin: '-30% 0px -60% 0px' },
+    );
+    sections.forEach((s) => observer.observe(s));
+
+    updateUI();
+  </script>
+  <script>
+    // 按卡片宽度缩放 iframe，使 HTML 稿在网格里可见
+    function fitIframePreviews() {
+      document.querySelectorAll('.iframe-wrap').forEach((wrap) => {
+        const iframe = wrap.querySelector('iframe');
+        if (!iframe) return;
+        const w = wrap.clientWidth || 280;
+        const scale = w / 1280;
+        iframe.style.transform = 'scale(' + scale + ')';
+        wrap.style.height = 800 * scale + 'px';
+      });
+    }
+    fitIframePreviews();
+    window.addEventListener('resize', fitIframePreviews);
+    if ('ResizeObserver' in window) {
+      const ro = new ResizeObserver(() => fitIframePreviews());
+      document.querySelectorAll('.grid').forEach((g) => ro.observe(g));
+    }
+
+    // 外链截图加载失败时，回退为 iframe 实时预览
+    document.querySelectorAll('img.preview-img').forEach((img) => {
+      const swap = () => {
+        const wrap = document.createElement('div');
+        wrap.className = 'iframe-wrap';
+        wrap.dataset.src = img.dataset.href;
+        wrap.innerHTML = '<iframe src="' + img.dataset.href + '" title="' + img.dataset.title + '" loading="lazy" tabindex="-1"></iframe>';
+        img.replaceWith(wrap);
+        fitIframePreviews();
+      };
+      img.addEventListener('error', swap, { once: true });
+      if (img.complete && img.naturalWidth === 0) swap();
+    });
+  </script>
+</body>
+</html>

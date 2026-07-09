@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>加入九木 - Ninewood</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#743500",
+                      "surface-container-low": "#181c23",
+                      "surface-bright": "#363941",
+                      "secondary-fixed-dim": "#adc7fc",
+                      "surface-variant": "#32353c",
+                      "on-error-container": "#ffdad6",
+                      "primary": "#abc7ff",
+                      "surface-container-highest": "#32353c",
+                      "surface": "#10131a",
+                      "on-surface": "#e0e2ec",
+                      "background": "#10131a",
+                      "surface-container-lowest": "#0b0e15",
+                      "on-secondary": "#12305c",
+                      "error": "#ffb4ab",
+                      "outline-variant": "#414754",
+                      "error-container": "#93000a",
+                      "surface-container-high": "#272a31",
+                      "on-tertiary-fixed": "#321300",
+                      "on-primary-fixed": "#001b3f",
+                      "on-tertiary": "#512300",
+                      "on-primary-fixed-variant": "#004590",
+                      "primary-fixed": "#d7e2ff",
+                      "on-secondary-container": "#9cb5ea",
+                      "secondary": "#adc7fc",
+                      "on-tertiary-container": "#471e00",
+                      "secondary-fixed": "#d7e2ff",
+                      "surface-tint": "#abc7ff",
+                      "on-background": "#e0e2ec",
+                      "on-error": "#690005",
+                      "inverse-surface": "#e0e2ec",
+                      "on-secondary-fixed": "#001b3f",
+                      "on-secondary-fixed-variant": "#2c4674",
+                      "tertiary-fixed": "#ffdbc8",
+                      "outline": "#8b919f",
+                      "inverse-primary": "#005cbc",
+                      "on-surface-variant": "#c1c6d6",
+                      "surface-dim": "#10131a",
+                      "tertiary-fixed-dim": "#ffb689",
+                      "surface-container": "#1c2027",
+                      "on-primary-container": "#00285a",
+                      "primary-fixed-dim": "#abc7ff",
+                      "inverse-on-surface": "#2d3038",
+                      "secondary-container": "#2c4674",
+                      "on-primary": "#002f66",
+                      "tertiary": "#ffb689",
+                      "primary-container": "#458fff",
+                      "tertiary-container": "#e4700c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "md": "16px",
+                      "xs": "4px",
+                      "gutter": "24px",
+                      "lg": "24px",
+                      "margin-desktop": "64px",
+                      "sm": "8px",
+                      "xl": "40px",
+                      "unit": "4px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Geist"
+                      ],
+                      "headline-lg-mobile": [
+                              "Geist"
+                      ],
+                      "headline-lg": [
+                              "Geist"
+                      ],
+                      "label-md": [
+                              "Geist"
+                      ],
+                      "body-md": [
+                              "Geist"
+                      ],
+                      "label-sm": [
+                              "Geist"
+                      ],
+                      "display": [
+                              "Geist"
+                      ],
+                      "body-lg": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #0A0A0A;
+            font-family: 'Geist', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            border-color: #3388FF;
+            outline: none;
+            box-shadow: 0 0 10px rgba(51, 136, 255, 0.2);
+        }
+
+        .primary-btn {
+            background-color: #3388FF;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-btn:hover {
+            background-color: #2b74d9;
+            box-shadow: 0 0 15px rgba(51, 136, 255, 0.4);
+        }
+
+        .primary-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .custom-checkbox:checked {
+            background-color: #3388FF;
+            border-color: #3388FF;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            top: 2px;
+        }
+        
+        .custom-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(51, 136, 255, 0.5);
+        }
+      </style>
+</head>
+<body class="text-on-surface antialiased overflow-x-hidden flex flex-col justify-between">
+<!-- TopAppBar Shell (Suppressed for Transactional intent, but explicitly requested by user as "Floating at top center") -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-center px-margin-mobile md:px-margin-desktop mt-6">
+<div class="glass-panel rounded-full flex items-center justify-between px-6 py-2 mx-auto max-w-xs w-full shadow-lg">
+<div class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">Ninewood</div>
+<nav class="flex gap-2">
+<a class="text-on-surface-variant hover:text-on-surface px-4 py-2 hover:bg-white/5 transition-all duration-300 rounded-full font-label-md text-label-md scale-95 active:scale-90 flex items-center justify-center" href="#">登录</a>
+<!-- Active Navigation State -->
+<a aria-current="page" class="text-primary font-bold bg-primary/10 rounded-full px-4 py-2 font-label-md text-label-md scale-95 active:scale-90 flex items-center justify-center" href="#">注册</a>
+</nav>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex items-center justify-center p-4 relative z-10 pt-32 pb-16">
+<!-- Center Card -->
+<div class="glass-panel rounded-[2rem] w-full max-w-[420px] p-[24px] flex flex-col gap-8 shadow-2xl relative overflow-hidden">
+<!-- Subtle glow effect behind card -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-[64px] pointer-events-none -z-10"></div>
+<div class="text-center space-y-2">
+<h1 class="font-headline-lg text-headline-lg text-white">加入九木</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">验证手机号以注册</p>
+</div>
+<form class="flex flex-col gap-6 w-full">
+<!-- Phone Input -->
+<div class="flex flex-col gap-2">
+<label class="sr-only" for="phone">手机号</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined select-none pointer-events-none" style="font-variation-settings: 'FILL' 0;">smartphone</span>
+<input class="glass-input w-full rounded-full h-12 pl-12 pr-6 text-white placeholder:text-on-surface-variant/50 font-body-md text-body-md focus:ring-0" id="phone" name="phone" placeholder="请输入手机号" type="tel"/>
+</div>
+</div>
+<!-- Birth Date Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant px-2" for="birthdate">出生日期 (必填，14周岁以下无法注册)</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant material-symbols-outlined select-none pointer-events-none" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+<input class="glass-input w-full rounded-full h-12 pl-12 pr-6 text-white font-body-md text-body-md focus:ring-0 [&amp;::-webkit-calendar-picker-indicator]:filter [&amp;::-webkit-calendar-picker-indicator]:invert [&amp;::-webkit-calendar-picker-indicator]:opacity-50" id="birthdate" name="birthdate" type="date"/>
+</div>
+</div>
+<!-- Agreements -->
+<div class="flex flex-col gap-3 px-2 pt-2">
+<label class="flex items-start gap-3 cursor-pointer group">
+<input class="custom-checkbox mt-[2px] shrink-0" required="" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant group-hover:text-on-surface transition-colors leading-tight">我已阅读并同意<a class="text-primary hover:underline" href="#">《用户协议》</a></span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<input class="custom-checkbox mt-[2px] shrink-0" required="" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant group-hover:text-on-surface transition-colors leading-tight">我已阅读并同意<a class="text-primary hover:underline" href="#">《隐私政策》</a></span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<input class="custom-checkbox mt-[2px] shrink-0" required="" type="checkbox"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant group-hover:text-on-surface transition-colors leading-tight">同意敏感个人信息处理<a class="text-primary hover:underline" href="#">(PIPL单独同意)</a></span>
+</label>
+</div>
+<!-- CTA -->
+<div class="flex flex-col gap-4 mt-2">
+<button class="primary-btn w-full rounded-full h-12 font-label-md text-label-md font-semibold text-white flex items-center justify-center" type="submit">
+                        获取验证码
+                    </button>
+<div class="text-center">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors hover:underline" href="#">密码登录</a>
+</div>
+</div>
+</form>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="fixed bottom-0 w-full flex flex-col items-center pb-8 gap-2 bg-transparent z-10">
+<div class="flex gap-4">
+<a class="font-label-sm text-label-sm text-outline hover:text-on-surface-variant hover:underline opacity-80 hover:opacity-100 transition-all duration-300" href="#">用户协议</a>
+<span class="text-outline/50 font-label-sm text-label-sm select-none">•</span>
+<a class="font-label-sm text-label-sm text-outline hover:text-on-surface-variant hover:underline opacity-80 hover:opacity-100 transition-all duration-300" href="#">隐私政策</a>
+<span class="text-outline/50 font-label-sm text-label-sm select-none">•</span>
+<a class="font-label-sm text-label-sm text-outline hover:text-on-surface-variant hover:underline opacity-80 hover:opacity-100 transition-all duration-300" href="#">PIPL 政策</a>
+</div>
+<p class="font-label-sm text-label-sm text-outline opacity-80">© 2024 Ninewood. 保留所有权利。</p>
+</footer>
+</body></html>

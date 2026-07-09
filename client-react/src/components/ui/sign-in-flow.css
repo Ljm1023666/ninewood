@@ -1,0 +1,406 @@
+/* 登录页隔离 Ninewood 全局 reset，避免间距/行高被覆盖 */
+.sign-in-flow-root {
+  isolation: isolate;
+  line-height: 1.5;
+  font-size: 1.18125rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.sign-in-flow-root header {
+  width: auto;
+  max-width: min(770px, calc(100vw - 3rem));
+}
+
+/* 导航链接 hover 上滚动画（固定行高，避免双行叠字） */
+.sign-in-flow-root .sign-in-flow-nav-animated {
+  display: inline-block;
+  height: 23px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.sign-in-flow-root .sign-in-flow-nav-animated .sign-in-flow-nav-animated__track > span {
+  display: flex;
+  height: 23px;
+  align-items: center;
+  line-height: 23px;
+  white-space: nowrap;
+  font-size: 1.05rem;
+}
+
+.sign-in-flow-root .sign-in-flow-stack > * + * {
+  margin-top: 1.575rem;
+}
+
+.sign-in-flow-root .sign-in-flow-stack-sm > * + * {
+  margin-top: 1.05rem;
+}
+
+.sign-in-flow-root .sign-in-flow-stack-xs > * + * {
+  margin-top: 0.39375rem;
+}
+
+.sign-in-flow-root h1 {
+  font-size: 3.15rem;
+  line-height: 1.1;
+}
+
+.sign-in-flow-root .sign-in-flow-stack-xs > p {
+  font-size: 2.1rem;
+}
+
+.sign-in-flow-root .sign-in-flow-subtitle-sm {
+  font-size: 1.575rem;
+}
+
+.sign-in-flow-root .text-sm {
+  font-size: 0.91875rem;
+}
+
+.sign-in-flow-root .text-base {
+  font-size: 1.05rem;
+}
+
+.sign-in-flow-root .text-xl {
+  font-size: 1.3125rem;
+}
+
+.sign-in-flow-root input[type='email'] {
+  padding: 0.91875rem 3.9375rem 0.91875rem 1.18125rem;
+  font-size: 1.18125rem;
+}
+
+.sign-in-flow-root input[type='tel'],
+.sign-in-flow-root input[type='password'],
+.sign-in-flow-root input[type='text'],
+.sign-in-flow-root input[type='date'] {
+  font-size: 1.18125rem;
+  padding-top: 0.91875rem;
+  padding-bottom: 0.91875rem;
+}
+
+.sign-in-flow-root input[type='password'] {
+  padding-right: 3.15rem;
+}
+
+.sign-in-flow-root button,
+.sign-in-flow-root input {
+  font: inherit;
+}
+
+.sign-in-flow-root .sign-in-flow-sms-digit {
+  font-size: 1.575rem;
+}
+
+.sign-in-flow-root header button {
+  font-size: 1.05rem;
+  padding: 0.65625rem 1.05rem;
+}
+
+.sign-in-flow-root button.rounded-full.w-full {
+  padding-top: 0.91875rem;
+  padding-bottom: 0.91875rem;
+}
+
+.sign-in-flow-root .sign-in-flow-icon-btn {
+  width: 2.3625rem;
+  height: 2.3625rem;
+  font-size: 0.91875rem;
+}
+
+/* ── 注册卡片（仅中间注册区域） ── */
+.sign-in-flow-register-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 12, 14, 0.55);
+  backdrop-filter: blur(16px);
+  text-align: left;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.sign-in-flow-register-card .sign-in-flow-register-title {
+  font-size: 2.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.sign-in-flow-register-card .sign-in-flow-register-subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.sign-in-flow-register-stack > * + * {
+  margin-top: 1.25rem;
+}
+
+.sign-in-flow-phone-input {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sign-in-flow-phone-input:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.sign-in-flow-phone-input:focus-within {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+}
+
+.sign-in-flow-phone-prefix {
+  flex-shrink: 0;
+  padding: 0 0.875rem 0 1rem;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.45);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sign-in-flow-phone-input input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 1rem;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  color: #fff;
+  outline: none;
+  text-align: left;
+}
+
+.sign-in-flow-phone-input input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.sign-in-flow-register-legal {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sign-in-flow-register-legal input[type='checkbox'] {
+  margin-top: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: #fff;
+  cursor: pointer;
+}
+
+.sign-in-flow-register-legal-text {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.sign-in-flow-register-legal-text button,
+.sign-in-flow-register-legal-text span.underline {
+  color: rgba(255, 255, 255, 0.62);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.sign-in-flow-register-legal-text button:hover,
+.sign-in-flow-register-legal-text span.underline:hover {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.sign-in-flow-register-info-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sign-in-flow-register-info-link:hover {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.sign-in-flow-register-birth {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sign-in-flow-register-birth label {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+}
+
+.sign-in-flow-register-birth select {
+  flex: 1;
+  max-width: 9rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.55);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.sign-in-flow-register-birth select:hover,
+.sign-in-flow-register-birth select:focus {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.sign-in-flow-register-guardian {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+}
+
+.sign-in-flow-register-btn {
+  display: flex;
+  width: 100%;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.15s ease;
+}
+
+.sign-in-flow-register-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.sign-in-flow-register-btn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.sign-in-flow-register-btn:disabled {
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.sign-in-flow-register-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.sign-in-flow-register-footer button {
+  margin-left: 0.25rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.sign-in-flow-register-footer button:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sign-in-flow-register-card .sign-in-flow-register-error {
+  font-size: 0.875rem;
+  color: rgba(248, 113, 113, 0.85);
+}
+
+.sign-in-flow-register-card .sign-in-flow-phone-input input[type='tel'] {
+  padding: 0 1rem;
+  font-size: 1rem;
+  height: 100%;
+}
+
+.sign-in-flow-register-birth select option {
+  background: #141416;
+  color: #e5e5e5;
+}
+
+.sign-in-flow-phone-input--solo input {
+  padding-left: 1rem;
+}
+
+.sign-in-flow-auth-field-wrap {
+  position: relative;
+}
+
+.sign-in-flow-auth-field-wrap .sign-in-flow-icon-btn {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+}
+
+.sign-in-flow-login-soon {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}
+
+.sign-in-flow-root input:-webkit-autofill,
+.sign-in-flow-root input:-webkit-autofill:hover,
+.sign-in-flow-root input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #141416 inset;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  transition: background-color 9999s ease-out 0s;
+}
+
+.sign-in-flow-login-channels {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.sign-in-flow-login-channels button {
+  border: none;
+  background: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sign-in-flow-phone-input input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

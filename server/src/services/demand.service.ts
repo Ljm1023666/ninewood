@@ -1,4 +1,4 @@
-﻿import { prisma } from '../lib/prisma.js';
+import { prisma } from '../lib/prisma.js';
 import { walletService } from './wallet.service.js';
 import { checkFrozenBeforePublish } from './deposit-new.js'
 import type { Server as SocketIOServer } from 'socket.io'
@@ -10,6 +10,7 @@ import {
 } from './comm.service.js';
 import { isVisibleInMarketplace } from '../utils/demand-search-visibility.js';
 import { circleHubService } from './circle-hub.service.js';
+import { resolveDemandPaths } from './path-search.js';
 
 export { extendComm };
 import { ServiceType, DemandStatus, DemandStage, Prisma } from '@prisma/client';
@@ -71,6 +72,8 @@ export const demandService = {
     tagsConfirmed?: boolean;
     lat?: number;
     lng?: number;
+    /** TASK-11: 用户编辑后的路径（可选，与自动路径合并） */
+    paths?: string[];
     },
     io?: SocketIOServer,
   ) {
@@ -105,6 +108,22 @@ export const demandService = {
     const { initLifecycle } = await import('../services/card-lifecycle.js');
     const lifecycle = initLifecycle(win / (24 * 60)); // 转换分钟为天
 
+    const demandPaths = resolveDemandPaths(
+      {
+        category: params.category,
+        taxonomyLeafId: params.taxonomyLeafId ?? null,
+        serviceType: params.serviceType,
+        minPrice: Number(params.minPrice),
+        regionId: params.regionId ?? null,
+        isCertifiedOnly: params.isCertifiedOnly || false,
+        tags: params.tags || [],
+        tagsConfirmed: params.tagsConfirmed || false,
+        title: params.title,
+        description: params.description,
+      },
+      params.paths,
+    );
+
     const demand = await prisma.$transaction(async (tx) => {
       const created = await tx.demand.create({
         data: {
@@ -138,6 +157,7 @@ export const demandService = {
           tags: params.tags || [],
           aiTags: params.aiTags || [],
           tagsConfirmed: params.tagsConfirmed || false,
+          paths: demandPaths,
           fuzzyLat,
           fuzzyLng,
           deposit,

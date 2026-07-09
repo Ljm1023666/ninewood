@@ -15,7 +15,7 @@ export default function MessagesIndexPlaceholder() {
           <p className="text-sm text-text-muted">选择左侧会话开始聊天</p>
         </div>
       }
-      inputRow={<TemplateChatInputRow inputProps={{ disabled: true }} />}
+      inputRow={null}
     />
   )
 }

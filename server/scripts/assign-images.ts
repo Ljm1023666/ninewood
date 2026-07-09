@@ -1,37 +1,55 @@
+/**
+ * 为全部用户 / 需求分配图片（与 asset-assign 机械映射一致）
+ *
+ * 用法: npx tsx scripts/assign-images.ts
+ * 覆盖: FORCE=1 npx tsx scripts/assign-images.ts
+ */
 import { PrismaClient } from '@prisma/client'
+import {
+  assignDemandCoverImage,
+  assignUserImages,
+  loadManifestForAssign,
+} from '../src/services/asset-assign.js'
 
 const p = new PrismaClient()
+const FORCE = process.env.FORCE === '1'
 
 async function main() {
-  const users = await p.user.findMany({ select: { id: true, nickname: true } })
+  const manifest = loadManifestForAssign()
+
+  const users = await p.user.findMany({
+    where: FORCE
+      ? {}
+      : {
+          OR: [
+            { avatarUrl: null },
+            { coverUrl: null },
+            { demandCardCoverUrl: null },
+          ],
+        },
+    select: { id: true, nickname: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
   for (let i = 0; i < users.length; i++) {
-    const ai = (i % 20) + 1
-    const ci = (i % 14) + 1
-    await p.user.update({
-      where: { id: users[i].id },
-      data: {
-        avatarUrl: `/uploads/avatars/avatar_${String(ai).padStart(2, '0')}.png`,
-        coverUrl: `/uploads/covers/cover_${String(ci).padStart(2, '0')}.png`,
-      },
-    })
-    console.log(`${users[i].nickname} -> avatar:${ai} cover:${ci}`)
+    const images = assignUserImages(i, users[i]!.id, manifest)
+    await p.user.update({ where: { id: users[i]!.id }, data: images })
+    console.log(`${users[i]!.nickname} → avatar + cover + card-cover`)
   }
 
-  const demands = await p.demand.findMany({ select: { id: true, title: true }, take: 30 })
+  const demands = await p.demand.findMany({
+    where: FORCE ? {} : { coverImage: null },
+    select: { id: true, title: true, userId: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
   for (let i = 0; i < demands.length; i++) {
-    const ci = (i % 14) + 1
-    const ext = ci <= 11 ? '.jpg' : '.png'
-    const name = ci <= 9
-      ? `1000${ci}${ext}`
-      : `100${ci}${ext}`
-    await p.demand.update({
-      where: { id: demands[i].id },
-      data: { coverImage: `/uploads/card-covers/${name}` },
-    })
-    console.log(`${demands[i].title} -> card:${name}`)
+    const { coverImage } = assignDemandCoverImage(i, demands[i]!.userId, manifest)
+    await p.demand.update({ where: { id: demands[i]!.id }, data: { coverImage } })
+    console.log(`${demands[i]!.title.slice(0, 24)} → ${coverImage}`)
   }
 
-  console.log(`Done: ${users.length} users, ${Math.min(30, demands.length)} demands`)
+  console.log(`Done: ${users.length} users, ${demands.length} demands`)
   await p.$disconnect()
 }
 

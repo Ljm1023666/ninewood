@@ -35,14 +35,14 @@ export const presets: Record<string, ThemeConfig> = {
     dark: false,
     primaryStart: '#3388FF',
     primaryEnd: '#5599FF',
-    bgPrimary: '#F5F5F5',
-    bgSecondary: '#EEEEEE',
-    bgTertiary: '#E0E0E0',
+    bgPrimary: '#FFFFFF',
+    bgSecondary: '#F5F5F5',
+    bgTertiary: '#EEEEEE',
     bgCard: '#FFFFFF',
     textPrimary: '#111111',
     textSecondary: '#555555',
     textMuted: '#888888',
-    borderColor: '#D0D0D0',
+    borderColor: '#E0E0E0',
   },
 }
 
@@ -77,55 +77,55 @@ function applyTheme(config: ThemeConfig) {
   root.style.setProperty('--text-secondary', config.textSecondary)
   root.style.setProperty('--text-muted', config.textMuted)
   if (config.dark) {
-    root.style.setProperty('--price-foreground', '#fbbf24')
-    root.style.setProperty('--price-surface', 'rgba(251, 191, 36, 0.12)')
-    root.style.setProperty('--price-border', 'rgba(251, 191, 36, 0.32)')
+    root.style.setProperty('--price-foreground', '#e8e8e8')
+    root.style.setProperty('--price-surface', 'rgba(255, 255, 255, 0.08)')
+    root.style.setProperty('--price-border', 'rgba(255, 255, 255, 0.16)')
     root.style.setProperty('--wallet-panel-bg', 'rgba(255, 255, 255, 0.04)')
     root.style.setProperty('--wallet-row-hover', 'rgba(255, 255, 255, 0.03)')
     root.style.setProperty('--wallet-glass-bg', 'color-mix(in srgb, var(--bg-card) 68%, transparent)')
-    root.style.setProperty('--wallet-glass-border', 'color-mix(in srgb, var(--price-foreground) 22%, var(--border-color))')
-    root.style.setProperty('--wallet-glow-a', 'color-mix(in srgb, var(--price-foreground) 11%, transparent)')
-    root.style.setProperty('--wallet-glow-b', 'color-mix(in srgb, var(--price-foreground) 6%, transparent)')
+    root.style.setProperty('--wallet-glass-border', 'var(--border-color)')
+    root.style.setProperty('--wallet-glow-a', 'rgba(255, 255, 255, 0.03)')
+    root.style.setProperty('--wallet-glow-b', 'rgba(255, 255, 255, 0.015)')
     root.style.setProperty(
       '--wallet-hero-radial',
       'radial-gradient(ellipse 85% 65% at 50% -15%, var(--wallet-glow-a), transparent 72%)',
     )
     root.style.setProperty(
       '--wallet-accent-gradient',
-      'linear-gradient(135deg, var(--price-foreground), color-mix(in srgb, var(--price-foreground) 72%, white))',
+      'linear-gradient(135deg, #f0f0f0, #cccccc)',
     )
-    root.style.setProperty('--wallet-on-accent', '#1a1400')
-    root.style.setProperty('--wallet-watermark-opacity', '0.07')
-    root.style.setProperty('--wallet-stat-icon', 'color-mix(in srgb, var(--price-foreground) 58%, transparent)')
+    root.style.setProperty('--wallet-on-accent', '#111111')
+    root.style.setProperty('--wallet-watermark-opacity', '0.05')
+    root.style.setProperty('--wallet-stat-icon', 'rgba(255, 255, 255, 0.35)')
     root.style.setProperty('--wallet-btn-ghost-bg', 'color-mix(in srgb, var(--text-primary) 5%, transparent)')
     root.style.setProperty('--wallet-divider', 'color-mix(in srgb, var(--text-primary) 6%, transparent)')
     root.style.setProperty('--wallet-table-head-bg', 'color-mix(in srgb, var(--text-primary) 2%, transparent)')
-    root.style.setProperty('--wallet-serif', "'Playfair Display', Georgia, 'Times New Roman', serif")
+    root.style.setProperty('--wallet-serif', "'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif")
   } else {
-    root.style.setProperty('--price-foreground', '#b45309')
-    root.style.setProperty('--price-surface', 'rgba(180, 83, 9, 0.1)')
-    root.style.setProperty('--price-border', 'rgba(180, 83, 9, 0.28)')
+    root.style.setProperty('--price-foreground', '#111111')
+    root.style.setProperty('--price-surface', 'rgba(0, 0, 0, 0.06)')
+    root.style.setProperty('--price-border', 'rgba(0, 0, 0, 0.12)')
     root.style.setProperty('--wallet-panel-bg', 'rgba(0, 0, 0, 0.03)')
     root.style.setProperty('--wallet-row-hover', 'rgba(0, 0, 0, 0.04)')
-    root.style.setProperty('--wallet-glass-bg', 'color-mix(in srgb, var(--bg-card) 92%, var(--price-foreground) 2%)')
-    root.style.setProperty('--wallet-glass-border', 'color-mix(in srgb, var(--price-foreground) 24%, var(--border-color))')
-    root.style.setProperty('--wallet-glow-a', 'color-mix(in srgb, var(--price-foreground) 14%, transparent)')
-    root.style.setProperty('--wallet-glow-b', 'color-mix(in srgb, var(--price-foreground) 8%, transparent)')
+    root.style.setProperty('--wallet-glass-bg', 'var(--bg-card)')
+    root.style.setProperty('--wallet-glass-border', 'var(--border-color)')
+    root.style.setProperty('--wallet-glow-a', 'rgba(0, 0, 0, 0.02)')
+    root.style.setProperty('--wallet-glow-b', 'rgba(0, 0, 0, 0.01)')
     root.style.setProperty(
       '--wallet-hero-radial',
       'radial-gradient(ellipse 85% 65% at 50% -15%, var(--wallet-glow-a), transparent 72%)',
     )
     root.style.setProperty(
       '--wallet-accent-gradient',
-      'linear-gradient(135deg, var(--price-foreground), color-mix(in srgb, var(--price-foreground) 55%, #f4d03f))',
+      'linear-gradient(135deg, #111111, #333333)',
     )
-    root.style.setProperty('--wallet-on-accent', '#fffef8')
-    root.style.setProperty('--wallet-watermark-opacity', '0.09')
-    root.style.setProperty('--wallet-stat-icon', 'color-mix(in srgb, var(--price-foreground) 65%, transparent)')
+    root.style.setProperty('--wallet-on-accent', '#ffffff')
+    root.style.setProperty('--wallet-watermark-opacity', '0.04')
+    root.style.setProperty('--wallet-stat-icon', 'rgba(0, 0, 0, 0.35)')
     root.style.setProperty('--wallet-btn-ghost-bg', 'color-mix(in srgb, var(--text-primary) 4%, transparent)')
     root.style.setProperty('--wallet-divider', 'color-mix(in srgb, var(--text-primary) 8%, transparent)')
-    root.style.setProperty('--wallet-table-head-bg', 'color-mix(in srgb, var(--price-foreground) 4%, var(--bg-card))')
-    root.style.setProperty('--wallet-serif', "'Playfair Display', Georgia, 'Times New Roman', serif")
+    root.style.setProperty('--wallet-table-head-bg', 'color-mix(in srgb, var(--text-primary) 3%, var(--bg-card))')
+    root.style.setProperty('--wallet-serif', "'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif")
   }
 }
 

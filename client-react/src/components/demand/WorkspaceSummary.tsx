@@ -34,6 +34,7 @@ export function WorkspaceSummary() {
           onChange={(e) => updateField('title', e.target.value)}
           placeholder="需求标题（AI 自动生成）"
           className="ws-input"
+          maxLength={100}
         />
         <LockToggle fieldKey="title" />
       </div>

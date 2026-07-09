@@ -31,3 +31,17 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     res.status(401).json({ code: 401, message: 'token 无效或已过期', timestamp: Date.now() });
   }
 }
+
+/** 有 token 则解析用户，无 token 或无效 token 仍放行 */
+export function optionalAuthMiddleware(req: Request, _res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) {
+    try {
+      const token = header.slice(7);
+      req.user = jwt.verify(token, config.jwtSecret) as AuthPayload;
+    } catch {
+      // 可选鉴权：无效 token 按未登录处理
+    }
+  }
+  next();
+}

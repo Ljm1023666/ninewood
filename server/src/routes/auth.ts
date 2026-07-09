@@ -29,6 +29,21 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const sendEmailCodeSchema = z.object({
+  email: z.string().email('请输入有效的邮箱'),
+  captchaToken: z.string().min(1, '请先完成人机验证'),
+});
+
+const loginIdSchema = z.object({
+  accountId: z.string().regex(/^\d+$/, '账号 ID 必须为数字'),
+  password: z.string().min(1),
+});
+
+const loginEmailSchema = z.object({
+  email: z.string().email('请输入有效的邮箱'),
+  code: z.string().length(6),
+});
+
 /**
  * @openapi
  * /api/auth/send-code:
@@ -143,6 +158,49 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     const { phone, password } = loginSchema.parse(req.body);
     const ip = getClientIp(req);
     const result = await authService.login(phone, password, ip);
+    success(res, result, '登录成功');
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    fail(res, e.message || '登录失败', e.status || 500);
+  }
+});
+
+// POST /api/auth/login-id — account ID + password
+authRouter.post('/login-id', async (req: Request, res: Response) => {
+  try {
+    const { accountId, password } = loginIdSchema.parse(req.body);
+    const ip = getClientIp(req);
+    const result = await authService.loginById(accountId, password, ip);
+    success(res, result, '登录成功');
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    fail(res, e.message || '登录失败', e.status || 500);
+  }
+});
+
+// POST /api/auth/send-email-code — 人机验证 → 邮箱验证码
+authRouter.post('/send-email-code', async (req: Request, res: Response) => {
+  try {
+    const { email, captchaToken } = sendEmailCodeSchema.parse(req.body);
+    const { verifyCaptcha, consumeCaptcha } = await import('./captcha.js');
+    if (!verifyCaptcha(captchaToken)) {
+      return fail(res, '人机验证未通过或已过期', 400);
+    }
+    const result = await authService.sendEmailCode(email);
+    consumeCaptcha(captchaToken);
+    success(res, result, '验证码已发送');
+  } catch (e: any) {
+    if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
+    fail(res, e.message || '发送失败', e.status || 500);
+  }
+});
+
+// POST /api/auth/login-email — email + code
+authRouter.post('/login-email', async (req: Request, res: Response) => {
+  try {
+    const { email, code } = loginEmailSchema.parse(req.body);
+    const ip = getClientIp(req);
+    const result = await authService.loginWithEmail(email, code, ip);
     success(res, result, '登录成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);

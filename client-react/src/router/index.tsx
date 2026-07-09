@@ -56,6 +56,9 @@ const DeadPool = lazy(() => import('@/views/DeadPool'))
 const MyTags = lazy(() => import('@/views/MyTags'))
 const FiltersPreview = lazy(() => import('@/views/FiltersPreview'))
 const TaxVisualizerPage = lazy(() => import('@/views/tax-visualizer/TaxVisualizerPage'))
+const PathSearchPage = lazy(() => import('@/views/path-search/PathSearchPage'))
+const PublishPathsPage = lazy(() => import('@/views/demand-paths/PublishPathsPage'))
+const DemandPathsPage = lazy(() => import('@/views/demand-paths/DemandPathsPage'))
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 const Dashboard = lazy(() => import('@/views/Dashboard'))
@@ -172,6 +175,22 @@ export const router = createBrowserRouter([
             ],
           },
         ],
+      },
+      {
+        path: 'cert-center',
+        element: (
+          <LazyLoad>
+            <CertCenter />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: 'cert-intro',
+        element: (
+          <LazyLoad>
+            <CertIntro />
+          </LazyLoad>
+        ),
       },
       {
         element: <Layout />,
@@ -311,10 +330,26 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'demands/create/paths',
+            element: (
+              <LazyLoad>
+                <PublishPathsPage />
+              </LazyLoad>
+            ),
+          },
+          {
             path: 'demands/create',
             element: (
               <LazyLoad>
                 <DemandCreate />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'demands/:id/paths',
+            element: (
+              <LazyLoad>
+                <DemandPathsPage />
               </LazyLoad>
             ),
           },
@@ -432,22 +467,7 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
-          {
-            path: 'cert-center',
-            element: (
-              <LazyLoad>
-                <CertCenter />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'cert-intro',
-            element: (
-              <LazyLoad>
-                <CertIntro />
-              </LazyLoad>
-            ),
-          },
+
           {
             path: 'agent',
             element: (
@@ -489,6 +509,14 @@ export const router = createBrowserRouter([
         element: (
           <LazyLoad>
             <TaxVisualizerPage />
+          </LazyLoad>
+        ),
+      },
+      {
+        path: '/path-search',
+        element: (
+          <LazyLoad>
+            <PathSearchPage />
           </LazyLoad>
         ),
       },

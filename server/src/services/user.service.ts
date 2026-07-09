@@ -17,7 +17,7 @@ export const userService = {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true, ipRegion: true,
+        id: true, accountNo: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true, ipRegion: true,
         certificationLevel: true, bio: true, birthday: true, creditScore: true, completedOrders: true, snatchCredits: true,
       },
     });

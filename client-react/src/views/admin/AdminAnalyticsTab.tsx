@@ -44,7 +44,7 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
       <div className="space-y-6">
         <AdminMetricSkeleton count={4} />
         <AdminPanelSkeleton height="min-h-[340px]" />
-        <div className="grid grid-cols-2 gap-px border border-[var(--admin-hairline)] bg-[var(--admin-hairline)]">
+        <div className="grid grid-cols-2 gap-4">
           <AdminPanelSkeleton />
           <AdminPanelSkeleton />
         </div>
@@ -117,15 +117,15 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
                   />
                   <Bar
                     dataKey="users"
-                    fill="#111111"
-                    radius={[2, 2, 0, 0]}
+                    fill="#111113"
+                    radius={[6, 6, 0, 0]}
                     name="总用户"
                     barSize={20}
                   />
                   <Bar
                     dataKey="newUsers"
-                    fill="#3388FF"
-                    radius={[2, 2, 0, 0]}
+                    fill="#2563EB"
+                    radius={[6, 6, 0, 0]}
                     name="新增"
                     barSize={20}
                   />
@@ -161,9 +161,9 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
                   <Line
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#3388FF"
+                    stroke="#2563EB"
                     strokeWidth={2}
-                    dot={{ r: 3, fill: '#3388FF' }}
+                    dot={{ r: 3, fill: '#2563EB' }}
                     activeDot={{ r: 4 }}
                   />
                 </LineChart>
@@ -232,7 +232,7 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
                     {...adminChartAxis}
                   />
                   <Tooltip contentStyle={adminChartTooltipStyle} />
-                  <Bar dataKey="count" fill="#111111" radius={[0, 2, 2, 0]} barSize={14} />
+                  <Bar dataKey="count" fill="#111113" radius={[0, 6, 6, 0]} barSize={14} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -251,7 +251,7 @@ export default function AdminAnalyticsTab({ data, loading }: Props) {
                 <XAxis dataKey="name" {...adminChartAxis} />
                 <YAxis {...adminChartAxis} />
                 <Tooltip contentStyle={adminChartTooltipStyle} />
-                <Bar dataKey="value" fill="#3388FF" radius={[2, 2, 0, 0]} barSize={24} />
+                <Bar dataKey="value" fill="#2563EB" radius={[6, 6, 0, 0]} barSize={24} />
               </BarChart>
             </ResponsiveContainer>
           </div>

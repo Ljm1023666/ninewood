@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   // 1. 让 admin (张师傅) 关注用户 2-8 (李设计~吴摄影)
-  const admin = await prisma.user.findUnique({ where: { phone: '13800000001' } })
+  const admin = await prisma.user.findUnique({ where: { phone: '13800000000' } })
   if (!admin) { console.log('admin not found'); return }
   
   const toFollow = await prisma.user.findMany({
@@ -30,7 +30,7 @@ async function main() {
     { phone: '13800000006', desc: '中考数学压轴题精讲，需要的同学码住 📝', tags: ['教育', '数学', '中考'] },
     { phone: '13800000007', desc: '成都今天下雨，但跑腿不能停 🌧️ 已送8单', tags: ['跑腿', '成都', '日常'] },
     { phone: '13800000008', desc: '周末外拍，银杏林的光影太绝了 📸', tags: ['摄影', '外拍', '银杏'] },
-    { phone: '13800000001', desc: '修了一台30年的老彩电，满满的情怀 🔧', tags: ['维修', '情怀', '手艺'] },
+    { phone: '13800000000', desc: '修了一台30年的老彩电，满满的情怀 🔧', tags: ['维修', '情怀', '手艺'] },
   ]
 
   const mediaPool = [

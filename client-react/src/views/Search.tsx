@@ -8,12 +8,13 @@ import {
   DlpGlass,
   DlpGlassHead,
   DlpGlassBody,
-  DlpBtnPrimary,
-  DlpBtnGhost,
   DlpBadge,
   DlpEmpty,
+  DlpSearchBar,
+  DlpBenefitItem,
 } from '@/components/layout/desktop-page'
 import { LoadingState } from '@/components/ui/loading-state'
+
 interface SearchUser {
   id: string
   nickname: string
@@ -21,6 +22,24 @@ interface SearchUser {
   bio?: string
   certificationLevel: string
 }
+
+const searchTips = [
+  {
+    icon: 'person',
+    title: '昵称搜索',
+    description: '输入完整或部分昵称即可匹配',
+  },
+  {
+    icon: 'phone',
+    title: '手机号查找',
+    description: '支持手机号精确查找用户',
+  },
+  {
+    icon: 'open_in_new',
+    title: '进入主页',
+    description: '点击用户卡片查看详细资料',
+  },
+] as const
 
 export default function Search() {
   const navigate = useNavigate()
@@ -52,23 +71,14 @@ export default function Search() {
 
   return (
     <DesktopPageShell title="找人" subtitle="搜索用户昵称或手机号">
-      <div className="dlp-search-row">
-        <input
-          className="dlp-input"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="搜索用户、标签、需求…"
-        />
-        {keyword ? (
-          <DlpBtnGhost onClick={handleClear} aria-label="清空">
-            <MsIcon name="close" size={16} />
-          </DlpBtnGhost>
-        ) : null}
-        <DlpBtnPrimary onClick={handleSearch} disabled={loading || !keyword.trim()}>
-          {loading ? '搜索中…' : '搜索'}
-        </DlpBtnPrimary>
-      </div>
+      <DlpSearchBar
+        value={keyword}
+        onChange={setKeyword}
+        onSearch={handleSearch}
+        onClear={handleClear}
+        loading={loading}
+        placeholder="搜索用户、手机号、标签"
+      />
 
       <div className="dlp-split dlp-split--aside-rail">
         <div>
@@ -77,16 +87,18 @@ export default function Search() {
           {searched && !loading && results.length === 0 && (
             <DlpGlass>
               <DlpEmpty
-                icon={<MsIcon name="person_search" size={48} />}
+                icon={<MsIcon name="person_off" size={28} />}
                 title="未找到匹配的用户"
-                description="试试其他关键词"
+                description="试试其他关键词，或检查拼写是否正确"
               />
             </DlpGlass>
           )}
 
           {searched && !loading && results.length > 0 && (
             <>
-              <p className="mb-4 text-sm text-text-muted">找到 {results.length} 个用户</p>
+              <p className="mb-4 text-sm text-text-muted">
+                找到 <span className="font-semibold text-text-primary">{results.length}</span> 个用户
+              </p>
               <div className="dlp-card-grid">
                 {results.map((u) => {
                   const certText =
@@ -132,9 +144,9 @@ export default function Search() {
           {!searched && !loading && (
             <DlpGlass>
               <DlpEmpty
-                icon={<MsIcon name="person_search" size={48} />}
-                title="输入昵称或手机号搜索用户"
-                description="支持按认证等级、简介关键词匹配"
+                icon={<MsIcon name="person_search" size={28} />}
+                title="开始寻找用户"
+                description="输入昵称、手机号或标签，发现平台上的服务者与合作伙伴"
               />
             </DlpGlass>
           )}
@@ -142,11 +154,18 @@ export default function Search() {
 
         <aside>
           <DlpGlass>
-            <DlpGlassHead title="搜索提示" subtitle="桌面端支持更宽结果区展示" />
-            <DlpGlassBody className="space-y-3 text-sm text-text-muted">
-              <p>· 输入完整或部分昵称</p>
-              <p>· 支持手机号精确查找</p>
-              <p>· 点击卡片进入用户主页</p>
+            <DlpGlassHead title="搜索提示" subtitle="快速找到你需要的用户" />
+            <DlpGlassBody className="!p-0">
+              <div className="dlp-benefit-grid">
+                {searchTips.map((tip) => (
+                  <DlpBenefitItem
+                    key={tip.title}
+                    icon={<MsIcon name={tip.icon} size={20} />}
+                    title={tip.title}
+                    description={tip.description}
+                  />
+                ))}
+              </div>
             </DlpGlassBody>
           </DlpGlass>
         </aside>

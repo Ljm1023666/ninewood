@@ -15,6 +15,8 @@ import {
   HelpCircle,
   Activity,
   Calculator,
+  Route,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
@@ -28,11 +30,13 @@ const NAV_TOP = [
   { path: '/demands/create', icon: FileText, label: '发布' },
   { path: '/circles', icon: Users, label: '圈子' },
   { path: '/dashboard', icon: Activity, label: '监控' },
+  { path: '/cert-center', icon: ShieldCheck, label: '认证' },
   { path: '/help', icon: HelpCircle, label: '帮助' },
   { path: '/tax-visualizer', icon: Calculator, label: '税务可视化' },
 ]
 
 const NAV_BOTTOM = [
+  { path: '/path-search', icon: Route, label: '路径检索' },
   { path: '/search', icon: Search, label: '找人' },
   { path: '/messages', icon: MessageCircle, label: '消息' },
   { path: '/profile', icon: User, label: '我的' },
