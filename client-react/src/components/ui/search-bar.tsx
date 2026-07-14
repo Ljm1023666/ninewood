@@ -61,7 +61,7 @@ const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
           <input
             ref={inputRef}
             type="text"
-            aria-label="搜索需求"
+            aria-label="搜索方案"
             placeholder={placeholder}
             value={searchQuery}
             onChange={handleChange}

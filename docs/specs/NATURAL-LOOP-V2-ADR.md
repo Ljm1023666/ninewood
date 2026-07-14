@@ -2,7 +2,7 @@
 
 > **状态**：Accepted  
 > **日期**：2026-07-14  
-> **取代**：`NATURAL-LOOP-ADR.md`  
+> **取代**：`docs/archive/specs/NATURAL-LOOP-ADR.md`（V1，已归档）  
 > **最高产品准则**：`docs/回的理念.md`
 
 ## 背景

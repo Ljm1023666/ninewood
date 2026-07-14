@@ -1,7 +1,7 @@
-/**
+﻿/**
  * 从 Stitch MCP 输出 JSON 下载点数钱包 HTML 变体
  * 用法: node scripts/fetch-stitch-points-wallet.mjs <agent-tools-output.txt>
- * 输出: docs/stitch-points-wallet/
+ * 输出: docs/archive/designs/stitch-points-wallet/
  */
 import fs from 'fs'
 import path from 'path'
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const outDir = path.join(root, 'docs/stitch-points-wallet')
+const outDir = path.join(root, 'stitch-points-wallet')
 
 const inputPath = process.argv[2]
 if (!inputPath) {

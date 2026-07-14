@@ -16,8 +16,10 @@ Before implementing non-trivial work in a new chat or after a model switch:
 - Windows desktop only — no mobile breakpoints, touch handlers, or PWA.
 - Surgical diffs only; keep frontend/backend API contracts in sync.
 - Package manager is **pnpm** (`client-react` + `server` workspace).
-- `/services` = capability catalog; `/loops` = current user's LoopRun center.
+- `/loops` is the LoopRun center (sidebar「回」); `/services` / `/path-search` are compatibility layers only.
+- Natural Loop authority: `docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md`.
 - `Demand` and `ServiceCard` are separate lifecycles; card message attachments are immutable snapshots.
+- **All AI tools** (not only Cursor): do **not** read `archive/**`, `docs/archive/**`, `.workbuddy/memory/**`, `.agents/**`, or `.reasonix/**` unless the user explicitly asks for historical archaeology. Canonical exclude: `.llmignore` (synced via `node scripts/sync-ai-ignores.mjs`). Living docs: `AGENTS.md`, `docs/README.md`, `docs/DEVELOPMENT-GUIDE.md`, `docs/ENGINEERING_OVERVIEW.md`, current `docs/specs/*-ADR.md` and `AGENT-*.md`.
 
 ## After substantial work
 

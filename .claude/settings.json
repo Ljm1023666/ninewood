@@ -8,6 +8,23 @@
       "Bash(opencode --version)",
       "Bash(minimax-mcp-js --help)"
     ],
+    "deny": [
+      "Read(docs/archive/**)",
+      "Edit(docs/archive/**)",
+      "Write(docs/archive/**)",
+      "Read(archive/**)",
+      "Edit(archive/**)",
+      "Write(archive/**)",
+      "Read(.workbuddy/memory/**)",
+      "Read(.agents/**)",
+      "Read(.reasonix/**)",
+      "Read(.codex-logs/**)",
+      "Read(.env)",
+      "Read(server/.env)",
+      "Read(server/uploads/**)",
+      "Read(_tmp/**)",
+      "Read(DEPLOY.md)"
+    ],
     "additionalDirectories": [
       "C:\\Users\\19617\\AppData\\Local\\Temp"
     ]

@@ -1,0 +1,25 @@
+# Historical material - keep for archaeology, exclude from ALL AI context by default.
+# Canonical source. Mirrors: see scripts/sync-ai-ignores.mjs and docs/archive/README.md
+# Re-open only when the user explicitly asks for historical archaeology.
+
+# Historical documents and retired code
+docs/archive/
+docs/archive/**
+archive/
+archive/**
+
+# Secondary AI-session logs and duplicated tool skill trees
+.workbuddy/memory/
+.agents/
+.reasonix/
+.codex-logs/
+
+# Local secrets, uploads and temporary generator output
+.env
+**/.env
+server/uploads/
+server/uploads/**
+_tmp/
+
+# Contains deployment secrets; keep outside every AI default context
+DEPLOY.md

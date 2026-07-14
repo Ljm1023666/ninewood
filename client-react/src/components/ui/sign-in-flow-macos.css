@@ -1,0 +1,482 @@
+.sign-in-flow-root {
+  color: #1d1d1f;
+  background: #f5f5f7;
+}
+
+.sign-in-flow-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #f5f5f7;
+}
+
+.sign-in-flow-background__glow {
+  position: absolute;
+  top: 14%;
+  left: 18%;
+  width: 52rem;
+  height: 34rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(0, 122, 255, 0.08) 0%,
+    rgba(0, 122, 255, 0) 70%
+  );
+}
+
+.sign-in-flow-root .sign-in-flow-appbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  border-bottom: 1px solid rgba(60, 60, 67, 0.18);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.sign-in-flow-root .sign-in-flow-appbar button {
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.sign-in-flow-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #1d1d1f;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.sign-in-flow-brand svg {
+  width: 28px;
+  height: 28px;
+  fill: currentColor;
+}
+
+.sign-in-flow-mode-switch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(60, 60, 67, 0.18);
+  border-radius: 8px;
+  background: #e5e5ea;
+}
+
+.sign-in-flow-mode-switch button {
+  min-width: 72px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #515154;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 150ms ease-out, color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+.sign-in-flow-mode-switch button:hover {
+  color: #1d1d1f;
+}
+
+.sign-in-flow-mode-switch button.is-active {
+  background: #fff;
+  color: #007aff;
+  box-shadow: 0 1px 2px rgba(29, 29, 31, 0.08);
+}
+
+.sign-in-flow-mode-switch button:focus-visible,
+.sign-in-flow-root :focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.sign-in-flow-auth-layout {
+  display: grid;
+  width: min(1120px, calc(100% - 96px));
+  grid-template-columns: minmax(0, 1fr) 420px;
+  align-items: center;
+  gap: 112px;
+  margin: 0 auto;
+}
+
+.sign-in-flow-brand-panel {
+  max-width: 480px;
+}
+
+.sign-in-flow-brand-panel h1 {
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+}
+
+.sign-in-flow-brand-panel > p {
+  margin: 18px 0 42px;
+  color: #515154;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.sign-in-flow-trust-list {
+  display: grid;
+  gap: 20px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.sign-in-flow-trust-list li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.sign-in-flow-trust-list svg {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  color: #007aff;
+}
+
+.sign-in-flow-trust-list strong,
+.sign-in-flow-trust-list span {
+  display: block;
+}
+
+.sign-in-flow-trust-list strong {
+  color: #1d1d1f;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sign-in-flow-trust-list span {
+  margin-top: 4px;
+  color: #86868b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sign-in-flow-auth-panel {
+  width: 420px;
+  box-sizing: border-box;
+  padding: 32px;
+  border: 1px solid rgba(60, 60, 67, 0.18);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(29, 29, 31, 0.07);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-card {
+  position: relative;
+  width: auto;
+  min-height: 464px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-title,
+.sign-in-flow-auth-panel h1 {
+  color: #1d1d1f;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-subtitle,
+.sign-in-flow-auth-panel .sign-in-flow-subtitle-sm,
+.sign-in-flow-auth-panel .sign-in-flow-login-soon {
+  color: #86868b;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input {
+  border-color: rgba(60, 60, 67, 0.18);
+  background: #fff;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input:hover {
+  border-color: rgba(60, 60, 67, 0.3);
+  background: #fff;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input:focus-within {
+  border-color: #007aff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.16);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-prefix {
+  color: #515154;
+  border-color: rgba(60, 60, 67, 0.18);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input input,
+.sign-in-flow-auth-panel .sign-in-flow-password-input {
+  color: #1d1d1f !important;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input input::placeholder,
+.sign-in-flow-auth-panel .sign-in-flow-password-input::placeholder {
+  color: #86868b !important;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-icon-btn {
+  color: #86868b !important;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-icon-btn:hover {
+  color: #1d1d1f !important;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-btn,
+.sign-in-flow-auth-panel .sign-in-flow-primary-button {
+  border-radius: 10px;
+  background: #007aff;
+  color: #fff;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-btn:hover:not(:disabled),
+.sign-in-flow-auth-panel .sign-in-flow-primary-button:hover:not(:disabled) {
+  background: #0a84ff;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-btn:disabled {
+  background: rgba(0, 122, 255, 0.28);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-legal-text,
+.sign-in-flow-auth-panel .sign-in-flow-register-info-link,
+.sign-in-flow-auth-panel .sign-in-flow-register-birth label,
+.sign-in-flow-auth-panel .sign-in-flow-register-guardian {
+  color: #515154;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-legal input[type='checkbox'],
+.sign-in-flow-auth-panel .sign-in-flow-register-guardian input[type='checkbox'] {
+  accent-color: #007aff;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-legal-text button,
+.sign-in-flow-auth-panel .sign-in-flow-register-legal-text span.underline,
+.sign-in-flow-auth-panel .sign-in-flow-register-info-link,
+.sign-in-flow-auth-panel .sign-in-flow-register-footer button,
+.sign-in-flow-auth-panel .sign-in-flow-login-channels button {
+  color: #007aff;
+  text-decoration: none;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-footer,
+.sign-in-flow-auth-panel .sign-in-flow-login-channels {
+  color: #515154;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-birth select {
+  border-color: rgba(60, 60, 67, 0.18);
+  background: #fff;
+  color: #1d1d1f;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-birth select option {
+  background: #fff;
+  color: #1d1d1f;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-error,
+.sign-in-flow-auth-panel .sign-in-flow-error {
+  color: #ff3b30 !important;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-method-button {
+  height: 44px;
+  border: 1px solid rgba(60, 60, 67, 0.18);
+  border-radius: 10px;
+  background: transparent;
+  color: #515154;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-method-button.is-active {
+  border-color: transparent;
+  color: #007aff;
+}
+
+.sign-in-flow-login-methods {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #e5e5ea;
+}
+
+.sign-in-flow-login-methods::before {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 16px) / 3);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(29, 29, 31, 0.08);
+  content: '';
+  pointer-events: none;
+  transition: left 180ms ease-out;
+}
+
+.sign-in-flow-login-methods.is-phone::before {
+  left: calc(33.3333% + 2.6667px);
+}
+
+.sign-in-flow-login-methods.is-email::before {
+  left: calc(66.6667% + 1.3333px);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-method-button {
+  position: relative;
+  z-index: 1;
+  border-color: transparent;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-method-button.is-active {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-divider {
+  height: 1px;
+  flex: 1;
+  background: rgba(60, 60, 67, 0.18);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-divider-label {
+  color: #86868b;
+  font-size: 13px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-stage {
+  display: flex;
+  min-height: 320px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-sms-code {
+  border: 1px solid rgba(60, 60, 67, 0.18);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-sms-digit {
+  color: #1d1d1f;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-secondary-button {
+  border: 1px solid rgba(60, 60, 67, 0.18);
+  border-radius: 10px;
+  background: #fff;
+  color: #515154;
+}
+
+.sign-in-flow-root input:-webkit-autofill,
+.sign-in-flow-root input:-webkit-autofill:hover,
+.sign-in-flow-root input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: #1d1d1f;
+  caret-color: #1d1d1f;
+}
+
+.sign-in-flow-auth-layout {
+  grid-template-columns: minmax(0, 1fr) 560px;
+  gap: 96px;
+  width: min(1240px, calc(100% - 96px));
+  margin: 0 auto;
+}
+
+.sign-in-flow-auth-panel {
+  width: 560px;
+  min-height: 560px;
+  padding: 48px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(29, 29, 31, 0.08);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-card > div:first-child {
+  display: none;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-stack > * + * {
+  margin-top: 28px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-login-methods {
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  background: rgba(0, 122, 255, 0.14);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-login-methods::before {
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc((100% - 20px) / 3);
+  border-radius: 10px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-login-methods.is-phone::before {
+  left: calc(33.3333% + 3.3333px);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-login-methods.is-email::before {
+  left: calc(66.6667% + 0.6667px);
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-method-button {
+  height: 56px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input,
+.sign-in-flow-auth-panel .sign-in-flow-register-btn {
+  height: 64px;
+  border-radius: 12px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-input input,
+.sign-in-flow-auth-panel .sign-in-flow-password-input {
+  font-size: 17px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-phone-prefix {
+  font-size: 16px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-btn {
+  font-size: 17px;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-register-footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  font-size: 16px;
+}

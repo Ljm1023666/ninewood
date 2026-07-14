@@ -132,22 +132,24 @@ Follow these conventions to reduce context mismatch and align with the repositor
 
 ### Directory boundaries
 
-- Repository root: `e:/Ninewood`
+- Repository root: Windows checkout path (commonly `D:\ninewood`; do not hardcode `e:/Ninewood`)
 - Frontend: `client-react/`
 - Backend: `server/`
 - Electron code: `client-react/electron/`
-- Archive directory: `archive/` (read-only by default unless explicitly requested)
+- Code archive: `archive/` (historical archaeology only; do not read by default)
+- Doc archive: `docs/archive/` — **forbidden for all AI tools** as current truth unless user asks for archaeology (canonical: `.llmignore` + `node scripts/sync-ai-ignores.mjs`; Claude Code also `permissions.deny` in `.claude/settings.json`)
+- Secondary AI logs and duplicated tool trees: `.workbuddy/memory/`, `.agents/`, `.reasonix/` — excluded from default AI context by `.llmignore`
 - Build artifacts (`dist/`, `build/`, etc.): do not edit manually
 
 ### Monorepo and run commands
 
-- Package management: npm workspaces (`server`, `client-react`)
-- Full-stack dev: `npm run dev` (root, runs server + client in parallel)
-- Electron dev: `npm run dev:electron` (root)
-- Full build: `npm run build` (root)
-- Type checking: `npm run typecheck` (root)
-- Frontend only: `npm run dev -w client-react`
-- Backend only: `npm run dev -w server`
+- Package management: **pnpm** workspaces (`server`, `client-react`) — do **not** use `npm -w`
+- Full-stack dev: `pnpm run dev`
+- Electron dev: `pnpm run dev:electron`
+- Full build: `pnpm run build`
+- Type checking: `pnpm run typecheck`
+- Frontend only: `pnpm --filter client-react run dev`
+- Backend only: `pnpm --filter server run dev`
 
 ### Frontend stack and conventions
 
@@ -175,15 +177,15 @@ Follow these conventions to reduce context mismatch and align with the repositor
 
 - Change only files directly related to the request
 - Run and pass relevant checks:
-  - `npm run typecheck` (root, recommended)
-  - `npm run lint -w client-react` (when frontend is changed)
+  - `pnpm run typecheck` (root, recommended)
+  - `pnpm --filter client-react run lint` (when frontend is changed)
 - If run/build paths changed, provide minimal reproducible verification steps
 
 ## Code Quality Tooling
 
-- **ESLint**: syntax and rule checks via `npm run lint`
-- **Prettier**: formatting via `npm run format`
-- **Vitest**: frontend unit tests via `npm run test`
+- **ESLint**: syntax and rule checks via `pnpm run lint`
+- **Prettier**: formatting via `pnpm run format`
+- **Vitest**: frontend unit tests via `pnpm run test`
 - **Husky**: pre-commit hooks via `lint-staged`
 
 ## Component Testing Standards

@@ -153,13 +153,15 @@ ninewood/
 
 | 文档 | 内容 |
 |------|------|
-| [docs/README.md](docs/README.md) | 文档总索引 |
+| [docs/README.md](docs/README.md) | 文档总索引（现行） |
 | [docs/DEVELOPMENT-GUIDE.md](docs/DEVELOPMENT-GUIDE.md) | 需求对照、实现状态、开发主线 |
 | [docs/ENGINEERING_OVERVIEW.md](docs/ENGINEERING_OVERVIEW.md) | 工程现状、模块与约定 |
 | [docs/LLM-CONFIG.md](docs/LLM-CONFIG.md) | 大模型提供商与 BYOK 配置 |
-| [docs/FEATURE_SPECIFICATIONS.md](docs/FEATURE_SPECIFICATIONS.md) | 功能规格说明 |
+| [docs/specs/NATURAL-LOOP-V2-ADR.md](docs/specs/NATURAL-LOOP-V2-ADR.md) | 自然回现行 ADR |
 | [client-react/README.md](client-react/README.md) | 前端专项说明 |
 | 应用内 `/help/docs` | 用户向帮助文档（FAQ） |
+
+历史 Roadmap / 旧 handoff / 一次性报告见 [`docs/archive/`](docs/archive/README.md)（默认勿作现行规格）。
 
 ---
 

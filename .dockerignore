@@ -15,3 +15,11 @@ server/src/**/*.d.ts.map
 __pycache__
 README.md
 *.md
+archive/
+docs/archive/
+.agents/
+.claude/
+.reasonix/
+.workbuddy/
+.cursor/
+.codex-logs/

@@ -12,7 +12,6 @@
 @import "./styles/cert-stitch.css";
 @import "./styles/card-pool-stitch.css";
 @import "./styles/loop-services.css";
-@import "./styles/loop-services.css";
 @import "./styles/my-loops.css";
 @import "./styles/loop-hub.css";
 @import "./styles/macos-surface.css";
@@ -41,10 +40,10 @@ html:not(.ms-icons-ready) .ms-icon {
 }
 
 
-/* ── 设计 Token · Ninewood v3.0 ──
-   色彩策略: 纯黑白灰底 + #3388FF 蓝强调色
-   遵循 DESIGN.md: 纯黑 #000 打底，纯白 #FFF 强调，灰度桥接层次
-   WCAG 2.1 AA 对比度 — 主体文字 #FFF on #000 = 21:1 */
+/* ── 设计 Token · Ninewood v3.1 ──
+   色彩策略: 浅色 macOS 工作区 + #007AFF 蓝强调色
+   遵循 DESIGN.md: 浅灰工作区、白色表面、清晰文字层级
+   WCAG 2.1 AA 对比度 — 主体文字 #1D1D1F on #FFFFFF */
 :root {
   /* ── macOS 系统色：浅灰工作区 + 单一蓝色强调 ── */
   --accent-color: #007AFF;

@@ -1,0 +1,119 @@
+.legal-dialog {
+  --legal-glass: rgba(215, 222, 230, 0.82);
+  --legal-glass-raised: rgba(240, 243, 247, 0.5);
+  --legal-ink: #17263f;
+  --legal-copy: #354156;
+  --legal-muted: #657186;
+  --legal-accent: #2f82e8;
+  --legal-accent-hover: #2475d6;
+  position: fixed;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  background:
+    radial-gradient(circle at 15% 4%, rgba(255, 255, 255, 0.76), transparent 38%),
+    radial-gradient(circle at 90% 92%, rgba(166, 185, 210, 0.3), transparent 52%),
+    var(--legal-glass);
+  box-shadow:
+    0 24px 64px rgba(28, 39, 56, 0.24),
+    0 1px 1px rgba(255, 255, 255, 0.82) inset,
+    0 -1px 0 rgba(65, 79, 99, 0.12) inset;
+  color: var(--legal-copy);
+  backdrop-filter: blur(28px) saturate(1.12);
+  -webkit-backdrop-filter: blur(28px) saturate(1.12);
+}
+
+.legal-dialog::before {
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  border-radius: 19px;
+  background:
+    linear-gradient(
+      112deg,
+      rgba(255, 255, 255, 0.48),
+      rgba(255, 255, 255, 0.05) 34%,
+      rgba(210, 221, 235, 0.18) 72%,
+      rgba(255, 255, 255, 0.08)
+    );
+  content: '';
+  pointer-events: none;
+}
+
+.legal-dialog > * {
+  position: relative;
+  z-index: 1;
+}
+
+.legal-dialog__hero-icon,
+.legal-dialog__title,
+.legal-dialog__section-title {
+  color: var(--legal-ink);
+}
+
+.legal-dialog__copy {
+  color: var(--legal-copy);
+}
+
+.legal-dialog__section-icon {
+  color: var(--legal-muted);
+}
+
+.legal-dialog__document {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: var(--legal-glass-raised);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 8px 20px rgba(44, 58, 79, 0.05) inset;
+  backdrop-filter: blur(16px) saturate(1.05);
+  -webkit-backdrop-filter: blur(16px) saturate(1.05);
+  scrollbar-color: rgba(101, 113, 134, 0.52) transparent;
+}
+
+.legal-dialog__document::-webkit-scrollbar {
+  width: 6px;
+}
+
+.legal-dialog__document::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.legal-dialog__document::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(101, 113, 134, 0.52);
+}
+
+.legal-dialog__primary {
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: var(--legal-accent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 5px 12px rgba(47, 130, 232, 0.2);
+  transition:
+    background-color 150ms ease-out,
+    box-shadow 150ms ease-out,
+    transform 150ms ease-out;
+}
+
+.legal-dialog__primary:hover {
+  background: var(--legal-accent-hover);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.32) inset,
+    0 7px 16px rgba(47, 130, 232, 0.24);
+  transform: translateY(-1px);
+}
+
+.legal-dialog__secondary {
+  border: 1px solid rgba(101, 113, 134, 0.42);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.42) inset;
+  color: var(--legal-copy);
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out;
+}
+
+.legal-dialog__secondary:hover {
+  border-color: rgba(74, 88, 109, 0.56);
+  background: rgba(255, 255, 255, 0.26);
+}
+

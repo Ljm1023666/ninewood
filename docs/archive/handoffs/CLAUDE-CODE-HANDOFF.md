@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical only. Do **not** treat as current product/engineering/task truth. See docs/archive/README.md.
+
 # Claude Code 交接通道（Brain ↔ Claude Code）
 
 > 维护者: Cursor 审核官（Brain）· 读者: **Claude Code 执行员**  

@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical only. Do **not** treat as current product/engineering/task truth. See docs/archive/README.md.
+
 # 九木平台工程实现文档
 
 > 版本: AI 2.5 → AI 3.0+

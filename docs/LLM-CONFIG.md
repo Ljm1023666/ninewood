@@ -172,5 +172,6 @@ A：Qwen 模型通过阿里云 DashScope 的 OpenAI 兼容接口调用，Base UR
 
 ## 9. 相关文档
 
-- [ENGINEERING-ROADMAP.md](./ENGINEERING-ROADMAP.md) — 产品规则与 AI 2.5 标签认可流程  
-- [ENGINEERING_OVERVIEW.md](./ENGINEERING_OVERVIEW.md) — 仓库结构与启动命令
+- [ENGINEERING_OVERVIEW.md](./ENGINEERING_OVERVIEW.md) — 仓库结构与启动命令  
+- [DEVELOPMENT-GUIDE.md](./DEVELOPMENT-GUIDE.md) — 开发主线与需求原文  
+- 历史 Roadmap（勿作现行）：[archive/engineering/ENGINEERING-ROADMAP.md](./archive/engineering/ENGINEERING-ROADMAP.md)

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 批量下载桌面端重设计 HTML（P0 + P1）
  */
 import fs from 'fs'
@@ -6,7 +6,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const outDir = path.join(__dirname, '../docs/stitch-desktop-redesign')
+const outDir = path.join(__dirname, '..', 'stitch-desktop-redesign')
 
 /** @type {Array<{id:string,title:string,route:string,priority:string,screenId:string,htmlUrl:string,screenshot:string}>} */
 const pages = [

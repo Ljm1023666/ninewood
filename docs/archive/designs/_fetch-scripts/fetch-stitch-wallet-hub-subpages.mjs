@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 下载 Stitch 暖金奢华 Hub 子页 HTML
  * 用法: node scripts/fetch-stitch-wallet-hub-subpages.mjs <stitch-output.txt> [tab]
  */
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const outDir = path.join(root, 'docs/stitch-wallet-hub-subpages')
+const outDir = path.join(root, 'stitch-wallet-hub-subpages')
 
 const inputPath = process.argv[2]
 const tabFilter = process.argv[3]

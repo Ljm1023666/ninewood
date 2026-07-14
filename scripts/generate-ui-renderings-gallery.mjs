@@ -1,5 +1,5 @@
-/**
- * 扫描 docs/ 下所有 Stitch 渲染稿与截图，生成统一编号浏览页。
+﻿/**
+ * 扫描 docs/archive/designs/ 下所有 Stitch 渲染稿与截图，生成统一编号浏览页。
  * 运行: node scripts/generate-ui-renderings-gallery.mjs
  */
 import fs from 'node:fs';
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const DOCS = path.join(ROOT, 'docs');
-const OUT = path.join(DOCS, 'ui-renderings-gallery.html');
+const OUT = path.join(DOCS, 'archive', 'designs', 'ui-renderings-gallery.html');
 
 /** @type {{ id: string, label: string, desc: string, dir: string, order: number }[]} */
 const CATEGORIES = [
@@ -17,70 +17,70 @@ const CATEGORIES = [
     id: 'thesis-demo',
     label: '论文演示截图',
     desc: '当前产品实机截图，作为基线对照',
-    dir: 'thesis-demo-screenshots',
+    dir: 'archive/designs/thesis-demo-screenshots',
     order: 1,
   },
   {
     id: 'login',
     label: '登录 / 注册',
     desc: 'Stitch 登录流三屏',
-    dir: 'design/login-stitch',
+    dir: 'archive/designs/design/login-stitch',
     order: 2,
   },
   {
     id: 'path-search',
     label: '路径搜索',
     desc: 'Aurora 路径搜索与发布工作区',
-    dir: 'design/path-search-stitch',
+    dir: 'archive/designs/design/path-search-stitch',
     order: 3,
   },
   {
     id: 'path-search-styles',
     label: '路径搜索 · 风格探索',
     desc: '仅 Stitch 概念 PNG（赛博 / 全息 / 瑞士），仓库内无对应 HTML。可交互稿见上一分类「路径搜索」#019 起',
-    dir: 'designs/path-search-stitch',
+    dir: 'archive/designs/designs/path-search-stitch',
     order: 4,
   },
   {
     id: 'desktop-redesign',
     label: '桌面端重设计',
     desc: '窄栏页面 → 桌面多栏布局',
-    dir: 'stitch-desktop-redesign',
+    dir: 'archive/designs/stitch-desktop-redesign',
     order: 5,
   },
   {
     id: 'circle-detail',
     label: '圈子详情',
     desc: '圈子落地页 4 套方案',
-    dir: 'stitch-circle-detail',
+    dir: 'archive/designs/stitch-circle-detail',
     order: 6,
   },
   {
     id: 'circle-hub',
     label: '圈子 Hub 子页',
     desc: '侧栏子路由，每页 3 种布局变体',
-    dir: 'stitch-circle-hub-subpages',
+    dir: 'archive/designs/stitch-circle-hub-subpages',
     order: 7,
   },
   {
     id: 'wallet-hub',
     label: '钱包 Hub 子页',
     desc: '暖金奢华统一风格子页',
-    dir: 'stitch-wallet-hub-subpages',
+    dir: 'archive/designs/stitch-wallet-hub-subpages',
     order: 8,
   },
   {
     id: 'points-wallet',
     label: '点数钱包',
     desc: '钱包页 5 种视觉变体',
-    dir: 'stitch-points-wallet',
+    dir: 'archive/designs/stitch-points-wallet',
     order: 9,
   },
   {
     id: 'tax-visualizer',
     label: '税务可视化',
     desc: '标签统计 / 税务终端',
-    dir: 'stitch-tax-visualizer',
+    dir: 'archive/designs/stitch-tax-visualizer',
     order: 10,
   },
 ];
@@ -139,7 +139,7 @@ function metaFromManifest(relDir, filename) {
 
   const base = { href, kind, title: humanize(filename) };
 
-  if (relDir === 'stitch-desktop-redesign') {
+  if (relDir === 'archive/designs/stitch-desktop-redesign') {
     const manifest = readJsonSafe(path.join(absDir, 'manifest.json')) ?? [];
     const hit = manifest.find((m) => m.file === filename);
     if (hit) {
@@ -153,7 +153,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'stitch-points-wallet') {
+  if (relDir === 'archive/designs/stitch-points-wallet') {
     const manifest = readJsonSafe(path.join(absDir, 'manifest.json')) ?? [];
     const hit = manifest.find((m) => m.file === filename);
     if (hit) {
@@ -166,7 +166,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'stitch-wallet-hub-subpages') {
+  if (relDir === 'archive/designs/stitch-wallet-hub-subpages') {
     const manifest = readJsonSafe(path.join(absDir, 'manifest.json')) ?? [];
     const hit = manifest.find((m) => m.file === filename);
     if (hit) {
@@ -179,7 +179,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'stitch-circle-hub-subpages') {
+  if (relDir === 'archive/designs/stitch-circle-hub-subpages') {
     const manifest = readJsonSafe(path.join(absDir, 'manifest.json')) ?? [];
     for (const tab of manifest) {
       for (const v of tab.variants ?? []) {
@@ -196,7 +196,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'stitch-circle-detail') {
+  if (relDir === 'archive/designs/stitch-circle-detail') {
     const labels = {
       'variant-a-glass-dark.html': '方案 A · 暗色玻璃',
       'variant-b-cinematic.html': '方案 B · 电影感 Hero',
@@ -223,7 +223,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'design/login-stitch') {
+  if (relDir === 'archive/designs/design/login-stitch') {
     const labels = {
       '01-login-password.html': '密码登录',
       '02-register.html': '注册账号',
@@ -232,7 +232,7 @@ function metaFromManifest(relDir, filename) {
     if (labels[filename]) return { ...base, title: labels[filename], route: '/login' };
   }
 
-  if (relDir === 'design/path-search-stitch') {
+  if (relDir === 'archive/designs/design/path-search-stitch') {
     const labels = {
       '00-premium-aurora-neural.html': 'Premium Aurora Neural',
       '01-path-search-results.html': '路径搜索结果',
@@ -253,7 +253,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'designs/path-search-stitch') {
+  if (relDir === 'archive/designs/designs/path-search-stitch') {
     const labels = {
       'style-a-cyberpunk-terminal.png': '赛博终端',
       'style-b-holographic-lab.png': '全息实验室',
@@ -262,7 +262,7 @@ function metaFromManifest(relDir, filename) {
     if (labels[filename]) return { ...base, title: labels[filename], thumb: href, badge: '概念 PNG · 无 HTML' };
   }
 
-  if (relDir === 'stitch-tax-visualizer') {
+  if (relDir === 'archive/designs/stitch-tax-visualizer') {
     const labels = {
       'baseline.png': '基线截图',
       'variant-a-hero-driven.png': '方案 A · Hero 驱动',
@@ -275,7 +275,7 @@ function metaFromManifest(relDir, filename) {
     }
   }
 
-  if (relDir === 'thesis-demo-screenshots') {
+  if (relDir === 'archive/designs/thesis-demo-screenshots') {
     const labels = {
       '01-login.png': '登录',
       '02-discover.png': '发现',

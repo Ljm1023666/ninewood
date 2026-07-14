@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical only. Do **not** treat as current product/engineering/task truth. See docs/archive/README.md.
+
 # ADR · 自然回（Natural Loop）领域模型
 
 > **状态**：Superseded by `NATURAL-LOOP-V2-ADR.md`

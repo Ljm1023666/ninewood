@@ -47,11 +47,14 @@ pnpm --filter server run db:generate
 
 ## 3. 硬约束（违反即错）
 
+适用于 **所有 AI 工具**（Cursor / Claude Code / Codex / Gemini / Copilot / Windsurf / Cline / Aider / Roo / JetBrains AI 等），不只 Cursor。
+
 1. **仅 Windows 桌面**：宽屏（≥1280px）；禁止移动断点、触摸事件、PWA/Service Worker、safe-area。
 2. **外科手术式改动**：只改与请求直接相关的文件；不做顺手重构。
 3. **前后端契约同步**：改 API 字段时同时改 `server` 路由/服务与 `client-react/src/api/`。
-4. **`archive/` 默认只读**；不要手改 `dist/` 等构建产物。
+4. **`archive/`（代码）与 `docs/archive/**` 默认禁止读取/检索/引用**：仅用户明确要求考古时可打开；不要手改 `dist/` 等构建产物。
 5. **未要求不要提交**；不要改 git config；不要 force push。
+6. **全工具上下文隔离**：`.llmignore` 统一排除历史归档、会话残留、重复工具树、本地密钥/上传文件与临时生成物；经 `node scripts/sync-ai-ignores.mjs` 同步到各工具 ignore。Claude Code 另有 `.claude/settings.json` → `permissions.deny`；Copilot 另见 `.github/copilot-instructions.md`。
 
 语言约定：对用户用中文；代码注释用中文；内部推理可用英文。
 
@@ -75,7 +78,7 @@ ninewood/
 │   ├── routes/               # Express 路由
 │   ├── services/             # 业务逻辑（含 loop/、service-card 等）
 │   └── prisma/               # schema + migrations
-├── docs/specs/               # ADR / 任务 handoff
+├── docs/specs/               # 现行 ADR / Agent 规格
 └── .claude/memory/           # AI 会话记忆（必读）
 ```
 
@@ -100,13 +103,14 @@ ninewood/
 
 | 路由 | 含义 |
 |------|------|
-| `/services` | 能力目录（上架物 / offering） |
-| `/loops` | **当前用户**的运行实例中心（`LoopRun`） |
-| `/services/:id` | 单能力详情与运行 |
+| `/loops` | **当前用户**的运行实例中心（`LoopRun`）；侧栏入口「回」 |
+| `/loops/discover` | 需求者发现可执行地回 |
+| `/loops/accept` | 服务者承接人回（路径检索） |
+| `/services`、`/path-search` | 兼容入口（可重定向）；勿当作现行主叙事 |
 
 - 天地人分区按 `LoopRun.loopKind` 展示；**查看/排序/调布局不改变** loop 类型。
 - 用户运行能力必须写入 `LoopRun` 及开始/结果/失败事件，否则回中心无轨迹。
-- 权威说明：`docs/specs/NATURAL-LOOP-ADR.md`
+- 权威说明：`docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md`（旧 V1 ADR 已归档）
 
 ### 5.3 其他高频路由
 
@@ -134,12 +138,14 @@ ninewood/
 | 需要了解… | 去读 |
 |-----------|------|
 | 安装与启动 | `README.md` |
+| 文档总索引 | `docs/README.md` |
 | LLM / Agent 配置 | `docs/LLM-CONFIG.md` |
-| 工程现状 / 路线 | `docs/ENGINEERING_OVERVIEW.md`、`docs/ENGINEERING-ROADMAP.md` |
-| 功能规格 | `docs/FEATURE_SPECIFICATIONS.md` |
+| 开发主线 / 需求原文 | `docs/DEVELOPMENT-GUIDE.md` |
+| 工程现状 | `docs/ENGINEERING_OVERVIEW.md` |
 | 需求卡+服务卡 | `docs/specs/DEMAND-SERVICE-CARD-ADR.md` |
-| Natural Loop | `docs/specs/NATURAL-LOOP-ADR.md` |
-| 静态结构分析（偏旧） | `docs/PROJECT-ANALYSIS.md` |
+| Natural Loop | `docs/回的理念.md`、`docs/specs/NATURAL-LOOP-V2-ADR.md` |
+
+**禁止默认阅读**：`archive/**`、`docs/archive/**`（历史代码、Roadmap / 旧 handoff / 已完成 Stage·Task / 一次性报告），以及 `.workbuddy/memory/**`、`.agents/**`、`.reasonix/**` 等非现行上下文。仅用户明确要求考古时再打开。
 
 ---
 
@@ -149,5 +155,6 @@ ninewood/
 先读 AGENTS.md 与 .claude/memory/SESSION-ANCHOR.md、MEMORY.md。
 本仓库是 Ninewood（Windows 桌面 only，pnpm monorepo：client-react + server）。
 改动保持外科手术式；API 契约前后端同步；不要做移动端适配。
+不要读取 archive/ 或 docs/archive/，也不要读取 .workbuddy/memory、.agents、.reasonix（除非用户要求考古）。
 完成实质工作后更新 SESSION-ANCHOR；可复用教训追加 LEARNINGS。
 ```

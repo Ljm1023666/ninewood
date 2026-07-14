@@ -1,9 +1,9 @@
-﻿# 九木平台 · 产品需求与开发指导（基于现状）
+# 九木平台 · 产品需求与开发指导（基于现状）
 
 > 版本: AI 3.1.pro · 创建: 2026-06-15 · 最近同步: 2026-06-19 (Stage 1.6 落地)
 > 定位: 本文档以**用户原话需求**为唯一权威来源，对照**当前代码实现**标注完成度，并给出**接下来开发的指导**。
-> 关系: 取代 `ENGINEERING-ROADMAP.md` 作为开发主线。Roadmap 是早期设计稿，部分 API 路径/表结构与现状不一致，仅作历史参考。
-> 配套: 可执行的推进路线、验收标准与测试用例清单见 `ACTION-PLAN.md`。本文档负责"是什么/到哪了"，`ACTION-PLAN.md` 负责"按什么顺序做/做完怎么算数"。
+> 关系: 取代已归档的 `docs/archive/engineering/ENGINEERING-ROADMAP.md` 作为开发主线。Roadmap 是早期设计稿，部分 API 路径/表结构与现状不一致，**仅作历史参考，新会话勿读**。
+> 配套: 早期可执行推进清单已归档至 `docs/archive/handoffs/ACTION-PLAN.md`。本文档负责「是什么/到哪了」；当前下一步以 `.claude/memory/SESSION-ANCHOR.md` 为准。
 
 ---
 
@@ -169,7 +169,7 @@
     - 资格门槛：优先 `UserTag.certified=true`，兜底 `User.certificationLevel !== 'NONE'`；不足返 403。
   - Roadmap 的「推送进度 `GET /pushes/:id/status`」无（也无 `DemandPush` 表）。
 - **autoReceive（Stage 1.1 已落地）**：复用 `UserTag.autoReceive`（**未新增** `PushPreference.autoAccept`），push-engine.ts 新增 autoReceiveOnly 参数 + `triggerAutoReceivePush`；user-tag.ts 加 PATCH /:tagName/auto-receive；demand.service.create 交付后挂起自动推送。详见 docs/specs/STAGE-1.1-auto-receive.md，12 个用例（auto-receive.test.ts A–L）全绿。
-- **未来项（非初期范围）**：认证撤销防护（certification 撤销后停止被推送 + 已推送撤回）；重复推送防重（demand 状态机防回退重发）；计数/进度接口（/pushes/:id/status 等）。详见 ACTION-PLAN.md 阶段 1 行的「未来项」说明。
+- **未来项（非初期范围）**：认证撤销防护（certification 撤销后停止被推送 + 已推送撤回）；重复推送防重（demand 状态机防回退重发）；计数/进度接口（/pushes/:id/status 等）。详见已归档 `docs/archive/handoffs/ACTION-PLAN.md` 阶段 1「未来项」（考古用，非现行队列）。
 
 ### 4. 效果导向验收 ✅
 
@@ -359,7 +359,7 @@
 ---
 
 ## 版本记录
-| 2026-06-21 | v2.4 | **Task 6 虚假功能完整修复** 陆续上线：P0 订单主链接入 wallet（P0-01~04）；P1 公益认领/完成、管理后台争议与真实指标、订单取消/资警设置/认证注册/Discover 服务者检索；P2 去除伪数据（TagStats/AdminSystem/Users）与后端接入；P3 隐藏 Google/语音假按钮、聊天重命名持久化、全局 catch noop 改 toast、退出接口与 Electron 窗口控制；P4 废弃旧 snatch/acceptSnatch/bid.accept、删除 stores/tags.ts 与子子 demo 组件（迁至 archive/）。`pnpm --filter server test` 69/69、`pnpm typecheck` clean。详见 `docs/specs/FAKE-FEATURES-REPAIR-BACKLOG.md` §8 DoD。 |
+| 2026-06-21 | v2.4 | **Task 6 虚假功能完整修复** 陆续上线：P0 订单主链接入 wallet（P0-01~04）；P1 公益认领/完成、管理后台争议与真实指标、订单取消/资警设置/认证注册/Discover 服务者检索；P2 去除伪数据（TagStats/AdminSystem/Users）与后端接入；P3 隐藏 Google/语音假按钮、聊天重命名持久化、全局 catch noop 改 toast、退出接口与 Electron 窗口控制；P4 废弃旧 snatch/acceptSnatch/bid.accept、删除 stores/tags.ts 与子子 demo 组件（迁至 archive/）。`pnpm --filter server test` 69/69、`pnpm typecheck` clean。详见已归档 `docs/archive/specs/FAKE-FEATURES-REPAIR-BACKLOG.md` §8 DoD。 |
 
 
 | 日期 | 版本 | 说明 |

@@ -1017,7 +1017,7 @@ git diff ai/3.1.pro stage/1.1 --stat
 | 定位回归引入点 | `git bisect` 用 **history/atomic** + tag 作 good/bad |
 | 理解设计决策 | 优先读 `stage/*` 与 `docs/specs/` |
 | 补充/修正快照 | 编辑 `scripts/release-milestones.mjs` 后重跑 sync 脚本 |
-| 重建原子历史 | `node scripts/build-atomic-history.mjs`（需干净工作区） |
+| 重建原子历史（考古） | `node archive/tooling/build-atomic-history.mjs`（需干净工作区） |
 
 ### 双分支模型
 

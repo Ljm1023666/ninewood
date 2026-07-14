@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 毕设展示页截图脚本
  * 用法: node scripts/capture-thesis-screenshots.mjs
  */
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
-const OUT_DIR = path.join(ROOT, 'docs', 'thesis-demo-screenshots')
+const OUT_DIR = path.join(ROOT, 'docs', 'archive', 'designs', 'thesis-demo-screenshots')
 const BASE_URL = 'http://localhost:3080'
 const API_URL = 'http://localhost:3001/api'
 

@@ -11,6 +11,7 @@ import {
   SignInFlowNavbar,
 } from '@/components/ui/sign-in-flow-1'
 import '@/components/ui/sign-in-flow.css'
+import '@/components/ui/sign-in-flow-macos.css'
 
 const SMS_LENGTH = 6
 
@@ -226,7 +227,7 @@ function HCaptchaWidget({
           {
             sitekey: siteKey,
             size: 'normal',
-            theme: 'dark',
+            theme: 'light',
             callback: onVerify,
             'error-callback': () => onError('验证失败，请重试'),
           },
@@ -298,7 +299,7 @@ function CodeInput({
   }, [])
 
   return (
-    <div className="relative rounded-full border border-white/10 bg-transparent px-4 py-3.5">
+    <div className="sign-in-flow-sms-code relative px-4 py-3.5">
       <div className="flex items-center justify-center">
         {code.map((digit, i) => (
           <div key={i} className="flex items-center">
@@ -316,16 +317,16 @@ function CodeInput({
                 disabled={disabled}
                 onChange={(e) => onChange(i, e.target.value)}
                 onKeyDown={(e) => onKeyDown(i, e)}
-                className="sign-in-flow-sms-digit w-9 text-center bg-transparent text-white border-none focus:outline-none focus:ring-0 appearance-none disabled:opacity-50"
+                className="sign-in-flow-sms-digit w-9 text-center bg-transparent border-none appearance-none disabled:opacity-50"
                 style={{ caretColor: 'transparent' }}
               />
               {!digit && (
                 <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                  <span className="sign-in-flow-sms-digit text-white/20">0</span>
+                  <span className="sign-in-flow-sms-digit opacity-20">0</span>
                 </div>
               )}
             </div>
-            {i < length - 1 && <span className="sign-in-flow-sms-digit text-white/20">|</span>}
+            {i < length - 1 && <span className="sign-in-flow-sms-digit opacity-20">|</span>}
           </div>
         ))}
       </div>
@@ -632,7 +633,7 @@ export default function LoginPage() {
   return (
     <div
       className={cn(
-        'sign-in-flow-root relative flex min-h-screen w-full flex-col bg-black',
+        'sign-in-flow-root relative flex min-h-screen w-full flex-col',
       )}
     >
       <SignInFlowBackground
@@ -657,17 +658,56 @@ export default function LoginPage() {
           }}
         />
 
-        <div className="flex flex-1 flex-col items-center justify-center px-6">
-          <div className="w-full max-w-lg">
+        <div className="flex flex-1 items-center">
+          <div className="sign-in-flow-auth-layout">
+            <aside className="sign-in-flow-brand-panel">
+              <h1>让合作，自然发生。</h1>
+              <p>
+                九木帮助需求方与服务者在清晰、可靠的流程中建立连接。
+              </p>
+              <ul className="sign-in-flow-trust-list">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="M7 3h8l3 3v15H7V3Z" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M10 10h5M10 14h5" strokeLinecap="round" />
+                  </svg>
+                  <div>
+                    <strong>发布需求，明确合作目标</strong>
+                    <span>用清晰的信息开始每一次委托。</span>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="m8 12 2.5 2.5L16 9" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="12" cy="12" r="8.5" />
+                  </svg>
+                  <div>
+                    <strong>匹配服务，连接合适的人</strong>
+                    <span>从需求到履约，所有进度都有迹可循。</span>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="M12 3 5.5 6v5.2c0 4.2 2.7 7.8 6.5 9.1 3.8-1.3 6.5-4.9 6.5-9.1V6L12 3Z" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="m9.5 12 1.6 1.6 3.5-3.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div>
+                    <strong>担保履约，让交易过程可追溯</strong>
+                    <span>关键状态、资金与沟通信息始终透明。</span>
+                  </div>
+                </li>
+              </ul>
+            </aside>
+            <div className="sign-in-flow-auth-panel">
               <AnimatePresence mode="wait">
                 {/* ── Step 1: 手机号 ── */}
                 {step === 'phone' && (
                   <motion.div
                     key="phone-step"
-                    initial={{ opacity: 0, x: -100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
                     className={cn(isLogin ? '' : 'sign-in-flow-stack text-center')}
                   >
                     {isLogin ? (
@@ -686,28 +726,35 @@ export default function LoginPage() {
                         </div>
 
                         <div className="sign-in-flow-register-stack">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLoginChannel('id')
-                              setError('')
-                            }}
+                          <div
                             className={cn(
-                              'flex w-full items-center justify-center gap-2 rounded-xl border px-4 transition-colors',
-                              loginChannel === 'id'
-                                ? 'border-white/25 bg-white/10 text-white'
-                                : 'border-white/10 bg-white/[0.03] text-white hover:border-white/18 hover:bg-white/[0.06]',
+                              'sign-in-flow-login-methods',
+                              `is-${loginChannel}`,
                             )}
-                            style={{ height: '52px' }}
+                            role="group"
+                            aria-label="登录方式"
                           >
-                            <span className="text-xl font-mono">#</span>
-                            <span>Sign in with ID</span>
-                          </button>
-
-                          <div className="flex items-center gap-4">
-                            <div className="h-px flex-1 bg-white/10" />
-                            <span className="text-sm text-white/35">or</span>
-                            <div className="h-px flex-1 bg-white/10" />
+                            {[
+                              ['id', '账号 ID'],
+                              ['phone', '手机号'],
+                              ['email', 'QQ 邮箱'],
+                            ].map(([channel, label]) => (
+                              <button
+                                key={channel}
+                                type="button"
+                                onClick={() => {
+                                  setLoginChannel(channel as typeof loginChannel)
+                                  setError('')
+                                }}
+                                className={cn(
+                                  'sign-in-flow-method-button',
+                                  loginChannel === channel && 'is-active',
+                                )}
+                                aria-pressed={loginChannel === channel}
+                              >
+                                {label}
+                              </button>
+                            ))}
                           </div>
 
                           {loginChannel === 'id' && (
@@ -737,7 +784,7 @@ export default function LoginPage() {
                                 <button
                                   type="button"
                                   onClick={() => setShowPassword(!showPassword)}
-                                  className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center text-white/35 transition-colors hover:text-white/65"
+                                  className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center transition-colors"
                                 >
                                   {showPassword ? '隐藏' : '显示'}
                                 </button>
@@ -793,7 +840,7 @@ export default function LoginPage() {
                                 <button
                                   type="button"
                                   onClick={() => setShowPassword(!showPassword)}
-                                  className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center text-white/35 transition-colors hover:text-white/65"
+                                  className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center transition-colors"
                                 >
                                   {showPassword ? '隐藏' : '显示'}
                                 </button>
@@ -850,42 +897,6 @@ export default function LoginPage() {
                             </form>
                           )}
 
-                          <div className="sign-in-flow-login-channels">
-                            {loginChannel !== 'id' && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLoginChannel('id')
-                                  setError('')
-                                }}
-                              >
-                                ID 登录
-                              </button>
-                            )}
-                            {loginChannel !== 'phone' && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLoginChannel('phone')
-                                  setError('')
-                                }}
-                              >
-                                手机号登录
-                              </button>
-                            )}
-                            {loginChannel !== 'email' && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLoginChannel('email')
-                                  setError('')
-                                }}
-                              >
-                                QQ 邮箱登录
-                              </button>
-                            )}
-                          </div>
-
                           <p className="sign-in-flow-register-footer">
                             没有账号？
                             <button
@@ -941,7 +952,7 @@ export default function LoginPage() {
                                 onChange={(e) => setRegisterPassword(e.target.value)}
                                 minLength={6}
                                 required
-                                className="w-full bg-transparent px-3 py-2.5 text-white outline-none placeholder:text-white/40"
+                                className="sign-in-flow-password-input w-full bg-transparent px-3 py-2.5 outline-none"
                               />
                             </div>
 
@@ -1081,17 +1092,17 @@ export default function LoginPage() {
                 {step === 'captcha' && (
                   <motion.div
                     key="captcha-step"
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 100 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="sign-in-flow-stack text-center"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="sign-in-flow-stage sign-in-flow-stack text-center"
                   >
                     <div className="sign-in-flow-stack-xs">
-                      <h1 className="font-bold tracking-tight text-white">
+                      <h1 className="font-bold tracking-tight">
                         人机验证
                       </h1>
-                      <p className="sign-in-flow-subtitle-sm text-white/50 font-light">
+                      <p className="sign-in-flow-subtitle-sm font-light">
                         完成下方验证
                       </p>
                     </div>
@@ -1105,7 +1116,7 @@ export default function LoginPage() {
                     )}
 
                     {isLoading && (
-                      <p className="text-base text-white/40">验证中，请稍候...</p>
+                      <p className="text-base text-[#86868B]">验证中，请稍候...</p>
                     )}
 
                     {captchaError && (
@@ -1121,9 +1132,7 @@ export default function LoginPage() {
                     <div className="flex justify-center">
                       <motion.button
                         onClick={handleBackToPhone}
-                        className="rounded-full bg-white text-black font-medium px-8 py-3 hover:bg-white/90 transition-colors cursor-pointer"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        className="sign-in-flow-secondary-button font-medium px-8 py-3 transition-colors cursor-pointer"
                         transition={{ duration: 0.2 }}
                       >
                         返回
@@ -1136,17 +1145,17 @@ export default function LoginPage() {
                 {step === 'sms' && (
                   <motion.div
                     key="sms-step"
-                    initial={{ opacity: 0, x: 100 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 100 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    className="sign-in-flow-stack text-center"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="sign-in-flow-stage sign-in-flow-stack text-center"
                   >
                     <div className="sign-in-flow-stack-xs">
-                      <h1 className="font-bold tracking-tight text-white">
+                      <h1 className="font-bold tracking-tight">
                         输入验证码
                       </h1>
-                      <p className="sign-in-flow-subtitle-sm text-white/50 font-light">
+                      <p className="sign-in-flow-subtitle-sm font-light">
                         已发送至{' '}
                         {codeDelivery === 'email-login' ? email : phone}
                       </p>
@@ -1185,9 +1194,9 @@ export default function LoginPage() {
                               onChange={(e) =>
                                 setGuardianConsent(e.target.checked)
                               }
-                              className="mt-0.5 shrink-0 accent-white"
+                                className="mt-0.5 shrink-0 accent-[#007AFF]"
                             />
-                            <span className="text-sm text-white/70">
+                            <span className="text-sm text-[#515154]">
                               本人已满 14 周岁，且已征得监护人同意
                             </span>
                           </label>
@@ -1207,7 +1216,7 @@ export default function LoginPage() {
                       <motion.p
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-base text-red-400/80"
+                        className="sign-in-flow-error text-base"
                       >
                         {error}
                       </motion.p>
@@ -1216,8 +1225,7 @@ export default function LoginPage() {
                     <div>
                       <motion.button
                         type="button"
-                        className="text-white/50 hover:text-white/70 transition-colors cursor-pointer text-base"
-                        whileHover={{ scale: 1.02 }}
+                        className="text-[#007AFF] hover:text-[#0A84FF] transition-colors cursor-pointer text-base"
                         transition={{ duration: 0.2 }}
                         onClick={handleResendSms}
                         disabled={isLoading || countdown > 0}
@@ -1233,9 +1241,7 @@ export default function LoginPage() {
                     <div className="flex w-full gap-3">
                       <motion.button
                         onClick={handleBackToPhone}
-                        className="rounded-full bg-white text-black font-medium px-8 py-3 hover:bg-white/90 transition-colors w-[30%] cursor-pointer"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        className="sign-in-flow-secondary-button font-medium px-8 py-3 transition-colors w-[30%] cursor-pointer"
                         transition={{ duration: 0.2 }}
                       >
                         返回
@@ -1245,11 +1251,11 @@ export default function LoginPage() {
 
                     {codeDelivery === 'phone-register' ? (
                       <div className="pt-10">
-                        <div className="text-base text-white/40">
+                        <div className="text-base text-[#515154]">
                           注册即表示同意{' '}
                           <LegalDialog
                             trigger={
-                              <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-base">
+                              <span className="text-[#007AFF] hover:text-[#0A84FF] cursor-pointer transition-colors text-base">
                                 服务条款
                               </span>
                             }
@@ -1259,7 +1265,7 @@ export default function LoginPage() {
                           和{' '}
                           <LegalDialog
                             trigger={
-                              <span className="underline text-white/40 hover:text-white/60 cursor-pointer transition-colors text-base">
+                              <span className="text-[#007AFF] hover:text-[#0A84FF] cursor-pointer transition-colors text-base">
                                 隐私政策
                               </span>
                             }
@@ -1276,16 +1282,16 @@ export default function LoginPage() {
                 {step === 'success' && (
                   <motion.div
                     key="success-step"
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, ease: 'easeOut', delay: 0.3 }}
-                    className="sign-in-flow-stack text-center"
+                    transition={{ duration: 0.2, ease: 'easeOut', delay: 0.1 }}
+                    className="sign-in-flow-stage sign-in-flow-stack text-center"
                   >
                     <div className="sign-in-flow-stack-xs">
-                      <h1 className="font-bold tracking-tight text-white">
+                      <h1 className="font-bold tracking-tight">
                         欢迎你！
                       </h1>
-                      <p className="sign-in-flow-subtitle-sm text-white/50 font-light">
+                      <p className="sign-in-flow-subtitle-sm font-light">
                         加入九木社区
                       </p>
                     </div>
@@ -1295,10 +1301,10 @@ export default function LoginPage() {
                       transition={{ duration: 0.5, delay: 0.5 }}
                       className="py-10"
                     >
-                      <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-white to-white/70 flex items-center justify-center">
+                      <div className="mx-auto w-16 h-16 rounded-full bg-[rgba(0,122,255,0.12)] flex items-center justify-center">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-8 w-8 text-black"
+                          className="h-8 w-8 text-[#007AFF]"
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -1315,13 +1321,14 @@ export default function LoginPage() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
                       onClick={() => navigate('/', { replace: true })}
-                      className="w-full rounded-full bg-white text-black font-medium py-3 hover:bg-white/90 transition-colors cursor-pointer"
+                      className="sign-in-flow-primary-button w-full font-medium py-3 transition-colors cursor-pointer"
                     >
                       进入首页
                     </motion.button>
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>

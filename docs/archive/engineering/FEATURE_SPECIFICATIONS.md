@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical only. Do **not** treat as current product/engineering/task truth. See docs/archive/README.md.
+
 # Ninewood 功能级工程文档
 
 > 范围：卡池、发布需求、圈子、消息聊天、Electron 桌面集成  

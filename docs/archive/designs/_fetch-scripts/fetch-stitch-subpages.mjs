@@ -1,11 +1,11 @@
-import fs from 'fs'
+﻿import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
 const agentDir = 'C:/Users/19617/.cursor/projects/d-ninewood/agent-tools'
-const outDir = path.join(root, 'docs/stitch-circle-hub-subpages')
+const outDir = path.join(root, 'stitch-circle-hub-subpages')
 
 const batches = [
   { file: '62b87ec9-bca5-4b65-b81c-39e3019b2a24.txt', tab: 'home', label: '首页', route: '/circles/:id/home' },

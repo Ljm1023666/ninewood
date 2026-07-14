@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 下载 Stitch 桌面端重设计 HTML
  * 用法: node scripts/fetch-stitch-desktop-redesign.mjs <debug.json> <pageId>
  */
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const outDir = path.join(root, 'docs/stitch-desktop-redesign')
+const outDir = path.join(root, 'stitch-desktop-redesign')
 
 const inputPath = process.argv[2]
 const pageId = process.argv[3]

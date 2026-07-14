@@ -13,6 +13,7 @@ Curated long-term project memory for AI sessions.
 - Do not add mobile adaptation features unless explicitly requested.
 - Keep changes surgical and tied directly to user requests.
 - Prefer existing project conventions over introducing new abstractions.
+- Applies to **all AI tools**: never read `archive/**`, `docs/archive/**`, `.workbuddy/memory/**`, `.agents/**`, or `.reasonix/**` as current truth unless the user explicitly requests archaeology. `.llmignore` / synced tool ignores exclude them; Claude adds `permissions.deny`.
 
 ## Working Agreements
 
@@ -28,6 +29,8 @@ Curated long-term project memory for AI sessions.
 ## Current Runtime Notes
 
 - Dev stack entrypoints:
-  - `npm run dev`
-  - `npm run dev:electron`
+  - `pnpm run dev`
+  - `pnpm run dev:electron`
 - Electron local startup uses project-local CLI (`node node_modules/electron/cli.js`) to avoid `npx` fallback download failures.
+- Do not read `archive/**`, `docs/archive/**`, secondary AI logs, local `.env` files, uploads, temporary generator output, or `DEPLOY.md` unless the user explicitly authorizes it.
+- Natural Loop authority: `docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md`.

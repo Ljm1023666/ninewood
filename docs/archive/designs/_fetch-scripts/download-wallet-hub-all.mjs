@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 批量下载暖金奢华 Hub 子页 HTML + 复制钱包页
  */
 import fs from 'fs'
@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, '..')
-const outDir = path.join(root, 'docs/stitch-wallet-hub-subpages')
-const walletSrc = path.join(root, 'docs/stitch-points-wallet/variant-d.html')
+const outDir = path.join(root, 'stitch-wallet-hub-subpages')
+const walletSrc = path.join(root, 'stitch-points-wallet', 'variant-d.html')
 
 const pages = [
   {
@@ -97,7 +97,7 @@ manifest.push({
   screenId: 'a352636672d64c2cada743f594941c70',
   screenshot:
     'https://lh3.googleusercontent.com/aida/AP1WRLurQDP7RwpRXgRxFpbMKgvlMOD7aGvUfMgcNpeCNd4wARta8IqC5_HDtt2aATqlA0VG43S7j_KMefCXk3jLlrNrKsUzKo0W4zES82MobVk9L3hd_pWcGQ8b9MK7dl80qNlbiuHkhvzEUznNJLU9mEDCDIlNg6NZweu5m4-692v05CXgRRDJsy7HJ7Vrqg3YaWwwYi2PhhW4-ntQ0tO4x6qscgWp8M60WAk-hXMUx46tQ0LzJyUszteN_A',
-  source: 'docs/stitch-points-wallet/variant-d.html',
+  source: 'docs/archive/designs/stitch-points-wallet/variant-d.html',
 })
 console.log('Copied wallet.html from variant-d')
 

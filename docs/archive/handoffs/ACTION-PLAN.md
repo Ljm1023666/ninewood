@@ -1,3 +1,5 @@
+> **ARCHIVED** — historical only. Do **not** treat as current product/engineering/task truth. See docs/archive/README.md.
+
 # 九木平台 · 执行规格与后续开发计划
 
 > 版本: v2.1 · 创建: 2026-06-19 · 最近同步: 2026-06-21 (Task 9 活跃)

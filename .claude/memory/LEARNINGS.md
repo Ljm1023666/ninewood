@@ -28,3 +28,18 @@ Append-only operational lessons to reduce repeated mistakes.
 - 桌面端工作台过空时，优先增加与当前决策直接相关的结构化信息和流程预览，而不是单纯放大容器或堆装饰。
 - 实际截图验收必须检查页面是否被 `max-width` 意外限制；桌面工作台通常应优先填满主栏，再用列比例控制层级。
 
+## 2026-07-14
+
+- 顶层文档会互相污染新会话（Roadmap / 冻结 Task handoff / 旧 ADR）。过期主线、已完成 Stage·Task、一次性报告应迁入 `docs/archive/`，并用 **全 AI 工具**忽略机制阻断：权威清单 `.llmignore` → `node scripts/sync-ai-ignores.mjs` 同步到各工具 ignore；Claude Code 加 `permissions.deny`；行为层靠 `AGENTS.md` / `CLAUDE.md` / `.github/copilot-instructions.md`。勿只配 `.cursorignore`。
+- 自然回现行权威是 `docs/回的理念.md` + `NATURAL-LOOP-V2-ADR.md`；勿再默认打开已归档的 `NATURAL-LOOP-ADR.md` 或 Task-12「找服务」终态叙事。
+- `CLAUDE.md` / `MEMORY.md` 的包管理与仓库路径若与 `AGENTS.md` 冲突，以 `AGENTS.md` + `README.md`（pnpm）为准并应立即对齐，否则协作纪律名存实亡。
+
+
+## 2026-07-14
+
+- 前端页面 Stitch 设计稿、风格变体 PNG、毕设演示截图与根目录预览 HTML 应归入 docs/archive/designs/，勿留在 docs/ 顶层；运行时资源才放 client-react/public/stitch/。
+- 归档后一次性拉取脚本需同步迁入并修正相对路径（脚本位于 `docs/archive/designs/_fetch-scripts/` 时，输出目录应相对该归档树，而非再拼 `docs/...`）。
+- 全仓上下文治理不能只排除 `docs/archive/**`：代码归档、二级会话日志、重复工具树、`.env`、上传、临时输出和含部署密钥的文档也必须进入 `.llmignore`；但 Vitest、CI、package script 与运行时资源必须先以调用链为准保留。
+- 任何会自动注入会话的工具记忆，若不再维护为权威事实，就不能留在根目录：应归档并从注入路径移除。一次性诊断报告同样应归档，避免它的过期统计重新成为默认上下文。
+- 设计规范以已落地的全局 CSS token 为准；当 frontmatter、正文和实现不一致时，重写过时正文并删除设计文档中的发布历史，发布记录只保留在 `docs/RELEASE-NOTES.md`。
+- 认证页的视觉重构必须把业务状态机与展示层分开：可替换背景、导航、字段外观和动效，但不得改变验证码、合规同意、年龄校验与法律弹窗的触发条件。

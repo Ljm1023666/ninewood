@@ -1,7 +1,8 @@
 # Ninewood 工程文档（现状总览）
 
-> 更新时间：2026-05-15  
-> 仓库根目录：`e:/Ninewood`
+> 更新时间：2026-07-14（纠正路径/包管理过时口径）  
+> 仓库根目录：仓库检出路径（Windows 常见 `D:\ninewood`）  
+> 历史 Roadmap / 旧规格 / 冻结 handoff → `docs/archive/`（新会话默认勿读）
 
 ## 1. 项目定位与现状
 
@@ -11,14 +12,14 @@ Ninewood 当前是一个 **Windows 桌面优先** 的全栈项目，技术路线
 - 后端：`server`（Express + Prisma + PostgreSQL + Socket.IO）
 - 桌面壳：Electron（主进程 + preload + 渲染层桥接）
 
-历史 Vue 版本已从仓库移除（不再作为工作区参与构建）。
+历史 Vue 版本已归档至 `archive/`（不再作为工作区参与构建）。
 
 ---
 
 ## 2. 仓库结构与职责
 
 ```text
-e:/Ninewood
+ninewood/
 ├─ client-react/              # 前端主应用（React）
 │  ├─ src/                    # 页面、组件、store、api
 │  ├─ electron/               # Electron 主进程与 preload
@@ -29,8 +30,8 @@ e:/Ninewood
 │  ├─ prisma/                 # schema、迁移、seed
 │  └─ package.json
 ├─ scripts/                   # 根脚本（含 electron dev 启动器）
-├─ docs/                      # 工程文档
-└─ package.json               # npm workspaces 入口
+├─ docs/                      # 现行工程文档（archive/ 为历史）
+└─ package.json               # pnpm workspace 入口
 ```
 
 ---

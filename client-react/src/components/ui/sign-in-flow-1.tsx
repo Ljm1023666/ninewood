@@ -333,26 +333,6 @@ const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => {
   )
 }
 
-function AnimatedNavLink({
-  to,
-  children,
-}: {
-  to: string
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      to={to}
-      className="sign-in-flow-nav-animated group relative text-base"
-    >
-      <span className="sign-in-flow-nav-animated__track flex flex-col transition-transform duration-300 ease-out group-hover:-translate-y-1/2">
-        <span className="text-gray-300">{children}</span>
-        <span className="text-white">{children}</span>
-      </span>
-    </Link>
-  )
-}
-
 export function SignInFlowNavbar({
   isLogin,
   onToggleMode,
@@ -360,115 +340,45 @@ export function SignInFlowNavbar({
   isLogin: boolean
   onToggleMode: (login: boolean) => void
 }) {
-  const logoElement = (
-    <div className="relative flex h-5 w-5 shrink-0 items-center justify-center">
-      <span className="absolute top-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-gray-200 opacity-80" />
-      <span className="absolute top-1/2 left-0 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-gray-200 opacity-80" />
-      <span className="absolute top-1/2 right-0 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-gray-200 opacity-80" />
-      <span className="absolute bottom-0 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-gray-200 opacity-80" />
-    </div>
-  )
-
-  const navLinksData = [
-    { label: '首页', to: '/' },
-    { label: '发现', to: '/' },
-    { label: '圈子', to: '/circles' },
-  ]
-
-  const loginBtn = (
-    <button
-      type="button"
-      onClick={() => onToggleMode(true)}
-      className={cn(
-        'rounded-full px-4 py-2.5 text-base transition-colors duration-200',
-        isLogin
-          ? 'bg-gradient-to-br from-gray-100 to-gray-300 font-semibold text-black'
-          : 'border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 hover:border-white/50 hover:text-white',
-      )}
-    >
-      登录
-    </button>
-  )
-
-  const signupBtn = (
-    <button
-      type="button"
-      onClick={() => onToggleMode(false)}
-      className={cn(
-        'relative z-10 rounded-full px-4 py-2.5 text-base transition-all duration-200',
-        !isLogin
-          ? 'bg-gradient-to-br from-gray-100 to-gray-300 font-semibold text-black hover:from-gray-200 hover:to-gray-400'
-          : 'border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 hover:border-white/50 hover:text-white',
-      )}
-    >
-      注册
-    </button>
-  )
-
   return (
-    <header className="fixed top-6 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full border border-[#333] bg-[#1f1f1f57] py-3 pr-6 pl-6 backdrop-blur-sm">
-      <div className="flex items-center gap-7">
-        {logoElement}
-
-        <nav className="sign-in-flow-nav flex items-center gap-6 text-base">
-          {navLinksData.map((link) => (
-            <AnimatedNavLink key={link.label} to={link.to}>
-              {link.label}
-            </AnimatedNavLink>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          {loginBtn}
-          <div className="group relative">
-            <div className="pointer-events-none absolute inset-0 -m-2 rounded-full bg-gray-100 opacity-40 blur-lg filter transition-all duration-300 ease-out group-hover:-m-3 group-hover:opacity-60 group-hover:blur-xl" />
-            {signupBtn}
-          </div>
-        </div>
+    <header className="sign-in-flow-appbar">
+      <Link to="/" className="sign-in-flow-brand" aria-label="返回九木首页">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M8 9v22h6V9H8Zm10 0v22h6V9h-6Zm10 0-5 11 5 11h6l-5-11L34 9h-6Z" />
+        </svg>
+        <span>九木</span>
+      </Link>
+      <div className="sign-in-flow-mode-switch" role="group" aria-label="认证方式">
+        <button
+          type="button"
+          onClick={() => onToggleMode(true)}
+          className={cn(isLogin && 'is-active')}
+          aria-pressed={isLogin}
+        >
+          登录
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggleMode(false)}
+          className={cn(!isLogin && 'is-active')}
+          aria-pressed={!isLogin}
+        >
+          注册
+        </button>
       </div>
     </header>
   )
 }
 
-export function SignInFlowBackground({
-  initialVisible,
-  reverseVisible,
-}: {
+export function SignInFlowBackground(props: {
   initialVisible: boolean
   reverseVisible: boolean
 }) {
+  void props
+
   return (
-    <div className="absolute inset-0 z-0">
-      {initialVisible && (
-        <div className="absolute inset-0">
-          <CanvasRevealEffect
-            animationSpeed={3}
-            containerClassName="bg-black"
-            colors={[
-              [255, 255, 255],
-              [255, 255, 255],
-            ]}
-            dotSize={6}
-            reverse={false}
-          />
-        </div>
-      )}
-      {reverseVisible && (
-        <div className="absolute inset-0">
-          <CanvasRevealEffect
-            animationSpeed={4}
-            containerClassName="bg-black"
-            colors={[
-              [255, 255, 255],
-              [255, 255, 255],
-            ]}
-            dotSize={6}
-            reverse
-          />
-        </div>
-      )}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0.72)_0%,_transparent_70%)]" />
-      <div className="absolute top-0 right-0 left-0 h-1/3 bg-gradient-to-b from-black to-transparent" />
+    <div className="sign-in-flow-background" aria-hidden="true">
+      <div className="sign-in-flow-background__glow" />
     </div>
   )
 }

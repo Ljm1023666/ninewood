@@ -1,4 +1,4 @@
-# 九木毕设 · 导师沟通问答记录
+﻿# 九木毕设 · 导师沟通问答记录
 
 > 收集日期：2026-07-08  
 > 说明：按当日问答原样整理，一问一答，不作删改扩写。
@@ -186,5 +186,5 @@
 
 ## 附录：展示截图目录
 
-当日另备毕设展示截图，路径：`docs/thesis-demo-screenshots/`  
+当日另备毕设展示截图，路径：`docs/archive/designs/thesis-demo-screenshots/`  
 重新生成命令：`node scripts/capture-thesis-screenshots.mjs`（需先启动开发服务）
