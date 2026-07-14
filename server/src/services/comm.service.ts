@@ -122,11 +122,15 @@ export function canViewDemand(
     status: string
     acceptedProviderId: string | null
     isPublic: boolean
+    circleId?: string | null
   },
   viewerId?: string | null,
+  opts?: { isCircleMember?: boolean },
 ): boolean {
   if (!viewerId) {
-    return demand.status !== 'IN_PROGRESS' && demand.isPublic
+    if (demand.status === 'IN_PROGRESS') return false
+    if (!demand.isPublic) return false
+    return !demand.circleId
   }
   if (demand.userId === viewerId) return true
   if (
@@ -136,5 +140,9 @@ export function canViewDemand(
     return true
   }
   if (demand.status === 'IN_PROGRESS') return false
-  return demand.isPublic
+  if (!demand.isPublic) {
+    if (demand.circleId && opts?.isCircleMember) return true
+    return false
+  }
+  return true
 }

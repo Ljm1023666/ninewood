@@ -3,9 +3,11 @@ import { io, Socket } from 'socket.io-client'
 let socket: Socket | null = null
 let pingInterval: ReturnType<typeof setInterval> | null = null
 
-export function connectSocket(token: string): Socket {
+export function connectSocket(token?: string): Socket {
   if (socket?.connected) {
-    socket.auth = { ...(socket.auth as object), token }
+    if (token) {
+      socket.auth = { ...(socket.auth as object), token }
+    }
     return socket
   }
 
@@ -16,7 +18,8 @@ export function connectSocket(token: string): Socket {
   }
 
   socket = io('/', {
-    auth: { token },
+    auth: token ? { token } : {},
+    withCredentials: true,
     transports: ['websocket', 'polling'],
   })
 

@@ -25,9 +25,11 @@ function getUserIds(): string[] {
 const HEARTBEAT_INTERVAL = 25_000;
 const HEARTBEAT_TIMEOUT = 60_000;
 
+import { extractSocketToken } from './auth-cookie.js';
+
 export function setupSocket(io: Server) {
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+    const token = extractSocketToken(socket.handshake);
     if (!token) return next(new Error('未提供 token'));
     try {
       const payload = jwt.verify(token, config.jwtSecret) as { userId: string };
@@ -86,6 +88,7 @@ export function setupSocket(io: Server) {
           select: { id: true, nickname: true, avatarUrl: true },
         });
         const msg = {
+          id: `sock_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
           fromUserId: userId,
           toUserId: data.receiverId,
           content: data.content,

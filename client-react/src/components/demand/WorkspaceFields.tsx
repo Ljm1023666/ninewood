@@ -2,6 +2,7 @@
 import { cn } from '@/lib/utils'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { MaterialSwitch } from '@/components/ui/material-switch'
+import { REGION_FACET_OPTIONS, REGION_ID_LABEL } from '@/constants/path-search'
 
 function LockToggle({ fieldKey }: { fieldKey: string }) {
   const locked = useDemandWorkspaceStore((s) => s.fieldOverrides.has(fieldKey))
@@ -25,7 +26,8 @@ function LockToggleSlot({ fieldKey }: { fieldKey: string }) {
   return <LockToggle fieldKey={fieldKey} />
 }
 
-export function WorkspaceFields() {
+export function WorkspaceFields({ mode = 'demand' }: { mode?: 'demand' | 'service' }) {
+  const isServiceMode = mode === 'service'
   const fields = useDemandWorkspaceStore((s) => s.fields)
   const updateField = useDemandWorkspaceStore((s) => s.updateField)
 
@@ -61,30 +63,63 @@ export function WorkspaceFields() {
         <LockToggleSlot fieldKey="serviceType" />
       </div>
 
+      <div className="ws-field">
+        <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
+          <label className="ws-field-label" style={{ margin: 0 }}>
+            服务地区
+            {fields.serviceType === 'OFFLINE' ? '（线下必填）' : '（可选）'}
+          </label>
+          <LockToggleSlot fieldKey="regionId" />
+        </div>
+        <select
+          value={fields.regionId ? String(fields.regionId) : ''}
+          onChange={(e) => {
+            const v = e.target.value
+            updateField('regionId', v ? Number(v) : undefined)
+          }}
+          className="ws-input"
+        >
+          <option value="">不限</option>
+          {REGION_FACET_OPTIONS.filter((opt) => opt.value).map((opt) => {
+            const id = Number(opt.value!.replace('rgn:', ''))
+            return (
+              <option key={opt.value!} value={String(id)}>
+                {opt.label}
+              </option>
+            )
+          })}
+        </select>
+        {fields.regionId != null && REGION_ID_LABEL[fields.regionId] && (
+          <p style={{ marginTop: 6, fontSize: 12, color: 'var(--ws-text-muted, #888)' }}>
+            已选：{REGION_ID_LABEL[fields.regionId]}
+          </p>
+        )}
+      </div>
+
       <div className="ws-grid-2 ws-field">
         <div>
           <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
-            <label className="ws-field-label" style={{ margin: 0 }}>预算</label>
+            <label className="ws-field-label" style={{ margin: 0 }}>{isServiceMode ? '报价' : '预算'}</label>
             <LockToggleSlot fieldKey="budget" />
           </div>
           <input
             type="text"
             value={fields.budget}
             onChange={(e) => updateField('budget', e.target.value)}
-            placeholder="如 30-50元/局"
+            placeholder={isServiceMode ? '如 300-500元/次' : '如 30-50元/局'}
             className="ws-input"
           />
         </div>
         <div>
           <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
-            <label className="ws-field-label" style={{ margin: 0 }}>时间</label>
+            <label className="ws-field-label" style={{ margin: 0 }}>{isServiceMode ? '交付方式' : '时间'}</label>
             <LockToggleSlot fieldKey="schedule" />
           </div>
           <input
             type="text"
             value={fields.schedule}
             onChange={(e) => updateField('schedule', e.target.value)}
-            placeholder="如 今晚"
+            placeholder={isServiceMode ? '如 线上交付 / 3天内' : '如 今晚'}
             className="ws-input"
           />
         </div>
@@ -99,7 +134,7 @@ export function WorkspaceFields() {
           type="text"
           value={fields.category}
           onChange={(e) => updateField('category', e.target.value)}
-          placeholder="如 游戏/陪玩/代打"
+            placeholder={isServiceMode ? '如 编程/网站开发' : '如 游戏/陪玩/代打'}
           className="ws-input"
         />
         {fields.scopeLabels.length > 0 && (
@@ -117,19 +152,19 @@ export function WorkspaceFields() {
 
       <div className="ws-field">
         <div className="ws-field-row" style={{ alignItems: 'center', marginBottom: 4 }}>
-          <label className="ws-field-label" style={{ margin: 0 }}>预期效果</label>
+            <label className="ws-field-label" style={{ margin: 0 }}>{isServiceMode ? '服务范围补充' : '预期效果'}</label>
           <LockToggleSlot fieldKey="expectedOutcome" />
         </div>
         <input
           type="text"
           value={fields.expectedOutcome}
           onChange={(e) => updateField('expectedOutcome', e.target.value)}
-          placeholder="如：星耀二上王者"
+          placeholder={isServiceMode ? '如：包含设计、开发和上线协助' : '如：星耀二上王者'}
           className="ws-input"
         />
       </div>
 
-      <div className="ws-grid-2">
+      {!isServiceMode && <div className="ws-grid-2">
         <div>
           <label className="ws-field-label">公开窗口 (分钟)</label>
           <input
@@ -162,7 +197,7 @@ export function WorkspaceFields() {
             className="ws-input"
           />
         </div>
-      </div>
+      </div>}
 
       <div className="ws-field">
         <label className="ws-field-label">服务时限（分钟，可选）</label>

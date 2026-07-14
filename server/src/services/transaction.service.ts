@@ -54,8 +54,21 @@ export const transactionService = {
     })
   },
 
-  /** 获取需求结算明细 */
-  async getByDemand(demandId: string) {
+  /** 获取需求结算明细（仅需求方或服务方可查看） */
+  async getByDemand(demandId: string, userId: string) {
+    const demand = await prisma.demand.findUnique({
+      where: { id: demandId },
+      select: { userId: true, acceptedProviderId: true },
+    })
+    if (!demand) {
+      throw Object.assign(new Error('需求不存在'), { status: 404 })
+    }
+    const isDemander = demand.userId === userId
+    const isProvider = demand.acceptedProviderId === userId
+    if (!isDemander && !isProvider) {
+      throw Object.assign(new Error('无权查看该需求的结算明细'), { status: 403 })
+    }
+
     const settlement = await prisma.settlement.findUnique({ where: { demandId } })
     if (!settlement) throw Object.assign(new Error('结算记录不存在'), { status: 404 })
 

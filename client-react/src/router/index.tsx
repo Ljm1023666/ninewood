@@ -5,6 +5,7 @@ import { BentoAppShell } from '@/components/layout/BentoAppShell'
 import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
+import { useUserStore } from '@/stores/user'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
@@ -26,6 +27,10 @@ const Orders = lazy(() => import('@/views/Orders'))
 const OrderDetail = lazy(() => import('@/views/OrderDetail'))
 const Payment = lazy(() => import('@/views/Payment'))
 const DemandCreate = lazy(() => import('@/views/DemandCreate'))
+const PublishPage = lazy(() => import('@/views/PublishPage'))
+const ServiceCardCreate = lazy(() => import('@/views/ServiceCardCreate'))
+const ServiceCardsPage = lazy(() => import('@/views/ServiceCardsPage'))
+const ServiceCardDetail = lazy(() => import('@/views/ServiceCardDetail'))
 const DemandDetail = lazy(() => import('@/views/DemandDetail'))
 const MyDemands = lazy(() => import('@/views/MyDemands'))
 const Discover = lazy(() => import('@/views/Discover'))
@@ -62,6 +67,9 @@ const DemandPathsPage = lazy(() => import('@/views/demand-paths/DemandPathsPage'
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 const Dashboard = lazy(() => import('@/views/Dashboard'))
+const LoopOfferingsPage = lazy(() => import('@/views/loop/LoopOfferingsPage'))
+const LoopOfferingDetailPage = lazy(() => import('@/views/loop/LoopOfferingDetailPage'))
+const MyLoopsPage = lazy(() => import('@/views/loop/MyLoopsPage'))
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
   return (
@@ -78,14 +86,30 @@ function LazyLoad({ children }: { children: React.ReactNode }) {
 }
 
 function AuthGuard() {
-  const token = localStorage.getItem('token')
-  if (!token) return <Navigate to="/login" replace />
+  const ready = useUserStore((s) => s.ready)
+  const user = useUserStore((s) => s.user)
+  if (!ready) {
+    return (
+      <div className="flex h-full min-h-0 w-full items-center justify-center">
+        <span className="loader" />
+      </div>
+    )
+  }
+  if (!user) return <Navigate to="/login" replace />
   return <Outlet />
 }
 
 function GuestGuard() {
-  const token = localStorage.getItem('token')
-  if (token) return <Navigate to="/" replace />
+  const ready = useUserStore((s) => s.ready)
+  const user = useUserStore((s) => s.user)
+  if (!ready) {
+    return (
+      <div className="flex h-full min-h-0 w-full items-center justify-center">
+        <span className="loader" />
+      </div>
+    )
+  }
+  if (user) return <Navigate to="/" replace />
   return <LoginPage />
 }
 
@@ -338,6 +362,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'publish',
+            element: (
+              <LazyLoad>
+                <PublishPage />
+              </LazyLoad>
+            ),
+          },
+          {
             path: 'demands/create',
             element: (
               <LazyLoad>
@@ -492,6 +524,62 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
+          {
+            path: 'loops',
+            element: (
+              <LazyLoad>
+                <MyLoopsPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'my-service-cards',
+            element: (
+              <LazyLoad>
+                <ServiceCardsPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'service-cards/:id',
+            element: (
+              <LazyLoad>
+                <ServiceCardDetail />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'service-cards/:id/edit',
+            element: (
+              <LazyLoad>
+                <ServiceCardCreate />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'service-cards/create',
+            element: (
+              <LazyLoad>
+                <ServiceCardCreate />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'services',
+            element: (
+              <LazyLoad>
+                <LoopOfferingsPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'services/:id',
+            element: (
+              <LazyLoad>
+                <LoopOfferingDetailPage />
+              </LazyLoad>
+            ),
+          },
         ],
       },
     ],
@@ -547,12 +635,17 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/settings/data',
-    element: (
-      <LazyLoad>
-        <MyData />
-      </LazyLoad>
-    ),
+    element: <AuthGuard />,
+    children: [
+      {
+        path: '/settings/data',
+        element: (
+          <LazyLoad>
+            <MyData />
+          </LazyLoad>
+        ),
+      },
+    ],
   },
   {
     path: '*',

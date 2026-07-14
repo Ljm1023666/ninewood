@@ -89,6 +89,18 @@ export function scopeTaxonomySpectrumStyle(
   return c === undefined ? undefined : { color: c }
 }
 
+import { stitchAccentForNode } from '@/constants/card-pool-stitch'
+
+/** Stitch 分类卡面：定稿色板优先，再回退哈希 */
+export function scopeTileAccentColor(scope: BlackScope): string {
+  const nodeId = scope.path[scope.path.length - 1]!
+  return stitchAccentForNode(nodeId)
+}
+
+export function scopeTileFaceGradient(accent: string): string {
+  return `linear-gradient(168deg, color-mix(in srgb, ${accent} 88%, #ffffff 12%) 0%, ${accent} 30%, color-mix(in srgb, ${accent} 42%, #14141a) 58%, #1a1a20 82%, #0c0c10 100%)`
+}
+
 /** @deprecated 请使用 scopeTaxonomySpectrumStyle */
 export const scopeOfflineSpectrumStyle = scopeTaxonomySpectrumStyle
 

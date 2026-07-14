@@ -5,7 +5,9 @@ export const captchaRouter = Router();
 
 // ── 导出供 auth 路由复用 ──
 
-const isDev = process.env.NODE_ENV !== 'production'
+/** 仅当显式开启 CAPTCHA_DEV_BYPASS=1 且非生产时允许绕过（防 NODE_ENV 误配） */
+const allowDevBypass =
+  process.env.NODE_ENV !== 'production' && process.env.CAPTCHA_DEV_BYPASS === '1'
 const DEV_TOKEN_PREFIX = 'dev-bypass-'
 
 const verified = new Map<string, { expires: number }>();
@@ -19,7 +21,7 @@ setInterval(() => {
 
 /** 检查 token 是否通过了 hCaptcha 验证 */
 export function verifyCaptcha(token: string): boolean {
-  if (isDev && token.startsWith(DEV_TOKEN_PREFIX)) return true
+  if (allowDevBypass && token.startsWith(DEV_TOKEN_PREFIX)) return true
   const entry = verified.get(token);
   if (!entry || entry.expires < Date.now()) return false;
   return true;
@@ -50,8 +52,8 @@ captchaRouter.post('/verify', async (req: Request, res: Response) => {
     return;
   }
 
-  // 开发环境：绕过 hCaptcha 服务端验证
-  if (isDev && token.startsWith(DEV_TOKEN_PREFIX)) {
+  // 显式开发绕过：需 CAPTCHA_DEV_BYPASS=1
+  if (allowDevBypass && token.startsWith(DEV_TOKEN_PREFIX)) {
     verified.set(token, { expires: Date.now() + 30 * 60 * 1000 });
     res.json({ success: true, token, message: '验证通过（DEV 绕过）' });
     return;

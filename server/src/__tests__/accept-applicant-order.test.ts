@@ -67,7 +67,10 @@ describe('acceptApplicant 同事务创建 Order (Task 6.1 P0-01 补充)', () => 
     mocks.transaction.mockImplementation(async (cb: any) => cb({
       demand: { update: mocks.demandUpdate },
       demandApplicantV2: { update: mocks.applicantV2Update },
-      order: { create: mocks.orderCreate },
+      order: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: mocks.orderCreate,
+      },
       message: { create: mocks.messageCreate },
     }))
   })

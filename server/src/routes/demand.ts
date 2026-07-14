@@ -11,6 +11,7 @@ import { bidService } from '../services/bid.service.js';
 import { pushService } from '../services/push.service.js';
 import { getDemandPaths, updateDemandPaths } from '../services/path-search.js';
 import { PathCodecError } from '../services/path-codec.js';
+import { triggerResourceHeaven } from '../services/loop/heaven-runner.service.js';
 
 export const demandRouter = Router();
 
@@ -170,6 +171,9 @@ demandRouter.post('/', authMiddleware, upload.fields([
       ...data,
       mediaUrls,
     }, io);
+
+    triggerResourceHeaven('builtin.heaven.validate.demand_fields', { demandId: demand.id });
+    triggerResourceHeaven('builtin.heaven.validate.paths', { demandId: demand.id });
 
     success(res, demand, '发布成功', 201);
   } catch (e: any) {

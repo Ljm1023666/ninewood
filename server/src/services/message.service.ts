@@ -1,7 +1,15 @@
 import { prisma } from '../lib/prisma.js';
+import { assertUserContentSafe } from './content-filter/index.js';
+import { userBlockService } from './user-block.service.js';
 
 export const messageService = {
   async send(fromUserId: string, toUserId: string, content: string, orderId?: string, type = 'TEXT', duration?: number) {
+    if (await userBlockService.isBlockedEitherWay(fromUserId, toUserId)) {
+      throw Object.assign(new Error('无法向该用户发送消息'), { status: 403 });
+    }
+    if (type === 'TEXT') {
+      assertUserContentSafe(content, '消息');
+    }
     return prisma.message.create({
       data: { fromUserId, toUserId, content, type: type as any, orderId: orderId || null, duration: duration ?? null },
       include: {
@@ -12,31 +20,47 @@ export const messageService = {
   },
 
   async getConversations(userId: string) {
-    // Get unique conversation partners
+    const blockedIds = await userBlockService.getBlockedPartnerIds(userId);
     const messages = await prisma.message.findMany({
       where: {
         OR: [{ fromUserId: userId }, { toUserId: userId }],
       },
       orderBy: { createdAt: 'desc' },
+      take: 500,
       include: {
         fromUser: { select: { id: true, nickname: true, avatarUrl: true } },
         toUser: { select: { id: true, nickname: true, avatarUrl: true } },
       },
     });
 
-    const userMap = new Map<string, any>();
+    const partnerIds: string[] = [];
     const conversations: any[] = [];
+    const seen = new Set<string>();
 
     for (const msg of messages) {
       const otherId = msg.fromUserId === userId ? msg.toUserId : msg.fromUserId;
-      if (otherId === userId) continue; // skip self
+      if (otherId === userId || seen.has(otherId) || blockedIds.has(otherId)) continue;
+      seen.add(otherId);
+      partnerIds.push(otherId);
       const other = msg.fromUserId === userId ? msg.toUser : msg.fromUser;
-      if (!userMap.has(otherId)) {
-        userMap.set(otherId, other);
-        const unread = await prisma.message.count({
-          where: { fromUserId: otherId, toUserId: userId, isRead: false },
-        });
-        conversations.push({ user: other, lastMessage: msg, unreadCount: unread });
+      conversations.push({ user: other, lastMessage: msg, unreadCount: 0 });
+    }
+
+    if (partnerIds.length > 0) {
+      const unreadGroups = await prisma.message.groupBy({
+        by: ['fromUserId'],
+        where: {
+          toUserId: userId,
+          isRead: false,
+          fromUserId: { in: partnerIds },
+        },
+        _count: { _all: true },
+      });
+      const unreadMap = new Map(
+        unreadGroups.map((g) => [g.fromUserId, g._count._all]),
+      );
+      for (const c of conversations) {
+        c.unreadCount = unreadMap.get(c.user.id) || 0;
       }
     }
 
@@ -44,6 +68,9 @@ export const messageService = {
   },
 
   async getMessages(userId: string, otherId: string, page = 1) {
+    if (await userBlockService.isBlockedEitherWay(userId, otherId)) {
+      throw Object.assign(new Error('无法查看与该用户的会话'), { status: 403 });
+    }
     const limit = 50;
     const messages = await prisma.message.findMany({
       where: {
@@ -61,7 +88,6 @@ export const messageService = {
       },
     });
 
-    // Mark as read
     await prisma.message.updateMany({
       where: { fromUserId: otherId, toUserId: userId, isRead: false },
       data: { isRead: true },
@@ -76,10 +102,9 @@ export const messageService = {
     });
   },
 
-  // ── 群聊（ConversationMerge）──
-
   async createMerge(userId: string, title: string, memberIds: string[]) {
     if (!title.trim()) throw { status: 400, message: '群聊名称不能为空' };
+    assertUserContentSafe(title.trim(), '群聊名称');
     if (memberIds.length < 1) throw { status: 400, message: '至少选择一位联系人' };
     const ids = [...new Set([userId, ...memberIds])];
     return prisma.conversationMerge.create({
@@ -108,8 +133,9 @@ export const messageService = {
       include: { members: true },
     });
     if (!merge) throw { status: 404, message: '群聊不存在' };
-    if (!merge.members.some((m: any) => m.userId === userId))
+    if (!merge.members.some((m: any) => m.userId === userId)) {
       throw { status: 403, message: '不是群成员' };
+    }
 
     const limit = 50;
     const messages = await prisma.message.findMany({
@@ -125,17 +151,26 @@ export const messageService = {
   },
 
   async sendMergeMessage(fromUserId: string, mergeId: string, content: string) {
+    assertUserContentSafe(content, '消息');
     const merge = await prisma.conversationMerge.findUnique({
       where: { id: mergeId },
       include: { members: true },
     });
     if (!merge) throw { status: 404, message: '群聊不存在' };
-    if (!merge.members.some((m: any) => m.userId === fromUserId))
+    if (!merge.members.some((m: any) => m.userId === fromUserId)) {
       throw { status: 403, message: '不是群成员' };
+    }
 
     const recipients = merge.members
       .map((m: any) => m.userId)
       .filter((id: string) => id !== fromUserId);
+
+    for (const toId of recipients) {
+      if (await userBlockService.isBlockedEitherWay(fromUserId, toId)) {
+        throw Object.assign(new Error('无法向部分群成员发送消息'), { status: 403 });
+      }
+    }
+
     const msgs = await Promise.all(
       recipients.map((toId: string) =>
         prisma.message.create({

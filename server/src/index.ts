@@ -30,20 +30,37 @@ import { circleRouter } from './routes/circle.js';
 import { circleHubRouter } from './routes/circle-hub.js';
 import { depositRouter } from './routes/deposit.js';
 import { messageRouter } from './routes/message.js';
+import { serviceCardRouter } from './routes/service-card.js';
+import { cardSearchRouter } from './routes/card-search.js';
 import { shortsRouter } from './routes/shorts.js';
 import { complaintRouter } from './routes/complaint.js';
+import { reportRouter } from './routes/report.js';
 import { adminRouter } from './routes/admin.js';
 import { aiRouter } from './routes/ai.js';
 import { agentRouter } from './routes/agent.js';
 import { agentTasksRouter } from './routes/agent-tasks.js';
 import { reviewRouter } from './routes/review.js';
 import { captchaRouter } from './routes/captcha.js';
+import { loopRouter } from './routes/loop.js';
 import { regionRouter } from './routes/region.js';
 import { tagRouter } from './routes/tag.js';
 import { certificationRouter } from './routes/certification.js';
 import { healthRouter } from './routes/health.js';
 import { healthActionsRouter } from './routes/health-actions.js';
 import { registerNinewoodTools } from './services/agent/tools.js';
+
+function registerProcessGuards() {
+  process.on('unhandledRejection', (reason) => {
+    console.error('[Ninewood] unhandledRejection:', reason);
+    Sentry.captureException(reason);
+  });
+  process.on('uncaughtException', (err) => {
+    console.error('[Ninewood] uncaughtException:', err);
+    Sentry.captureException(err);
+  });
+}
+
+registerProcessGuards();
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN || '',
@@ -75,7 +92,16 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Static files
-app.use('/uploads', express.static(config.uploadDir));
+app.use(
+  '/uploads',
+  (_req, res, next) => {
+    // 降低同源 XSS：强制下载/附件语义，避免浏览器当 HTML 执行
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Disposition', 'attachment');
+    next();
+  },
+  express.static(config.uploadDir),
+);
 
 // Swagger docs
 setupSwagger(app);
@@ -101,14 +127,18 @@ app.use('/api/circles', circleRouter);
 app.use('/api/circles', circleHubRouter);
 app.use('/api/deposits', depositRouter);
 app.use('/api/messages', messageRouter);
+app.use('/api/service-cards', serviceCardRouter);
+app.use('/api/search', cardSearchRouter);
 app.use('/api/shorts', shortsRouter);
 app.use('/api/complaints', complaintRouter);
+app.use('/api/reports', reportRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api/agent', agentRouter);
 app.use('/api/agent/tasks', agentTasksRouter);
 app.use('/api/reviews', reviewRouter);
 app.use('/api/captcha', captchaRouter);
+app.use('/api/loops', loopRouter);
 
 // 注册 Ninewood 业务工具
 registerNinewoodTools();

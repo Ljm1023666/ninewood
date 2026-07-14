@@ -37,13 +37,18 @@ export default function AdminDashboard() {
   const pendingScrollRef = useRef<string | null>(null)
 
   const handleNavigate = useCallback((tabId: string, itemId: string) => {
+    // 税务可视化：作为分析类页面在独立路由承载（自然回导航收敛，不并入主面板）
+    if (tabId === 'monitoring' && itemId === 'tax') {
+      navigate('/tax-visualizer')
+      return
+    }
     const sectionId = itemId || getDefaultSectionId(tabId)
     pendingScrollRef.current = sectionId || null
     setTab(tabId)
     if (sectionId) setActiveItem(sectionId)
     // 即使 activeItem 未变也触发滚动（例如重复点击同一锚点）
     setScrollTick((n) => n + 1)
-  }, [])
+  }, [navigate])
 
   const fetchData = async () => {
     setLoading(true)

@@ -27,10 +27,11 @@ export const pushService = {
       where.serviceTags = { hasSome: [matchTag] };
     }
 
-    // 4. 查找匹配的用户（服务者）
+    // 4. 查找匹配的用户（服务者），上限防止内存尖峰
     const candidates = await prisma.user.findMany({
       where,
       select: { id: true, serviceTags: true, pushBlocklist: true },
+      take: 500,
     });
 
     // 5. 过滤：排除被屏蔽的用户

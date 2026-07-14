@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<title>能力详情 — PIPELINE INSPECTOR</title>
+<style>
+body{background:#0A0A0A;color:#e5e2e1;font-family:Inter,system-ui,sans-serif;margin:0}
+.mono{font-family:ui-monospace,Menlo,monospace}
+.shell{max-width:1280px;margin:0 auto;padding:48px 24px 64px}
+.back{font-size:12px;color:#9ca3af;text-decoration:none;display:inline-flex;gap:4px;margin-bottom:48px}
+h1{font-size:32px;margin:0;font-weight:600;letter-spacing:-.02em}
+.chip{border:1px solid #444748;padding:4px 12px;font-size:12px;color:#9ca3af}
+.promise{color:#9ca3af;font-size:14px;max-width:42rem;margin:16px 0 64px}
+.pipe{display:flex;align-items:center;gap:8px;padding:48px 0}
+.node{border:1px solid #262626;background:#141414;padding:12px 16px;font-size:12px;color:#9ca3af;white-space:nowrap}
+.node.active{border-color:#fff;color:#fff;padding:16px 24px;box-shadow:0 0 15px rgba(255,255,255,.05)}
+.line{height:1px;background:#262626;flex:1}
+.ex{display:grid;grid-template-columns:1fr 1fr;border:1px solid #262626;background:#141414}
+.pane{padding:32px;border-right:1px solid #262626}
+.pane:last-child{border-right:none}
+.lab{font-size:11px;letter-spacing:.05em;color:#9ca3af;margin-bottom:24px}
+.dot{width:4px;height:4px;background:#fff;display:inline-block;margin-right:8px}
+.inp{min-height:8rem;display:flex;align-items:center;color:#fff;font-size:14px}
+.code{min-height:8rem;padding:16px;border:1px solid #262626;background:#0e0e0e;font-size:12px;color:#636565;overflow:auto}
+.status{margin:48px 0 96px;padding-top:16px;border-top:1px solid #262626;font-size:12px;color:#9ca3af;display:flex;gap:24px}
+.next{border:1px solid #262626;background:#1c1b1b;padding:24px}
+.next a{color:#fff;margin-right:48px;font-size:14px}
+.foot{height:40px;border-top:1px solid #262626;display:flex;align-items:center;padding:0 24px;font-size:11px;color:#9ca3af;opacity:.5}
+</style>
+</head><body>
+<main class="shell">
+<a class="back mono" href="/services">← 返回找服务</a>
+<header>
+<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+<h1>需求智能结构化</h1>
+<span class="chip mono">立即使用</span>
+</div>
+<p class="promise">把口语描述变成可检索、可接单的标准需求字段。</p>
+</header>
+<section>
+<div class="pipe">
+<div class="node mono">口语输入</div><div class="line"></div>
+<div class="node active mono">需求智能结构化</div><div class="line"></div>
+<div class="node mono">标准字段</div><div class="line"></div>
+<div class="node mono">检索路径</div><div class="line"></div>
+<div class="node mono">路径检索</div>
+</div>
+<div class="ex">
+<div class="pane">
+<div class="lab mono"><span class="dot"></span>示例输入</div>
+<div class="inp">“想找人帮忙写论文提纲，预算五百左右，最好能这周搞定”</div>
+</div>
+<div class="pane">
+<div class="lab mono"><span class="dot"></span>示例输出 (JSON)</div>
+<pre class="code mono"><code>{
+  "title": "论文提纲撰写",
+  "minPrice": 500,
+  "paths": ["tag:论文", "bkt:price=100_500"]
+}</code></pre>
+</div>
+</div>
+</section>
+<section class="status mono">
+<span><span class="dot"></span>在线</span><span>·</span>
+<span>适配期不公开成交率</span><span>·</span>
+<span>近期样本 0</span>
+</section>
+<footer class="next">
+<div class="lab mono" style="margin-bottom:24px">接下来你可以</div>
+<a href="/demands/create">去发布需求 ↗</a>
+<a href="/path-search">去路径检索 ↗</a>
+</footer>
+</main>
+<div class="foot mono">builtin.earth.demand.structure / CAPABILITY_DOCK</div>
+</body></html>

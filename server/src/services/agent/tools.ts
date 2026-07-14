@@ -912,6 +912,97 @@ function registerNavigateTool() {
 
 // ─── 注册所有工具 ────────────────────────────────────────────────────────────
 
+// ─── TASK-12 · 自然回（Loop）只读工具 ─────────────────────────────────────────
+// 宪法 #1（调度器默认只读）+ #9（不扩大范围）：仅检索 offering，不改写主路径。
+// 文案用大众术语（找人帮忙 / 立即使用 / 系统自动），不暴露 天地人 内部术语。
+
+function registerLoopTools(): void {
+  toolRegistry.register({
+    definition: {
+      name: 'search_loop_offerings',
+      description:
+        '搜索九木平台上的「可用方案」（能力接口上架物），把用户需求匹配到可立即使用或自动执行的解决方案。' +
+        '可按关键词、类型、路径筛选。只读，不创建需求也不调用外部接口。',
+      parameters: {
+        type: 'object',
+        properties: {
+          keyword: { type: 'string', description: '检索关键词，匹配方案标题或摘要' },
+          loopKind: {
+            type: 'string',
+            enum: ['HUMAN', 'EARTH', 'HEAVEN'],
+            description: '类型：HUMAN=找人帮忙；EARTH=立即使用/自动服务；HEAVEN=系统自动处理/检测',
+          },
+          paths: {
+            type: 'array',
+            items: { type: 'string' },
+            description: '检索路径，如 ["tag:论文","rgn:北京"]',
+          },
+          limit: { type: 'number', description: '返回数量上限，默认 10，最多 30' },
+        },
+      },
+    },
+    category: 'system',
+    requiresConfirmation: false,
+    handler: async (args) => {
+      const loopKind = args.loopKind as 'HUMAN' | 'EARTH' | 'HEAVEN' | undefined
+      const keyword = (args.keyword as string) || undefined
+      const paths = Array.isArray(args.paths) ? (args.paths as string[]) : undefined
+      const limit = typeof args.limit === 'number' ? Math.min(Math.max(args.limit, 1), 30) : 10
+
+      const rows = await safePrisma(() =>
+        prisma.loopOffering.findMany({
+          where: {
+            status: 'ACTIVE',
+            ...(loopKind ? { definition: { loopKind } } : {}),
+            ...(keyword
+              ? { OR: [{ title: { contains: keyword } }, { summary: { contains: keyword } }] }
+              : {}),
+            ...(paths && paths.length ? { paths: { hasSome: paths } } : {}),
+          },
+          include: {
+            endpoint: { select: { healthStatus: true } },
+            definition: { select: { loopKind: true, code: true } },
+          },
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+      )
+
+      if (rows.length === 0) return ok([], '没有找到匹配的可用方案，试试调整搜索条件？')
+
+      const list = rows.map((o: any) => ({
+        id: o.id,
+        title: o.title,
+        summary: o.summary,
+        loopKind: o.definition.loopKind,
+        definitionCode: o.definition.code,
+        paths: o.paths,
+        dealRate: o.dealRate,
+        avgDurationMs: o.avgDurationMs,
+        recentSuccessN: o.recentSuccessN,
+        recentTotalN: o.recentTotalN,
+        requiresVerification: o.requiresVerification,
+        healthStatus: o.endpoint?.healthStatus ?? null,
+      }))
+
+      const kindLabel: Record<string, string> = {
+        HUMAN: '找人帮忙',
+        EARTH: '立即使用',
+        HEAVEN: '系统自动',
+      }
+      return ok(
+        list,
+        `找到 ${list.length} 个可用方案：\n${list
+          .map(
+            (o) =>
+              `- ${o.title}（${kindLabel[o.loopKind] ?? o.loopKind}）${o.requiresVerification ? ' · 需核验' : ''}`,
+          )
+          .join('\n')}`,
+      )
+    },
+  })
+}
+
 export function registerNinewoodTools(): void {
   registerDemandTools();
   registerApplicationTools();
@@ -920,6 +1011,7 @@ export function registerNinewoodTools(): void {
   registerKnowledgeTools();
   registerNavigateTool();
   registerAutomationTools();
+  registerLoopTools();
 }
 
 // ─── Task 10 · 自动化任务工具 ────────────────────────────────────────────────

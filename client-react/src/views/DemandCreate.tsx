@@ -1,12 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, NavLink, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/lib/utils'
-import { toast } from '@/components/ui/confirm-dialog'
+import { toast, ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { AgentMarkdown } from '@/components/agent/agent-markdown'
 import { PromptInputBox } from '@/components/ui/prompt-input-box'
 import { WorkspaceSummary } from '@/components/demand/WorkspaceSummary'
 import { WorkspaceFields } from '@/components/demand/WorkspaceFields'
 import { WorkspaceTools } from '@/components/demand/WorkspaceTools'
+import { DemandSessionHistory } from '@/components/demand/DemandSessionHistory'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { useUserStore } from '@/stores/user'
 import { InfoCard } from '@/components/ui/info-card'
@@ -16,7 +18,26 @@ import {
   resolveDemandCardCoverDetailUrl,
   resolveProfileBackCoverUrl,
 } from '@/utils/user-cover-presets'
+import {
+  createEmptyDemandSession,
+  deleteDemandSession,
+  getActiveSessionId,
+  getDemandSession,
+  listDemandSessions,
+  migrateLegacyDraftIfNeeded,
+  setActiveSessionId,
+  upsertDemandSession,
+  type DemandChatMessage,
+  type DemandSessionSnapshot,
+} from '@/utils/demand-session-history'
 import { BackButton } from '@/components/ui/back-button'
+import { flushSseBuffer, splitSseBuffer } from '@/utils/parse-sse'
+import {
+  isDemandReadyToPublish,
+  validateDemandForPublish,
+} from '@/utils/demand-publish'
+import { serviceCardApi } from '@/api/service-card'
+import { normalizeAnalyzePayload } from '@/types/demand-analyze'
 import {
   Sparkles,
   Monitor,
@@ -24,7 +45,6 @@ import {
   Send,
   Brain,
   Check,
-  Zap,
   Plus,
   ChevronDown,
 } from 'lucide-react'
@@ -32,63 +52,7 @@ import {
 let _msgId = 0
 const newMsgId = () => `dc${++_msgId}`
 
-const DRAFT_KEY = 'ninewood_demand_draft'
-
-interface ChatMsg {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  isStreaming?: boolean
-  toolCall?: { name: string; arguments: Record<string, string> } | null
-  /** 思考模式下的 reasoning_content，有 tool_call 的轮次必须回传 */
-  reasoningContent?: string
-}
-
-/** 简单排版：加粗、列表、段落间距 */
-function formatAIText(text: string): string {
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-
-  // 加粗 **text**
-  html = html.replace(
-    /\*\*(.+?)\*\*/g,
-    '<strong class="font-semibold">$1</strong>',
-  )
-
-  // 按双换行分段
-  const paragraphs = html.split(/\n\n+/)
-  return paragraphs
-    .map((p) => {
-      const trimmed = p.trim()
-      if (!trimmed) return ''
-
-      // 检测有序列表（每行以数字+点号开头）
-      const lines = trimmed.split('\n')
-      const isOrderedList = lines.every((l) => /^\d+[.)]\s/.test(l.trim()))
-      if (isOrderedList && lines.length > 1) {
-        const items = lines
-          .map((l) => `<li>${l.trim().replace(/^\d+[.)]\s*/, '')}</li>`)
-          .join('')
-        return `<ol class="list-decimal pl-5 my-2 space-y-1">${items}</ol>`
-      }
-
-      // 检测无序列表
-      const isUnorderedList = lines.every((l) => /^[-•*]\s/.test(l.trim()))
-      if (isUnorderedList && lines.length > 1) {
-        const items = lines
-          .map((l) => `<li>${l.trim().replace(/^[-•*]\s*/, '')}</li>`)
-          .join('')
-        return `<ul class="list-disc pl-5 my-2 space-y-1">${items}</ul>`
-      }
-
-      // 普通段落
-      const withBreaks = trimmed.replace(/\n/g, '<br/>')
-      return `<p class="my-1">${withBreaks}</p>`
-    })
-    .join('')
-}
+type ChatMsg = DemandChatMessage
 
 function ThinkingPanel({
   text,
@@ -101,47 +65,11 @@ function ThinkingPanel({
   collapsed: boolean
   onToggleCollapse: () => void
 }) {
-  const [len, setLen] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  useEffect(() => {
-    if (len < text.length) {
-      if (!timerRef.current) {
-        timerRef.current = setInterval(() => {
-          setLen((prev) => {
-            if (prev >= text.length) {
-              if (timerRef.current) {
-                clearInterval(timerRef.current)
-                timerRef.current = null
-              }
-              return prev
-            }
-            return prev + 1
-          })
-        }, 25)
-      }
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
-      }
-    }
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
-      }
-    }
-  }, [len, text.length])
 
   useEffect(() => {
     if (scrollRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-  }, [len])
-
-  useEffect(() => {
-    if (!text) setLen(0)
   }, [text])
 
   if (!text) return null
@@ -161,11 +89,8 @@ function ThinkingPanel({
         {isLoading && <span className="ws-spinner" style={{ width: 6, height: 6, borderWidth: 1.5 }} />}
       </button>
       {!collapsed && (
-        <div ref={scrollRef} className="ws-thinking-body">
-          {text.slice(0, len)}
-          {len < text.length && (
-            <span className="ai-cursor" style={{ display: 'inline-block', width: 2, height: '1em' }} />
-          )}
+        <div ref={scrollRef} className="ws-thinking-body whitespace-pre-wrap">
+          {text}
         </div>
       )}
     </div>
@@ -174,6 +99,8 @@ function ThinkingPanel({
 
 export default function DemandCreate() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isServiceMode = searchParams.get('mode') === 'service'
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const messagesRef = useRef(messages)
   messagesRef.current = messages
@@ -189,21 +116,57 @@ export default function DemandCreate() {
   const [draftInput, setDraftInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const activeSessionIdRef = useRef<string | null>(null)
+  const [activeSessionId, setActiveSessionIdState] = useState<string | null>(
+    null,
+  )
+  const [sessionsTick, setSessionsTick] = useState(0)
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false)
 
   const workspaceFields = useDemandWorkspaceStore((s) => s.fields)
-  const workspaceReady = useDemandWorkspaceStore((s) => s.readyToPublish)
   const confidence = useDemandWorkspaceStore((s) => s.confidence)
   const speedMode = useDemandWorkspaceStore((s) => s.speedMode)
   const applyAgent = useDemandWorkspaceStore((s) => s.applyAgentResult)
   const applyAnalyze = useDemandWorkspaceStore((s) => s.applyAnalyzeResult)
   const resetWorkspace = useDemandWorkspaceStore((s) => s.reset)
 
-  // ========== 草稿持久化 ==========
+  const bumpSessions = useCallback(() => {
+    setSessionsTick((t) => t + 1)
+  }, [])
 
-  const saveDraft = useCallback(() => {
+  const applySessionSnapshot = useCallback((session: DemandSessionSnapshot) => {
+    if (session.messages?.length) {
+      setMessages(
+        session.messages.map((m) => ({ ...m, isStreaming: false })),
+      )
+      _msgId = session.messages.length + 1
+    } else {
+      setMessages([])
+      _msgId = 0
+    }
+    setDraftInput(session.input || '')
+    useDemandWorkspaceStore.setState({
+      fields: session.fields,
+      fieldOverrides: new Set(session.fieldOverrides || []),
+      lockedKeywords: new Set(session.lockedKeywords || []),
+      missingInfo: session.missingInfo || [],
+      missingQueue: session.missingQueue || [],
+      answeredQueue: session.answeredQueue || [],
+      resolvedQueue: session.resolvedQueue || [],
+      missingAnswers: session.missingAnswers || {},
+      confidence: session.confidence || 'low',
+      readyToPublish: session.readyToPublish || false,
+      speedMode: session.speedMode === true,
+    })
+  }, [])
+
+  const persistActiveSession = useCallback(() => {
+    const id = activeSessionIdRef.current
+    if (!id) return
     const store = useDemandWorkspaceStore.getState()
-    const draft = {
-      messages: messagesRef.current,
+    upsertDemandSession({
+      id,
+      messages: messagesRef.current.map((m) => ({ ...m, isStreaming: false })),
       input: draftInput,
       fields: store.fields,
       fieldOverrides: [...store.fieldOverrides],
@@ -215,64 +178,116 @@ export default function DemandCreate() {
       missingAnswers: store.missingAnswers,
       confidence: store.confidence,
       readyToPublish: store.readyToPublish,
-    }
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
-  }, [draftInput])
+      speedMode: store.speedMode,
+    })
+    bumpSessions()
+  }, [draftInput, bumpSessions])
 
-  const loadDraft = useCallback((): boolean => {
-    const raw = localStorage.getItem(DRAFT_KEY)
-    if (!raw) return false
-    try {
-      const draft = JSON.parse(raw)
-      // 恢复消息
-      if (draft.messages?.length) {
-        setMessages(draft.messages)
-        _msgId = draft.messages.length + 1
+  // ========== 会话持久化 ==========
+
+  const saveDraft = useCallback(() => {
+    persistActiveSession()
+  }, [persistActiveSession])
+
+  const loadSessionById = useCallback(
+    (id: string) => {
+      if (id === activeSessionIdRef.current) return
+      persistActiveSession()
+      const session = getDemandSession(id)
+      if (!session) return
+      abortRef.current?.abort()
+      activeSessionIdRef.current = id
+      setActiveSessionIdState(id)
+      setActiveSessionId(id)
+      applySessionSnapshot(session)
+      bumpSessions()
+    },
+    [applySessionSnapshot, bumpSessions, persistActiveSession],
+  )
+
+  const handleDeleteSession = useCallback(
+    (id: string) => {
+      const nextActive = deleteDemandSession(id)
+      if (id === activeSessionIdRef.current) {
+        abortRef.current?.abort()
+        if (nextActive) {
+          const session = getDemandSession(nextActive)
+          if (session) {
+            activeSessionIdRef.current = nextActive
+            setActiveSessionIdState(nextActive)
+            setActiveSessionId(nextActive)
+            applySessionSnapshot(session)
+          }
+        } else {
+          const session = createEmptyDemandSession()
+          activeSessionIdRef.current = session.id
+          setActiveSessionIdState(session.id)
+          applySessionSnapshot(session)
+        }
       }
-      // 恢复输入
-      if (draft.input) setDraftInput(draft.input)
-      // 恢复 store
-      useDemandWorkspaceStore.setState({
-        fields: draft.fields || resetWorkspace,
-        fieldOverrides: new Set(draft.fieldOverrides || []),
-        lockedKeywords: new Set(draft.lockedKeywords || []),
-        missingInfo: draft.missingInfo || [],
-        missingQueue: draft.missingQueue || [],
-        answeredQueue: draft.answeredQueue || [],
-        resolvedQueue: draft.resolvedQueue || [],
-        missingAnswers: draft.missingAnswers || {},
-        confidence: draft.confidence || 'low',
-        readyToPublish: draft.readyToPublish || false,
-      })
-      return true
-    } catch {
-      return false
-    }
-  }, [resetWorkspace])
+      bumpSessions()
+    },
+    [applySessionSnapshot, bumpSessions],
+  )
 
   const clearDraft = useCallback(() => {
-    localStorage.removeItem(DRAFT_KEY)
+    persistActiveSession()
+    abortRef.current?.abort()
+    const session = createEmptyDemandSession()
+    activeSessionIdRef.current = session.id
+    setActiveSessionIdState(session.id)
     setMessages([])
     setDraftInput('')
     _msgId = 0
     resetWorkspace()
-    toast('已清空，开始新的需求', 'success')
-  }, [resetWorkspace])
+    useDemandWorkspaceStore.getState().setSpeedMode(false)
+    bumpSessions()
+    toast(isServiceMode ? '已清空，开始新的服务卡' : '已清空，开始新的需求', 'success')
+  }, [isServiceMode, persistActiveSession, resetWorkspace, bumpSessions])
 
-  // 挂载时恢复草稿
+  // 挂载时恢复活跃会话
   useEffect(() => {
-    const restored = loadDraft()
-    if (restored && messagesRef.current.length > 0) {
+    if (isServiceMode) {
+      activeSessionIdRef.current = null
+      setActiveSessionIdState(null)
+      setMessages([])
+      setDraftInput('')
+      resetWorkspace()
+      return
+    }
+    migrateLegacyDraftIfNeeded()
+    let activeId = getActiveSessionId()
+    let session = activeId ? getDemandSession(activeId) : null
+    if (!session) {
+      const existing = listDemandSessions()
+      if (existing.length > 0) {
+        session = existing[0]
+        activeId = session.id
+        setActiveSessionId(activeId)
+      } else {
+        session = createEmptyDemandSession()
+        activeId = session.id
+      }
+    }
+    activeSessionIdRef.current = activeId
+    setActiveSessionIdState(activeId)
+    setActiveSessionId(activeId)
+    applySessionSnapshot(session)
+    if (session.messages.length > 0 || session.fields.title) {
       toast('已恢复上次未完成的草稿', 'success')
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isServiceMode, resetWorkspace]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 状态变化时自动保存（1s 防抖）
+  // 状态变化时自动保存（1s 防抖；卸载或依赖切换时立即落盘）
   useEffect(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(saveDraft, 1000)
     return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+        saveTimerRef.current = null
+      }
+      saveDraft()
     }
   }, [messages, draftInput, workspaceFields, saveDraft])
 
@@ -297,135 +312,6 @@ export default function DemandCreate() {
     el.addEventListener('scroll', handleScroll, { passive: true })
     return () => el.removeEventListener('scroll', handleScroll)
   }, [])
-
-  // Refs for handlers declared after sendMessage (avoids useBeforeDefine)
-  const handleAggressiveModeRef = useRef<
-    (text: string, signal: AbortSignal) => Promise<void>
-  >(undefined as any)
-  const handleCanvasModeRef = useRef<
-    (text: string, signal: AbortSignal) => Promise<void>
-  >(undefined as any)
-  const handleDefaultModeRef = useRef<
-    (
-      history: { role: 'user' | 'assistant'; content: string }[],
-      thinkMode: boolean,
-      signal: AbortSignal,
-    ) => Promise<void>
-  >(undefined as any)
-  const handleMissingInfoBatchAnalysisRef = useRef<() => Promise<void>>(
-    undefined as any,
-  )
-
-  const sendMessage = useCallback(
-    async (rawMessage: string) => {
-      const isThink = rawMessage.startsWith('[Think:')
-      const isCanvas = rawMessage.startsWith('[Canvas:')
-
-      const text = rawMessage
-        .replace(/^\[(Think|Canvas):\s*/, '')
-        .replace(/\]$/, '')
-        .trim()
-      if (!text) return
-
-      setDraftInput('')
-      setExpandedIds(new Set())
-      setLoading(true)
-      setIsThinkMode(isThink)
-      setThinkText('')
-      setThinkCollapsed(false)
-      if (isThink) setCanvasMode(false)
-      thinkAccRef.current = ''
-
-      const speedMode = useDemandWorkspaceStore.getState().speedMode
-
-      // Speed 模式：每次从头开始，清空旧消息和工作区
-      if (speedMode) {
-        setMessages([])
-        resetWorkspace()
-      }
-
-      const confirmedCtx = useDemandWorkspaceStore
-        .getState()
-        .getConfirmedContext()
-      const augmentedText = confirmedCtx ? `${confirmedCtx}\n${text}` : text
-
-      const currentMsg = { role: 'user' as const, content: augmentedText }
-
-      setMessages((prev) => [
-        ...prev,
-        { id: newMsgId(), role: 'user', content: text },
-      ])
-
-      const history = [
-        ...messagesRef.current.map((m) => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-          ...(m.reasoningContent
-            ? { reasoning_content: m.reasoningContent }
-            : {}),
-        })),
-        currentMsg,
-      ]
-
-      // 如果有勾选的缺失信息待回答，优先走缺失信息回答流程
-      const queuedMissing = useDemandWorkspaceStore.getState().missingQueue
-      if (queuedMissing.length > 0) {
-        const allDone = useDemandWorkspaceStore
-          .getState()
-          .recordAnswerAndAdvance(text)
-        if (allDone) {
-          await handleMissingInfoBatchAnalysisRef.current()
-        } else {
-          const remaining =
-            useDemandWorkspaceStore.getState().missingQueue.length
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: newMsgId(),
-              role: 'assistant',
-              content: `已记录答案。还有 ${remaining} 项待回答，请继续输入。`,
-            },
-          ])
-        }
-        abortRef.current = null
-        setLoading(false)
-        return
-      }
-
-      const ctrl = new AbortController()
-      abortRef.current = ctrl
-      try {
-        if (isCanvas) {
-          await handleCanvasModeRef.current(text, ctrl.signal)
-        } else if (isThink) {
-          await handleDefaultModeRef.current(history, true, ctrl.signal)
-        } else if (speedMode) {
-          await handleAggressiveModeRef.current(text, ctrl.signal)
-        } else {
-          await handleDefaultModeRef.current(history, false, ctrl.signal)
-        }
-      } catch (e: any) {
-        if (e?.name === 'AbortError') {
-          setThinkText('')
-          thinkAccRef.current = ''
-          setIsThinkMode(false)
-          setMessages((prev) => [
-            ...prev,
-            { id: newMsgId(), role: 'assistant', content: '⏹ 已中断' },
-          ])
-          return
-        }
-        setMessages((prev) => [
-          ...prev,
-          { id: newMsgId(), role: 'assistant', content: '网络异常' },
-        ])
-      } finally {
-        abortRef.current = null
-        setLoading(false)
-      }
-    },
-    [applyAgent, applyAnalyze],
-  )
 
   // 包装 applyAnalyze，同步在左边栏显示 AI 行为
   const analyzeAndLog = useCallback(
@@ -462,7 +348,7 @@ export default function DemandCreate() {
         {
           id: assistantId,
           role: 'assistant',
-          content: '正在生成需求草稿…',
+          content: `正在生成${isServiceMode ? '服务卡' : '需求'}草稿…`,
           isStreaming: true,
         },
       ])
@@ -471,35 +357,25 @@ export default function DemandCreate() {
         const res = await fetch('/api/ai/analyze-demand', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND' }),
           signal,
         })
         if (!res.ok) throw new Error('分析失败')
         const json = await res.json()
 
         if (json.data) {
-          analyzeAndLog({
-            title: json.data.title,
-            summary: json.data.summary,
-            missingInfo: [],
-            confidence: json.data.confidence,
-            suggestedKeywords: json.data.suggestedKeywords,
-            scopeLabels: json.data.scopePath,
-            serviceType: json.data.serviceType,
-            budget: json.data.budget,
-            schedule: json.data.schedule,
-            category: json.data.category,
-            taxonomyLeafId: json.data.taxonomyLeafId,
-          })
-          // 强制 readyToPublish
-          useDemandWorkspaceStore.setState({ readyToPublish: true })
-
+          analyzeAndLog(normalizeAnalyzePayload(json.data))
+          const ready = isDemandReadyToPublish(
+            useDemandWorkspaceStore.getState().fields,
+          )
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
                 ? {
                     ...m,
-                    content: '已生成需求草稿，确认无误后发布',
+                    content: ready
+                      ? `已生成${isServiceMode ? '服务卡' : '需求'}草稿，确认无误后发布`
+                      : '已生成草稿，请先在右侧工作区补全必填项',
                     isStreaming: false,
                   }
                 : m,
@@ -517,9 +393,8 @@ export default function DemandCreate() {
         )
       }
     },
-    [applyAnalyze],
+    [analyzeAndLog, isServiceMode],
   )
-  handleAggressiveModeRef.current = handleAggressiveMode
 
   /** Canvas 模式：直接提取结构化字段，减少对话 */
   const handleCanvasMode = useCallback(
@@ -542,6 +417,7 @@ export default function DemandCreate() {
           message: text,
           requirementState,
           thinkMode: false,
+          mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
         }),
         signal,
       })
@@ -572,63 +448,68 @@ export default function DemandCreate() {
         }
       }
 
+      const processResultEvent = (eventType: string, data: string) => {
+        if (eventType !== 'result') return
+        try {
+          const r = normalizeAnalyzePayload(JSON.parse(data) as Record<string, unknown>)
+          analyzeAndLog({
+            ...r,
+            missingInfo: r.missingInfo ?? [],
+          })
+          if (r.title) {
+            const s = useDemandWorkspaceStore.getState()
+            if (!s.fieldOverrides.has('title')) s.toggleLock('title')
+          }
+          const ready = isDemandReadyToPublish(
+            useDemandWorkspaceStore.getState().fields,
+          )
+          ensure(
+                            `${r.summary || `已分析${isServiceMode ? '服务卡' : '需求'}`}\n\n` +
+              (r.missingInfo?.length
+                ? `还需补充：${r.missingInfo.join('、')}`
+                : ready
+                  ? '信息完整，可以发布'
+                  : '请先在右侧工作区补全必填项'),
+          )
+        } catch {
+          /* skip */
+        }
+      }
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
         buf += decoder.decode(value, { stream: true })
-        const events = buf.split('\n\n')
-        buf = events.pop() || ''
-        for (const event of events) {
-          const lines = event.split('\n')
-          const eventType = lines[0].replace('event: ', '')
-          const dataLine = lines.find((l) => l.startsWith('data: '))
-          if (!dataLine) continue
-          const data = dataLine.slice(6)
-
-          if (eventType === 'result') {
-            try {
-              const r = JSON.parse(data)
-              analyzeAndLog({
-                title: r.title,
-                summary: r.summary,
-                budget: r.budget,
-                category: r.category,
-                scopeLabels: r.scopeLabels,
-                serviceType: r.serviceType,
-                confidence: r.confidence,
-                missingInfo: r.missingInfo,
-                suggestedKeywords: r.suggestedKeywords,
-                readyToPublish: r.readyToPublish,
-                taxonomyLeafId: r.taxonomyLeafId,
-              })
-              if (r.title) {
-                const s = useDemandWorkspaceStore.getState()
-                if (!s.fieldOverrides.has('title')) s.toggleLock('title')
-              }
-              ensure(
-                `${r.summary || '已分析需求'}\n\n` +
-                  (r.missingInfo?.length
-                    ? `还需补充：${r.missingInfo.join('、')}`
-                    : r.readyToPublish
-                      ? '信息完整，可以发布'
-                      : ''),
-              )
-            } catch {
-              /* skip */
-            }
-          }
+        const { events, remainder } = splitSseBuffer(buf)
+        buf = remainder
+        for (const evt of events) {
+          processResultEvent(evt.type, evt.data)
         }
       }
+      for (const evt of flushSseBuffer(buf)) {
+        processResultEvent(evt.type, evt.data)
+      }
 
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId ? { ...m, isStreaming: false } : m,
-        ),
-      )
+      if (!hasMsg) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: assistantId,
+            role: 'assistant',
+            content: '分析未完成，请重试',
+            isStreaming: false,
+          },
+        ])
+      } else {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, isStreaming: false } : m,
+          ),
+        )
+      }
     },
-    [applyAnalyze],
+    [analyzeAndLog, isServiceMode],
   )
-  handleCanvasModeRef.current = handleCanvasMode
 
   /** 所有缺失信息答案已收集完毕 → 统一调用 AI 分析 */
   const handleMissingInfoBatchAnalysis = useCallback(async () => {
@@ -647,7 +528,7 @@ export default function DemandCreate() {
       const res = await fetch('/api/ai/analyze-demand', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: prompt }),
+        body: JSON.stringify({ text: prompt, mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND' }),
       })
       if (!res.ok) {
         store.resolveAllAnswered() // 仍然清除 answeredQueue，避免卡住
@@ -659,18 +540,7 @@ export default function DemandCreate() {
       }
       const json = await res.json()
       if (json.data) {
-        analyzeAndLog({
-          title: json.data.title,
-          summary: json.data.summary,
-          missingInfo: json.data.missingInfo,
-          confidence: json.data.confidence,
-          suggestedKeywords: json.data.suggestedKeywords,
-          scopeLabels: json.data.scopePath,
-          serviceType: json.data.serviceType,
-          budget: json.data.budget,
-          schedule: json.data.schedule,
-          category: json.data.category,
-        })
+        analyzeAndLog(normalizeAnalyzePayload(json.data))
       }
       store.resolveAllAnswered()
       setMessages((prev) => [
@@ -688,8 +558,80 @@ export default function DemandCreate() {
         { id: newMsgId(), role: 'assistant', content: '网络异常' },
       ])
     }
-  }, [applyAnalyze])
-  handleMissingInfoBatchAnalysisRef.current = handleMissingInfoBatchAnalysis
+  }, [analyzeAndLog, isServiceMode])
+
+  /** 根据对话历史静默同步右侧工作区（默认 Agent 模式用，后台执行） */
+  const syncWorkspaceFromConversation = useCallback(
+    async (
+      history: { role: string; content: string }[],
+      signal?: AbortSignal,
+    ) => {
+      const userText = history
+        .filter((m) => m.role === 'user' && m.content.trim())
+        .map((m) => m.content.trim())
+        .join('\n')
+      if (!userText) return
+
+      const store = useDemandWorkspaceStore.getState()
+      const requirementState = {
+        confirmed: Object.fromEntries(
+          [...store.fieldOverrides].map((k) => [
+            k,
+            String((store.fields as Record<string, unknown>)[k] ?? ''),
+          ]),
+        ),
+        pending: store.missingInfo,
+      }
+
+      try {
+        const res = await fetch('/api/ai/analyze-demand-stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userText,
+            requirementState,
+            thinkMode: false,
+            mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
+          }),
+          signal,
+        })
+        if (!res.ok || !res.body) return
+
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buf = ''
+
+        const applyResult = (data: string) => {
+          try {
+            const r = normalizeAnalyzePayload(
+              JSON.parse(data) as Record<string, unknown>,
+            )
+            applyAnalyze(r)
+          } catch {
+            /* skip */
+          }
+        }
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buf += decoder.decode(value, { stream: true })
+          const { events, remainder } = splitSseBuffer(buf)
+          buf = remainder
+          for (const evt of events) {
+            if (evt.type === 'result') applyResult(evt.data)
+          }
+        }
+        for (const evt of flushSseBuffer(buf)) {
+          if (evt.type === 'result') applyResult(evt.data)
+        }
+      } catch (e: unknown) {
+        if (e instanceof DOMException && e.name === 'AbortError') throw e
+        toast('工作区同步失败，右侧字段可能未更新', 'error')
+      }
+    },
+    [applyAnalyze, isServiceMode],
+  )
 
   /** 默认 / Think 模式：Agent 对话 */
   const handleDefaultMode = useCallback(
@@ -698,10 +640,15 @@ export default function DemandCreate() {
       thinkMode: boolean,
       signal: AbortSignal,
     ) => {
+      void syncWorkspaceFromConversation(history, signal).catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === 'AbortError') return
+        toast('工作区同步失败，右侧字段可能未更新', 'error')
+      })
+
       const res = await fetch('/api/ai/agent-demand-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, thinkMode }),
+        body: JSON.stringify({ messages: history, thinkMode, mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND' }),
         signal,
       })
       if (!res.ok || !res.body) {
@@ -735,69 +682,87 @@ export default function DemandCreate() {
         }
       }
 
+      const pendingToolArgs: Record<string, string> = {}
+      let toolName = ''
+
+      const handleSseEvent = (eventType: string, data: string) => {
+        if (eventType === 'think' && thinkMode) {
+          try {
+            const { line } = JSON.parse(data)
+            if (line) {
+              thinkAccRef.current += line
+              setThinkText(thinkAccRef.current)
+            }
+          } catch {
+            /* skip */
+          }
+          return
+        }
+        if (eventType === 'text') {
+          try {
+            const { delta } = JSON.parse(data)
+            if (delta) {
+              assistantContent += delta
+              ensureAssistant()
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId
+                    ? { ...m, content: assistantContent }
+                    : m,
+                ),
+              )
+            }
+          } catch {
+            /* skip */
+          }
+          return
+        }
+        if (eventType === 'tool_call') {
+          try {
+            const parsed = JSON.parse(data)
+            toolName = parsed.name || toolName
+            Object.assign(pendingToolArgs, parsed.arguments ?? {})
+          } catch {
+            /* skip */
+          }
+          return
+        }
+        if (eventType === 'error') {
+          try {
+            const { message } = JSON.parse(data)
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: newMsgId(),
+                role: 'assistant',
+                content: message || 'AI 错误',
+              },
+            ])
+          } catch {
+            /* skip */
+          }
+        }
+      }
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
         buf += decoder.decode(value, { stream: true })
-        const events = buf.split('\n\n')
-        buf = events.pop() || ''
-        for (const event of events) {
-          const lines = event.split('\n')
-          const eventType = lines[0].replace('event: ', '')
-          const dataLine = lines.find((l) => l.startsWith('data: '))
-          if (!dataLine) continue
-          const data = dataLine.slice(6)
+        const { events, remainder } = splitSseBuffer(buf)
+        buf = remainder
+        for (const evt of events) {
+          handleSseEvent(evt.type, evt.data)
+        }
+      }
+      for (const evt of flushSseBuffer(buf)) {
+        handleSseEvent(evt.type, evt.data)
+      }
 
-          if (eventType === 'think' && thinkMode) {
-            try {
-              const { line } = JSON.parse(data)
-              if (line) {
-                thinkAccRef.current += line
-                setThinkText(thinkAccRef.current)
-              }
-            } catch {
-              /* skip */
-            }
-          } else if (eventType === 'text') {
-            try {
-              const { delta } = JSON.parse(data)
-              if (delta) {
-                assistantContent += delta
-                ensureAssistant()
-                setMessages((prev) =>
-                  prev.map((m) =>
-                    m.id === assistantId
-                      ? { ...m, content: assistantContent }
-                      : m,
-                  ),
-                )
-              }
-            } catch {
-              /* skip */
-            }
-          } else if (eventType === 'tool_call') {
-            try {
-              const parsed = JSON.parse(data)
-              toolCall = { name: parsed.name, arguments: parsed.arguments }
-              applyAgent(parsed.arguments)
-            } catch {
-              /* skip */
-            }
-          } else if (eventType === 'error') {
-            try {
-              const { message } = JSON.parse(data)
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: newMsgId(),
-                  role: 'assistant',
-                  content: message || 'AI 错误',
-                },
-              ])
-            } catch {
-              /* skip */
-            }
-          }
+      if (Object.keys(pendingToolArgs).length > 0) {
+        applyAgent(pendingToolArgs)
+        toolCall = {
+          name: toolName || 'submit_demand',
+          arguments: pendingToolArgs,
         }
       }
 
@@ -853,52 +818,195 @@ export default function DemandCreate() {
         ])
       }
     },
-    [applyAgent],
+    [applyAgent, isServiceMode, syncWorkspaceFromConversation],
   )
-  handleDefaultModeRef.current = handleDefaultMode
 
-  const doPublish = useCallback(
-    (force = false) => {
-      const f = useDemandWorkspaceStore.getState().fields
-      if (!f.title.trim() && !force) {
-        toast('请先填写需求标题', 'error')
+  const sendMessage = useCallback(
+    async (rawMessage: string) => {
+      const isThink = rawMessage.startsWith('[Think:')
+      const isCanvas = rawMessage.startsWith('[Canvas:')
+
+      const text = rawMessage
+        .replace(/^\[(Think|Canvas):\s*/, '')
+        .replace(/\]$/, '')
+        .trim()
+      if (!text) return
+
+      setDraftInput('')
+      setExpandedIds(new Set())
+      setLoading(true)
+      setIsThinkMode(isThink)
+      setThinkText('')
+      setThinkCollapsed(false)
+      if (isThink) setCanvasMode(false)
+      thinkAccRef.current = ''
+
+      const currentSpeedMode = useDemandWorkspaceStore.getState().speedMode
+
+      const confirmedCtx = useDemandWorkspaceStore
+        .getState()
+        .getConfirmedContext()
+      const augmentedText = confirmedCtx ? `${confirmedCtx}\n${text}` : text
+
+      const currentMsg = { role: 'user' as const, content: augmentedText }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: newMsgId(), role: 'user', content: text },
+      ])
+
+      const history = [
+        ...messagesRef.current.map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          ...(m.reasoningContent
+            ? { reasoning_content: m.reasoningContent }
+            : {}),
+        })),
+        currentMsg,
+      ]
+
+      const queuedMissing = useDemandWorkspaceStore.getState().missingQueue
+      if (queuedMissing.length > 0) {
+        const allDone = useDemandWorkspaceStore
+          .getState()
+          .recordAnswerAndAdvance(text)
+        if (allDone) {
+          await handleMissingInfoBatchAnalysis()
+        } else {
+          const remaining =
+            useDemandWorkspaceStore.getState().missingQueue.length
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: newMsgId(),
+              role: 'assistant',
+              content: `已记录答案。还有 ${remaining} 项待回答，请继续输入。`,
+            },
+          ])
+        }
+        abortRef.current = null
+        setLoading(false)
         return
       }
-      navigate(force ? '/demands/create/paths?force=true' : '/demands/create/paths')
+
+      const ctrl = new AbortController()
+      abortRef.current = ctrl
+      try {
+        if (isCanvas) {
+          await handleCanvasMode(text, ctrl.signal)
+        } else if (isThink) {
+          await handleDefaultMode(history, true, ctrl.signal)
+        } else if (currentSpeedMode) {
+          await handleAggressiveMode(text, ctrl.signal)
+        } else {
+          await handleDefaultMode(history, false, ctrl.signal)
+        }
+      } catch (e: any) {
+        if (e?.name === 'AbortError') {
+          setThinkText('')
+          thinkAccRef.current = ''
+          setIsThinkMode(false)
+          setMessages((prev) => [
+            ...prev,
+            { id: newMsgId(), role: 'assistant', content: '⏹ 已中断' },
+          ])
+          return
+        }
+        setMessages((prev) => [
+          ...prev,
+          { id: newMsgId(), role: 'assistant', content: '网络异常' },
+        ])
+      } finally {
+        abortRef.current = null
+        setLoading(false)
+      }
     },
-    [navigate],
+    [
+      handleAggressiveMode,
+      handleCanvasMode,
+      handleDefaultMode,
+      handleMissingInfoBatchAnalysis,
+    ],
   )
 
+  const doPublish = useCallback(async () => {
+    saveDraft()
+    const f = useDemandWorkspaceStore.getState().fields
+    if (isServiceMode) {
+      if (!f.title.trim() || !f.description.trim() || !f.category.trim()) {
+        toast('服务卡至少需要标题、服务说明和服务类别', 'error')
+        return
+      }
+      const prices = (f.budget.match(/\d+(?:\.\d+)?/g) || []).map(Number)
+      try {
+        const card = await serviceCardApi.create({
+          title: f.title.trim(),
+          summary: f.description.trim().slice(0, 240),
+          description: f.description.trim(),
+          category: f.category.trim(),
+          serviceType: f.serviceType || 'ONLINE',
+          regionId: f.regionId,
+          paths: f.scopeLabels,
+          tags: [...new Set([...f.tags, ...f.aiTags, ...f.suggestedKeywords])],
+          priceMin: prices[0],
+          priceMax: prices[1] ?? prices[0],
+          priceUnit: f.budget.includes('小时') ? '按小时' : f.budget.includes('次') ? '按次' : undefined,
+          deliveryMode: f.schedule.trim() || '按双方约定',
+          claims: f.scopeLabels.map((label) => ({ label })),
+        })
+        toast('服务卡草稿已保存', 'success')
+        navigate(`/service-cards/${card.id}`)
+      } catch (error: any) {
+        toast(error?.response?.data?.message || '服务卡保存失败，请重试', 'error')
+      }
+      return
+    }
+    const issues = validateDemandForPublish(f)
+    if (issues.length > 0) {
+      toast(issues.map((i) => i.message).join('；'), 'error')
+      return
+    }
+    navigate('/demands/create/paths')
+  }, [isServiceMode, navigate, saveDraft])
+
   const handlePublishFromChat = useCallback(
-    async (toolCall: NonNullable<ChatMsg['toolCall']>) => {
-      if (workspaceReady || workspaceFields.title) {
+    (toolCall: NonNullable<ChatMsg['toolCall']>) => {
+      const store = useDemandWorkspaceStore.getState()
+      if (isDemandReadyToPublish(store.fields)) {
         return doPublish()
       }
       applyAgent(toolCall.arguments)
-      setTimeout(() => doPublish(), 50)
+      if (isDemandReadyToPublish(useDemandWorkspaceStore.getState().fields)) {
+        doPublish()
+      } else {
+        toast('信息尚不完整，请先在右侧工作区补全必填项', 'error')
+      }
     },
-    [doPublish, workspaceReady, workspaceFields.title, applyAgent],
+    [doPublish, applyAgent],
   )
 
   return (
     <div className="demand-workspace-codex ws-root internal-shell flex min-h-0 flex-1 flex-col overflow-hidden">
       <header className="ws-header">
         <BackButton compact />
-        <h1 className="ws-title">需求工作区</h1>
+        <h1 className="ws-title">{isServiceMode ? '服务卡工作区' : '需求工作区'}</h1>
         <div className="ws-actions">
+          <DemandSessionHistory
+            activeId={activeSessionId}
+            sessionsTick={sessionsTick}
+            onSelect={loadSessionById}
+            onDelete={handleDeleteSession}
+          />
           <button
             type="button"
             className="ws-btn"
             onClick={() => {
               if (messages.length > 0 || workspaceFields.title) {
-                if (
-                  !window.confirm('确定要清空当前所有内容吗？此操作不可撤销。')
-                )
-                  return
+                setConfirmClearOpen(true)
+                return
               }
-              abortRef.current?.abort()
               clearDraft()
-              useDemandWorkspaceStore.getState().setSpeedMode(true)
             }}
           >
             <Plus className="size-3.5" />
@@ -921,14 +1029,6 @@ export default function DemandCreate() {
           )}
           <button
             type="button"
-            className="ws-btn ws-btn--danger"
-            onClick={() => doPublish(true)}
-          >
-            <Zap className="size-3.5" />
-            强制发布
-          </button>
-          <button
-            type="button"
             className="ws-btn ws-btn--primary"
             onClick={() => doPublish()}
           >
@@ -937,6 +1037,18 @@ export default function DemandCreate() {
           </button>
         </div>
       </header>
+
+      {/* 次要入口：看看可直接使用的服务（自然回 offering，不改需求主路径 / 宪法 #5） */}
+      <div className="mx-3 mb-2 flex items-center gap-1 text-[13px] text-[var(--text-secondary)]">
+        <Sparkles className="size-3.5 text-[var(--accent-color)]" />
+                    <span>{isServiceMode ? '想了解市场？看看' : '想更快解决？看看'}</span>
+        <NavLink
+          to="/services"
+          className="font-medium text-[var(--accent-color)] hover:underline"
+        >
+          可直接使用的服务
+        </NavLink>
+      </div>
 
       <div className="ws-body">
         <section className="ws-chat">
@@ -958,9 +1070,13 @@ export default function DemandCreate() {
                     <Sparkles className="size-5" />
                   </div>
                   <div>
-                    <h2 className="ws-empty-title">你想找什么样的服务者？</h2>
+                    <h2 className="ws-empty-title">
+                      {isServiceMode ? '你能提供什么样的服务？' : '你想找什么样的服务者？'}
+                    </h2>
                     <p className="ws-empty-desc">
-                      用自然语言描述需求，AI 会帮你理清并追问细节
+                      {isServiceMode
+                        ? '用自然语言介绍你的服务，AI 会帮你整理范围、报价和交付方式'
+                        : '用自然语言描述需求，AI 会帮你理清并追问细节'}
                     </p>
                   </div>
                 </div>
@@ -1040,21 +1156,25 @@ export default function DemandCreate() {
                           填写中...
                         </span>
                       ) : (
-                        <div
-                          className="ws-bubble-ai"
-                          dangerouslySetInnerHTML={{
-                            __html:
-                              formatAIText(msg.content) +
-                              (msg.isStreaming ? '<span class="ai-cursor"></span>' : ''),
-                          }}
-                        />
+                        <div className="ws-bubble-ai">
+                          <AgentMarkdown content={msg.content} />
+                          {msg.isStreaming && (
+                            <span className="ai-cursor" />
+                          )}
+                        </div>
                       )}
 
                       {msg.toolCall && (
                         <div className="ws-tool-confirm">
                           <div className="ws-tool-confirm-head">
                             <Check className="size-3.5" />
-                            <span>AI 已确认信息完整，可以发布</span>
+                            <span>
+                              {(isServiceMode
+                                ? Boolean(workspaceFields.title && workspaceFields.description && workspaceFields.category)
+                                : isDemandReadyToPublish(workspaceFields))
+                                ? `信息已齐备，可以发布${isServiceMode ? '服务卡' : ''}`
+                                : 'AI 已提取部分信息，请补全后发布'}
+                            </span>
                           </div>
                           <div className="ws-kv-grid">
                             {msg.toolCall.arguments.title && (
@@ -1078,13 +1198,13 @@ export default function DemandCreate() {
                             )}
                             {msg.toolCall.arguments.budget && (
                               <div className="ws-kv">
-                                <span>预算</span>
+                                <span>{isServiceMode ? '报价' : '预算'}</span>
                                 <p>{msg.toolCall.arguments.budget}</p>
                               </div>
                             )}
                             {msg.toolCall.arguments.schedule && (
                               <div className="ws-kv">
-                                <span>时间</span>
+                                <span>{isServiceMode ? '交付方式' : '时间'}</span>
                                 <p>{msg.toolCall.arguments.schedule}</p>
                               </div>
                             )}
@@ -1097,7 +1217,7 @@ export default function DemandCreate() {
                           </div>
                           {msg.toolCall.arguments.description && (
                             <div className="ws-kv" style={{ marginBottom: 12 }}>
-                              <span>详细描述</span>
+                              <span>{isServiceMode ? '服务说明' : '详细描述'}</span>
                               <p>{msg.toolCall.arguments.description}</p>
                             </div>
                           )}
@@ -1151,7 +1271,7 @@ export default function DemandCreate() {
                 }
                 onCanvasChange={setCanvasMode}
                 onPublish={doPublish}
-                placeholder="说点什么？"
+                placeholder={isServiceMode ? '介绍你能提供的服务…' : '说点什么？'}
                 value={draftInput}
                 onInputChange={setDraftInput}
               />
@@ -1183,19 +1303,33 @@ export default function DemandCreate() {
                   <Sparkles className="size-5" />
                 </div>
                 <p className="ws-empty-desc" style={{ marginTop: 16 }}>
-                  在左侧描述你的需求，AI 会同步整理到这里
+                  {isServiceMode
+                    ? '在左侧介绍你的服务，AI 会同步整理到这里'
+                    : '在左侧描述你的需求，AI 会同步整理到这里'}
                 </p>
               </div>
             ) : (
               <div className="ws-stack">
                 <WorkspaceSummary />
-                <WorkspaceFields />
+                <WorkspaceFields mode={isServiceMode ? 'service' : 'demand'} />
                 <WorkspaceTools />
               </div>
             )}
           </div>
         </section>
       </div>
+
+      <ConfirmDialog
+        open={confirmClearOpen}
+        title="新建需求"
+        message="确定要清空当前所有内容吗？此操作不可撤销。"
+        confirmLabel="清空并新建"
+        onConfirm={() => {
+          setConfirmClearOpen(false)
+          clearDraft()
+        }}
+        onCancel={() => setConfirmClearOpen(false)}
+      />
     </div>
   )
 }

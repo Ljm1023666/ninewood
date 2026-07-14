@@ -1,4 +1,7 @@
 import axios from 'axios'
+import { getAuthToken, setAuthToken } from './auth-session'
+
+export { setAuthToken }
 
 const baseURL =
   location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api'
@@ -6,10 +9,11 @@ const baseURL =
 const api = axios.create({
   baseURL,
   timeout: 15000,
+  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = getAuthToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -20,10 +24,14 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token')
-      if (!redirecting) {
-        redirecting = true
-        window.location.replace('/login')
+      const url = err.config?.url ?? ''
+      const isAuthRoute = /\/auth\//.test(url)
+      if (!isAuthRoute) {
+        setAuthToken(null)
+        if (!redirecting) {
+          redirecting = true
+          window.location.replace('/login')
+        }
       }
     }
     return Promise.reject(err)

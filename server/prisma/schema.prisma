@@ -130,7 +130,6 @@ enum DemandStage {
   completed
 }
 
-
 enum WalletLedgerType {
   HOLD
   RELEASE
@@ -175,132 +174,137 @@ enum TagCategory {
 }
 
 model User {
-  id                 String    @id @default(uuid())
-  accountNo          Int?      @unique // 易记账号 ID：0=管理员，1、2…递增
-  phone              String    @unique
-  email              String?   @unique
-  nickname           String
-  avatarUrl          String?
-  coverUrl           String?
-  demandCardCoverUrl String?
-  cityCode           String?
-  ipRegion           String?   // IP属地缓存，如"北京"
-  certificationLevel CertLevel @default(NONE)
-  snatchCredits      Int       @default(3)
-  creditScore        Int       @default(60)
-  completedOrders    Int       @default(0)
+  id                      String    @id @default(uuid())
+  accountNo               Int?      @unique // 易记账号 ID：0=管理员，1、2…递增
+  phone                   String    @unique
+  email                   String?   @unique
+  nickname                String
+  avatarUrl               String?
+  coverUrl                String?
+  demandCardCoverUrl      String?
+  cityCode                String?
+  ipRegion                String? // IP属地缓存，如"北京"
+  certificationLevel      CertLevel @default(NONE)
+  snatchCredits           Int       @default(3)
+  creditScore             Int       @default(60)
+  completedOrders         Int       @default(0)
   // S1.2 修复:开发期模拟货币(1 点 = 1 元;见 DEVELOPMENT-GUIDE 决策 D5)
-  points             Int       @default(1000000)
-  role               String    @default("USER")
-  passwordHash       String?
-  bio                String?
+  points                  Int       @default(1000000)
+  role                    String    @default("USER")
+  passwordHash            String?
+  bio                     String?
   // 合规：注册时强制采集，< 14 岁直接拒绝（生成式 AI 办法 §10 / 未保法 §74-75）
   // 公测前需补：14-18 岁监护人同意流程
-  birthday           DateTime?
-  pushBlocklist      Json      @default("{\"tags\":[],\"keywords\":[],\"ageRanges\":[]}")
+  birthday                DateTime?
+  pushBlocklist           Json      @default("{\"tags\":[],\"keywords\":[],\"ageRanges\":[]}")
   hasVisitedCompletedList Boolean   @default(false)
-  serviceTags            String[]  @default([])
-  isBusy                 Boolean   @default(false)
-  allowSpecialSearch     Boolean   @default(false)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  serviceTags             String[]  @default([])
+  isBusy                  Boolean   @default(false)
+  allowSpecialSearch      Boolean   @default(false)
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   demands             Demand[]
   applications        DemandApplication[]
-  providerOrders      Order[]     @relation("Provider")
-  requesterOrders     Order[]     @relation("Requester")
-  ownedCircles        Circle[]    @relation("CircleOwner")
+  providerOrders      Order[]                   @relation("Provider")
+  requesterOrders     Order[]                   @relation("Requester")
+  ownedCircles        Circle[]                  @relation("CircleOwner")
   memberships         CircleMember[]
   circleAnnouncements CircleAnnouncement[]
   circleActivities    CircleActivity[]
   circleResources     CircleResource[]
-  circleInvitesSent   CircleInvite[]   @relation("CircleInvitesSent")
+  circleInvitesSent   CircleInvite[]            @relation("CircleInvitesSent")
   deposits            Deposit[]
-  sentComplaints      Complaint[] @relation("Complainant")
-  receivedComplaints  Complaint[] @relation("Respondent")
-  sentMessages        Message[]   @relation("Sender")
-  receivedMessages    Message[]   @relation("Receiver")
+  sentComplaints      Complaint[]               @relation("Complainant")
+  receivedComplaints  Complaint[]               @relation("Respondent")
+  blocksInitiated     UserBlock[]               @relation("UserBlocks")
+  blocksReceived      UserBlock[]               @relation("BlockedByUsers")
+  reportsFiled        ContentReport[]           @relation("ReportsFiled")
+  reportsReceived     ContentReport[]           @relation("ReportsReceived")
+  sentMessages        Message[]                 @relation("Sender")
+  receivedMessages    Message[]                 @relation("Receiver")
+  serviceCards        ServiceCard[]
   shorts              Short[]
-  following           Follow[]    @relation("Following")
-  followers           Follow[]    @relation("Followers")
+  following           Follow[]                  @relation("Following")
+  followers           Follow[]                  @relation("Followers")
   favorites           DemandFavorite[]
   certifiedProvider   CertifiedProvider?
   mergeMemberships    ConversationMergeMember[]
-  reviewsGiven        Review[]         @relation("Reviewer")
-  reviewsReceived     Review[]         @relation("Reviewee")
+  reviewsGiven        Review[]                  @relation("Reviewer")
+  reviewsReceived     Review[]                  @relation("Reviewee")
   agentTasks          AgentTask[]
 
   // ── AI 2.5 ──
-  userTags           UserTag[]
-  applicantsV2       DemandApplicantV2[]
-  pushPreference     PushPreference?
+  userTags       UserTag[]
+  applicantsV2   DemandApplicantV2[]
+  pushPreference PushPreference?
 
   @@index([cityCode])
   @@index([certificationLevel])
 }
 
 model Demand {
-  id               String       @id @default(uuid())
-  userId           String
-  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title            String
-  description      String
-  minPrice         Decimal      @db.Decimal(10, 2)
-  category         String
-  taxonomyLeafId   String?
-  serviceType      ServiceType
-  cityCode         String?
-  regionId         Int?
-  region           Region?      @relation(fields: [regionId], references: [id], onDelete: SetNull)
-  tagName          String?      // 关联的标签卡包（null=未分类?卡包）
-  isCertifiedOnly  Boolean      @default(false)
-  completedCoverImage String?   // 死池永久封面（完成时锁定，不可更改）
-  colorBar         String?      // 死池色条
-  pushConfig       Json?
-  stage            DemandStage  @default(active)
-  coverImage       String?
-  amountEstimate   Decimal?     @db.Decimal(10, 2)
-  expireAt         DateTime
-  status           DemandStatus @default(PENDING)
-  circleId         String?
-  circle           Circle?      @relation(fields: [circleId], references: [id], onDelete: SetNull)
-  mediaUrls        Json         @default("[]")
-  applicantCount   Int          @default(0)
-  isExample        Boolean      @default(false)
-  isPublic         Boolean      @default(true)
-  deletedAt        DateTime?
-  createdAt        DateTime     @default(now())
+  id                  String       @id @default(uuid())
+  userId              String
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title               String
+  description         String
+  minPrice            Decimal      @db.Decimal(10, 2)
+  category            String
+  taxonomyLeafId      String?
+  serviceType         ServiceType
+  cityCode            String?
+  regionId            Int?
+  region              Region?      @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  tagName             String? // 关联的标签卡包（null=未分类?卡包）
+  isCertifiedOnly     Boolean      @default(false)
+  completedCoverImage String? // 死池永久封面（完成时锁定，不可更改）
+  colorBar            String? // 死池色条
+  pushConfig          Json?
+  stage               DemandStage  @default(active)
+  coverImage          String?
+  amountEstimate      Decimal?     @db.Decimal(10, 2)
+  expireAt            DateTime
+  status              DemandStatus @default(PENDING)
+  circleId            String?
+  circle              Circle?      @relation(fields: [circleId], references: [id], onDelete: SetNull)
+  mediaUrls           Json         @default("[]")
+  applicantCount      Int          @default(0)
+  isExample           Boolean      @default(false)
+  isPublic            Boolean      @default(true)
+  deletedAt           DateTime?
+  createdAt           DateTime     @default(now())
 
   // ── AI 2.5: 紧急窗口 ──
-  visibilityWindow Int          @default(15)
-  visibleUntil     DateTime?
-  frozenAt         DateTime?
+  visibilityWindow   Int            @default(15)
+  visibleUntil       DateTime?
+  frozenAt           DateTime?
   // ── AI 2.5: 效果导向 ──
-  expectedOutcome  String?
-  timeLimit        DateTime?
+  expectedOutcome    String?
+  timeLimit          DateTime?
   // ── AI 2.5: 押金 + 接单控制 ──
-  deposit          Float        @default(0)
-  maxApplicants    Int          @default(10)
+  deposit            Float          @default(0)
+  maxApplicants      Int            @default(10)
   // ── AI 2.5: 标签确认 ──
-  tags             String[]     @default([])
-  aiTags           String[]     @default([])
-  tagsConfirmed    Boolean      @default(false)
+  tags               String[]       @default([])
+  aiTags             String[]       @default([])
+  tagsConfirmed      Boolean        @default(false)
   // ── AI 2.5: 位置模糊 ──
-  fuzzyLat         Float?
-  fuzzyLng         Float?
+  fuzzyLat           Float?
+  fuzzyLng           Float?
   // ── AI 2.5: 正式接单 ──
   acceptedProviderId String?
   // ── AI 2.5: 生命周期 ──
-  lifecycleStage   LifecycleStage @default(ACTIVE)
-  coverDeletedAt   DateTime?
-  detailDeletedAt  DateTime?
-  fullDeletedAt    DateTime?
+  lifecycleStage     LifecycleStage @default(ACTIVE)
+  coverDeletedAt     DateTime?
+  detailDeletedAt    DateTime?
+  fullDeletedAt      DateTime?
   // ── AI 2.5: 公益 ──
-  isPublicWelfare  Boolean      @default(false)
+  isPublicWelfare    Boolean        @default(false)
 
   // ── TASK-11: 路径检索 ──
-  paths          String[]  @default([])
-  pathsEditedAt  DateTime?
+  paths         String[]  @default([])
+  pathsEditedAt DateTime?
 
   applications     DemandApplication[]
   applicantsV2     DemandApplicantV2[]
@@ -309,6 +313,7 @@ model Demand {
   favoritedBy      DemandFavorite[]
   depositRelations DepositDemand[]
   activeDemand     ActiveDemand?
+  cardAttachments  CardAttachment[]
 
   @@index([userId])
   @@index([cityCode])
@@ -343,9 +348,100 @@ model DemandApplication {
   @@index([status])
 }
 
+// 面向检索与咨询的服务声明卡，任何用户均可发布。
+model ServiceCard {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  summary      String?
+  description  String
+  coverImage   String?
+  category     String
+  serviceType  ServiceType @default(ONLINE)
+  cityCode     String?
+  regionId     Int?
+  region       Region?     @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  paths        String[]    @default([])
+  tags         String[]    @default([])
+  priceMin     Decimal?    @db.Decimal(10, 2)
+  priceMax     Decimal?    @db.Decimal(10, 2)
+  priceUnit    String?
+  deliveryMode String      @default("ONLINE")
+  availability String      @default("AVAILABLE")
+  status       String      @default("DRAFT") // DRAFT | PUBLISHED | PAUSED | ARCHIVED
+  isPublic     Boolean     @default(true)
+  publishedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  claims          ServiceCardClaim[]
+  evidence        ServiceCardEvidence[]
+  cardAttachments CardAttachment[]
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([category])
+  @@index([regionId])
+  @@index([paths], type: Gin)
+  @@index([tags], type: Gin)
+}
+
+// 服务者的主观能力声明，isHighlighted 只由系统经验聚合写入。
+model ServiceCardClaim {
+  id            String      @id @default(uuid())
+  serviceCardId String
+  serviceCard   ServiceCard @relation(fields: [serviceCardId], references: [id], onDelete: Cascade)
+  label         String
+  description   String?
+  sortOrder     Int         @default(0)
+  isHighlighted Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([serviceCardId, label])
+  @@index([label])
+}
+
+// 公开聚合事实，不保存客户身份、需求正文或订单号。
+model ServiceCardEvidence {
+  id              String      @id @default(uuid())
+  serviceCardId   String
+  serviceCard     ServiceCard @relation(fields: [serviceCardId], references: [id], onDelete: Cascade)
+  label           String
+  completedCount  Int         @default(0)
+  successfulCount Int         @default(0)
+  successRate     Float?
+  lastCompletedAt DateTime?
+  sourceType      String      @default("COMPLETED_ORDER")
+  sourceVersion   Int         @default(1)
+  calculatedAt    DateTime    @default(now())
+
+  @@unique([serviceCardId, label])
+  @@index([label, completedCount])
+}
+
+// 卡片作为消息附件发送时的不可变展示快照。
+model CardAttachment {
+  id            String       @id @default(uuid())
+  messageId     String       @unique
+  message       Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  cardType      String // DEMAND | SERVICE_CARD
+  demandId      String?
+  demand        Demand?      @relation(fields: [demandId], references: [id], onDelete: SetNull)
+  serviceCardId String?
+  serviceCard   ServiceCard? @relation(fields: [serviceCardId], references: [id], onDelete: SetNull)
+  snapshot      Json
+  createdAt     DateTime     @default(now())
+
+  @@index([cardType])
+  @@index([demandId])
+  @@index([serviceCardId])
+}
+
 model Order {
   id          String      @id @default(uuid())
-  demandId    String
+  demandId    String      @unique
   demand      Demand      @relation(fields: [demandId], references: [id], onDelete: Cascade)
   providerId  String
   provider    User        @relation("Provider", fields: [providerId], references: [id])
@@ -381,13 +477,13 @@ model Circle {
   status      CircleStatus @default(ACTIVE)
   createdAt   DateTime     @default(now())
 
-  members        CircleMember[]
-  demands        Demand[]
-  circleDemands  CircleDemand[]
-  announcements  CircleAnnouncement[]
-  activities     CircleActivity[]
-  resources      CircleResource[]
-  invites        CircleInvite[]
+  members       CircleMember[]
+  demands       Demand[]
+  circleDemands CircleDemand[]
+  announcements CircleAnnouncement[]
+  activities    CircleActivity[]
+  resources     CircleResource[]
+  invites       CircleInvite[]
 
   @@index([ownerId])
   @@index([cityCode])
@@ -410,12 +506,12 @@ model CircleMember {
 }
 
 model Deposit {
-  id              String          @id @default(uuid())
-  userId          String
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Decimal         @db.Decimal(10, 2)
-  status          DepositStatus   @default(PENDING)
-  createdAt       DateTime        @default(now())
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Decimal       @db.Decimal(10, 2)
+  status    DepositStatus @default(PENDING)
+  createdAt DateTime      @default(now())
 
   demandRelations DepositDemand[]
 
@@ -433,53 +529,88 @@ model DepositDemand {
 }
 
 model Complaint {
-  id         String          @id @default(uuid())
-  fromUserId String
-  fromUser   User            @relation("Complainant", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUserId   String
-  toUser     User            @relation("Respondent", fields: [toUserId], references: [id], onDelete: Cascade)
-  demandId   String
+  id           String          @id @default(uuid())
+  fromUserId   String
+  fromUser     User            @relation("Complainant", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId     String
+  toUser       User            @relation("Respondent", fields: [toUserId], references: [id], onDelete: Cascade)
+  demandId     String
   reason       String
-  evidenceUrls String[]     @default([])
+  evidenceUrls String[]        @default([])
   status       ComplaintStatus @default(PENDING)
-  result     String?
-  createdAt  DateTime        @default(now())
+  result       String?
+  createdAt    DateTime        @default(now())
 
   @@index([fromUserId])
   @@index([toUserId])
   @@index([demandId])
 }
 
+model UserBlock {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation("UserBlocks", fields: [userId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("BlockedByUsers", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, blockedId])
+  @@index([userId])
+  @@index([blockedId])
+}
+
+model ContentReport {
+  id           String          @id @default(uuid())
+  reporterId   String
+  reporter     User            @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUserId String
+  targetUser   User            @relation("ReportsReceived", fields: [targetUserId], references: [id], onDelete: Cascade)
+  messageId    String?
+  message      Message?        @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  demandId     String?
+  category     String          @default("other")
+  reason       String
+  status       ComplaintStatus @default(PENDING)
+  createdAt    DateTime        @default(now())
+
+  @@index([reporterId])
+  @@index([targetUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 model Review {
-  id          String   @id @default(uuid())
-  orderId     String   @unique
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  reviewerId  String
-  reviewer    User     @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
-  revieweeId  String
-  reviewee    User     @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
-  rating      Int      // 1-5
-  content     String?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  orderId    String   @unique
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  revieweeId String
+  reviewee   User     @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+  rating     Int // 1-5
+  content    String?
+  createdAt  DateTime @default(now())
 
   @@index([reviewerId])
   @@index([revieweeId])
 }
 
 model Message {
-  id         String      @id @default(uuid())
-  fromUserId String
-  fromUser   User        @relation("Sender", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUserId   String
-  toUser     User        @relation("Receiver", fields: [toUserId], references: [id], onDelete: Cascade)
-  orderId    String?
-  order      Order?      @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  content    String
-  type       MessageType @default(TEXT)
-  duration   Int?
-  mergeId    String?
-  isRead     Boolean     @default(false)
-  createdAt  DateTime    @default(now())
+  id             String          @id @default(uuid())
+  fromUserId     String
+  fromUser       User            @relation("Sender", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId       String
+  toUser         User            @relation("Receiver", fields: [toUserId], references: [id], onDelete: Cascade)
+  orderId        String?
+  order          Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  content        String
+  type           MessageType     @default(TEXT)
+  duration       Int?
+  mergeId        String?
+  isRead         Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  reports        ContentReport[]
+  cardAttachment CardAttachment?
 
   @@index([fromUserId])
   @@index([toUserId])
@@ -556,7 +687,7 @@ model AgentConversation {
   userId    String
   title     String   @default("新对话")
   model     String?
-  provider  String?  // minimax | deepseek
+  provider  String? // minimax | deepseek
   thinkMode Boolean  @default(false)
   metadata  Json     @default("{}")
   createdAt DateTime @default(now())
@@ -569,15 +700,15 @@ model AgentConversation {
 }
 
 model AgentMessage {
-  id             String   @id @default(uuid())
+  id             String            @id @default(uuid())
   conversationId String
   conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  role           String   // user | assistant | system | tool
+  role           String // user | assistant | system | tool
   content        String
-  thinking       String?  // 思考过程（DeepSeek V4 thinking/reasoning）
-  toolCalls      Json?    // 工具调用记录 [{ name, arguments, result }]
+  thinking       String? // 思考过程（DeepSeek V4 thinking/reasoning）
+  toolCalls      Json? // 工具调用记录 [{ name, arguments, result }]
   tokenCount     Int?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime          @default(now())
 
   @@index([conversationId])
   @@index([createdAt])
@@ -586,14 +717,15 @@ model AgentMessage {
 // ── 行政区划表 ──
 
 model Region {
-  id       Int      @id
-  name     String   @db.VarChar(100)
-  level    Int      // 1=国家 2=省 3=市 4=区县
-  parentId Int      @default(0)
+  id       Int    @id
+  name     String @db.VarChar(100)
+  level    Int // 1=国家 2=省 3=市 4=区县
+  parentId Int    @default(0)
   lat      Float?
   lng      Float?
 
-  demands          Demand[]
+  demands            Demand[]
+  serviceCards       ServiceCard[]
   certifiedProviders CertifiedProvider[]
 
   @@index([parentId])
@@ -602,11 +734,11 @@ model Region {
 // ── 标签表 ──
 
 model Tag {
-  name                String     @id @db.VarChar(50)
-  category            TagCategory @default(both)
-  totalCompleted      Int        @default(0)
-  totalEstimatedAmount Decimal   @default(0) @db.Decimal(12, 2)
-  colorHistogram      Json       @default("[]")
+  name                 String      @id @db.VarChar(50)
+  category             TagCategory @default(both)
+  totalCompleted       Int         @default(0)
+  totalEstimatedAmount Decimal     @default(0) @db.Decimal(12, 2)
+  colorHistogram       Json        @default("[]")
 }
 
 // ── 认证服务者表 ──
@@ -627,9 +759,9 @@ model CertifiedProvider {
 // ── 活池需求扩展表（时间杠杆） ──
 
 model ActiveDemand {
-  demandId           String    @id
-  demand             Demand    @relation(fields: [demandId], references: [id], onDelete: Cascade)
-  totalExtendedMonths Int      @default(0)
+  demandId            String    @id
+  demand              Demand    @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  totalExtendedMonths Int       @default(0)
   nextCompressionDate DateTime?
 }
 
@@ -649,8 +781,8 @@ model UserTag {
   orderCount  Int       @default(0)
   metadata    Json?
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, tagName])
   @@index([status, tagName])
@@ -660,22 +792,22 @@ model UserTag {
 
 // 需求申请记录（两段式接单 + 沟通窗口）
 model DemandApplicantV2 {
-  id              String           @id @default(uuid())
-  demandId        String
-  demand          Demand           @relation(fields: [demandId], references: [id], onDelete: Cascade)
-  userId          String
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid())
+  demandId String
+  demand   Demand @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  message         String           // 申请理由
+  message String // 申请理由
 
-  status          ApplicantStatusV2 @default(PENDING)
+  status ApplicantStatusV2 @default(PENDING)
 
   // 沟通窗口
-  commStartAt     DateTime?
-  commDeadline    DateTime?
-  extensionMinutes Int             @default(0)
+  commStartAt      DateTime?
+  commDeadline     DateTime?
+  extensionMinutes Int       @default(0)
 
-  createdAt       DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([demandId, userId])
   @@index([demandId, status])
@@ -718,24 +850,22 @@ model PushPreference {
   pushFrequency   PushFrequency @default(NORMAL)
 }
 
-
-
 // 公益/钱包流水
 model WalletHold {
-  id          String   @id @default(uuid())
-  userId      String
-  demandId    String   @unique
-  amount      Float
-  status      WalletHoldStatus @default(HELD)
-  releasedAt  DateTime?
-  createdAt   DateTime @default(now())
+  id         String           @id @default(uuid())
+  userId     String
+  demandId   String           @unique
+  amount     Float
+  status     WalletHoldStatus @default(HELD)
+  releasedAt DateTime?
+  createdAt  DateTime         @default(now())
 
   @@index([userId])
   @@index([status])
 }
 
 model WalletLedger {
-  id            String   @id @default(uuid())
+  id            String           @id @default(uuid())
   userId        String
   type          WalletLedgerType
   amount        Float
@@ -743,7 +873,7 @@ model WalletLedger {
   referenceType String?
   referenceId   String?
   memo          String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime         @default(now())
 
   @@index([userId, createdAt])
   @@index([referenceType, referenceId])
@@ -766,8 +896,6 @@ model Settlement {
   @@index([createdAt])
 }
 
-
-
 model WelfareDisbursement {
   id           String   @id @default(uuid())
   regionId     Int
@@ -783,16 +911,16 @@ model WelfareDisbursement {
 
 // 公益随机奖励
 model WelfareReward {
-  id           String   @id @default(uuid())
-  demandId     String
-  providerId   String
-  amount       Float    @default(0)
-  isSpiritual  Boolean  @default(false)
-  rewardType   String   @default("random") // random | spiritual | choice
-  choiceLabel  String?  @db.VarChar(100)
-  badge        String?
-  fundPoolId   String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  demandId    String
+  providerId  String
+  amount      Float    @default(0)
+  isSpiritual Boolean  @default(false)
+  rewardType  String   @default("random") // random | spiritual | choice
+  choiceLabel String?  @db.VarChar(100)
+  badge       String?
+  fundPoolId  String?
+  createdAt   DateTime @default(now())
 
   @@index([providerId])
   @@index([demandId])
@@ -800,22 +928,21 @@ model WelfareReward {
 
 // 标签统计
 model TagStats {
-  id               String   @id @default(uuid())
-  tagName          String   @db.VarChar(50)
-  regionId         Int
-  totalCards       Int      @default(0)
-  totalAmount      Float    @default(0)
-  avgAmount        Float    @default(0)
-  activeProviders  Int      @default(0)
-  activeDemands    Int      @default(0)
-  periodStart      DateTime
-  periodEnd        DateTime
-  updatedAt        DateTime @updatedAt
+  id              String   @id @default(uuid())
+  tagName         String   @db.VarChar(50)
+  regionId        Int
+  totalCards      Int      @default(0)
+  totalAmount     Float    @default(0)
+  avgAmount       Float    @default(0)
+  activeProviders Int      @default(0)
+  activeDemands   Int      @default(0)
+  periodStart     DateTime
+  periodEnd       DateTime
+  updatedAt       DateTime @updatedAt
 
   @@unique([tagName, regionId, periodStart])
   @@index([tagName, regionId])
 }
-
 
 // Wave A / Task 8 circle hub tables
 
@@ -888,23 +1015,23 @@ model CircleInvite {
 // 平台宪法：调度器只读 + 只推送；详见 docs/specs/TASK-10-agent-automation.md §0.1
 
 model AgentTask {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   userId           String
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name             String
-  type             String   // 注册表键；MVP: "DEMAND_DIGEST"
-  enabled          Boolean  @default(true)
-  frequency        String   // HOURLY | DAILY | WEEKLY
-  atHour           Int?     // DAILY/WEEKLY: 0-23
-  atMinute         Int      @default(0)
-  weekday          Int?     // WEEKLY: 1-7 (周一=1)
-  filters          Json     // 类型私有参数（DEMAND_DIGEST: keyword/category/...）
-  deliveryChannels Json     // ["MESSAGE","AGENT_INBOX"] — JSON 数组
+  type             String // 注册表键；MVP: "DEMAND_DIGEST"
+  enabled          Boolean   @default(true)
+  frequency        String // HOURLY | DAILY | WEEKLY
+  atHour           Int? // DAILY/WEEKLY: 0-23
+  atMinute         Int       @default(0)
+  weekday          Int? // WEEKLY: 1-7 (周一=1)
+  filters          Json // 类型私有参数（DEMAND_DIGEST: keyword/category/...）
+  deliveryChannels Json // ["MESSAGE","AGENT_INBOX"] — JSON 数组
   lastRunAt        DateTime?
   nextRunAt        DateTime
   lastSummary      String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   runs AgentTaskRun[]
 
@@ -917,13 +1044,258 @@ model AgentTaskRun {
   taskId      String
   task        AgentTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
   runAt       DateTime  @default(now())
-  status      String    // SUCCESS | EMPTY | ERROR
+  status      String // SUCCESS | EMPTY | ERROR
   resultCount Int       @default(0)
-  summary     String    // Markdown 摘要
-  payload     Json?     // 结构化结果 [{ id, title, path, price, ... }]
+  summary     String // Markdown 摘要
+  payload     Json? // 结构化结果 [{ id, title, path, price, ... }]
   readAt      DateTime? // AGENT_INBOX 已读时间（null=未读）
   createdAt   DateTime  @default(now())
 
   @@index([taskId, runAt])
   @@index([taskId, readAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wave A / TASK-12 · 自然回（Natural Loop）领域模型
+// 宪法：影子优先，不拆 Demand/Order 主路径；仅新增表 + 事件。
+// 详见 docs/specs/TASK-12-natural-loop-handoff.md §2
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum ParticipantKind {
+  HUMAN
+  INTERFACE
+}
+
+enum LoopKind {
+  HUMAN // 人 → 人
+  EARTH // 人 ↔ 接口
+  HEAVEN // 接口 → 接口
+}
+
+enum LoopExecutionMode {
+  MANUAL
+  AUTOMATED
+  HYBRID
+}
+
+enum LoopRunStatus {
+  TRIGGERED
+  MATCHING
+  EXECUTING
+  WAITING_HUMAN
+  VERIFYING
+  SUCCEEDED
+  FAILED
+  INCONCLUSIVE
+  COMPENSATING
+  CLOSED
+}
+
+enum CapabilityHostMode {
+  EXTERNAL_API
+  PLATFORM_HOSTED
+}
+
+enum CapabilityHealth {
+  ONLINE
+  DEGRADED
+  OFFLINE
+  UNKNOWN
+}
+
+enum LoopLinkRelation {
+  TRIGGER
+  DELEGATE
+  FALLBACK
+  COMPENSATE
+  SUPPLY
+  OBSERVE
+  VERIFY
+}
+
+enum LoopEventVisibility {
+  SYSTEM_ONLY // 仅日志
+  ACTOR // 参与方可见
+  PUBLIC_METRIC // 可进入公开指标
+}
+
+// 回模板（定义）
+model LoopDefinition {
+  id            String            @id @default(uuid())
+  code          String            @unique // e.g. builtin.demand.structure
+  name          String
+  description   String?
+  loopKind      LoopKind
+  initiatorKind ParticipantKind
+  receiverKind  ParticipantKind
+  executionMode LoopExecutionMode
+  version       Int               @default(1)
+  inputSchema   Json              @default("{}")
+  outcomeSchema Json              @default("{}")
+  isBuiltin     Boolean           @default(false)
+  isPublic      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  offerings LoopOffering[]
+  runs      LoopRun[]
+}
+
+// 能力接口（可被调用的服务端点）
+model CapabilityEndpoint {
+  id                String             @id @default(uuid())
+  code              String             @unique
+  name              String
+  ownerType         String // USER | SYSTEM | AGENT | ORGANIZATION
+  ownerId           String?
+  hostMode          CapabilityHostMode @default(EXTERNAL_API)
+  executionMode     LoopExecutionMode  @default(HYBRID)
+  paths             String[]           @default([]) // 复用 path 语义：tag:/cat:/rgn:
+  inputSchema       Json               @default("{}")
+  outputSchema      Json               @default("{}")
+  healthStatus      CapabilityHealth   @default(UNKNOWN)
+  healthCheckedAt   DateTime?
+  capacityJson      Json?
+  pricePolicyJson   Json?
+  // 适配期：成功率仅内部；成交率可公开
+  successRatePublic Boolean            @default(false)
+  sourceUserTagId   String? // 从 UserTag 投影时保留溯源
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  offerings            LoopOffering[]
+  verificationAsTarget VerificationContract[] @relation("VerifiedEndpoint")
+
+  @@index([ownerType, ownerId])
+  @@index([healthStatus])
+  @@index([paths], type: Gin)
+}
+
+// 可被需求者检索的「解决方案上架物」
+model LoopOffering {
+  id                   String              @id @default(uuid())
+  definitionId         String
+  definition           LoopDefinition      @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  endpointId           String?
+  endpoint             CapabilityEndpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
+  title                String
+  summary              String?
+  paths                String[]            @default([])
+  status               String              @default("ACTIVE") // ACTIVE | PAUSED | DELISTED
+  // 公开指标
+  dealRate             Float? // 成交率（用户见结果后付费概率）
+  avgDurationMs        Int?
+  recentSuccessN       Int                 @default(0)
+  recentTotalN         Int                 @default(0)
+  // 内部指标（API 对非 admin 不得返回）
+  internalSuccessRate  Float?
+  requiresVerification Boolean             @default(false)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  runs                  LoopRun[]
+  verificationContracts VerificationContract[]
+
+  @@index([status])
+  @@index([paths], type: Gin)
+  @@index([definitionId])
+}
+
+// 一次实际回
+model LoopRun {
+  id              String         @id @default(uuid())
+  definitionId    String
+  definition      LoopDefinition @relation(fields: [definitionId], references: [id])
+  offeringId      String?
+  offering        LoopOffering?  @relation(fields: [offeringId], references: [id], onDelete: SetNull)
+  loopKind        LoopKind
+  status          LoopRunStatus  @default(TRIGGERED)
+  initiatorRef    String // user:<id> | system:<code> | agent:<id>
+  receiverRef     String?
+  inputJson       Json           @default("{}")
+  expectedOutcome Json           @default("{}")
+  actualOutcome   Json?
+  // 影子关联现有业务
+  demandId        String?
+  orderId         String?
+  parentRunId     String?
+  correlationId   String?
+  startedAt       DateTime       @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  events           LoopEvent[]
+  linksOut         LoopLink[]        @relation("LinkSource")
+  linksIn          LoopLink[]        @relation("LinkTarget")
+  verificationRuns VerificationRun[]
+
+  @@index([demandId])
+  @@index([orderId])
+  @@index([status])
+  @@index([loopKind, createdAt])
+  @@index([correlationId])
+}
+
+// 回事件（轨迹；日志 ≠ 通知）
+model LoopEvent {
+  id             String              @id @default(uuid())
+  loopRunId      String
+  loopRun        LoopRun             @relation(fields: [loopRunId], references: [id], onDelete: Cascade)
+  type           String // DEMAND_SHADOWED | ENDPOINT_MATCHED | ...
+  actorRef       String
+  visibility     LoopEventVisibility @default(SYSTEM_ONLY)
+  payload        Json                @default("{}")
+  idempotencyKey String?
+  createdAt      DateTime            @default(now())
+
+  @@unique([loopRunId, idempotencyKey])
+  @@index([loopRunId, createdAt])
+  @@index([type, createdAt])
+}
+
+// 回间关系
+model LoopLink {
+  id          String           @id @default(uuid())
+  sourceRunId String
+  sourceRun   LoopRun          @relation("LinkSource", fields: [sourceRunId], references: [id], onDelete: Cascade)
+  targetRunId String
+  targetRun   LoopRun          @relation("LinkTarget", fields: [targetRunId], references: [id], onDelete: Cascade)
+  relation    LoopLinkRelation
+  meta        Json?
+  createdAt   DateTime         @default(now())
+
+  @@index([sourceRunId])
+  @@index([targetRunId])
+  @@index([relation])
+}
+
+// 验证契约 + 验证运行
+model VerificationContract {
+  id                 String             @id @default(uuid())
+  offeringId         String
+  offering           LoopOffering       @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  verifierEndpointId String
+  verifierEndpoint   CapabilityEndpoint @relation("VerifiedEndpoint", fields: [verifierEndpointId], references: [id])
+  claimSchema        Json               @default("{}") // 地回宣传声明，如 { maxDuplication: 0.10 }
+  isRequired         Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+
+  runs VerificationRun[]
+
+  @@unique([offeringId, verifierEndpointId])
+}
+
+model VerificationRun {
+  id         String               @id @default(uuid())
+  contractId String
+  contract   VerificationContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  loopRunId  String
+  loopRun    LoopRun              @relation(fields: [loopRunId], references: [id], onDelete: Cascade)
+  status     String // PASSED | FAILED | ERROR | SKIPPED
+  resultJson Json?
+  createdAt  DateTime             @default(now())
+
+  @@index([loopRunId])
+  @@index([contractId, createdAt])
 }

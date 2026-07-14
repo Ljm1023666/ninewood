@@ -4,12 +4,22 @@ import { authService } from '../services/auth.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rate-limit.js';
 import { success, fail } from '../utils/response.js';
+import { setAuthCookie, clearAuthCookie } from '../utils/auth-cookie.js';
 import { getClientIp } from '../services/ipgeo.service.js';
 
 export const authRouter = Router();
 
 // 认证接口统一限流
 authRouter.use(authLimiter);
+
+function respondAuth(
+  res: Response,
+  result: { token: string; user: unknown },
+  message: string,
+) {
+  setAuthCookie(res, result.token);
+  success(res, result, message);
+}
 
 const sendCodeSchema = z.object({
   phone: z.string().regex(/^\d{11}$/, '请输入有效的手机号'),
@@ -19,6 +29,7 @@ const sendCodeSchema = z.object({
 const registerSchema = z.object({
   phone: z.string().regex(/^\d{11}$/),
   code: z.string().length(6),
+  password: z.string().min(8, '密码至少 8 位'),
   // 合规：注册时强制采集出生日期；< 14 岁拒绝，14-18 岁需勾选监护人同意
   birthday: z.string().min(8, '请填写出生日期'),
   guardianConsent: z.boolean().optional(),
@@ -42,6 +53,8 @@ const loginIdSchema = z.object({
 const loginEmailSchema = z.object({
   email: z.string().email('请输入有效的邮箱'),
   code: z.string().length(6),
+  birthday: z.string().min(8).optional(),
+  guardianConsent: z.boolean().optional(),
 });
 
 /**
@@ -142,10 +155,10 @@ authRouter.post('/send-code', async (req: Request, res: Response) => {
 // POST /api/auth/register — phone + code + birthday → create account
 authRouter.post('/register', async (req: Request, res: Response) => {
   try {
-    const { phone, code, birthday, guardianConsent } = registerSchema.parse(req.body);
+    const { phone, code, password, birthday, guardianConsent } = registerSchema.parse(req.body);
     const ip = getClientIp(req);
-    const result = await authService.register(phone, code, ip, birthday, guardianConsent);
-    success(res, result, '注册成功');
+    const result = await authService.register(phone, code, password, ip, birthday, guardianConsent);
+    respondAuth(res, result, '注册成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
     fail(res, e.message || '注册失败', e.status || 500);
@@ -158,7 +171,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     const { phone, password } = loginSchema.parse(req.body);
     const ip = getClientIp(req);
     const result = await authService.login(phone, password, ip);
-    success(res, result, '登录成功');
+    respondAuth(res, result, '登录成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
     fail(res, e.message || '登录失败', e.status || 500);
@@ -171,7 +184,7 @@ authRouter.post('/login-id', async (req: Request, res: Response) => {
     const { accountId, password } = loginIdSchema.parse(req.body);
     const ip = getClientIp(req);
     const result = await authService.loginById(accountId, password, ip);
-    success(res, result, '登录成功');
+    respondAuth(res, result, '登录成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
     fail(res, e.message || '登录失败', e.status || 500);
@@ -198,14 +211,26 @@ authRouter.post('/send-email-code', async (req: Request, res: Response) => {
 // POST /api/auth/login-email — email + code
 authRouter.post('/login-email', async (req: Request, res: Response) => {
   try {
-    const { email, code } = loginEmailSchema.parse(req.body);
+    const { email, code, birthday, guardianConsent } = loginEmailSchema.parse(req.body);
     const ip = getClientIp(req);
-    const result = await authService.loginWithEmail(email, code, ip);
-    success(res, result, '登录成功');
+    const result = await authService.loginWithEmail(
+      email,
+      code,
+      ip,
+      birthday,
+      guardianConsent,
+    );
+    respondAuth(res, result, '登录成功');
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '输入验证失败', 400, e.errors);
     fail(res, e.message || '登录失败', e.status || 500);
   }
+});
+
+// POST /api/auth/logout — 清除 HttpOnly Cookie
+authRouter.post('/logout', (_req: Request, res: Response) => {
+  clearAuthCookie(res);
+  success(res, { ok: true }, '已退出');
 });
 
 // GET /api/auth/me

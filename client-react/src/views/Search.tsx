@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { userApi } from '@/api/user'
+import { cardSearchApi, type UnifiedCardResult } from '@/api/card-search'
 import { certLabel } from '@/constants/cert'
 import { MsIcon } from '@/components/ui/ms-icon'
 import {
@@ -47,6 +48,10 @@ export default function Search() {
   const [results, setResults] = useState<SearchUser[]>([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [identity, setIdentity] = useState<'DEMANDER' | 'PROVIDER'>(
+    () => (localStorage.getItem('ninewood-search-identity') as 'DEMANDER' | 'PROVIDER') || 'DEMANDER',
+  )
+  const [cardResults, setCardResults] = useState<UnifiedCardResult[]>([])
 
   async function handleSearch() {
     const kw = keyword.trim()
@@ -54,10 +59,12 @@ export default function Search() {
     setLoading(true)
     setSearched(true)
     try {
-      const res = await userApi.search(kw)
+      const [res, cards] = await Promise.all([userApi.search(kw), cardSearchApi.search(kw, identity)])
       setResults(res.data.data)
+      setCardResults(cards)
     } catch {
       setResults([])
+      setCardResults([])
     } finally {
       setLoading(false)
     }
@@ -67,6 +74,13 @@ export default function Search() {
     setKeyword('')
     setResults([])
     setSearched(false)
+    setCardResults([])
+  }
+
+  function changeIdentity(next: 'DEMANDER' | 'PROVIDER') {
+    setIdentity(next)
+    localStorage.setItem('ninewood-search-identity', next)
+    if (keyword.trim()) void handleSearch()
   }
 
   return (
@@ -79,6 +93,24 @@ export default function Search() {
         loading={loading}
         placeholder="搜索用户、手机号、标签"
       />
+
+      <div className="mb-6 flex items-center gap-2">
+        <span className="text-sm text-text-muted">当前优先找：</span>
+        {(['DEMANDER', 'PROVIDER'] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              identity === value
+                ? 'border-[var(--accent-color)] bg-[var(--accent-ghost)] text-[var(--accent-color)]'
+                : 'border-border text-text-muted'
+            }`}
+            onClick={() => changeIdentity(value)}
+          >
+            {value === 'DEMANDER' ? '我是需求者' : '我是服务者'}
+          </button>
+        ))}
+      </div>
 
       <div className="dlp-split dlp-split--aside-rail">
         <div>
@@ -139,6 +171,61 @@ export default function Search() {
                 })}
               </div>
             </>
+          )}
+
+          {searched && !loading && cardResults.length > 0 && (
+            <section className="mt-8">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-text-primary">相关卡片</h2>
+                <span className="text-xs text-text-muted">
+                  {identity === 'DEMANDER' ? '优先展示服务卡' : '优先展示需求卡'}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {cardResults.map((card) => (
+                  card.resultType === 'SERVICE_CARD' ? (
+                    <button
+                      key={`service-${card.id}`}
+                      type="button"
+                      className="flex w-full items-start gap-4 rounded-xl border border-border bg-bg-card p-4 text-left transition-colors hover:border-[var(--accent-color)]"
+                      onClick={() => navigate(`/service-cards/${card.id}`)}
+                    >
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-ghost)] text-xs font-semibold text-[var(--accent-color)]">服务</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate font-semibold text-text-primary">{card.title}</h3>
+                          <span className="text-xs text-text-muted">服务卡</span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{card.summary || card.description}</p>
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-text-muted">
+                          <span>{card.category}</span>
+                          {card.evidence.slice(0, 2).map((evidence) => (
+                            <span key={evidence.label}>{evidence.label} {evidence.completedCount} 次</span>
+                          ))}
+                        </div>
+                      </div>
+                    </button>
+                  ) : (
+                    <button
+                      key={`demand-${card.id}`}
+                      type="button"
+                      className="flex w-full items-start gap-4 rounded-xl border border-border bg-bg-card p-4 text-left transition-colors hover:border-[var(--accent-color)]"
+                      onClick={() => navigate(`/demands/${card.id}`)}
+                    >
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-ghost)] text-xs font-semibold text-[var(--accent-color)]">需求</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="truncate font-semibold text-text-primary">{card.title}</h3>
+                          <span className="text-xs text-text-muted">需求卡</span>
+                        </div>
+                        <p className="mt-1 text-sm text-text-secondary">{card.category} · 预算 {card.price}</p>
+                        <p className="mt-2 text-xs text-text-muted">{card.applicants} 人已申请</p>
+                      </div>
+                    </button>
+                  )
+                ))}
+              </div>
+            </section>
           )}
 
           {!searched && !loading && (

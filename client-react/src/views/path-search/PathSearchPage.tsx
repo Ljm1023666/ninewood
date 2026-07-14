@@ -30,8 +30,8 @@ import { pathFromUserKeyword } from '@/utils/extract-query-paths'
 import { dedupeStable, isFacetPath, normalizeValue, parsePath } from '@/utils/path-codec'
 import { toast } from '@/components/ui/confirm-dialog'
 import { AuroraBackdrop } from './AuroraBackdrop'
-import { MetricRing } from './MetricRing'
 import { PathSearchControls } from './PathSearchControls'
+import { PathSearchResultCard } from './PathSearchResultCard'
 import { PathDualLabel } from './PathDualLabel'
 import {
   entryHasIntent,
@@ -776,104 +776,33 @@ export default function PathSearchPage() {
                 </div>
               ) : null}
 
-              {!busy && !error
-                ? items.map((d, idx) => {
-                    const matchedGroups = groupPathsForDisplay(d.matchedPaths)
-                    const missingIntentGroups = groupPathsForDisplay(
-                      intentPaths.filter((p) => !d.matchedPaths.includes(p)),
-                    )
+              {!busy && !error && items.length > 0 ? (
+                <div className="psa-timeline">
+                  <div className="psa-timeline__track" aria-hidden />
+                  {items.map((d, idx) => {
                     const isTop =
-                      idx === 0 && intentPaths.length > 0 && d.intentHitCount === maxIntent && maxIntent > 0
-                    const isDim =
-                      intentPaths.length > 0 && d.intentHitCount < maxIntent
+                      idx === 0 &&
+                      intentPaths.length > 0 &&
+                      d.intentHitCount === maxIntent &&
+                      maxIntent > 0
+                    const isDim = intentPaths.length > 0 && d.intentHitCount < maxIntent
                     return (
-                      <button
+                      <PathSearchResultCard
                         key={d.id}
-                        type="button"
-                        className={cn(
-                          'psa-card',
-                          `psa-rise psa-d${Math.min(6, idx + 4)}`,
-                          isTop && 'psa-card--top',
-                          isDim && 'psa-card--dim',
-                        )}
-                        onClick={() => navigate(`/demands/${d.id}`)}
-                      >
-                        <div className="psa-card__main">
-                          <div className="psa-titlerow">
-                            <h3>{d.title}</h3>
-                            {isTop ? (
-                              <span className="psa-ribbon">
-                                <MsIcon name="workspace_premium" size={13} />
-                                同分优先
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="psa-meta">
-                            {d.category} · <span className="psa-price">¥{d.minPrice.toLocaleString('zh-CN')}</span> ·{' '}
-                            {d.user.nickname} · 信用 {d.user.creditScore}
-                          </div>
-                          <div className="psa-tags">
-                            {matchedGroups.map((entry) => {
-                              const intent = entryHasIntent(entry, intentSet)
-                              return (
-                                <span
-                                  key={entry.paths.join('|')}
-                                  className={cn(
-                                    'psa-tag',
-                                    entry.dualKwTag && 'psa-tag--dual-kw-tag',
-                                    intent ? 'psa-tag--intent' : 'psa-tag--hit',
-                                  )}
-                                  title={tagHitTitle(entry, intent)}
-                                >
-                                  <MsIcon
-                                    name={entry.dualKwTag ? 'style' : intent ? 'bolt' : 'check_circle'}
-                                    size={14}
-                                    className={cn(
-                                      'psa-tag__icon',
-                                      entry.dualKwTag && 'psa-tag__icon--kw-tag',
-                                    )}
-                                  />
-                                  <PathDualLabel
-                                    value={entry.value}
-                                    dualKwTag={entry.dualKwTag}
-                                    className="psa-tag__label"
-                                  />
-                                </span>
-                              )
-                            })}
-                            {missingIntentGroups.map((entry) => (
-                              <span
-                                key={entry.paths.join('|')}
-                                className={cn('psa-tag psa-tag--miss', entry.dualKwTag && 'psa-tag--dual-kw-tag')}
-                                title="意图未命中：属于意图路径，但这条需求没挂上"
-                              >
-                                <MsIcon
-                                  name={entry.dualKwTag ? 'style' : 'remove_circle_outline'}
-                                  size={14}
-                                  className={cn(
-                                    'psa-tag__icon',
-                                    entry.dualKwTag && 'psa-tag__icon--kw-tag',
-                                  )}
-                                />
-                                <PathDualLabel
-                                  value={entry.value}
-                                  dualKwTag={entry.dualKwTag}
-                                  className="psa-tag__label"
-                                />
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="psa-rings">
-                          <MetricRing value={d.hitCount} total={queryPaths.length} label="命中" />
-                          {intentPaths.length > 0 ? (
-                            <MetricRing value={d.intentHitCount} total={intentPaths.length} label="意图" gold />
-                          ) : null}
-                        </div>
-                      </button>
+                        item={d}
+                        index={idx}
+                        queryPathCount={queryPaths.length}
+                        intentPaths={intentPaths}
+                        intentSet={intentSet}
+                        isTop={isTop}
+                        isDim={isDim}
+                        onOpen={() => navigate(`/demands/${d.id}`)}
+                        tagHitTitle={tagHitTitle}
+                      />
                     )
-                  })
-                : null}
+                  })}
+                </div>
+              ) : null}
             </section>
 
             <div

@@ -11,6 +11,9 @@ import {
 import { isVisibleInMarketplace } from '../utils/demand-search-visibility.js';
 import { circleHubService } from './circle-hub.service.js';
 import { resolveDemandPaths } from './path-search.js';
+import { assertMinorCanSpend } from './minor-guard.js';
+import { assertUserContentsSafe } from './content-filter/index.js';
+import { shadowOnDemandCreated, shadowOnApplicantAccepted, shadowOnLoopCancelled } from './loop/shadow-hooks.js';
 
 export { extendComm };
 import { ServiceType, DemandStatus, DemandStage, Prisma } from '@prisma/client';
@@ -80,8 +83,15 @@ export const demandService = {
     // 冻结需求拦截
     await checkFrozenBeforePublish(params.userId);
 
+    assertUserContentsSafe([
+      { text: params.title, field: '标题' },
+      { text: params.description, field: '描述' },
+      { text: params.expectedOutcome || '', field: '预期成果' },
+    ]);
+
     // 押金 = 全额最低报价（点数托管）
     const deposit = walletService.calculateDeposit(Number(params.minPrice));
+    await assertMinorCanSpend(params.userId, deposit);
 
     // Circle membership check
     if (params.circleId) {
@@ -123,6 +133,7 @@ export const demandService = {
       },
       params.paths,
     );
+
 
     const demand = await prisma.$transaction(async (tx) => {
       const created = await tx.demand.create({
@@ -194,6 +205,16 @@ export const demandService = {
         refId: demand.id,
       });
     }
+
+    // Wave B: 影子记账（失败隔离，不影响需求创建主路径）
+    shadowOnDemandCreated({
+      id: demand.id,
+      userId: demand.userId,
+      title: demand.title,
+      paths: demand.paths,
+    }).catch((err) => {
+      console.error('[loop-shadow] demand created hook failed', demand.id, err);
+    });
 
     return demand;
   },
@@ -322,7 +343,6 @@ export const demandService = {
         OR: [
           { isPublic: true },
           { circle: { members: { some: { userId: params.userId } } } },
-          { isPublic: false, createdAt: { lt: new Date(Date.now() - 15 * 60 * 1000) } },
         ],
       });
     } else {
@@ -557,7 +577,16 @@ export const demandService = {
     });
     if (!demand) throw { status: 404, message: '需求不存在' };
 
-    if (!canViewDemand(demand, userId)) {
+    let isCircleMember = false;
+    if (demand.circleId && userId) {
+      const membership = await prisma.circleMember.findUnique({
+        where: { circleId_userId: { circleId: demand.circleId, userId } },
+        select: { userId: true },
+      });
+      isCircleMember = !!membership;
+    }
+
+    if (!canViewDemand(demand, userId, { isCircleMember })) {
       throw { status: 404, message: '需求不存在' };
     }
 
@@ -565,8 +594,15 @@ export const demandService = {
     const hasOrder = demand.applications.some((a: any) => a.status === 'ACCEPTED')
       || demand.applicantsV2.some((a: any) => a.status === 'ACCEPTED');
 
+    const previewDescription =
+      demand.description.length > 120
+        ? `${demand.description.slice(0, 120)}…`
+        : demand.description;
+
     return {
       ...demand,
+      description: isOwner ? demand.description : previewDescription,
+      acceptedProviderId: isOwner || hasOrder ? demand.acceptedProviderId : null,
       minPrice: Number(demand.minPrice),
       applications: isOwner ? demand.applications.map((a: any) => ({
         ...a,
@@ -849,6 +885,14 @@ export const demandService = {
 
     // 原子操作:状态推进 + 切断其他申请人沟通 + 创建订单(P0-01)
     const { order } = await prisma.$transaction(async (tx) => {
+      const dupOrder = await tx.order.findFirst({
+        where: { demandId },
+        select: { id: true },
+      });
+      if (dupOrder) {
+        throw Object.assign(new Error('该需求已生成订单'), { status: 400 });
+      }
+
       const updated = await tx.demand.update({
         where: { id: demandId },
         data: {
@@ -886,6 +930,11 @@ export const demandService = {
       });
 
       return { order };
+    });
+
+    // Wave B: 影子记账（失败隔离，不影响接单主路径）
+    shadowOnApplicantAccepted(demandId, demand.userId, applicant.userId, order.id).catch((err) => {
+      console.error('[loop-shadow] acceptApplicant hook failed', demandId, err);
     });
 
     return {
@@ -941,18 +990,28 @@ export const demandService = {
 
     const { released: refund } = await prisma.$transaction(async (tx) => {
       const result = await walletService.releaseHold(demandId, 'WITHDRAWN', tx);
-      await tx.demand.update({
-        where: { id: demandId },
-        data: { status: 'WITHDRAWN' },
-      });
-      await tx.demandApplicantV2.updateMany({
+      const closedApplicants = await tx.demandApplicantV2.updateMany({
         where: {
           demandId,
           status: { in: ['PENDING', 'COMMUNICATING'] },
         },
         data: { status: 'WITHDRAWN' },
       });
+      await tx.demand.update({
+        where: { id: demandId },
+        data: {
+          status: 'WITHDRAWN',
+          ...(closedApplicants.count > 0
+            ? { applicantCount: { decrement: closedApplicants.count } }
+            : {}),
+        },
+      });
       return result;
+    });
+
+    // Wave B: 影子记账（失败隔离，不影响撤回主路径）
+    shadowOnLoopCancelled(demandId, 'WITHDRAWN').catch((err) => {
+      console.error('[loop-shadow] withdraw hook failed', demandId, err);
     });
 
     return { ok: true, refund };

@@ -13,10 +13,10 @@ import {
   User,
   LogOut,
   HelpCircle,
-  Activity,
-  Calculator,
   Route,
   ShieldCheck,
+  Boxes,
+  Orbit,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
@@ -27,16 +27,16 @@ import { AnimatedThemeToggle } from '@/components/ui/animated-theme-toggle'
 const NAV_TOP = [
   { path: '/', icon: Home, label: '发现' },
   { path: '/card-pool', icon: Layers, label: '卡池' },
-  { path: '/demands/create', icon: FileText, label: '发布' },
+  { path: '/publish', icon: FileText, label: '发布' },
   { path: '/circles', icon: Users, label: '圈子' },
-  { path: '/dashboard', icon: Activity, label: '监控' },
   { path: '/cert-center', icon: ShieldCheck, label: '认证' },
   { path: '/help', icon: HelpCircle, label: '帮助' },
-  { path: '/tax-visualizer', icon: Calculator, label: '税务可视化' },
 ]
 
 const NAV_BOTTOM = [
   { path: '/path-search', icon: Route, label: '路径检索' },
+  { path: '/loops', icon: Orbit, label: '回' },
+  { path: '/services', icon: Boxes, label: '找服务' },
   { path: '/search', icon: Search, label: '找人' },
   { path: '/messages', icon: MessageCircle, label: '消息' },
   { path: '/profile', icon: User, label: '我的' },

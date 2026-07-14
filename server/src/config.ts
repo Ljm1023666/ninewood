@@ -41,12 +41,7 @@ export const config = {
   adminSystemUserId: process.env.ADMIN_SYSTEM_USER_ID || '',
 
   // MiniMax / DeepSeek / Qwen（OpenAI 兼容接口）
-  aiProvider: (process.env.AI_PROVIDER || 'minimax') as 'minimax' | 'deepseek' | 'qwen',
-  aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimaxi.com/v1',
-  aiApiKey: process.env.AI_API_KEY || '',
-  aiModel: process.env.AI_MODEL || 'MiniMax-M2.5',
-  aiThinkModel: process.env.AI_THINK_MODEL || '',
-  aiFastModel: process.env.AI_FAST_MODEL || '',
+  aiProvider: (process.env.AI_PROVIDER || 'qwen') as 'minimax' | 'deepseek' | 'qwen',
 
   // 多提供商配置（平台兜底 Key + 默认模型）
   providers: {
@@ -73,6 +68,19 @@ export const config = {
     },
   },
 
+  // 兼容旧字段：默认模型随 AI_PROVIDER 走对应提供商（可被 AI_MODEL 等覆盖）
+  aiBaseUrl: process.env.AI_BASE_URL || 'https://api.minimaxi.com/v1',
+  aiApiKey: process.env.AI_API_KEY || '',
+  get aiModel() {
+    return config.providers[config.aiProvider].defaultModel;
+  },
+  get aiThinkModel() {
+    return config.providers[config.aiProvider].thinkModel;
+  },
+  get aiFastModel() {
+    return config.providers[config.aiProvider].fastModel;
+  },
+
   // 平台托管 Key 配额（用户未 BYOK 时生效）
   platformQuota: {
     dailyLimit: parseInt(process.env.AI_PLATFORM_DAILY_LIMIT || '150', 10),
@@ -96,11 +104,11 @@ export const config = {
     templateId: process.env.TENCENT_SMS_TEMPLATE || '2631789',
   },
 
-  // 合规：AI 输出内容安全过滤开关（《生成式 AI 办法》§14）
-  // 内测期默认 false（框架已就位）；公测前必须接入第三方审核 API + 本地分级词库后置为 true
+  // 合规：内容安全过滤（用户发布 + AI 输出；《生成式 AI 办法》§14）
+  // 默认开启本地词库；设 CONTENT_FILTER_ENABLED=false 可关闭
   contentFilter: {
-    enabled: process.env.AI_CONTENT_FILTER_ENABLED === 'true',
-    provider: process.env.AI_CONTENT_FILTER_PROVIDER || 'none',
+    enabled: process.env.CONTENT_FILTER_ENABLED !== 'false',
+    provider: process.env.AI_CONTENT_FILTER_PROVIDER || 'local',
   },
 };
 
@@ -115,10 +123,10 @@ export interface LlmCredentials {
 /** 根据模型名解析 OpenAI 兼容端点与 Key（平台 .env；后续可注入用户 BYOK） */
 export function resolveLlmCredentials(model?: string, userKey?: Partial<Record<LlmProviderId, string>>): LlmCredentials {
   const m = (model || '').toLowerCase();
-  let provider: LlmProviderId = 'minimax';
+  let provider: LlmProviderId = config.aiProvider;
   if (m.startsWith('deepseek')) provider = 'deepseek';
   else if (m.startsWith('qwen')) provider = 'qwen';
-  else if (config.aiProvider === 'deepseek' || config.aiProvider === 'qwen') provider = config.aiProvider;
+  else if (m.startsWith('minimax')) provider = 'minimax';
 
   const p = config.providers[provider];
   const apiKey = userKey?.[provider] || p.apiKey;

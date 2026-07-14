@@ -48,16 +48,12 @@ export function TierCell({ value }: { value: string }) {
     return <MsIcon name="check" size={16} className="cert-tier-check text-[var(--success-color,#10b981)]" />
   }
   if (value === 'verified') {
-    return <MsIcon name="verified" size={16} className="cert-tier-verified text-[var(--price-foreground)]" filled />
+    return <MsIcon name="verified" size={16} className="cert-tier-verified cert-tier--advanced" filled />
   }
   if (value === 'remove') {
     return <MsIcon name="remove" size={16} className="cert-tier-muted text-text-muted opacity-50" />
   }
-  return (
-    <span className={cn('text-sm', value.includes('50') && 'dlp-table__gold font-bold')}>
-      {value}
-    </span>
-  )
+  return <span className={cn(value.includes('50') && 'cert-tier--advanced font-bold')}>{value}</span>
 }
 
 export function CertTierComparisonTable() {
@@ -65,11 +61,11 @@ export function CertTierComparisonTable() {
     <DlpGlass gold className="dlp-cert-tier-card">
       <DlpGlassHead title="等级权益对比" />
       <div className="dlp-glass__body !pt-0">
-        <div className="grid grid-cols-5 gap-2 border-b border-[var(--wallet-divider)] pb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted">
-          <div className="col-span-2">维度</div>
-          <div className="text-center">未认证</div>
-          <div className="text-center">初级</div>
-          <div className="text-center text-[var(--price-foreground)]">高级</div>
+        <div className="grid grid-cols-5 gap-2 border-b border-[var(--wallet-divider)] pb-4 text-xs font-semibold tracking-wide text-text-muted">
+          <div className="col-span-2 text-sm font-medium">维度</div>
+          <div className="text-center text-sm">未认证</div>
+          <div className="text-center text-base cert-tier--basic">初级</div>
+          <div className="text-center text-base cert-tier--advanced">高级</div>
         </div>
         {CERT_TIER_ROWS.map((row) => (
           <div
@@ -117,8 +113,11 @@ export function CertRightsCompareTable({
   const colClass = (level: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED') =>
     cn(
       'text-center',
-      highlightLevel === level && 'text-[var(--price-foreground)] font-semibold',
-      highlightLevel && highlightLevel !== level && level === 'ADVANCED' && 'opacity-50',
+      level === 'BASIC' && 'cert-tier--basic',
+      level === 'INTERMEDIATE' && 'cert-tier--intermediate',
+      level === 'ADVANCED' && 'cert-tier--advanced',
+      highlightLevel === level && 'font-semibold cert-tier--highlight',
+      highlightLevel && highlightLevel !== level && 'opacity-50',
     )
 
   return (

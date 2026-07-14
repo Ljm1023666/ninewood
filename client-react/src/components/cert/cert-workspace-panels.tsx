@@ -1,5 +1,12 @@
+import { useState } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
-import { levelDisplay, formatSnatchCredits } from '@/components/cert/cert-utils'
+import { levelDisplay, certTierClass, formatSnatchCredits } from '@/components/cert/cert-utils'
+import { cn } from '@/lib/utils'
+import {
+  CERT_RESOURCE_ITEMS,
+  CertResourceDetailView,
+  type CertResourceId,
+} from '@/components/cert/cert-resource-views'
 
 function CertWorkspaceStub({
   icon,
@@ -34,6 +41,7 @@ export function CertWorkspaceDashboardPanel({
 }) {
   if (!certStatus) return null
   const level = levelDisplay(certStatus.certificationLevel)
+  const tierClass = certTierClass(certStatus.certificationLevel)
   const progress = certStatus.promotion
     ? Math.round(certStatus.promotion.progress * 100)
     : null
@@ -49,7 +57,7 @@ export function CertWorkspaceDashboardPanel({
       <div className="cert-stitch-dashboard-stats">
         <div className="cert-stitch-glass cert-stitch-dashboard-stat">
           <p>当前等级</p>
-          <strong>{level}</strong>
+          <strong className={cn(tierClass, tierClass && 'cert-tier--highlight')}>{level}</strong>
         </div>
         <div className="cert-stitch-glass cert-stitch-dashboard-stat">
           <p>信誉积分</p>
@@ -98,13 +106,26 @@ export function CertWorkspaceTournamentPanel() {
   )
 }
 
-export function CertWorkspaceResourcesPanel() {
-  const items = [
-    { icon: 'description', title: '认证材料清单', desc: '服务项目标签、作品集与履约记录提交规范' },
-    { icon: 'gavel', title: '等级评审标准', desc: '初级 / 中级 / 高级的订单量与质量门槛说明' },
-    { icon: 'policy', title: '权益白皮书', desc: '抢单额度、费率优惠与搜索曝光规则全文' },
-    { icon: 'security', title: '合规与安全', desc: '身份核验、材料保密与争议处理流程' },
-  ]
+export function CertWorkspaceResourcesPanel({
+  rightsHighlight,
+}: {
+  rightsHighlight?: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED'
+}) {
+  const [activeId, setActiveId] = useState<CertResourceId | null>(null)
+
+  if (activeId) {
+    return (
+      <CertResourceDetailView
+        id={activeId}
+        rightsHighlight={rightsHighlight}
+        onBack={() => {
+          setActiveId(null)
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
+      />
+    )
+  }
+
   return (
     <div className="cert-stitch-panel-page">
       <header className="cert-stitch-page-head">
@@ -114,12 +135,24 @@ export function CertWorkspaceResourcesPanel() {
         </div>
       </header>
       <div className="cert-stitch-resource-grid">
-        {items.map((item) => (
-          <div key={item.title} className="cert-stitch-glass cert-stitch-resource-card">
+        {CERT_RESOURCE_ITEMS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className="cert-stitch-glass cert-stitch-resource-card"
+            onClick={() => {
+              setActiveId(item.id)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          >
             <MsIcon name={item.icon} size={28} className="text-[var(--cs-primary-fixed)]" />
             <h3>{item.title}</h3>
             <p>{item.desc}</p>
-          </div>
+            <span className="cert-stitch-resource-card__action">
+              查看
+              <MsIcon name="arrow_forward" size={14} />
+            </span>
+          </button>
         ))}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { demandApi } from '@/api/demand'
 import { toast } from '@/components/ui/confirm-dialog'
 import { PathEditorPanel } from '@/components/path/PathEditorPanel'
@@ -13,13 +13,16 @@ import {
 } from '@/components/layout/desktop-page'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { buildDemandFormData } from '@/utils/build-demand-form-data'
+import {
+  formatDemandApiError,
+  validateDemandForPublish,
+} from '@/utils/demand-publish'
 import { derivePathsFromWorkspaceFields } from '@/utils/path-codec'
+import { REGION_ID_LABEL } from '@/constants/path-search'
 
 /** 发布前置页：确认匹配路径后再提交 */
 export default function PublishPathsPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const force = searchParams.get('force') === 'true'
 
   const fields = useDemandWorkspaceStore((s) => s.fields)
   const resetWorkspace = useDemandWorkspaceStore((s) => s.reset)
@@ -44,21 +47,21 @@ export default function PublishPathsPage() {
   }
 
   const confirmPublish = async () => {
-    if (!fields.title.trim() && !force) {
-      toast('请先填写需求标题', 'error')
+    const issues = validateDemandForPublish(fields)
+    if (issues.length > 0) {
+      toast(issues.map((i) => i.message).join('；'), 'error')
       navigate('/demands/create')
       return
     }
     setPublishing(true)
     try {
-      const fd = buildDemandFormData(fields, { paths, force })
+      const fd = buildDemandFormData(fields, { paths })
       await demandApi.create(fd)
-      toast(force ? '已发布至无差别池' : '发布成功', 'success')
+      toast('发布成功', 'success')
       resetWorkspace()
       navigate('/my-demands')
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } }
-      toast(err.response?.data?.message || '发布失败', 'error')
+      toast(formatDemandApiError(e), 'error')
     } finally {
       setPublishing(false)
     }
@@ -90,6 +93,12 @@ export default function PublishPathsPage() {
             <span className="text-text-muted">预算：</span>
             {fields.budget || '—'}
           </p>
+          {fields.regionId != null && (
+            <p>
+              <span className="text-text-muted">地区：</span>
+              {REGION_ID_LABEL[fields.regionId] ?? fields.regionId}
+            </p>
+          )}
         </DlpGlassBody>
       </DlpGlass>
 
@@ -110,7 +119,7 @@ export default function PublishPathsPage() {
           disabled={publishing}
           onClick={() => void confirmPublish()}
         >
-          {publishing ? '发布中…' : force ? '确认强制发布' : '确认发布'}
+          {publishing ? '发布中…' : '确认发布'}
         </DlpBtnPrimary>
         <DlpBtnGhost type="button" onClick={() => navigate('/demands/create')}>
           取消

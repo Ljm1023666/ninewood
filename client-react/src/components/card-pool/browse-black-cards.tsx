@@ -1,7 +1,6 @@
 import type { CSSProperties, RefObject } from 'react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { AnimatePresence, animate, motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { animate, motion } from 'framer-motion'
 import { Layers } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BlackScope } from '@/components/card-pool/types'
@@ -12,49 +11,11 @@ import {
 } from '@/components/card-pool/scope'
 import { AuroraGradientBar } from '@/components/ui/aurora-gradient-bar'
 import { useLongPressDropInHand } from '@/components/card-pool/useLongPressHandZone'
-import {
-  HandEntryCardPackFace,
-  HandPackGhostAtPoint,
-} from '@/components/card-pool/HandPile'
+import { CardPoolCategoryGrid } from '@/components/card-pool/CardPoolTile'
+import { BrowseBlackScopeDragGhost } from '@/components/card-pool/card-pool-drag-ghost'
 
-export function BrowseBlackScopeDragGhost({
-  dragInVisual,
-  basis,
-  n,
-  spectrum,
-}: {
-  dragInVisual: { x: number; y: number } | null
-  basis: string
-  n: number | null | undefined
-  spectrum: CSSProperties | undefined
-}) {
-  const [holdExit, setHoldExit] = useState(false)
-  useLayoutEffect(() => {
-    if (dragInVisual != null) setHoldExit(true)
-  }, [dragInVisual])
-  const show = dragInVisual != null || holdExit
-  if (!show || typeof document === 'undefined') return null
-  return createPortal(
-    <AnimatePresence mode="sync" onExitComplete={() => setHoldExit(false)}>
-      {dragInVisual != null ? (
-        <HandPackGhostAtPoint
-          key="browse-drag-in"
-          x={dragInVisual.x}
-          y={dragInVisual.y}
-          exitOnUnmount
-        >
-          <HandEntryCardPackFace
-            basis={basis}
-            n={n}
-            spectrum={spectrum}
-            className="ring-2 ring-accent/40"
-          />
-        </HandPackGhostAtPoint>
-      ) : null}
-    </AnimatePresence>,
-    document.body,
-  )
-}
+export { BrowseBlackScopeDragGhost } from '@/components/card-pool/card-pool-drag-ghost'
+export { CardPoolCategoryGrid, CardPoolCategoryTile, CardPoolTileSpine } from '@/components/card-pool/CardPoolTile'
 
 /** 左侧叠层黑卡（卡包厚度），仅用于横向卡包浏览 */
 export function BlackPackSpine({ className }: { className?: string }) {
@@ -322,78 +283,7 @@ function ExplorerBrowseBlackCard({
   )
 }
 
-function PoolBrowseBlackCard({
-  s,
-  busy,
-  scopeTotals,
-  handDropZoneRef,
-  onCardOpen,
-  onLongPressDropScopeInHand,
-  onPointerHandZoneHover,
-}: {
-  s: BlackScope
-  busy: boolean
-  scopeTotals: Record<string, number | null>
-  handDropZoneRef: RefObject<HTMLElement | null>
-  onCardOpen: (s: BlackScope) => void
-  onLongPressDropScopeInHand: (
-    scope: BlackScope,
-    at: { clientX: number; clientY: number },
-  ) => void
-  onPointerHandZoneHover?: (over: boolean) => void
-}) {
-  const k = scopeKey(s)
-  const n = scopeTotals[k]
-  const { onPointerDown, onClickCapture, dragInVisual } =
-    useLongPressDropInHand({
-      handZoneRef: handDropZoneRef,
-      disabled: busy,
-      onTap: () => onCardOpen(s),
-      onDropInHand: (at) => onLongPressDropScopeInHand(s, at),
-      onHandZoneHoverChange: onPointerHandZoneHover,
-    })
-  const spectrum = scopeTaxonomySpectrumStyle(s, n)
-  const stripLabel = scopeCurrentClassificationBasis(s)
-
-  return (
-    <div className="w-full min-w-0">
-      <BrowseBlackScopeDragGhost
-        dragInVisual={dragInVisual}
-        basis={stripLabel}
-        n={n}
-        spectrum={spectrum}
-      />
-      <button
-        type="button"
-        disabled={busy}
-        onPointerDown={onPointerDown}
-        onClickCapture={onClickCapture}
-        className={cn(
-          packButtonClass,
-          !busy && packButtonIdle,
-          busy && 'cursor-wait opacity-70',
-        )}
-      >
-        <div className="flex min-w-0 flex-1 flex-col bg-gradient-to-br from-neutral-950 via-neutral-900 to-black">
-          <PackStrip label={stripLabel} spectrum={spectrum} />
-          <div className="flex min-h-[84px] flex-1 flex-col items-center justify-center px-3 py-2.5 sm:min-h-[92px] sm:px-4">
-            <span
-              className={cn(
-                'font-mono text-2xl font-black tabular-nums sm:text-3xl',
-                !spectrum && 'text-[var(--primary-start)]',
-              )}
-              style={spectrum}
-            >
-              {n === undefined ? '…' : n === null ? '—' : n}
-            </span>
-          </div>
-        </div>
-      </button>
-    </div>
-  )
-}
-
-/** 子分类：横向卡包网格（与根总览同系扁平布局 + 极光条） */
+/** 子分类网格：pool 走 Stitch 定稿；explorer 保留旧卡包样式 */
 export function ChildBlackCardGrid({
   scopes,
   scopeTotals,
@@ -418,49 +308,35 @@ export function ChildBlackCardGrid({
 }) {
   if (scopes.length === 0) return null
 
+  if (
+    mode === 'pool' &&
+    handDropZoneRef &&
+    onLongPressDropScopeInHand
+  ) {
+    return (
+      <CardPoolCategoryGrid
+        scopes={scopes}
+        scopeTotals={scopeTotals}
+        busy={busy}
+        handDropZoneRef={handDropZoneRef}
+        onCardOpen={onCardOpen}
+        onDropInHand={onLongPressDropScopeInHand}
+        onPointerHandZoneHover={onPointerHandZoneHover}
+      />
+    )
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-      {scopes.map((s) => {
-        const k = scopeKey(s)
-        if (mode === 'explorer') {
-          if (handDropZoneRef && onLongPressDropScopeInHand) {
-            return (
-              <PoolBrowseBlackCard
-                key={k}
-                s={s}
-                busy={busy}
-                scopeTotals={scopeTotals}
-                handDropZoneRef={handDropZoneRef}
-                onCardOpen={onCardOpen}
-                onLongPressDropScopeInHand={onLongPressDropScopeInHand}
-                onPointerHandZoneHover={onPointerHandZoneHover}
-              />
-            )
-          }
-          return (
-            <ExplorerBrowseBlackCard
-              key={k}
-              s={s}
-              busy={busy}
-              scopeTotals={scopeTotals}
-              onCardOpen={onCardOpen}
-            />
-          )
-        }
-        if (!handDropZoneRef || !onLongPressDropScopeInHand) return null
-        return (
-          <PoolBrowseBlackCard
-            key={k}
-            s={s}
-            busy={busy}
-            scopeTotals={scopeTotals}
-            handDropZoneRef={handDropZoneRef}
-            onCardOpen={onCardOpen}
-            onLongPressDropScopeInHand={onLongPressDropScopeInHand}
-            onPointerHandZoneHover={onPointerHandZoneHover}
-          />
-        )
-      })}
+    <div className="card-pool-stitch__grid">
+      {scopes.map((s) => (
+        <ExplorerBrowseBlackCard
+          key={scopeKey(s)}
+          s={s}
+          busy={busy}
+          scopeTotals={scopeTotals}
+          onCardOpen={onCardOpen}
+        />
+      ))}
     </div>
   )
 }

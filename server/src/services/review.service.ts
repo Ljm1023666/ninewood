@@ -38,8 +38,11 @@ export const reviewService = {
     }
     const revieweeId = reviewerId === order.providerId ? order.requesterId : order.providerId;
 
-    if (params.rating < 1 || params.rating > 5) {
-      throw { status: 400, message: '评分范围为 1-5' };
+    if (!Number.isInteger(params.rating) || params.rating < 1 || params.rating > 5) {
+      throw { status: 400, message: '评分范围为 1-5 的整数' };
+    }
+    if (params.content && params.content.length > 2000) {
+      throw { status: 400, message: '评价内容不能超过 2000 字' };
     }
 
     const existing = await prisma.review.findUnique({ where: { orderId: params.orderId } });
@@ -51,7 +54,7 @@ export const reviewService = {
         reviewerId,
         revieweeId,
         rating: params.rating,
-        content: params.content || null,
+        content: params.content ? params.content.slice(0, 2000) : null,
       },
     });
 

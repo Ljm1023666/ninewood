@@ -1,0 +1,24 @@
+---
+description: New-session onboarding — read AGENTS.md and project memory before coding
+alwaysApply: true
+---
+
+# Agent Onboarding (Ninewood)
+
+Before implementing non-trivial work in a new chat or after a model switch:
+
+1. Read root `AGENTS.md` (project map, hard constraints, domain boundaries).
+2. Read `.claude/memory/SESSION-ANCHOR.md` (current intent, recent changes, next steps).
+3. Skim `.claude/memory/MEMORY.md` and the latest entries in `.claude/memory/LEARNINGS.md`.
+
+## Hard reminders
+
+- Windows desktop only — no mobile breakpoints, touch handlers, or PWA.
+- Surgical diffs only; keep frontend/backend API contracts in sync.
+- Package manager is **pnpm** (`client-react` + `server` workspace).
+- `/services` = capability catalog; `/loops` = current user's LoopRun center.
+- `Demand` and `ServiceCard` are separate lifecycles; card message attachments are immutable snapshots.
+
+## After substantial work
+
+Update `SESSION-ANCHOR.md`. Append reusable lessons to `LEARNINGS.md`. Change `MEMORY.md` only for stable long-lived decisions.

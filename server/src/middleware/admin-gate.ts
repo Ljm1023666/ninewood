@@ -12,13 +12,15 @@ declare global {
   }
 }
 
+import { secureEqual } from '../utils/secure-compare.js';
+
 /** 运营后台鉴权：X-Admin-Api-Key 或 JWT + User.role=ADMIN */
 export function adminGate(req: Request, res: Response, next: NextFunction) {
   const key = req.headers['x-admin-api-key'];
   if (
     typeof key === 'string' &&
     config.adminApiKey &&
-    key === config.adminApiKey
+    secureEqual(key, config.adminApiKey)
   ) {
     req.adminOperatorId = config.adminSystemUserId || undefined;
     next();

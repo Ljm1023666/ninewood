@@ -1,4 +1,5 @@
 import api from './index'
+import { getAuthToken } from './auth-session'
 import type { AgentAccessMode } from '@/types/agent-access'
 
 export interface AgentConversation {
@@ -204,7 +205,7 @@ export function streamMessage(
   onDone: (handler: () => void) => void
   onError: (handler: (err: Error) => void) => void
 } {
-  const token = localStorage.getItem('token')
+  const token = getAuthToken()
   const baseURL =
     location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api'
 
@@ -233,6 +234,7 @@ export function streamMessage(
         `${baseURL}/agent/conversations/${conversationId}/stream`,
         {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),

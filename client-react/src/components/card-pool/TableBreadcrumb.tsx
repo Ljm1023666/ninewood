@@ -14,6 +14,7 @@ interface TableBreadcrumbProps {
   onRedo: () => void
   onGoParent: () => void
   onJumpToPath?: (path: string[]) => void
+  className?: string
 }
 
 export function TableBreadcrumb({
@@ -25,17 +26,23 @@ export function TableBreadcrumb({
   onRedo,
   onGoParent,
   onJumpToPath,
+  className,
 }: TableBreadcrumbProps) {
   const label = scopeCurrentClassificationBasis(focus)
   const pathSegments = focus.path.map((id) => TAXONOMY[id]?.label ?? id)
 
   return (
-    <div className="flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2">
+    <div
+      className={cn(
+        'flex items-center gap-2 border-b border-border bg-muted/30 px-3 py-2',
+        className,
+      )}
+    >
       <Button
         type="button"
         variant="ghost"
         size="icon"
-        className="size-7 shrink-0"
+        className="card-pool-stitch__crumb-btn size-7 shrink-0"
         onClick={onUndo}
         disabled={!canUndo}
         title="撤销"
@@ -46,7 +53,7 @@ export function TableBreadcrumb({
         type="button"
         variant="ghost"
         size="icon"
-        className="size-7 shrink-0"
+        className="card-pool-stitch__crumb-btn size-7 shrink-0"
         onClick={onRedo}
         disabled={!canRedo}
         title="重做"
@@ -57,7 +64,7 @@ export function TableBreadcrumb({
         type="button"
         variant="ghost"
         size="icon"
-        className="size-7 shrink-0"
+        className="card-pool-stitch__crumb-btn size-7 shrink-0"
         onClick={onGoParent}
         disabled={!canGoParent}
         title="返回上级"
@@ -65,7 +72,7 @@ export function TableBreadcrumb({
         <FolderUp className="size-4" />
       </Button>
 
-      <div className="mx-2 h-5 w-px shrink-0 bg-border" />
+      <div className="mx-2 h-5 w-px shrink-0 bg-border card-pool-stitch__crumb-divider" />
 
       {onJumpToPath ? (
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-sm">
@@ -74,11 +81,15 @@ export function TableBreadcrumb({
               key={`${i}-${seg}`}
               className="flex min-w-0 items-center gap-1"
             >
-              {i > 0 ? <span className="text-text-muted">›</span> : null}
+              {i > 0 ? (
+                <span className="card-pool-stitch__crumb-sep text-text-muted">
+                  ›
+                </span>
+              ) : null}
               {i < pathSegments.length - 1 ? (
                 <button
                   type="button"
-                  className="min-w-0 truncate rounded px-1 py-0.5 text-text-secondary hover:bg-accent/10 hover:text-text-primary"
+                  className="card-pool-stitch__crumb-btn min-w-0 truncate rounded px-1 py-0.5 text-text-secondary hover:bg-accent/10 hover:text-text-primary"
                   onClick={() => onJumpToPath(focus.path.slice(0, i + 1))}
                   title={`跳转到 ${seg}`}
                 >
@@ -87,7 +98,7 @@ export function TableBreadcrumb({
               ) : (
                 <span
                   className={cn(
-                    'min-w-0 truncate rounded px-1 py-0.5 font-semibold',
+                    'card-pool-stitch__crumb-current min-w-0 truncate rounded px-1 py-0.5 font-semibold',
                     'text-text-primary',
                   )}
                   title={label}

@@ -38,3 +38,39 @@ export function levelDisplay(level?: string): string {
   if (!level) return '—'
   return certLabel[level as keyof typeof certLabel] || level
 }
+
+/** 认证等级语义色 class（铜 / 银 / 金） */
+export function certTierClass(level?: string): string {
+  switch (level) {
+    case 'BASIC':
+      return 'cert-tier--basic'
+    case 'INTERMEDIATE':
+      return 'cert-tier--intermediate'
+    case 'ADVANCED':
+      return 'cert-tier--advanced'
+    case 'MASTER':
+      return 'cert-tier--master'
+    default:
+      return ''
+  }
+}
+
+/** 侧栏等级修饰 class（铜 / 银 / 金 / 顶级金） */
+export function certAsideTierModifier(level?: string): string {
+  switch (level) {
+    case 'BASIC':
+      return 'cert-stitch-intro-aside--basic'
+    case 'INTERMEDIATE':
+      return 'cert-stitch-intro-aside--intermediate'
+    case 'ADVANCED':
+      return 'cert-stitch-intro-aside--advanced'
+    case 'MASTER':
+      return 'cert-stitch-intro-aside--master'
+    default:
+      return ''
+  }
+}
+
+export function isCertifiedLevel(level?: string): boolean {
+  return !!level && level !== 'NONE'
+}

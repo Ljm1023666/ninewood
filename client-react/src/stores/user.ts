@@ -1,6 +1,21 @@
 import { create } from 'zustand'
 import { authApi } from '@/api/auth'
+import { setAuthToken } from '@/api/index'
 import { userApi } from '@/api/user'
+import { useChatStore } from '@/stores/chat'
+
+const AUTH_CHANNEL =
+  typeof BroadcastChannel !== 'undefined'
+    ? new BroadcastChannel('ninewood-auth')
+    : null
+
+function broadcastAuth(event: 'login' | 'logout') {
+  try {
+    AUTH_CHANNEL?.postMessage({ type: event, at: Date.now() })
+  } catch {
+    /* ignore */
+  }
+}
 
 export interface User {
   id: string
@@ -61,7 +76,7 @@ interface UserState extends FavoriteState {
 
 export const useUserStore = create<UserState>((set, get) => ({
   user: null,
-  token: localStorage.getItem('token'),
+  token: null,
   ready: false,
   favoriteDemandIds: new Set(),
   favoriteDemands: [],
@@ -70,27 +85,28 @@ export const useUserStore = create<UserState>((set, get) => ({
   favoriteTotalPages: 1,
   favoriteLoading: false,
   get isLoggedIn() {
-    return !!get().token
+    return !!get().user
   },
 
   async init() {
-    const { token } = get()
-    if (!token) {
-      set({ ready: true })
-      return
-    }
     try {
       const res = await authApi.getMe()
+      const token = get().token
       set({ user: res.data.data, ready: true })
+      // Cookie 会话下内存 token 可能为空，Socket 走 withCredentials
+      useChatStore.getState().connect(token || undefined)
     } catch {
+      useChatStore.getState().disconnect()
+      setAuthToken(null)
       set({ user: null, token: null, ready: true })
-      localStorage.removeItem('token')
     }
   },
 
   setAuth(data) {
-    localStorage.setItem('token', data.token)
+    setAuthToken(data.token)
     set({ token: data.token, user: data.user })
+    useChatStore.getState().connect(data.token)
+    broadcastAuth('login')
   },
 
   async refreshUser() {
@@ -109,7 +125,9 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   logout() {
-    localStorage.removeItem('token')
+    useChatStore.getState().disconnect()
+    setAuthToken(null)
+    void authApi.logout().catch(() => {})
     localStorage.removeItem('ninewood-onboarded')
     set({
       user: null,
@@ -117,6 +135,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       favoriteDemandIds: new Set(),
       favoriteDemands: [],
     })
+    broadcastAuth('logout')
   },
 
   async toggleFavorite(demandId) {
@@ -145,7 +164,12 @@ export const useUserStore = create<UserState>((set, get) => ({
       })
       return favorited
     } catch {
-      set({ favoriteDemandIds })
+      set((state) => {
+        const newIds = new Set(state.favoriteDemandIds)
+        if (wasFavorited) newIds.add(demandId)
+        else newIds.delete(demandId)
+        return { favoriteDemandIds: newIds }
+      })
       throw new Error('操作失败')
     }
   },
@@ -191,3 +215,22 @@ export const useUserStore = create<UserState>((set, get) => ({
     return get().favoriteDemandIds.has(demandId)
   },
 }))
+
+// 跨标签页登录态同步（Cookie 共享；本页刷新 user/token 内存态）
+if (AUTH_CHANNEL) {
+  AUTH_CHANNEL.onmessage = (ev: MessageEvent<{ type?: string }>) => {
+    const type = ev.data?.type
+    if (type === 'logout') {
+      setAuthToken(null)
+      useChatStore.getState().disconnect()
+      useUserStore.setState({
+        user: null,
+        token: null,
+        favoriteDemandIds: new Set(),
+        favoriteDemands: [],
+      })
+    } else if (type === 'login') {
+      void useUserStore.getState().init()
+    }
+  }
+}

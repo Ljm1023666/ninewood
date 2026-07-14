@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
+import { useParams, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { useUserStore } from '@/stores/user'
 import { useChatStore, type ChatMessage } from '@/stores/chat'
 import { messageApi } from '@/api/message'
 import { userApi } from '@/api/user'
+import { reportApi } from '@/api/report'
 import { TimeDivider } from '@/components/ui/time-divider'
 import { UnreadDivider } from '@/components/ui/unread-divider'
 import { MessageBubble } from '@/components/ui/message-bubble'
@@ -33,12 +34,18 @@ interface PendingOutgoing {
 
 export default function ChatDetail() {
   const { userId, mergeId } = useParams<{ userId?: string; mergeId?: string }>()
+  const [searchParams] = useSearchParams()
   const { threadContact } = useOutletContext<{
     threadContact?: TemplateContact | null
   }>()
   const navigate = useNavigate()
   const userStore = useUserStore()
-  const chatStore = useChatStore()
+  const connected = useChatStore((s) => s.connected)
+  const fetchMessages = useChatStore((s) => s.fetchMessages)
+  const fetchUnreadCount = useChatStore((s) => s.fetchUnreadCount)
+  const bumpConversation = useChatStore((s) => s.bumpConversation)
+  const clearMessages = useChatStore((s) => s.clearMessages)
+  const storeMessages = useChatStore((s) => s.messages)
 
   const isMergeChat = !!mergeId
   const currentMergeId = mergeId || ''
@@ -49,7 +56,7 @@ export default function ChatDetail() {
 
   const messages = isMergeChat
     ? mergeMessages
-    : chatStore.messages.filter(
+    : storeMessages.filter(
         (m: ChatMessage) =>
           ((m.senderId || m.fromUserId) === myId &&
             (m.receiverId || m.toUserId) === peerId) ||
@@ -68,12 +75,15 @@ export default function ChatDetail() {
   const [pendingOutgoing, setPendingOutgoing] = useState<PendingOutgoing[]>([])
   const [unreadAnchorKey, setUnreadAnchorKey] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [showReport, setShowReport] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportCategory, setReportCategory] = useState<'spam' | 'abuse' | 'adult' | 'scam' | 'other'>('other')
+  const [blocking, setBlocking] = useState(false)
+  const cardAttachSent = useRef(false)
   const unreadAnchorCaptured = useRef(false)
   const listRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
-  const connected = chatStore.connected
-  const fetchMessages = chatStore.fetchMessages
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -123,13 +133,18 @@ export default function ChatDetail() {
       .then((r) => setPeerUser(r.data.data))
       .catch(() => setPeerUser(null))
     fetchMessages(peerId)
-    chatStore.fetchUnreadCount()
+    void fetchUnreadCount()
     if (!connected) startPolling()
-    return () => stopPolling()
+    return () => {
+      stopPolling()
+      clearMessages()
+    }
   }, [
+    clearMessages,
     connected,
     currentMergeId,
     fetchMessages,
+    fetchUnreadCount,
     isMergeChat,
     peerId,
     startPolling,
@@ -137,12 +152,28 @@ export default function ChatDetail() {
   ])
 
   useEffect(() => {
+    const serviceCardId = searchParams.get('serviceCardId')
+    if (isMergeChat || !peerId || !serviceCardId || cardAttachSent.current) return
+    cardAttachSent.current = true
+    messageApi
+      .sendCardAttachment(peerId, 'SERVICE_CARD', serviceCardId)
+      .then(() => fetchMessages(peerId))
+      .catch(() => {
+        cardAttachSent.current = false
+        toast('服务卡发送失败', 'error')
+      })
+  }, [fetchMessages, isMergeChat, peerId, searchParams])
+
+  useEffect(() => {
     unreadAnchorCaptured.current = false
     setUnreadAnchorKey(null)
     setPendingOutgoing([])
+    setInitialLoading(true)
+    cardAttachSent.current = false
   }, [peerId, currentMergeId])
 
   useEffect(() => {
+    // 每个会话只锚定首次出现的未读分界；切换会话时重置
     if (isMergeChat || unreadAnchorCaptured.current || messages.length === 0) return
     const idx = messages.findIndex((m) => {
       const from = getSenderId(m)
@@ -243,13 +274,27 @@ export default function ChatDetail() {
         await messageApi.sendMergeMessage(currentMergeId, text)
         const refreshed = await messageApi.getMergeMessages(currentMergeId)
         setMergeMessages((refreshed.data.data ?? []) as ChatMessage[])
-        chatStore.bumpConversation()
+        bumpConversation()
       } else {
         const res = await messageApi.send(peerId, text)
-        useChatStore.setState((s) => ({
-          messages: [...s.messages, res.data.data],
-        }))
-        chatStore.bumpConversation()
+        const newMsg = res.data.data as ChatMessage | undefined
+        if (newMsg) {
+          useChatStore.setState((s) => {
+            const incoming = newMsg.id
+              ? `id:${newMsg.id}`
+              : `${myId}|${peerId}|${newMsg.createdAt}|${newMsg.content}`
+            const exists = s.messages.some(
+              (m) =>
+                (Boolean(newMsg.id) && m.id === newMsg.id) ||
+                (m.id
+                  ? `id:${m.id}`
+                  : `${getSenderId(m)}|${m.receiverId || m.toUserId || ''}|${m.createdAt}|${m.content}`) ===
+                  incoming,
+            )
+            return exists ? s : { messages: [...s.messages, newMsg] }
+          })
+        }
+        bumpConversation()
       }
       setPendingOutgoing((p) => p.filter((x) => x.clientId !== clientId))
       setTimeout(() => scrollBottom(true), 100)
@@ -265,6 +310,36 @@ export default function ChatDetail() {
 
   function retryPending(p: PendingOutgoing) {
     void send(p)
+  }
+
+  async function handleBlockPeer() {
+    if (!peerId || isMergeChat) return
+    setBlocking(true)
+    try {
+      await userApi.blockUser(peerId)
+      toast('已拉黑该用户', 'success')
+      navigate('/messages')
+    } catch {
+      toast('拉黑失败，请稍后重试', 'error')
+    } finally {
+      setBlocking(false)
+    }
+  }
+
+  async function submitReport() {
+    if (!peerId || !reportReason.trim()) return
+    try {
+      await reportApi.create({
+        targetUserId: peerId,
+        category: reportCategory,
+        reason: reportReason.trim(),
+      })
+      toast('举报已提交', 'success')
+      setShowReport(false)
+      setReportReason('')
+    } catch {
+      toast('举报提交失败', 'error')
+    }
   }
 
   function handleInputChange(value: string) {
@@ -310,6 +385,27 @@ export default function ChatDetail() {
           label="返回会话列表"
           onBack={() => navigate('/messages')}
         />
+      }
+      headerTrailing={
+        !isMergeChat && peerId ? (
+          <>
+            <button
+              type="button"
+              className="rounded-md px-2 py-1 text-xs text-text-muted hover:bg-bg-secondary hover:text-text-primary"
+              onClick={() => setShowReport(true)}
+            >
+              举报
+            </button>
+            <button
+              type="button"
+              disabled={blocking}
+              className="rounded-md px-2 py-1 text-xs text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+              onClick={() => void handleBlockPeer()}
+            >
+              拉黑
+            </button>
+          </>
+        ) : undefined
       }
       middle={
         <div
@@ -391,6 +487,36 @@ export default function ChatDetail() {
                       }
                     />
                     {unreadAnchorKey === rowKey && <UnreadDivider />}
+                    {m.cardAttachment && (
+                      <div className={cn('mb-2 max-w-[360px] rounded-xl border border-border bg-bg-card p-3', isMine ? 'ml-auto' : 'mr-auto')}>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+                            {m.cardAttachment.cardType === 'SERVICE_CARD' ? '服务卡' : '需求卡'}
+                          </span>
+                          {m.cardAttachment.snapshot.category && (
+                            <span className="text-xs text-text-muted">{m.cardAttachment.snapshot.category}</span>
+                          )}
+                        </div>
+                        {m.cardAttachment.snapshot.coverImage && (
+                          <img
+                            className="mb-3 h-28 w-full rounded-lg object-cover"
+                            src={m.cardAttachment.snapshot.coverImage}
+                            alt=""
+                          />
+                        )}
+                        <strong className="block text-sm text-text-primary">
+                          {m.cardAttachment.snapshot.title || '卡片'}
+                        </strong>
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                          {m.cardAttachment.snapshot.summary || m.cardAttachment.snapshot.description || ''}
+                        </p>
+                        {m.cardAttachment.snapshot.evidence?.length ? (
+                          <p className="mt-2 text-xs text-[var(--accent-color)]">
+                            {m.cardAttachment.snapshot.evidence[0].label} 已完成 {m.cardAttachment.snapshot.evidence[0].completedCount} 次
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
                     <MessageBubble
                       content={m.content}
                       isMine={isMine}
@@ -417,7 +543,7 @@ export default function ChatDetail() {
                             ? userStore.user?.avatarUrl || ''
                             : peerUser?.avatarUrl || ''
                       }
-                      hideAvatar={isGroupedWithNext}
+                      hideAvatar={false}
                       isGroupedWithPrev={isGroupedWithPrev}
                       isGroupedWithNext={isGroupedWithNext}
                       showTimestamp={!isGroupedWithNext}
@@ -494,6 +620,58 @@ export default function ChatDetail() {
         </div>
       ) : null}
     />
+      {showReport ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setShowReport(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-border bg-bg-primary p-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-3 text-base font-semibold text-text-primary">举报用户</h3>
+            <label className="mb-1 block text-xs text-text-muted">类型</label>
+            <select
+              value={reportCategory}
+              onChange={(e) =>
+                setReportCategory(e.target.value as typeof reportCategory)
+              }
+              className="mb-3 w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm"
+            >
+              <option value="spam">垃圾信息</option>
+              <option value="abuse">辱骂骚扰</option>
+              <option value="adult">色情低俗</option>
+              <option value="scam">诈骗</option>
+              <option value="other">其他</option>
+            </select>
+            <label className="mb-1 block text-xs text-text-muted">说明</label>
+            <textarea
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              rows={4}
+              className="mb-4 w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm"
+              placeholder="请描述违规情况…"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg px-3 py-1.5 text-sm text-text-muted hover:bg-bg-secondary"
+                onClick={() => setShowReport(false)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                disabled={!reportReason.trim()}
+                className="rounded-lg bg-primary px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                onClick={() => void submitReport()}
+              >
+                提交举报
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   )
 }

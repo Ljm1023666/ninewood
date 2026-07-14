@@ -1,4 +1,6 @@
 ﻿import { create } from 'zustand'
+import { isDemandReadyToPublish } from '@/utils/demand-publish'
+import type { DemandAnalyzeResult } from '@/types/demand-analyze'
 
 export interface DemandFields {
   title: string
@@ -67,20 +69,7 @@ interface DemandWorkspaceState {
   /** 从 agent-demand-stream 的 tool_call result 中提取字段并更新 */
   applyAgentResult: (args: Record<string, string>) => void
   /** 从 analyze-demand-stream 的 result 中提取字段 */
-  applyAnalyzeResult: (data: {
-    title?: string | null
-    summary?: string
-    missingInfo?: string[]
-    confidence?: string
-    readyToPublish?: boolean
-    suggestedKeywords?: string[]
-    scopeLabels?: string[] | null
-    serviceType?: string | null
-    budget?: string | null
-    schedule?: string | null
-    category?: string | null
-    taxonomyLeafId?: string | null
-  }) => void
+  applyAnalyzeResult: (data: DemandAnalyzeResult) => void
   reset: () => void
 }
 
@@ -122,7 +111,7 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
     missingAnswers: {},
     confidence: 'low',
     readyToPublish: false,
-    speedMode: true,
+    speedMode: false,
     lockedKeywords: new Set(),
 
     setSpeedMode: (on) => set({ speedMode: on }),
@@ -211,6 +200,8 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
         budget: '预算',
         schedule: '时间',
         category: '分类',
+        regionId: '地区',
+        expectedOutcome: '预期效果',
       }
       const items: string[] = []
       for (const key of fieldOverrides) {
@@ -249,7 +240,13 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
           next.schedule = args.schedule
         if (!fieldOverrides.has('category') && args.category)
           next.category = args.category
-        return { fields: next, readyToPublish: true }
+        if (!fieldOverrides.has('regionId') && args.regionId) {
+          const id = Number(args.regionId)
+          if (Number.isFinite(id)) next.regionId = id
+        }
+        if (!fieldOverrides.has('expectedOutcome') && args.expectedOutcome)
+          next.expectedOutcome = args.expectedOutcome
+        return { fields: next, readyToPublish: isDemandReadyToPublish(next) }
       })
     },
 
@@ -272,35 +269,28 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
           next.category = data.category
         if (data.taxonomyLeafId) next.taxonomyLeafId = data.taxonomyLeafId
         if (data.scopeLabels)
-          next.scopeLabels = data.scopeLabels.filter(
-            (s): s is string => s !== null,
-          )
+          next.scopeLabels = data.scopeLabels
         if (data.suggestedKeywords) {
           next.suggestedKeywords = data.suggestedKeywords
           if (speedMode) {
             set({
-              lockedKeywords: new Set(
-                data.suggestedKeywords.filter((s): s is string => s !== null),
-              ),
+              lockedKeywords: new Set(data.suggestedKeywords),
             })
           }
         }
-        // AI 2.5: AI 返回的标签建议
-        const aiPayload = data as Record<string, unknown>
-        if (
-          !fieldOverrides.has('expectedOutcome') &&
-          typeof aiPayload.expectedOutcome === 'string'
-        )
-          next.expectedOutcome = aiPayload.expectedOutcome
-        if (aiPayload.aiTags && Array.isArray(aiPayload.aiTags))
-          next.aiTags = aiPayload.aiTags as string[]
+        if (!fieldOverrides.has('expectedOutcome') && data.expectedOutcome)
+          next.expectedOutcome = data.expectedOutcome
+        if (!fieldOverrides.has('regionId') && data.regionId != null)
+          next.regionId = data.regionId
+        if (data.aiTags) next.aiTags = data.aiTags
+        const ready = isDemandReadyToPublish(next)
         return {
           fields: next,
           missingInfo: data.missingInfo ?? s.missingInfo,
           confidence:
             (data.confidence as DemandWorkspaceState['confidence']) ??
             s.confidence,
-          readyToPublish: data.readyToPublish ?? s.readyToPublish,
+          readyToPublish: ready,
         }
       })
     },
@@ -310,7 +300,7 @@ export const useDemandWorkspaceStore = create<DemandWorkspaceState>(
         fields: { ...INITIAL_FIELDS },
         fieldOverrides: new Set(),
         lockedKeywords: new Set(),
-        speedMode: true,
+        speedMode: false,
         missingInfo: [],
         missingQueue: [],
         answeredQueue: [],

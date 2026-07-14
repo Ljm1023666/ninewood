@@ -16,14 +16,21 @@ export const reviewRouter = Router();
 reviewRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { orderId, rating, content } = req.body;
-    if (!orderId || !rating) {
+    if (!orderId || rating == null || rating === '') {
       return fail(res, '请提供订单 ID 和评分', 400);
+    }
+    const ratingNum = Number(rating);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      return fail(res, '评分范围为 1-5 的整数', 400);
+    }
+    if (content != null && typeof content === 'string' && content.length > 2000) {
+      return fail(res, '评价内容不能超过 2000 字', 400);
     }
     const review = await reviewService.create({
       orderId,
       reviewerId: req.user!.userId,
-      rating: Number(rating),
-      content,
+      rating: ratingNum,
+      content: typeof content === 'string' ? content.slice(0, 2000) : content,
     });
     success(res, review, '评价成功');
   } catch (e: any) {

@@ -5,6 +5,8 @@ import { messageService } from '../services/message.service.js';
 import { tryStartCommWindow } from '../services/comm.service.js';
 import { success, fail } from '../utils/response.js';
 import { q } from '../utils/query.js';
+import { cardAttachmentService } from '../services/card-attachment.service.js';
+import { triggerResourceHeaven } from '../services/loop/heaven-runner.service.js';
 
 export const messageRouter = Router();
 
@@ -72,6 +74,33 @@ messageRouter.post('/merge/:id/send', authMiddleware, async (req: Request, res: 
     success(res, result, '已发送', 201);
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/messages/card-attachment — 在咨询会话中发送需求卡或服务卡快照
+messageRouter.post('/card-attachment', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { toUserId, cardType, cardId, content } = req.body || {};
+    if (!toUserId || !cardId || !['DEMAND', 'SERVICE_CARD'].includes(cardType)) {
+      return fail(res, '缺少接收者、卡片类型或卡片 ID', 400);
+    }
+    const message = await cardAttachmentService.send({
+      fromUserId: req.user!.userId,
+      toUserId,
+      cardType,
+      cardId,
+      content,
+    });
+    if (message.cardAttachment) {
+      triggerResourceHeaven('builtin.heaven.validate.attachment_safety', {
+        attachmentId: message.cardAttachment.id,
+      });
+    }
+    const io = req.app.get('io');
+    if (io) io.to(`user:${toUserId}`).emit('private:message', message);
+    return success(res, message, '卡片已发送', 201);
+  } catch (error: any) {
+    return fail(res, error?.message || '卡片发送失败', error?.status || 400);
   }
 });
 

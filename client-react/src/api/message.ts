@@ -10,6 +10,14 @@ export const messageApi = {
   send(toUserId: string, content: string) {
     return api.post('/messages/send', { toUserId, content })
   },
+  sendCardAttachment(
+    toUserId: string,
+    cardType: 'DEMAND' | 'SERVICE_CARD',
+    cardId: string,
+    content?: string,
+  ) {
+    return api.post('/messages/card-attachment', { toUserId, cardType, cardId, content })
+  },
   sendForm(formData: FormData) {
     return api.post('/messages/send', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

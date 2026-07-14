@@ -47,3 +47,17 @@ export const demandPathsLimiter = rateLimit({
   },
   message: { success: false, message: '路径编辑过于频繁，请稍后再试' },
 });
+
+// AI 接口限流 — 防止 LLM 额度被刷
+export const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isProd ? 30 : 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => skipRateLimit,
+  keyGenerator: (req) => {
+    const userId = (req as { user?: { userId: string } }).user?.userId ?? 'anon'
+    return `ai:${userId}`
+  },
+  message: { success: false, message: 'AI 请求过于频繁，请稍后再试' },
+});

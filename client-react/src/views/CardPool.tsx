@@ -1,3 +1,4 @@
+import { MapPin } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
@@ -478,26 +479,58 @@ export default function CardPool() {
   return (
     <PackGalleryProvider packOpening={!!packOpening}>
     {!packOpening ? (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden bg-background text-foreground">
-      <header className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
-        <BackButton compact />
+    <div className="card-pool-stitch relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden">
+      <header className="card-pool-stitch__header flex shrink-0 items-center gap-3">
+        <BackButton
+          compact
+          className="text-text-secondary hover:text-text-primary hover:bg-[color-mix(in_srgb,var(--cp-ink)_6%,transparent)]"
+        />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <MsIcon name={STITCH_PAGE_ICONS['card-pool']} size={20} className="shrink-0 text-foreground" />
-            <h1 className="text-lg font-bold text-text-primary">卡池</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <MsIcon
+              name={STITCH_PAGE_ICONS['card-pool']}
+              size={22}
+              className="shrink-0 text-[var(--cp-ink)]"
+            />
+            <h1 className="card-pool-stitch__title">卡池</h1>
+            <span className="card-pool-location-chip">
+              <MapPin
+                className="size-3 shrink-0 text-[var(--cp-cyan)]"
+                aria-hidden
+              />
+              同城 5KM
+            </span>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted">
-              监控 · {rangeLabel}
+            <p className="card-pool-stitch__meta">
+              监控 · {rangeLabel} · 资源管理
             </p>
             <button
               type="button"
-              className="font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-text-muted transition-colors hover:text-text-primary"
+              className="card-pool-stitch__meta transition-colors hover:text-text-secondary"
               onClick={() => navigate('/card-pool/explorer')}
             >
               资源管理器
             </button>
           </div>
+        </div>
+        <div className="card-pool-stitch__stats shrink-0 text-right">
+          <span>
+            浏览：
+            <span className="cp-stat-value">{scopeTitle(focus)}</span>
+            {browseDemandCount !== null ? (
+              <span className="tabular-nums">
+                （
+                <AnimatedScopeCount
+                  value={browseDemandCount}
+                  className="tabular-nums"
+                />{' '}
+                条）
+              </span>
+            ) : null}
+          </span>
+          <span className="mx-1.5 opacity-40">·</span>
+          <span className="tabular-nums">手牌 {hand.length}</span>
         </div>
       </header>
 
@@ -518,34 +551,12 @@ export default function CardPool() {
           onRedo={redo}
           onGoParent={goParent}
           onJumpToPath={(path) => goToScope({ path, leafFilter: null })}
+          className="card-pool-stitch__crumb border-border/0"
         />
-
-        <div className="flex shrink-0 items-center gap-4 border-b border-border bg-bg-secondary/50 px-4 py-2 text-sm text-text-secondary">
-          <span>
-            浏览：
-            <span className={cn('font-semibold', 'text-text-primary')}>
-              {scopeTitle(focus)}
-            </span>
-            {browseDemandCount !== null ? (
-              <span className="ml-1 inline-flex items-center tabular-nums">
-                （
-                <AnimatedScopeCount
-                  value={browseDemandCount}
-                  className="tabular-nums"
-                />{' '}
-                条）
-              </span>
-            ) : null}
-          </span>
-          <span className="text-text-muted">手牌 {hand.length}</span>
-          {discard.length > 0 ? (
-            <span className="text-text-muted">弃牌区 {discard.length}</span>
-          ) : null}
-        </div>
 
 <div
           ref={scrollRef}
-          className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto thin-scroll px-4 py-4"
+          className="card-pool-stitch__scroll flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto thin-scroll"
         >
           {mode === 'leaf' && !isRootOnly ? (
             <div className="flex min-h-0 flex-1 flex-col gap-3">

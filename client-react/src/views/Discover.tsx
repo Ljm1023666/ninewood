@@ -9,6 +9,7 @@ import { Footer } from '@/components/ui/footer-section'
 import { SearchBar } from '@/components/ui/search-bar'
 import { InputWithTags } from '@/components/ui/input-with-tags'
 import { SparklesCore } from '@/components/ui/sparkles'
+import { getAuthToken } from '@/api/auth-session'
 
 export default function Discover() {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -242,7 +243,10 @@ function ProviderSearchPanel() {
 
   useEffect(() => {
     // 获取当前用户，跳转个人主页时使用其 userId
-    fetch('/api/users/me', { headers: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` } })
+    fetch('/api/users/me', {
+      credentials: 'include',
+      headers: { Authorization: `Bearer ${getAuthToken() || ''}` },
+    })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => setMe(d?.data || null))
       .catch(() => {})

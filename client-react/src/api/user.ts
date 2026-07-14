@@ -72,4 +72,13 @@ export const userApi = {
   updateBlocklist(blocklist: { tags?: string[]; keywords?: string[]; ageRanges?: string[] }) {
     return api.put('/users/blocklist', blocklist)
   },
+  blockUser(userId: string) {
+    return api.post(`/users/blocks/${userId}`)
+  },
+  unblockUser(userId: string) {
+    return api.delete(`/users/blocks/${userId}`)
+  },
+  listBlockedUsers() {
+    return api.get('/users/blocks')
+  },
 }

@@ -275,6 +275,41 @@ userRouter.get('/busy', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// ======== 用户拉黑（私信） ========
+
+// GET /api/users/blocks — 我拉黑的用户
+userRouter.get('/blocks', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { userBlockService } = await import('../services/user-block.service.js');
+    const list = await userBlockService.listBlocked(req.user!.userId);
+    success(res, list);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/users/blocks/:blockedId — 拉黑用户
+userRouter.post('/blocks/:blockedId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { userBlockService } = await import('../services/user-block.service.js');
+    const row = await userBlockService.block(req.user!.userId, String(req.params.blockedId));
+    success(res, row, '已拉黑', 201);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// DELETE /api/users/blocks/:blockedId — 取消拉黑
+userRouter.delete('/blocks/:blockedId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { userBlockService } = await import('../services/user-block.service.js');
+    await userBlockService.unblock(req.user!.userId, String(req.params.blockedId));
+    success(res, null, '已取消拉黑');
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
 // ======== 推送屏蔽 ========
 
 // GET /api/users/blocklist — 获取屏蔽列表
@@ -320,10 +355,10 @@ userRouter.put('/blocklist', authMiddleware, async (req: Request, res: Response)
   }
 });
 
-// GET /api/users/:id — public profile (keep last, catches unmatched routes)
+// GET /api/users/:id — 公开资料（不含手机号等 PII）
 userRouter.get('/:id', async (req: Request, res: Response) => {
   try {
-    const user = await userService.getProfile(req.params.id as string);
+    const user = await userService.getPublicProfile(req.params.id as string);
     success(res, user);
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);

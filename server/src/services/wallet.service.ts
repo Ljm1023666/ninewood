@@ -56,6 +56,78 @@ async function writeLedger(
   })
 }
 
+async function readBalance(client: Tx, userId: string): Promise<number> {
+  const user = await client.user.findUnique({
+    where: { id: userId },
+    select: { points: true },
+  })
+  if (!user) throw Object.assign(new Error('用户不存在'), { status: 404 })
+  return roundPoints(Number(user.points))
+}
+
+/** 原子入账 */
+async function creditAtomic(
+  client: Tx,
+  userId: string,
+  amount: number,
+  meta?: { referenceType?: string; referenceId?: string; memo?: string },
+) {
+  const amt = roundPoints(amount)
+  if (amt <= 0) throw Object.assign(new Error('入账金额必须大于 0'), { status: 400 })
+
+  try {
+    const updated = await client.user.update({
+      where: { id: userId },
+      data: { points: { increment: amt } },
+      select: { points: true },
+    })
+    const balanceAfter = roundPoints(Number(updated.points))
+    await writeLedger(client, userId, 'CREDIT', amt, balanceAfter, meta)
+    return { credited: amt, balanceAfter }
+  } catch (e: unknown) {
+    if (
+      e &&
+      typeof e === 'object' &&
+      'code' in e &&
+      (e as { code?: string }).code === 'P2025'
+    ) {
+      throw Object.assign(new Error('用户不存在'), { status: 404 })
+    }
+    throw e
+  }
+}
+
+/** 原子扣款（余额不足时 updateMany count=0） */
+async function debitAtomic(
+  client: Tx,
+  userId: string,
+  amount: number,
+  meta?: { referenceType?: string; referenceId?: string; memo?: string },
+) {
+  const amt = roundPoints(amount)
+  if (amt <= 0) throw Object.assign(new Error('扣款金额必须大于 0'), { status: 400 })
+
+  const updated = await client.user.updateMany({
+    where: { id: userId, points: { gte: amt } },
+    data: { points: { decrement: amt } },
+  })
+  if (updated.count === 0) {
+    const exists = await client.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+    if (!exists) throw Object.assign(new Error('用户不存在'), { status: 404 })
+    throw Object.assign(new Error('点数不足'), {
+      status: 402,
+      code: 'INSUFFICIENT_POINTS',
+    })
+  }
+
+  const balanceAfter = await readBalance(client, userId)
+  await writeLedger(client, userId, 'DEBIT', -amt, balanceAfter, meta)
+  return { debited: amt, balanceAfter }
+}
+
 export const walletService = {
   /** 每条需求押金 = 全额最低报价 */
   calculateDeposit(minPrice: number): number {
@@ -141,25 +213,18 @@ export const walletService = {
         throw Object.assign(new Error('托管金额必须大于 0'), { status: 400 })
       }
 
-      const user = await client.user.findUnique({
-        where: { id: userId },
-        select: { points: true },
+      const updated = await client.user.updateMany({
+        where: { id: userId, points: { gte: amt } },
+        data: { points: { decrement: amt } },
       })
-      if (!user) throw Object.assign(new Error('用户不存在'), { status: 404 })
-
-      const balance = Number(user.points)
-      if (balance < amt) {
+      if (updated.count === 0) {
         throw Object.assign(new Error('点数不足，无法发布需求'), {
           status: 402,
           code: 'INSUFFICIENT_POINTS',
         })
       }
 
-      const balanceAfter = roundPoints(balance - amt)
-      await client.user.update({
-        where: { id: userId },
-        data: { points: balanceAfter },
-      })
+      const balanceAfter = await readBalance(client, userId)
 
       await client.walletHold.create({
         data: {
@@ -200,15 +265,11 @@ export const walletService = {
       const released = computeRefundAmount(held, reason)
 
       if (released > 0) {
-        const user = await client.user.findUnique({
-          where: { id: hold.userId },
-          select: { points: true },
-        })
-        const balanceAfter = roundPoints(Number(user!.points) + released)
         await client.user.update({
           where: { id: hold.userId },
-          data: { points: balanceAfter },
+          data: { points: { increment: released } },
         })
+        const balanceAfter = await readBalance(client, hold.userId)
         await writeLedger(client, hold.userId, 'RELEASE', released, balanceAfter, {
           referenceType: 'DEMAND',
           referenceId: demandId,
@@ -235,24 +296,7 @@ export const walletService = {
     meta?: { referenceType?: string; referenceId?: string; memo?: string },
     tx?: Tx,
   ): Promise<{ credited: number; balanceAfter: number }> {
-    const run = async (client: Tx) => {
-      const amt = roundPoints(amount)
-      if (amt <= 0) throw Object.assign(new Error('入账金额必须大于 0'), { status: 400 })
-
-      const user = await client.user.findUnique({
-        where: { id: userId },
-        select: { points: true },
-      })
-      if (!user) throw Object.assign(new Error('用户不存在'), { status: 404 })
-
-      const balanceAfter = roundPoints(Number(user.points) + amt)
-      await client.user.update({
-        where: { id: userId },
-        data: { points: balanceAfter },
-      })
-      await writeLedger(client, userId, 'CREDIT', amt, balanceAfter, meta)
-      return { credited: amt, balanceAfter }
-    }
+    const run = async (client: Tx) => creditAtomic(client, userId, amount, meta)
 
     if (tx) return run(tx)
     return prisma.$transaction(run)
@@ -265,32 +309,7 @@ export const walletService = {
     meta?: { referenceType?: string; referenceId?: string; memo?: string },
     tx?: Tx,
   ): Promise<{ debited: number; balanceAfter: number }> {
-    const run = async (client: Tx) => {
-      const amt = roundPoints(amount)
-      if (amt <= 0) throw Object.assign(new Error('扣款金额必须大于 0'), { status: 400 })
-
-      const user = await client.user.findUnique({
-        where: { id: userId },
-        select: { points: true },
-      })
-      if (!user) throw Object.assign(new Error('用户不存在'), { status: 404 })
-
-      const balance = Number(user.points)
-      if (balance < amt) {
-        throw Object.assign(new Error('点数不足'), {
-          status: 402,
-          code: 'INSUFFICIENT_POINTS',
-        })
-      }
-
-      const balanceAfter = roundPoints(balance - amt)
-      await client.user.update({
-        where: { id: userId },
-        data: { points: balanceAfter },
-      })
-      await writeLedger(client, userId, 'DEBIT', -amt, balanceAfter, meta)
-      return { debited: amt, balanceAfter }
-    }
+    const run = async (client: Tx) => debitAtomic(client, userId, amount, meta)
 
     if (tx) return run(tx)
     return prisma.$transaction(run)
@@ -317,7 +336,8 @@ export const walletService = {
   async settleDemand(
     demandId: string,
     finalPrice: number,
-    options?: { isWelfare?: boolean },
+    options?: { isWelfare?: boolean; skipServiceFee?: boolean },
+    outerTx?: Tx,
   ) {
     const demand = await prisma.demand.findUnique({
       where: { id: demandId },
@@ -343,8 +363,26 @@ export const walletService = {
 
     const extra = roundPoints(Math.max(0, finalPrice - minPrice))
     const serviceFee = breakdown.serviceFee
+    const skipServiceFee = options?.skipServiceFee === true
 
-    return prisma.$transaction(async (tx) => {
+    const run = async (tx: Tx) => {
+      const existingSettlement = await tx.settlement.findUnique({
+        where: { demandId },
+      })
+      if (existingSettlement) {
+        return {
+          settlement: existingSettlement,
+          breakdown: {
+            minPrice: existingSettlement.minPrice,
+            finalPrice: existingSettlement.finalPrice,
+            serviceFee: existingSettlement.serviceFee,
+            demanderPaid: existingSettlement.demanderPaid,
+            providerReceived: existingSettlement.providerReceived,
+            platformRevenue: existingSettlement.platformRevenue,
+          },
+        }
+      }
+
       await walletService.consumeHold(demandId, tx)
 
       await walletService.credit(
@@ -371,7 +409,7 @@ export const walletService = {
         )
       }
 
-      if (serviceFee > 0) {
+      if (serviceFee > 0 && !skipServiceFee) {
         await walletService.debit(
           demand.userId,
           serviceFee,
@@ -384,7 +422,7 @@ export const walletService = {
         )
       }
 
-      if (isWelfare && serviceFee > 0) {
+      if (isWelfare && serviceFee > 0 && !skipServiceFee) {
         const regionId = demand.regionId ?? 0
         await tx.welfareFundPool.upsert({
           where: { regionId },
@@ -424,6 +462,9 @@ export const walletService = {
       })
 
       return { settlement, breakdown }
-    })
+    }
+
+    if (outerTx) return run(outerTx)
+    return prisma.$transaction(run)
   },
 }

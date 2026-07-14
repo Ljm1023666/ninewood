@@ -8,16 +8,16 @@ export const certLabel: Record<string, string> = {
 
 export const certColor: Record<string, string> = {
   NONE: '#6b7280',
-  BASIC: '#3b82f6',
-  INTERMEDIATE: '#8b5cf6',
-  ADVANCED: '#f59e0b',
-  MASTER: '#ef4444',
+  BASIC: '#cd7f32',
+  INTERMEDIATE: '#b8c4ce',
+  ADVANCED: '#f2ca50',
+  MASTER: '#ffd700',
 }
 
 export const certGlow: Record<string, string> = {
   NONE: 'none',
-  BASIC: '0 0 12px rgba(59,130,246,0.3)',
-  INTERMEDIATE: '0 0 16px rgba(139,92,246,0.4)',
-  ADVANCED: '0 0 20px rgba(245,158,11,0.5)',
-  MASTER: '0 0 24px rgba(239,68,68,0.6)',
+  BASIC: '0 0 14px rgba(205, 127, 50, 0.45)',
+  INTERMEDIATE: '0 0 14px rgba(184, 196, 206, 0.4)',
+  ADVANCED: '0 0 18px rgba(242, 202, 80, 0.5)',
+  MASTER: '0 0 22px rgba(255, 215, 0, 0.55)',
 }

@@ -14,6 +14,7 @@ import {
   Eye,
   Gauge,
   Server,
+  Calculator,
 } from 'lucide-react'
 
 export interface NavSection {
@@ -83,6 +84,7 @@ export const sidebarConfigs: Record<string, NavSection[]> = {
         { id: 'service-status', label: '服务状态', icon: Server },
         { id: 'performance', label: '性能指标', icon: Gauge },
         { id: 'logs', label: '操作日志', icon: FileText },
+        { id: 'tax', label: '税务可视化', icon: Calculator },
       ],
     },
   ],

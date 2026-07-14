@@ -16,7 +16,10 @@ export default function Layout() {
   const location = useLocation()
   const navigate = useNavigate()
   const me = useUserStore((s) => s.user)
+  const token = useUserStore((s) => s.token)
   const fetchUnreadCount = useChatStore((s) => s.fetchUnreadCount)
+  const connectChat = useChatStore((s) => s.connect)
+  const disconnectChat = useChatStore((s) => s.disconnect)
 
   const layoutAmbientUserId = useMemo(() => {
     const p = location.pathname
@@ -61,6 +64,17 @@ export default function Layout() {
 
   const ambientCoverUrl =
     layoutAmbientUserId === me?.id ? me?.coverUrl : profileOtherCoverUrl
+
+  useEffect(() => {
+    if (me) {
+      connectChat(token || undefined)
+    } else {
+      disconnectChat()
+    }
+    return () => {
+      disconnectChat()
+    }
+  }, [me, token, connectChat, disconnectChat])
 
   useEffect(() => {
     fetchUnreadCount()

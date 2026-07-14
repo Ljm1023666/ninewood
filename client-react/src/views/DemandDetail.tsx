@@ -6,8 +6,8 @@ import {
   useRef,
   type ReactNode,
 } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'motion/react'
+import { useParams, useNavigate, useSearchParams, NavLink } from 'react-router-dom'
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react'
 import { demandApi } from '@/api/demand'
 import { orderApi } from '@/api/order'
 
@@ -27,6 +27,7 @@ import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGloba
 import { toast } from '@/components/ui/confirm-dialog'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PathFlowEntryLink } from '@/components/path/PathFlowEntryLink'
+import { cn } from '@/lib/utils'
 
 function stripDebugFromTitle(title: string): string {
   return title
@@ -111,10 +112,97 @@ function pageShell(inner: ReactNode, title = '需求详情') {
   return (
     <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
       <div className="relative z-20 shrink-0 px-4 pt-3">
-        <PageHeader title={title} onBack="back" divider={false} className="mb-0" />
+        <PageHeader
+          title={title}
+          onBack="back"
+          divider={false}
+          className="mb-0"
+          actions={
+            <NavLink
+              to="/services"
+              className="flex items-center gap-1 text-[13px] font-medium text-[var(--accent-color)] hover:underline"
+            >
+              <MsIcon name="auto_awesome" size={14} />
+              找服务
+            </NavLink>
+          }
+        />
       </div>
       <div className="relative z-10 mx-auto flex w-full max-w-2xl shrink-0 flex-col items-center self-center px-6 py-12">
         {inner}
+      </div>
+    </div>
+  )
+}
+
+function DemandActionPanel({
+  title,
+  children,
+  className,
+}: {
+  title?: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn('demand-detail-action-panel', className)}>
+      {title ? <p className="demand-detail-action-panel__title">{title}</p> : null}
+      {children}
+    </div>
+  )
+}
+
+function DemandActionPanelWrap({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) {
+  const [collapsed, setCollapsed] = useState(false)
+  const reduceMotion = useReducedMotion()
+  const smooth = {
+    duration: reduceMotion ? 0.16 : 0.28,
+    ease: [0.22, 1, 0.36, 1] as const,
+  }
+
+  return (
+    <div
+      className={cn(
+        'demand-detail-action-dock',
+        collapsed && 'demand-detail-action-dock--collapsed',
+      )}
+    >
+      <div className="demand-detail-action-dock__inner">
+        <button
+          type="button"
+          className="demand-detail-action-dock__toggle"
+          onClick={() => setCollapsed((v) => !v)}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? `展开${label}` : `收纳${label}`}
+        >
+          <span className="demand-detail-action-dock__toggle-label">{label}</span>
+          <MsIcon
+            name="keyboard_arrow_down"
+            size={20}
+            className={cn(
+              'demand-detail-action-dock__toggle-icon',
+              collapsed && 'demand-detail-action-dock__toggle-icon--collapsed',
+            )}
+          />
+        </button>
+
+        <motion.div
+          className="demand-detail-action-dock__body"
+          initial={false}
+          animate={{
+            height: collapsed ? 0 : 'auto',
+            opacity: collapsed ? 0 : 1,
+          }}
+          transition={smooth}
+        >
+          <div className="demand-detail-action-dock__body-inner">{children}</div>
+        </motion.div>
       </div>
     </div>
   )
@@ -406,7 +494,7 @@ export default function DemandDetail() {
   const hasNext = canSwipeCycle
 
   return (
-    <div className="relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+    <div className="demand-detail-page relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
       <div className="relative z-20 shrink-0 px-4 pt-3">
         <PageHeader
           title={stripDebugFromTitle(demand.title)}
@@ -418,7 +506,8 @@ export default function DemandDetail() {
       <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherAmbientCoverUrl} />
 
       {/* 不用 overflow-y-auto 包住卡片：会与 x 轴合成 auto，横向裁掉 3D 翻面/倾斜溢出；整页滚动交给外层 layout */}
-      <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col items-stretch justify-center overflow-visible py-6">
+      <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col overflow-y-auto thin-scroll">
+        <div className="flex flex-1 flex-col items-center justify-center overflow-visible px-3 py-6">
         <AnimatePresence mode="sync" custom={direction}>
           <motion.div
             custom={direction}
@@ -483,29 +572,34 @@ export default function DemandDetail() {
             </div>
           </motion.div>
         </AnimatePresence>
-
-        {/* ═══ AI 2.5: 两段式接单面板 ═══ */}
-        {demand.status === 'ACTIVE' || demand.status === 'PENDING' ? (
-          <div className="relative z-10 mx-auto mt-6 w-full max-w-md px-3">
-            {demand.userId !== currentUserId ? (
-              <RequestPanel demandId={demand.id} />
-            ) : demand.applicantCount > 0 ? (
-              <ApplicantListPanel demandId={demand.id} />
-            ) : null}
-          </div>
-        ) : demand.status === 'IN_PROGRESS' ? (
-          <InProgressPanel demand={demand} userId={currentUserId} />
-        ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
-          <SettlementPanel demandId={demand.id} />
-        ) : null}
+        </div>
 
         {demand.userId === currentUserId ? (
-          <div className="relative z-10 mx-auto mt-6 flex w-full max-w-md justify-center px-3">
+          <div className="relative z-10 mx-auto flex w-full max-w-md justify-center px-3 pb-2">
             <PathFlowEntryLink
               to={`/demands/${demand.id}/paths`}
               label="编辑匹配路径"
             />
           </div>
+        ) : null}
+
+        {/* ═══ AI 2.5: 两段式接单面板 ═══ */}
+        {demand.status === 'ACTIVE' || demand.status === 'PENDING' ? (
+          demand.userId !== currentUserId ? (
+            <DemandActionPanelWrap label="请求接单">
+              <RequestPanel demandId={demand.id} />
+            </DemandActionPanelWrap>
+          ) : demand.applicantCount > 0 ? (
+            <DemandActionPanelWrap label={`申请接单 (${demand.applicantCount})`}>
+              <ApplicantListPanel demandId={demand.id} />
+            </DemandActionPanelWrap>
+          ) : null
+        ) : demand.status === 'IN_PROGRESS' ? (
+          <DemandActionPanelWrap label="服务进行中">
+            <InProgressPanel demand={demand} userId={currentUserId} />
+          </DemandActionPanelWrap>
+        ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
+          <SettlementPanel demandId={demand.id} />
         ) : null}
       </div>
     </div>
@@ -535,30 +629,33 @@ function RequestPanel({ demandId }: { demandId: string }) {
   }
 
   if (done)
-    return <p className="text-center text-sm text-emerald-400">已提交申请</p>
+    return (
+      <DemandActionPanel>
+        <p className="demand-detail-action-panel__done">已提交申请</p>
+      </DemandActionPanel>
+    )
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-      <p className="mb-3 text-sm font-medium text-white/80">请求接单</p>
+    <DemandActionPanel>
       <textarea
-        className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 outline-none focus:border-white/30"
+        className="demand-detail-action-panel__input"
         rows={3}
         placeholder="描述你能解决该需求的原因..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
       />
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-      <div className="mt-3 flex justify-end">
+      {error ? <p className="demand-detail-action-panel__error">{error}</p> : null}
+      <div className="demand-detail-action-panel__actions">
         <button
           type="button"
           disabled={loading || !message.trim()}
           onClick={submit}
-          className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-40"
+          className="demand-detail-action-panel__submit"
         >
           {loading ? '提交中...' : '提交申请'}
         </button>
       </div>
-    </div>
+    </DemandActionPanel>
   )
 }
 
@@ -596,38 +693,32 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
   }
 
   if (loading)
-    return <p className="text-center text-sm text-white/40">加载中...</p>
+    return <p className="demand-detail-action-panel__hint">加载中...</p>
   if (applicants.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-      <p className="mb-3 text-sm font-medium text-white/80">
-        申请接单 ({applicants.length}人)
-      </p>
-      <div className="space-y-3">
+    <DemandActionPanel>
+      <div className="demand-detail-action-panel__list">
         {applicants.map((a) => (
-          <div
-            key={a.id}
-            className="flex items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.02] p-3"
-          >
+          <div key={a.id} className="demand-detail-action-panel__list-item">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-white">
+              <p className="demand-detail-action-panel__list-name">
                 {a.user?.nickname || '匿名'}
               </p>
-              <p className="mt-1 text-xs text-white/50 line-clamp-2">
-                {a.message}
-              </p>
+              <p className="demand-detail-action-panel__list-msg">{a.message}</p>
             </div>
             <div className="flex shrink-0 gap-2">
               <button
+                type="button"
                 onClick={() => accept(a.id)}
-                className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-400"
+                className="demand-detail-action-panel__accept"
               >
                 接受
               </button>
               <button
+                type="button"
                 onClick={() => reject(a.id)}
-                className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/60 hover:bg-red-500/30"
+                className="demand-detail-action-panel__reject"
               >
                 拒绝
               </button>
@@ -635,7 +726,7 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
           </div>
         ))}
       </div>
-    </div>
+    </DemandActionPanel>
   )
 }
 
@@ -668,22 +759,21 @@ function InProgressPanel({ demand, userId }: { demand: any; userId?: string }) {
   }, [demand.id, isOwner])
 
   if (loading) {
-    return <p className="text-center text-sm text-white/40">加载中...</p>
+    return <p className="demand-detail-action-panel__hint">加载中...</p>
   }
 
   const status = order?.status
   const isReady = !!order
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-      <p className="mb-3 text-sm font-medium text-white/80">服务进行中</p>
+    <DemandActionPanel>
       {isReady ? (
-        <div className="flex flex-col gap-2">
+        <div className="demand-detail-action-panel__stack">
           {isOwner && status === 'IN_PROGRESS' && !order.paidAt && (
             <button
               type="button"
               onClick={() => navigate(`/payment/${order.id}`)}
-              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-white/90"
+              className="demand-detail-action-panel__submit demand-detail-action-panel__submit--block"
             >
               去支付
             </button>
@@ -691,22 +781,22 @@ function InProgressPanel({ demand, userId }: { demand: any; userId?: string }) {
           <button
             type="button"
             onClick={() => navigate(`/orders/${order.id}`)}
-            className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+            className="demand-detail-action-panel__secondary"
           >
             查看订单
           </button>
           <button
             type="button"
             onClick={() => navigate(`/messages/${isOwner ? order.providerId : order.requesterId}`)}
-            className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+            className="demand-detail-action-panel__secondary"
           >
             联系对方
           </button>
         </div>
       ) : (
-        <p className="text-xs text-white/40">订单未生成，请稍后刷新</p>
+        <p className="demand-detail-action-panel__hint">订单未生成，请稍后刷新</p>
       )}
-    </div>
+    </DemandActionPanel>
   )
 }
 

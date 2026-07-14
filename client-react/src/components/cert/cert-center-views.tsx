@@ -11,6 +11,7 @@ import {
   formatSnatchCredits,
   timelineStepDesc,
   levelDisplay,
+  certTierClass,
 } from '@/components/cert/cert-utils'
 import { cn } from '@/lib/utils'
 
@@ -74,6 +75,14 @@ export function CertCenterDashboardView({
   const hasPromotion = certStatus?.promotion
   const progressPct = hasPromotion ? Math.round(certStatus.promotion.progress * 100) : 0
   const levelText = levelDisplay(certStatus.certificationLevel)
+  const tierClass = certTierClass(certStatus.certificationLevel)
+
+  const tierDotClass = (level: string) => {
+    if (level === 'BASIC') return 'cert-stitch-timeline__dot--tier-basic'
+    if (level === 'INTERMEDIATE') return 'cert-stitch-timeline__dot--tier-intermediate'
+    if (level === 'ADVANCED') return 'cert-stitch-timeline__dot--tier-advanced'
+    return ''
+  }
 
   return (
     <>
@@ -119,9 +128,17 @@ export function CertCenterDashboardView({
                         done && 'cert-stitch-timeline__dot--done',
                         current && 'cert-stitch-timeline__dot--current',
                         locked && 'cert-stitch-timeline__dot--locked',
+                        (done || current) && tierDotClass(step.level),
                       )}
                     />
-                    <p className={cn('cert-stitch-timeline__title', current && 'is-current')}>
+                    <p
+                      className={cn(
+                        'cert-stitch-timeline__title',
+                        current && 'is-current',
+                        current && certTierClass(step.level),
+                        current && 'cert-tier--highlight',
+                      )}
+                    >
                       {step.label}
                       {stepCountSuffix(step.level)}
                     </p>
@@ -143,14 +160,27 @@ export function CertCenterDashboardView({
         </div>
 
         <div className="cert-stitch-dashboard__status">
-          <div className="cert-stitch-glass cert-stitch-status-card">
-            <div className="cert-stitch-status-card__glow" aria-hidden />
+          <div
+            className={cn(
+              'cert-stitch-glass cert-stitch-status-card',
+              tierClass && 'cert-stitch-status-card--tier',
+              tierClass,
+            )}
+          >
+            <div className={cn('cert-stitch-status-card__glow', tierClass)} aria-hidden />
             <div className="cert-stitch-status-card__head">
               <div>
                 <p className="cert-stitch-status-card__eyebrow">Status</p>
-                <p className="cert-stitch-status-card__level">当前等级: {levelText}</p>
+                <p className={cn('cert-stitch-status-card__level', tierClass, 'cert-tier--highlight')}>
+                  当前等级: {levelText}
+                </p>
               </div>
-              <MsIcon name="shield_person" size={64} className="cert-stitch-status-card__shield" filled />
+              <MsIcon
+                name="shield_person"
+                size={64}
+                className={cn('cert-stitch-status-card__shield', tierClass)}
+                filled
+              />
             </div>
 
             <div className="cert-stitch-status-card__stats">
@@ -174,7 +204,7 @@ export function CertCenterDashboardView({
                 </div>
                 <div className="cert-stitch-status-card__bar">
                   <div
-                    className="cert-stitch-status-card__bar-fill"
+                    className={cn('cert-stitch-status-card__bar-fill', tierClass)}
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
@@ -186,10 +216,10 @@ export function CertCenterDashboardView({
             <div className="cert-stitch-status-card__rows">
               <div className="cert-stitch-status-card__row">
                 <span>
-                  <MsIcon name="receipt_long" size={16} />
+                  <MsIcon name="receipt_long" size={16} className={tierClass} />
                   本月抢单额度
                 </span>
-                <strong>
+                <strong className={tierClass}>
                   {formatSnatchCredits(
                     certStatus.snatchCredits ?? 0,
                     certStatus.certificationLevel,
@@ -198,11 +228,11 @@ export function CertCenterDashboardView({
               </div>
               <div className="cert-stitch-status-card__row">
                 <span>
-                  <MsIcon name="fact_check" size={16} />
+                  <MsIcon name="fact_check" size={16} className={tierClass} />
                   认证材料
                 </span>
-                <span className="cert-stitch-status-card__verified">
-                  <MsIcon name="check_circle" size={14} />
+                <span className={cn('cert-stitch-status-card__verified', tierClass)}>
+                  <MsIcon name="verified" size={14} filled className={tierClass} />
                   已认证
                 </span>
               </div>
@@ -210,7 +240,7 @@ export function CertCenterDashboardView({
           </div>
         </div>
 
-        <div className="cert-stitch-dashboard__rights">
+        <div className="cert-stitch-dashboard__rights" id="cert-rights-compare">
           <div className="cert-stitch-glass cert-stitch-rights-card">
             <h3>
               <MsIcon name="military_tech" size={20} className="text-[var(--cs-primary)]" />

@@ -118,14 +118,12 @@ function stageWhere(stage: 'active' | 'completed'): Prisma.Sql {
 
 function visibilityWhere(viewerUserId?: string): Prisma.Sql {
   if (viewerUserId) {
-    const cutoff = new Date(Date.now() - 15 * 60 * 1000)
     return Prisma.sql`(
       d."isPublic" = true
       OR EXISTS (
         SELECT 1 FROM "CircleMember" cm
         WHERE cm."circleId" = d."circleId" AND cm."userId" = ${viewerUserId}
       )
-      OR (d."isPublic" = false AND d."createdAt" < ${cutoff})
     )`
   }
   return Prisma.sql`d."isPublic" = true`

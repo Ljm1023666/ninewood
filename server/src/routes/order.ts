@@ -110,9 +110,16 @@ orderRouter.post('/:id/cancel', authMiddleware, async (req: Request, res: Respon
 orderRouter.post('/:id/partial', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { newPrice, description } = req.body;
-    if (!newPrice || !description) return fail(res, '缺少newPrice或description', 400);
+    if (newPrice == null || !description) return fail(res, '缺少newPrice或description', 400);
+    const price = Number(newPrice);
+    if (!Number.isFinite(price) || price <= 0) {
+      return fail(res, '部分完成价格必须为正数', 400);
+    }
+    if (typeof description !== 'string' || description.trim().length === 0) {
+      return fail(res, '请填写部分完成说明', 400);
+    }
     const result = await orderService.partialComplete(
-      req.params.id as string, req.user!.userId, Number(newPrice), description,
+      req.params.id as string, req.user!.userId, price, description.trim().slice(0, 2000),
     );
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
     success(res, result);

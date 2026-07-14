@@ -22,8 +22,8 @@ export function CertStitchTierTable() {
           <div className="cert-stitch-tier__header">
             <span>维度</span>
             <span>未认证</span>
-            <span>初级</span>
-            <span className="is-gold">高级</span>
+            <span className="cert-tier--basic">初级</span>
+            <span className="cert-tier--advanced">高级</span>
           </div>
           {CERT_TIER_ROWS.map((row) => (
             <div key={row.dim} className="cert-stitch-tier__row">
@@ -35,14 +35,14 @@ export function CertStitchTierTable() {
                   row.none
                 )}
               </div>
-              <div className="cert-stitch-tier__val">
+              <div className="cert-stitch-tier__val cert-tier--basic">
                 {row.basic === 'close' || row.basic === 'check' || row.basic === 'verified' || row.basic === 'remove' ? (
                   <TierCell value={row.basic} />
                 ) : (
                   row.basic
                 )}
               </div>
-              <div className="cert-stitch-tier__val is-gold">
+              <div className="cert-stitch-tier__val cert-tier--advanced">
                 {row.advanced === 'close' || row.advanced === 'check' || row.advanced === 'verified' || row.advanced === 'remove' ? (
                   <TierCell value={row.advanced} />
                 ) : (
@@ -183,14 +183,20 @@ export function CertStitchRightsTable({
 }) {
   const thClass = (level: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED') =>
     cn(
-      highlightLevel === level && 'is-highlight',
-      highlightLevel && highlightLevel !== level && level === 'ADVANCED' && 'is-dim',
+      level === 'BASIC' && 'cert-tier--basic',
+      level === 'INTERMEDIATE' && 'cert-tier--intermediate',
+      level === 'ADVANCED' && 'cert-tier--advanced',
+      highlightLevel === level && 'is-highlight cert-tier--highlight',
+      highlightLevel && highlightLevel !== level && 'is-dim',
     )
 
   const tdClass = (level: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED') =>
     cn(
-      highlightLevel === level && 'is-highlight',
-      highlightLevel && highlightLevel !== level && level === 'ADVANCED' && 'is-dim',
+      level === 'BASIC' && 'cert-tier--basic',
+      level === 'INTERMEDIATE' && 'cert-tier--intermediate',
+      level === 'ADVANCED' && 'cert-tier--advanced',
+      highlightLevel === level && 'is-highlight cert-tier--highlight',
+      highlightLevel && highlightLevel !== level && 'is-dim',
     )
 
   return (

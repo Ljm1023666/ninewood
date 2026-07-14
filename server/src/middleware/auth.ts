@@ -16,15 +16,16 @@ declare global {
   }
 }
 
+import { extractAuthToken } from '../utils/auth-cookie.js';
+
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
+  const token = extractAuthToken(req);
+  if (!token) {
     res.status(401).json({ code: 401, message: '未登录', timestamp: Date.now() });
     return;
   }
 
   try {
-    const token = header.slice(7);
     req.user = jwt.verify(token, config.jwtSecret) as AuthPayload;
     next();
   } catch {
@@ -34,10 +35,9 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
 /** 有 token 则解析用户，无 token 或无效 token 仍放行 */
 export function optionalAuthMiddleware(req: Request, _res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (header?.startsWith('Bearer ')) {
+  const token = extractAuthToken(req);
+  if (token) {
     try {
-      const token = header.slice(7);
       req.user = jwt.verify(token, config.jwtSecret) as AuthPayload;
     } catch {
       // 可选鉴权：无效 token 按未登录处理

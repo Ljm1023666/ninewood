@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { CertLevel } from '@prisma/client';
 import { getCache, setCache, delCache } from '../lib/redis.js';
+import { assertUserContentsSafe } from './content-filter/index.js';
 
 const CERT_UPGRADE_REQUIREMENTS: Record<string, { next: CertLevel; needed: number }> = {
   NONE: { next: 'BASIC', needed: 5 },
@@ -17,7 +18,7 @@ export const userService = {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, accountNo: true, phone: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true, ipRegion: true,
+        id: true, accountNo: true, phone: true, email: true, nickname: true, avatarUrl: true, coverUrl: true, demandCardCoverUrl: true, cityCode: true, ipRegion: true,
         certificationLevel: true, bio: true, birthday: true, creditScore: true, completedOrders: true, snatchCredits: true,
       },
     });
@@ -27,7 +28,37 @@ export const userService = {
     return user;
   },
 
+  /** 公开资料：剥离手机号、邮箱、生日等 PII */
+  async getPublicProfile(userId: string) {
+    const cacheKey = `user:public:v1:${userId}`;
+    const cached = await getCache<any>(cacheKey);
+    if (cached) return cached;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        nickname: true,
+        avatarUrl: true,
+        coverUrl: true,
+        demandCardCoverUrl: true,
+        certificationLevel: true,
+        bio: true,
+        creditScore: true,
+        completedOrders: true,
+      },
+    });
+    if (!user) throw { status: 404, message: '用户不存在' };
+
+    await setCache(cacheKey, user, 300);
+    return user;
+  },
+
   async updateProfile(userId: string, data: { nickname?: string; avatarUrl?: string; coverUrl?: string; demandCardCoverUrl?: string | null; cityCode?: string; bio?: string; birthday?: string }) {
+    assertUserContentsSafe([
+      { text: data.nickname || '', field: '昵称' },
+      { text: data.bio || '', field: '简介' },
+    ]);
     const patch: typeof data = { ...data };
     if (patch.demandCardCoverUrl === '') patch.demandCardCoverUrl = null;
     const user = await prisma.user.update({

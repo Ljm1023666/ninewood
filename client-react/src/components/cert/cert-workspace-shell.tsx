@@ -5,6 +5,12 @@ import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { cn } from '@/lib/utils'
 import {
+  certAsideTierModifier,
+  certTierClass,
+  isCertifiedLevel,
+  levelDisplay,
+} from '@/components/cert/cert-utils'
+import {
   useCertIntroScrollSpy,
   type CertIntroSection,
 } from '@/components/cert/use-cert-intro-scroll-spy'
@@ -40,6 +46,7 @@ export function CertWorkspaceShell({
   upgrading,
   upgradeHint,
   showIntroTopNav = false,
+  certificationLevel,
 }: {
   children: ReactNode
   panel: CertWorkspacePanel
@@ -50,6 +57,7 @@ export function CertWorkspaceShell({
   upgrading?: boolean
   upgradeHint?: string
   showIntroTopNav?: boolean
+  certificationLevel?: string
 }) {
   const navigate = useNavigate()
   const user = useUserStore((s) => s.user)
@@ -57,6 +65,11 @@ export function CertWorkspaceShell({
   const toggleDarkMode = useThemeStore((s) => s.toggleDarkMode)
   const isDark = useThemeStore((s) => s.current.dark)
   const activeSection = useCertIntroScrollSpy()
+  const level = certificationLevel ?? user?.certificationLevel
+  const tierClass = certTierClass(level)
+  const asideTier = certAsideTierModifier(level)
+  const certified = isCertifiedLevel(level)
+  const levelText = certified ? levelDisplay(level) : 'Ninewood 会员'
 
   const handleCertify = () => {
     onPanelChange('center')
@@ -103,15 +116,30 @@ export function CertWorkspaceShell({
         </div>
       </header>
 
-      <aside className="cert-stitch-intro-aside">
+      <aside
+        className={cn(
+          'cert-stitch-intro-aside',
+          certified && 'cert-stitch-intro-aside--certified',
+          asideTier,
+        )}
+      >
         <div className="cert-stitch-intro-aside__profile">
           <div className="cert-stitch-intro-aside__profile-row">
-            <div className="cert-stitch-intro-aside__avatar">
+            <div className={cn('cert-stitch-intro-aside__avatar', tierClass)}>
               <img src={userAvatarUrl(user?.avatarUrl)} alt="" />
+              {certified ? (
+                <span className={cn('cert-stitch-intro-aside__badge', tierClass)} aria-hidden>
+                  <MsIcon name="verified" size={16} filled />
+                </span>
+              ) : null}
             </div>
             <div>
-              <p className="cert-stitch-intro-aside__name">{user?.nickname || '精英开发者'}</p>
-              <p className="cert-stitch-intro-aside__role">Ninewood 会员</p>
+              <p className={cn('cert-stitch-intro-aside__name', tierClass, certified && 'cert-tier--highlight')}>
+                {user?.nickname || '精英开发者'}
+              </p>
+              <p className={cn('cert-stitch-intro-aside__role', tierClass)}>
+                {levelText}
+              </p>
             </div>
           </div>
         </div>

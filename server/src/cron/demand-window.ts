@@ -39,7 +39,11 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 
 export function startDemandWindowCron(intervalMs = 30000) {
   if (intervalId) return
-  intervalId = setInterval(processDemandWindows, intervalMs)
+  intervalId = setInterval(() => {
+    processDemandWindows().catch((err) => {
+      console.error('[demand-window] tick failed:', err)
+    })
+  }, intervalMs)
   console.log(`[demand-window] started (interval: ${intervalMs}ms)`)
 }
 

@@ -222,10 +222,12 @@ If a requirement conflicts with this scope, ask for confirmation before implemen
 
 ## Session Memory Policy
 
+**New session entrypoint:** read root `AGENTS.md` first (project map + hard constraints), then the memory files below.
+
 At the end of each substantial session, run the `session-memory-loop` skill and persist continuity artifacts:
 
 - Update `.claude/memory/SESSION-ANCHOR.md`
 - Append durable lessons to `.claude/memory/LEARNINGS.md`
 - Update `.claude/memory/MEMORY.md` only for stable, long-lived constraints or decisions
 
-At the beginning of a new session, read these files before implementation to reduce repeated mistakes.
+At the beginning of a new session, read `AGENTS.md` and these memory files before implementation to reduce repeated mistakes.

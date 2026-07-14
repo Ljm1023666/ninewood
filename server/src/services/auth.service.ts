@@ -1,14 +1,25 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import * as tencentcloud from 'tencentcloud-sdk-nodejs-sms';
 import { prisma } from '../lib/prisma.js';
 import { resolveIpRegion } from './ipgeo.service.js';
 import { config } from '../config.js';
-import { allocateNextAccountNo } from './account-no.js';
+import { allocateNextAccountNo, isAccountNoConflict, withAllocatedAccountNo } from './account-no.js';
+import {
+  assertLoginNotLocked,
+  clearLoginFailures,
+  recordLoginFailure,
+} from './login-attempts.js';
+
+import {
+  assertRegistrationAge,
+  parseBirthdayInput,
+} from './compliance-age.js';
 
 const SmsClient = tencentcloud.sms.v20210111.Client;
 
-const DEFAULT_PASSWORD = '1';
+const MIN_PASSWORD_LENGTH = 8;
 const smsStore = new Map<string, { code: string; expires: number }>();
 const emailStore = new Map<string, { code: string; expires: number }>();
 
@@ -21,19 +32,8 @@ function isValidEmail(email: string): boolean {
 }
 
 /**
- * 合规：注册年龄门槛
- * - < 14 岁：拒绝注册（《生成式 AI 服务管理暂行办法》§10 / 《未成年人保护法》§74-75）
- * - 14-18 岁：需要监护人同意（公测前补完整流程；内测期勾选承诺即可）
+ * 合规：注册年龄门槛（见 compliance-age.ts）
  */
-const MIN_REGISTRATION_AGE = 14;
-function calculateAge(birthday: Date): number {
-  const now = new Date();
-  let age = now.getFullYear() - birthday.getFullYear();
-  const m = now.getMonth() - birthday.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < birthday.getDate())) age--;
-  return age;
-}
-
 type LegacyUser = {
   id: string;
   accountNo?: number | null;
@@ -54,8 +54,26 @@ type LegacyUser = {
   createdAt?: Date;
 };
 
+function hashPassword(plain: string): Promise<string> {
+  return bcrypt.hash(plain, 12);
+}
+
+/** 邮箱验证码注册用户使用不可猜测的随机密码（仅支持邮箱 OTP 登录） */
+async function randomPasswordHash(): Promise<string> {
+  return hashPassword(crypto.randomBytes(32).toString('hex'));
+}
+
+function assertPasswordStrength(password: string) {
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    throw { status: 400, message: `密码至少 ${MIN_PASSWORD_LENGTH} 位` };
+  }
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    throw { status: 400, message: '密码需同时包含字母和数字' };
+  }
+}
+
 function generateCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 async function sendTencentSms(phone: string, code: string) {
@@ -107,10 +125,9 @@ function modernUserResponse(user: LegacyUser) {
 
 async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> {
   try {
-    const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "phone" = $1 LIMIT 1',
-      phone,
-    );
+    const rows = await prisma.$queryRaw<LegacyUser[]>`
+      SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt"
+      FROM "User" WHERE "phone" = ${phone} LIMIT 1`;
     return rows?.[0] || null;
   } catch {
     return null;
@@ -119,10 +136,9 @@ async function findLegacyUserByPhone(phone: string): Promise<LegacyUser | null> 
 
 async function findLegacyUserByAccountNo(accountNo: number): Promise<LegacyUser | null> {
   try {
-    const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","accountNo","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "accountNo" = $1 LIMIT 1',
-      accountNo,
-    );
+    const rows = await prisma.$queryRaw<LegacyUser[]>`
+      SELECT "id","accountNo","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt"
+      FROM "User" WHERE "accountNo" = ${accountNo} LIMIT 1`;
     return rows?.[0] || null;
   } catch {
     return null;
@@ -131,10 +147,9 @@ async function findLegacyUserByAccountNo(accountNo: number): Promise<LegacyUser 
 
 async function findLegacyUserById(userId: string): Promise<LegacyUser | null> {
   try {
-    const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE "id" = $1 LIMIT 1',
-      userId,
-    );
+    const rows = await prisma.$queryRaw<LegacyUser[]>`
+      SELECT "id","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt"
+      FROM "User" WHERE "id" = ${userId} LIMIT 1`;
     return rows?.[0] || null;
   } catch {
     return null;
@@ -145,18 +160,17 @@ async function createLegacyUser(
   phone: string,
   birthday: Date,
   accountNo: number,
+  password: string,
 ): Promise<LegacyUser | null> {
-  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
+  assertPasswordStrength(password);
+  const passwordHash = await hashPassword(password);
   const tail = phone.slice(-4);
+  const nickname = `用户_${tail}`;
   try {
-    const rows = await (prisma as any).$queryRawUnsafe(
-      'INSERT INTO "User" ("phone","nickname","passwordHash","birthday","accountNo","createdAt","updatedAt") VALUES ($1,$2,$3,$4,$5,NOW(),NOW()) RETURNING "id","accountNo","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","createdAt"',
-      phone,
-      `用户_${tail}`,
-      passwordHash,
-      birthday,
-      accountNo,
-    );
+    const rows = await prisma.$queryRaw<LegacyUser[]>`
+      INSERT INTO "User" ("phone","nickname","passwordHash","birthday","accountNo","createdAt","updatedAt")
+      VALUES (${phone}, ${nickname}, ${passwordHash}, ${birthday}, ${accountNo}, NOW(), NOW())
+      RETURNING "id","accountNo","phone","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","bio","birthday","certificationLevel","snatchCredits","creditScore","createdAt"`;
     return rows?.[0] || null;
   } catch {
     return null;
@@ -279,10 +293,9 @@ async function findModernUserByEmail(email: string): Promise<LegacyUser | null> 
 
 async function findLegacyUserByEmail(email: string): Promise<LegacyUser | null> {
   try {
-    const rows = await (prisma as any).$queryRawUnsafe(
-      'SELECT "id","phone","email","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt" FROM "User" WHERE LOWER("email") = $1 LIMIT 1',
-      email,
-    );
+    const rows = await prisma.$queryRaw<LegacyUser[]>`
+      SELECT "id","phone","email","nickname","avatarUrl","coverUrl","demandCardCoverUrl","cityCode","ipRegion","bio","birthday","certificationLevel","snatchCredits","creditScore","passwordHash","createdAt"
+      FROM "User" WHERE LOWER("email") = ${email} LIMIT 1`;
     return rows?.[0] || null;
   } catch {
     return null;
@@ -320,10 +333,18 @@ export const authService = {
       console.log(`[SMS] Sent to ${phone}`);
       smsOk = true;
     } catch (err: any) {
-      console.warn(`[SMS] Send failed for ${phone}:`, err.message, `| dev code: ${code}`);
+      console.error(`[SMS] Send failed for ${phone}:`, err.message);
+      if (process.env.NODE_ENV === 'production') {
+        throw { status: 503, message: '短信发送失败，请稍后重试' };
+      }
+      console.warn(`[SMS] Dev fallback: code logged server-side only for ${phone}`);
     }
 
-    return { phone, code: smsOk ? undefined : code };
+    if (!smsOk && process.env.NODE_ENV === 'production') {
+      throw { status: 503, message: '短信发送失败，请稍后重试' };
+    }
+
+    return { phone };
   },
 
   async sendEmailCode(email: string) {
@@ -334,12 +355,19 @@ export const authService = {
 
     const code = generateCode();
     emailStore.set(normalized, { code, expires: Date.now() + 5 * 60 * 1000 });
-    console.log(`[EMAIL] Code to ${normalized}: ${code} (valid 5 min)`);
+    // 开发环境仅服务端日志，绝不回传验证码
+    console.log(`[EMAIL] Code to ${normalized} (valid 5 min, server log only)`);
 
-    return { email: normalized, code };
+    return { email: normalized };
   },
 
-  async loginWithEmail(email: string, code: string, ip?: string) {
+  async loginWithEmail(
+    email: string,
+    code: string,
+    ip?: string,
+    birthday?: string,
+    guardianConsent?: boolean,
+  ) {
     const normalized = normalizeEmail(email);
     if (!isValidEmail(normalized)) {
       throw { status: 400, message: '邮箱格式不正确' };
@@ -359,39 +387,47 @@ export const authService = {
       (await findModernUserByEmail(normalized));
 
     if (!user) {
+      if (!birthday) {
+        throw { status: 400, message: '首次邮箱登录请填写出生日期（合规要求）' };
+      }
+      const birthdayDate = parseBirthdayInput(birthday);
+      assertRegistrationAge(birthdayDate, guardianConsent);
+
       const placeholderPhone = await generateUniquePlaceholderPhone();
       const localPart = normalized.split('@')[0] || '用户';
-      const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
-      const accountNo = await allocateNextAccountNo();
-      const modernUser = await prisma.user.create({
-        data: {
-          phone: placeholderPhone,
-          email: normalized,
-          nickname: localPart.slice(0, 20),
-          passwordHash,
-          accountNo,
-          ipRegion: ip ? await resolveIpRegion(ip).catch(() => null) : null,
-        },
-        select: {
-          id: true,
-          accountNo: true,
-          phone: true,
-          email: true,
-          nickname: true,
-          avatarUrl: true,
-          coverUrl: true,
-          demandCardCoverUrl: true,
-          cityCode: true,
-          ipRegion: true,
-          certificationLevel: true,
-          snatchCredits: true,
-          creditScore: true,
-          passwordHash: true,
-          bio: true,
-          birthday: true,
-          createdAt: true,
-        },
-      });
+      const passwordHash = await randomPasswordHash();
+      const modernUser = await withAllocatedAccountNo(async (tx, accountNo) =>
+        tx.user.create({
+          data: {
+            phone: placeholderPhone,
+            email: normalized,
+            nickname: localPart.slice(0, 20),
+            passwordHash,
+            accountNo,
+            birthday: birthdayDate,
+            ipRegion: ip ? await resolveIpRegion(ip).catch(() => null) : null,
+          },
+          select: {
+            id: true,
+            accountNo: true,
+            phone: true,
+            email: true,
+            nickname: true,
+            avatarUrl: true,
+            coverUrl: true,
+            demandCardCoverUrl: true,
+            cityCode: true,
+            ipRegion: true,
+            certificationLevel: true,
+            snatchCredits: true,
+            creditScore: true,
+            passwordHash: true,
+            bio: true,
+            birthday: true,
+            createdAt: true,
+          },
+        }),
+      );
       user = modernUser;
     } else if (ip && !user.ipRegion) {
       resolveIpRegion(ip)
@@ -416,6 +452,7 @@ export const authService = {
   async register(
     phone: string,
     code: string,
+    password: string,
     ip?: string,
     birthday?: string,
     guardianConsent?: boolean,
@@ -429,27 +466,11 @@ export const authService = {
     }
     smsStore.delete(phone);
 
-    // 合规校验：注册年龄
     if (!birthday) {
       throw { status: 400, message: '请填写出生日期（合规要求）' };
     }
-    const birthdayDate = new Date(birthday);
-    if (isNaN(birthdayDate.getTime())) {
-      throw { status: 400, message: '出生日期格式错误' };
-    }
-    const age = calculateAge(birthdayDate);
-    if (age < MIN_REGISTRATION_AGE) {
-      throw {
-        status: 403,
-        message: `本服务不面向 ${MIN_REGISTRATION_AGE} 岁以下用户。根据《未成年人保护法》及《生成式 AI 服务管理暂行办法》，未成年人请在监护人陪同下使用相关服务。`,
-      };
-    }
-    if (age < 18 && !guardianConsent) {
-      throw {
-        status: 400,
-        message: '未满 18 周岁需勾选"已征得监护人同意"承诺',
-      };
-    }
+    const birthdayDate = parseBirthdayInput(birthday);
+    assertRegistrationAge(birthdayDate, guardianConsent);
 
     const [legacyExists, modernExists] = await Promise.all([
       findLegacyUserByPhone(phone),
@@ -459,61 +480,79 @@ export const authService = {
       throw { status: 400, message: '该手机号已注册，请直接输入密码登录' };
     }
 
-    // 强制要求用户设置密码（不再使用默认密码"1"）
-    // 旧逻辑：默认密码用于开发期体验；合规要求必须由用户自己设置
-    // 当前实现：调用方必须在 register 之前通过 /api/auth/set-password 单独设置，
-    // 此处 passwordHash 来自 prisma 层 user.create 的输入，由路由层注入。
-    const accountNo = await allocateNextAccountNo();
-    const legacyUser = await createLegacyUser(phone, birthdayDate, accountNo);
-    if (legacyUser) {
-      return {
-        user: legacyUserResponse(legacyUser),
-        token: makeToken({
-          id: legacyUser.id,
-          phone: legacyUser.phone,
-          certificationLevel: legacyUser.certificationLevel || 'NONE',
-        }),
-      };
+    assertPasswordStrength(password);
+
+    const MAX_ATTEMPTS = 5;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const accountNo = await prisma.$transaction(async (tx) =>
+        allocateNextAccountNo(tx),
+      );
+
+      const legacyUser = await createLegacyUser(
+        phone,
+        birthdayDate,
+        accountNo,
+        password,
+      );
+      if (legacyUser) {
+        return {
+          user: legacyUserResponse(legacyUser),
+          token: makeToken({
+            id: legacyUser.id,
+            phone: legacyUser.phone,
+            certificationLevel: legacyUser.certificationLevel || 'NONE',
+          }),
+        };
+      }
+
+      try {
+        const passwordHash = await hashPassword(password);
+        const tail = phone.slice(-4);
+        const modernUser = await prisma.user.create({
+          data: {
+            phone,
+            nickname: `用户_${tail}`,
+            passwordHash,
+            accountNo,
+            ipRegion: ip ? await resolveIpRegion(ip).catch(() => null) : null,
+            birthday: birthdayDate,
+          },
+          select: {
+            id: true,
+            accountNo: true,
+            phone: true,
+            nickname: true,
+            avatarUrl: true,
+            coverUrl: true,
+            demandCardCoverUrl: true,
+            cityCode: true,
+            ipRegion: true,
+            certificationLevel: true,
+            snatchCredits: true,
+            creditScore: true,
+            passwordHash: true,
+            bio: true,
+            birthday: true,
+            createdAt: true,
+          },
+        });
+        return {
+          user: modernUserResponse(modernUser),
+          token: makeToken({
+            id: modernUser.id,
+            phone,
+            certificationLevel: 'NONE',
+          }),
+        };
+      } catch (error) {
+        if (isAccountNoConflict(error) && attempt < MAX_ATTEMPTS - 1) {
+          continue;
+        }
+        throw error;
+      }
     }
 
-    const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
-    const tail = phone.slice(-4);
-    const modernUser = await prisma.user.create({
-      data: {
-        phone,
-        nickname: `用户_${tail}`,
-        passwordHash,
-        accountNo,
-        ipRegion: ip ? await resolveIpRegion(ip).catch(() => null) : null,
-        birthday: birthdayDate,
-      },
-      select: {
-        id: true,
-        accountNo: true,
-        phone: true,
-        nickname: true,
-        avatarUrl: true,
-        coverUrl: true,
-        demandCardCoverUrl: true,
-        cityCode: true,
-        ipRegion: true,
-        certificationLevel: true,
-        snatchCredits: true,
-        creditScore: true,
-        passwordHash: true,
-        bio: true,
-        birthday: true,
-        createdAt: true,
-      },
-    });
-    return {
-      user: modernUserResponse(modernUser),
-      token: makeToken({
-        id: modernUser.id,
-        phone,
-        certificationLevel: 'NONE',
-      }),
-    };
+    throw { status: 500, message: '注册失败，请稍后重试' };
   },
 
   async loginById(accountId: string, password: string, ip?: string) {
@@ -522,6 +561,8 @@ export const authService = {
     if (!/^\d+$/.test(trimmed)) {
       throw { status: 400, message: '账号 ID 必须为数字（如 0、1、2）' };
     }
+    const lockKey = `id:${trimmed}`;
+    await assertLoginNotLocked(lockKey);
     const accountNo = Number.parseInt(trimmed, 10);
 
     const legacyUser = await findLegacyUserByAccountNo(accountNo);
@@ -532,7 +573,11 @@ export const authService = {
       } catch {
         valid = false;
       }
-      if (!valid) throw { status: 400, message: '密码错误' };
+      if (!valid) {
+        await recordLoginFailure(lockKey);
+        throw { status: 400, message: '密码错误' };
+      }
+      await clearLoginFailures(lockKey);
       return {
         user: legacyUserResponse(legacyUser),
         token: makeToken({
@@ -544,7 +589,10 @@ export const authService = {
     }
 
     const modernUser = await findModernUserByAccountNo(accountNo);
-    if (!modernUser) throw { status: 400, message: '账号 ID 不存在' };
+    if (!modernUser) {
+      await recordLoginFailure(lockKey);
+      throw { status: 400, message: '账号 ID 不存在' };
+    }
 
     let valid = false;
     try {
@@ -552,12 +600,11 @@ export const authService = {
     } catch {
       valid = false;
     }
-    if (!valid && modernUser.passwordHash === password) {
-      valid = true;
-      const hash = await bcrypt.hash(password, 12);
-      await prisma.user.update({ where: { id: modernUser.id }, data: { passwordHash: hash } });
+    if (!valid) {
+      await recordLoginFailure(lockKey);
+      throw { status: 400, message: '密码错误' };
     }
-    if (!valid) throw { status: 400, message: '密码错误' };
+    await clearLoginFailures(lockKey);
 
     if (ip && !modernUser.ipRegion) {
       resolveIpRegion(ip).then(region => {
@@ -576,6 +623,9 @@ export const authService = {
   },
 
   async login(phone: string, password: string, ip?: string) {
+    const lockKey = `phone:${phone}`;
+    await assertLoginNotLocked(lockKey);
+
     const legacyUser = await findLegacyUserByPhone(phone);
     if (legacyUser) {
       let valid = false;
@@ -584,7 +634,11 @@ export const authService = {
       } catch {
         valid = false;
       }
-      if (!valid) throw { status: 400, message: '密码错误' };
+      if (!valid) {
+        await recordLoginFailure(lockKey);
+        throw { status: 400, message: '密码错误' };
+      }
+      await clearLoginFailures(lockKey);
       return {
         user: legacyUserResponse(legacyUser),
         token: makeToken({
@@ -596,7 +650,10 @@ export const authService = {
     }
 
     const modernUser = await findModernUserByPhone(phone);
-    if (!modernUser) throw { status: 400, message: '手机号未注册，请先获取验证码注册' };
+    if (!modernUser) {
+      await recordLoginFailure(lockKey);
+      throw { status: 400, message: '手机号未注册，请先获取验证码注册' };
+    }
 
     let valid = false;
     try {
@@ -604,12 +661,11 @@ export const authService = {
     } catch {
       valid = false;
     }
-    if (!valid && modernUser.passwordHash === password) {
-      valid = true;
-      const hash = await bcrypt.hash(password, 12);
-      await prisma.user.update({ where: { id: modernUser.id }, data: { passwordHash: hash } });
+    if (!valid) {
+      await recordLoginFailure(lockKey);
+      throw { status: 400, message: '密码错误' };
     }
-    if (!valid) throw { status: 400, message: '密码错误' };
+    await clearLoginFailures(lockKey);
 
     // 异步更新 IP 属地
     if (ip && !modernUser.ipRegion) {

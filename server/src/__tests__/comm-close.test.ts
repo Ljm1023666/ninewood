@@ -87,7 +87,10 @@ describe('acceptApplicant 接单后关闭其他申请 (阶段 0.1)', () => {
     mocks.sharedTransaction.mockImplementation(async (cb: any) => {
       const txMock: any = {
         demand: { update: vi.fn().mockResolvedValue({ id: 'd1', title: 'T' }) },
-        order: { create: vi.fn().mockResolvedValue({ id: 'order-new' }) },
+        order: {
+          findFirst: vi.fn().mockResolvedValue(null),
+          create: vi.fn().mockResolvedValue({ id: 'order-new' }),
+        },
         message: { create: vi.fn().mockResolvedValue({}) },
         demandApplicantV2: {
           update: vi.fn().mockResolvedValue({}),

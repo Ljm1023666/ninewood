@@ -343,6 +343,7 @@ export default function LoginPage() {
   const [accountId, setAccountId] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [registerPassword, setRegisterPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLogin, setIsLogin] = useState(true)
   const [loginChannel, setLoginChannel] = useState<'id' | 'phone' | 'email'>(
@@ -402,6 +403,7 @@ export default function LoginPage() {
     birthYear !== '' && registerAge >= 14 && registerAge < 18
   const canSubmitRegister =
     phone.length === 11 &&
+    registerPassword.length >= 6 &&
     allLegalAccepted &&
     birthYear !== '' &&
     registerAge >= 14 &&
@@ -572,11 +574,17 @@ export default function LoginPage() {
             const res = await authApi.loginEmail(
               email.trim().toLowerCase(),
               fullCode,
+              birthYear
+                ? {
+                    birthday: `${birthYear}-01-01`,
+                    guardianConsent,
+                  }
+                : undefined,
             )
             setAuth({ user: res.data.data.user, token: res.data.data.token })
             playSuccessAnimation()
           } else {
-            const res = await authApi.register(phone, fullCode, {
+            const res = await authApi.register(phone, fullCode, registerPassword, {
               birthday,
               guardianConsent,
             })
@@ -925,6 +933,18 @@ export default function LoginPage() {
                               />
                             </div>
 
+                            <div className="sign-in-flow-phone-input">
+                              <input
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="设置登录密码（至少 6 位）"
+                                value={registerPassword}
+                                onChange={(e) => setRegisterPassword(e.target.value)}
+                                minLength={6}
+                                required
+                                className="w-full bg-transparent px-3 py-2.5 text-white outline-none placeholder:text-white/40"
+                              />
+                            </div>
+
                             <label className="sign-in-flow-register-legal">
                               <input
                                 type="checkbox"
@@ -1131,6 +1151,49 @@ export default function LoginPage() {
                         {codeDelivery === 'email-login' ? email : phone}
                       </p>
                     </div>
+
+                    {codeDelivery === 'email-login' && (
+                      <div className="sign-in-flow-register-birth text-left">
+                        <label htmlFor="email-login-birth-year">出生年份（首次登录必填）</label>
+                        <select
+                          id="email-login-birth-year"
+                          value={birthYear}
+                          onChange={(e) => {
+                            const year = e.target.value
+                            setBirthYear(year)
+                            setBirthday(year ? `${year}-01-01` : '')
+                          }}
+                          required
+                        >
+                          <option value="" disabled>
+                            选择年份
+                          </option>
+                          {Array.from(
+                            { length: BIRTH_YEAR_MAX - BIRTH_YEAR_MIN + 1 },
+                            (_, i) => BIRTH_YEAR_MAX - i,
+                          ).map((year) => (
+                            <option key={year} value={String(year)}>
+                              {year}
+                            </option>
+                          ))}
+                        </select>
+                        {needsGuardianConsent ? (
+                          <label className="sign-in-flow-register-guardian mt-3 block">
+                            <input
+                              type="checkbox"
+                              checked={guardianConsent}
+                              onChange={(e) =>
+                                setGuardianConsent(e.target.checked)
+                              }
+                              className="mt-0.5 shrink-0 accent-white"
+                            />
+                            <span className="text-sm text-white/70">
+                              本人已满 14 周岁，且已征得监护人同意
+                            </span>
+                          </label>
+                        ) : null}
+                      </div>
+                    )}
 
                     <CodeInput
                       length={SMS_LENGTH}

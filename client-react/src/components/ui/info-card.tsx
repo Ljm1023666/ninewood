@@ -213,7 +213,7 @@ export function InfoCard({
           <h1
             className="line-clamp-2 break-words"
             style={{
-              fontSize: 21,
+              fontSize: 22,
               fontWeight: 'bold',
               letterSpacing: '-.01em',
               lineHeight: 1.35,
@@ -269,7 +269,8 @@ export function InfoCard({
                 : undefined
             }
             style={{
-              fontSize: 14,
+              fontSize: 16,
+              lineHeight: 1.55,
               color: textColor,
               textRendering: 'auto',
               WebkitFontSmoothing: 'auto',

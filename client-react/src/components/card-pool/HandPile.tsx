@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronUp, X } from 'lucide-react'
+import { ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
 import { packButtonClass } from '@/components/card-pool/browse-black-cards'
@@ -18,7 +18,10 @@ import {
   scopeCurrentClassificationBasis,
   scopeKey,
   scopeTaxonomySpectrumStyle,
+  scopeTileAccentColor,
 } from '@/components/card-pool/scope'
+import { CardPoolHandStackCard } from '@/components/card-pool/CardPoolTile'
+import { stitchTileFaceGradient } from '@/constants/card-pool-stitch'
 
 const PEEK_LEAVE_MS = 420
 
@@ -189,6 +192,8 @@ interface HandPileProps {
   pointerDropHighlight?: boolean
   /** 强制展开面板（用于外部按钮触发） */
   forceOpen?: boolean
+  /** Stitch dock：清空手牌 */
+  onClearHand?: () => void
 }
 
 export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
@@ -206,6 +211,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
       celebrateBlackScopeDropRef,
       pointerDropHighlight = false,
       forceOpen = false,
+      onClearHand,
     },
     ref,
   ) {
@@ -386,7 +392,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
           onMouseEnter={openPanel}
           onMouseLeave={schedulePanelClose}
           className={cn(
-            'relative flex shrink-0 flex-col border-t border-border bg-background/95 backdrop-blur-sm',
+            'card-pool-hand-dock relative flex shrink-0 flex-col',
             pointerDropHighlight &&
               onDropBlackScope &&
               'ring-2 ring-inset ring-accent/55 bg-accent/[0.06]',
@@ -421,38 +427,30 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
               ) : (
                 <>
                   <div className="relative flex w-full flex-col items-center justify-center">
-                    <div className="relative h-[380px] w-full overflow-hidden sm:w-[644px]">
+                    <div className="relative h-[220px] w-full overflow-visible sm:w-[30rem]">
                       <AnimatePresence initial={false}>
                         {visibleSlots.map(({ key: slotKey, entry }, index) => {
                           const positionStyles = [
-                            { scale: 1, y: 12 },
-                            { scale: 0.95, y: -16 },
-                            { scale: 0.9, y: -44 },
+                            { scale: 1, y: 4 },
+                            { scale: 0.96, y: -26 },
+                            { scale: 0.92, y: -50 },
                           ]
                           const { y, scale } =
                             positionStyles[index] ?? positionStyles[2]
                           const zIndex = index === 0 && busy ? 10 : 3 - index
                           const exitAnim =
                             index === 0
-                              ? { y: 340, scale: 1, zIndex: 10 }
+                              ? { y: 200, scale: 1, zIndex: 10 }
                               : undefined
                           const lastIdx = visibleSlots.length - 1
                           const initialAnim =
                             index === lastIdx && lastIdx > 0
-                              ? { y: 340, scale: 0.9 }
+                              ? { y: 200, scale: 0.92 }
                               : undefined
-                          const basis = scopeCurrentClassificationBasis(
-                            entry.scope,
-                          )
                           const isSingles =
                             entry.scope.path[entry.scope.path.length - 1] ===
                             '__singles__'
                           const n = scopeTotals[scopeKey(entry.scope)]
-                          const spectrum = scopeTaxonomySpectrumStyle(
-                            entry.scope,
-                            n,
-                          )
-                          const accentColor = spectrum?.color || '#a78bfa'
 
                           return (
                             <motion.div
@@ -462,7 +460,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                               exit={exitAnim}
                               transition={{
                                 type: 'spring',
-                                duration: 1,
+                                duration: 0.85,
                                 bounce: 0,
                               }}
                               style={{
@@ -470,8 +468,10 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                                 left: '50%',
                                 x: '-50%',
                                 bottom: 0,
+                                width: '100%',
+                                maxWidth: '30rem',
                               }}
-                              className="absolute flex h-[280px] w-[324px] overflow-hidden rounded-t-xl border-x border-t border-border bg-neutral-900 shadow-lg will-change-transform sm:w-[512px]"
+                              className="absolute will-change-transform"
                               onDoubleClick={(e) => {
                                 if (!busy) {
                                   e.preventDefault()
@@ -483,52 +483,24 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                                 onCtx(e, entry)
                               }}
                             >
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
+                              <CardPoolHandStackCard
+                                scope={entry.scope}
+                                count={n}
+                                isSingles={isSingles}
+                                onRemove={() => {
                                   setVisibleSlots((prev) =>
                                     prev.filter((s) => s.entry.id !== entry.id),
                                   )
                                   onRemove(entry.id)
                                 }}
-                                className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/30 text-white/60 hover:bg-red-500/60 hover:text-white transition-colors"
-                                aria-label="移除此卡包"
-                              >
-                                <X className="size-3" />
-                              </button>
-                              <div className="flex h-full w-full flex-col">
-                                {/* 色条 + 标题 */}
-                                <div
-                                  className="flex shrink-0 items-center px-3 py-2.5"
-                                  style={{
-                                    background: `linear-gradient(135deg, ${accentColor}ee, ${accentColor}30)`,
-                                  }}
-                                >
-                                  <span className="text-sm font-bold text-white truncate drop-shadow-sm">
-                                    {basis}
-                                  </span>
-                                </div>
-                                {/* 数量 */}
-                                <div className="flex flex-1 items-center justify-center">
-                                  {isSingles ? (
-                                    <span className="select-none text-6xl font-black text-white/20">
-                                      ?
-                                    </span>
-                                  ) : (
-                                    <span className="select-none text-5xl font-black text-white/60 tabular-nums">
-                                      {n == null ? '…' : n}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                              />
                             </motion.div>
                           )
                         })}
                       </AnimatePresence>
                     </div>
                     {entries.length >= 2 && (
-                      <div className="relative z-10 flex w-full items-center justify-center border-t border-border py-4 sm:w-[644px]">
+                      <div className="relative z-10 flex w-full items-center justify-center py-3 sm:w-[30rem]">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -547,7 +519,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                               ((idx - 1 + entries.length) % entries.length) + 1,
                             )
                           }}
-                          className="pointer-events-auto flex h-9 cursor-pointer select-none items-center justify-center gap-1 overflow-hidden rounded-lg border border-border bg-background px-3 font-medium text-secondary-foreground transition-all hover:bg-secondary/80 active:scale-[0.98]"
+                          className="pointer-events-auto flex h-9 cursor-pointer select-none items-center justify-center gap-1 overflow-hidden rounded-lg border border-[var(--cp-line)] bg-[var(--cp-surface)] px-3 text-sm font-medium text-text-secondary transition-all hover:bg-[var(--cp-surface-raised)] active:scale-[0.98]"
                         >
                           切换
                           <span className="text-muted-foreground/60">
@@ -562,33 +534,82 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
             </div>
           </motion.div>
 
-          <button
-            type="button"
-            className={cn(
-              'flex w-full items-center justify-between gap-2 border-t border-border/60 px-3 py-2.5 text-left transition-colors',
-              'hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40',
-            )}
+          <div
+            className="card-pool-hand-dock__bar"
+            role="button"
+            tabIndex={0}
             onClick={() => setPanelOpen((o) => !o)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setPanelOpen((o) => !o)
+              }
+            }}
             onMouseEnter={openPanel}
             aria-expanded={panelOpen}
           >
-            <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
-              <span>
-                手牌 <span className="tabular-nums">({entries.length})</span>
-              </span>
+            <div className="min-w-0">
+              <div className="card-pool-hand-dock__meta-title tabular-nums">
+                手牌 ({entries.length})
+              </div>
               {onDropBlackScope ? (
-                <span className="hidden font-normal text-sm text-text-muted/80 sm:inline">
+                <div className="card-pool-hand-dock__meta-hint">
                   悬停展开 · 左侧条侧滑 · 拖入/拖出共用指针卡面浮层
-                </span>
+                </div>
               ) : null}
-            </span>
-            <ChevronUp
-              className={cn(
-                'size-4 shrink-0 text-text-muted transition-transform duration-200',
-                !panelOpen && 'rotate-180',
-              )}
-            />
-          </button>
+            </div>
+
+            {entries.length > 0 ? (
+              <div className="card-pool-hand-dock__deck" aria-hidden>
+                {entries.slice(0, 3).map((entry, index) => {
+                  const accent = scopeTileAccentColor(entry.scope)
+                  const face = stitchTileFaceGradient(accent)
+                  const offset = index * 14
+                  const rot = -14 + index * 12
+                  return (
+                    <span
+                      key={entry.id}
+                      className="card-pool-hand-dock__mini"
+                      style={{
+                        left: `calc(50% - 1.75rem + ${offset - 14}px)`,
+                        transform: `rotate(${rot}deg)`,
+                        zIndex: index + 1,
+                      }}
+                    >
+                      <span
+                        className="card-pool-hand-dock__mini-spine"
+                        style={{ background: face }}
+                      />
+                      <span className="card-pool-hand-dock__mini-body" />
+                    </span>
+                  )
+                })}
+              </div>
+            ) : (
+              <span className="text-xs text-text-muted">拖入黑卡加入</span>
+            )}
+
+            <div className="card-pool-hand-dock__actions">
+              {onClearHand && entries.length > 0 ? (
+                <button
+                  type="button"
+                  className="card-pool-hand-dock__clear"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onClearHand()
+                  }}
+                >
+                  清空手牌
+                </button>
+              ) : null}
+              <ChevronUp
+                className={cn(
+                  'size-4 shrink-0 text-text-muted transition-transform duration-200',
+                  !panelOpen && 'rotate-180',
+                )}
+              />
+            </div>
+          </div>
 
           {ctx ? (
             <>

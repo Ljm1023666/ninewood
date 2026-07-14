@@ -106,7 +106,7 @@ export default function CertCenter() {
       case 'tournament':
         return <CertWorkspaceTournamentPanel />
       case 'resources':
-        return <CertWorkspaceResourcesPanel />
+        return <CertWorkspaceResourcesPanel rightsHighlight={rightsHighlight} />
       case 'community':
         return <CertWorkspaceCommunityPanel />
       case 'settings':
@@ -158,6 +158,7 @@ export default function CertCenter() {
       upgrading={upgrading}
       upgradeHint={upgradeHint}
       showIntroTopNav={showIntroTopNav}
+      certificationLevel={certStatus.certificationLevel}
     >
       {renderPanel()}
     </CertWorkspaceShell>

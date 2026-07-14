@@ -5,9 +5,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
       rel="stylesheet"
     />
+    <script>
+      /* 字体就绪前隐藏 .ms-icon，避免 Material Symbols 未加载时露出英文 glyph 名 */
+      ;(function () {
+        var root = document.documentElement
+        function ready() {
+          root.classList.add('ms-icons-ready')
+        }
+        if (!document.fonts || !document.fonts.load) {
+          ready()
+          return
+        }
+        if (document.fonts.check('400 24px "Material Symbols Outlined"')) {
+          ready()
+          return
+        }
+        document.fonts.load('400 24px "Material Symbols Outlined"').then(ready).catch(ready)
+        setTimeout(ready, 3000)
+      })()
+    </script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=JetBrains+Mono:wght@400;500&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Roboto+Mono:wght@400;600;700&display=swap"
       rel="stylesheet"

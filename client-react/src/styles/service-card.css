@@ -1,0 +1,87 @@
+.publish-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+  gap: 40px;
+  min-height: calc(100vh - 220px);
+  flex: 1;
+}
+
+.publish-choice-column {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.publish-confirm-panel {
+  display: flex;
+  min-width: 0;
+  min-height: calc(100vh - 220px);
+  flex-direction: column;
+}
+
+.publish-action-dock {
+  min-height: 112px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.publish-input {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 22px;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.publish-input::placeholder {
+  color: var(--text-muted);
+}
+
+.publish-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 15%, transparent);
+}
+
+.publish-add {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.publish-add:hover {
+  border-color: var(--accent-color);
+}
+
+.publish-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 35%, var(--border-color));
+  border-radius: 999px;
+  padding: 5px 9px 5px 11px;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  font-size: 13px;
+}
+
+.publish-tag button {
+  display: inline-flex;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.publish-tag button:hover {
+  color: var(--text-primary);
+}

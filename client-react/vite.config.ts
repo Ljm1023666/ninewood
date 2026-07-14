@@ -25,7 +25,20 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: ['ninewood.local', 'localhost'],
     proxy: {
-      '/api': { target: 'http://localhost:3001', changeOrigin: true },
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        // 转发 Cookie，配合 HttpOnly 会话
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            const cookies = proxyRes.headers['set-cookie']
+            if (!cookies) return
+            proxyRes.headers['set-cookie'] = cookies.map((c) =>
+              c.replace(/;\s*Secure/gi, '').replace(/;\s*Domain=[^;]+/gi, ''),
+            )
+          })
+        },
+      },
       '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
       '/socket.io': {
         target: 'http://localhost:3001',

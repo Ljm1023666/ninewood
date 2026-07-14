@@ -1,0 +1,233 @@
+// 自然回（Natural Loop）HTTP 路由
+// 详见 docs/specs/TASK-12-natural-loop-handoff.md §3.2
+import { Router, type Request, type Response } from 'express';
+import { prisma } from '../lib/prisma.js';
+import { LoopKind, LoopRunStatus } from '@prisma/client';
+import { adminGate } from '../middleware/admin-gate.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { success, fail } from '../utils/response.js';
+import { seedBuiltinLoops } from '../services/loop/builtin-loops.js';
+import { loopRunService } from '../services/loop/loop-run.service.js';
+import { listOfferings, retrieveOffering, runOffering } from '../services/loop/offering.service.js';
+import { listHeavenCapabilities } from '../services/loop/heaven-runner.service.js';
+import { getLoopExecutor } from '../services/loop/executors/index.js';
+// 副作用：注册内置回执行器（Executor 注册表）
+import '../services/loop/executors/index.js';
+
+export const loopRouter = Router();
+
+// 公开：列出内置/公开回定义
+loopRouter.get('/definitions', async (_req: Request, res: Response) => {
+  const defs = await prisma.loopDefinition.findMany({
+    where: { isPublic: true },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      description: true,
+      loopKind: true,
+      executionMode: true,
+      isBuiltin: true,
+    },
+  });
+  success(res, defs);
+});
+
+// 公开：需求者检索「可用方案」（offering）
+// 字段白名单：绝不返回 internalSuccessRate / verifier 机密配置（宪法：成功率仅内部）
+loopRouter.get('/offerings', async (req: Request, res: Response) => {
+  const q = (req.query.q as string) || undefined;
+  const pathsRaw = req.query.paths as string | undefined;
+  const paths = pathsRaw ? String(pathsRaw).split(',').map((s) => s.trim()).filter(Boolean) : undefined;
+  const loopKind = (req.query.loopKind as string) || undefined;
+  const limitRaw = req.query.limit as string | undefined;
+  const limit = limitRaw ? Math.min(Math.max(parseInt(limitRaw, 10) || 20, 1), 100) : 20;
+
+  const items = await listOfferings({ q, paths, loopKind: loopKind as any, limit });
+  success(res, items);
+});
+
+// 公开：上架物详情；内部成功率仅 admin 可见
+loopRouter.get('/offerings/:id', async (req: Request, res: Response) => {
+  const item = await retrieveOffering(req.params.id, req.adminOperatorId != null);
+  if (!item) return fail(res, '方案不存在', 404);
+  success(res, item);
+});
+
+// 公开：天回（系统自动）能力运行状态看板；供 /loops 展示自动能力的
+// 触发方式、当前阶段、成功/失败次数、最近运行时间与最近结果。
+loopRouter.get('/capabilities', async (_req: Request, res: Response) => {
+  try {
+    const items = await listHeavenCapabilities();
+    success(res, items);
+  } catch (err: any) {
+    fail(res, err?.message || '加载天回能力失败', 500);
+  }
+});
+
+// 用户侧「运行此能力」：对指定需求运行，或用自由输入试跑（auth）
+// 只读影子同源：paths 类可回写 demand.paths，校验类只读，预览能力诚实返回 skipped。
+loopRouter.post('/offerings/:id/run', authMiddleware, async (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const { demandId, input } = (req.body || {}) as {
+    demandId?: string;
+    input?: Record<string, unknown>;
+  };
+  try {
+    const result = await runOffering(req.params.id, userId, { demandId, input });
+    success(res, result, '已运行');
+  } catch (err: any) {
+    const status = typeof err?.status === 'number' ? err.status : 500;
+    fail(res, err?.message || '运行失败', status);
+  }
+});
+
+// 回列表（按需求）：仅需求方/接单方可见
+loopRouter.get('/runs', authMiddleware, async (req: Request, res: Response) => {
+  const demandId = req.query.demandId as string | undefined;
+  if (!demandId) return fail(res, 'demandId 必填', 400);
+  const userId = req.user!.userId;
+
+  const demand = await prisma.demand.findUnique({
+    where: { id: demandId },
+    select: { userId: true },
+  });
+  if (!demand) return fail(res, '需求不存在', 404);
+
+  const order = await prisma.order.findFirst({
+    where: { demandId },
+    select: { providerId: true, requesterId: true },
+  });
+  const isParticipant =
+    demand.userId === userId || order?.providerId === userId || order?.requesterId === userId;
+  if (!isParticipant) return fail(res, '无权查看该回', 403);
+
+  const runs = await loopRunService.listByDemand(demandId);
+  success(res, runs);
+});
+
+// 用户侧「回中心」：汇总当前用户参与的全部天回/地回/人回运行实例。
+loopRouter.get('/runs/mine', authMiddleware, async (req: Request, res: Response) => {
+  const kindRaw = req.query.kind as string | undefined;
+  const kindsRaw = req.query.kinds as string | undefined;
+  const statusRaw = req.query.status as string | undefined;
+  const sortRaw = (req.query.sort as string | undefined) ?? 'recent';
+  const limitRaw = Number(req.query.limit ?? 100);
+  const loopKindValues = Object.values(LoopKind) as string[];
+  const statuses = Object.values(LoopRunStatus) as string[];
+
+  const requestedKinds: string[] = [];
+  if (kindRaw) requestedKinds.push(kindRaw);
+  if (kindsRaw) requestedKinds.push(...kindsRaw.split(',').map((s) => s.trim()).filter(Boolean));
+  const uniqueKinds = Array.from(new Set(requestedKinds));
+  if (uniqueKinds.length && !uniqueKinds.every((k) => loopKindValues.includes(k))) {
+    return fail(res, 'kind/kinds 参数无效', 400);
+  }
+  if (statusRaw && !statuses.includes(statusRaw)) return fail(res, 'status 参数无效', 400);
+  if (!['recent', 'completion', 'success'].includes(sortRaw)) {
+    return fail(res, 'sort 参数无效', 400);
+  }
+
+  try {
+    const result = await loopRunService.listMine(req.user!.userId, {
+      loopKinds: uniqueKinds.length ? (uniqueKinds as LoopKind[]) : undefined,
+      status: statusRaw as LoopRunStatus | undefined,
+      sort: sortRaw as 'recent' | 'completion' | 'success',
+      limit: Number.isFinite(limitRaw) ? limitRaw : 100,
+    });
+    return success(res, result);
+  } catch (err: any) {
+    return fail(res, err?.message || '加载我的回失败', 500);
+  }
+});
+
+// 回详情（参与方或 admin）
+loopRouter.get('/runs/:id', authMiddleware, async (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const run = await loopRunService.getById(req.params.id);
+  if (!run) return fail(res, '回不存在', 404);
+
+  if (run.demandId) {
+    const demand = await prisma.demand.findUnique({
+      where: { id: run.demandId },
+      select: { userId: true },
+    });
+    const order = await prisma.order.findFirst({
+      where: { demandId: run.demandId },
+      select: { providerId: true, requesterId: true },
+    });
+    const isParticipant =
+      demand?.userId === userId || order?.providerId === userId || order?.requesterId === userId;
+    if (!isParticipant) return fail(res, '无权查看该回', 403);
+  } else if (req.adminOperatorId == null) {
+    return fail(res, '无权查看该回', 403);
+  }
+
+  success(res, run);
+});
+
+// 回事件（默认不含 SYSTEM_ONLY；admin 可看全）
+loopRouter.get('/runs/:id/events', authMiddleware, async (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const run = await loopRunService.getById(req.params.id);
+  if (!run) return fail(res, '回不存在', 404);
+
+  if (run.demandId) {
+    const demand = await prisma.demand.findUnique({
+      where: { id: run.demandId },
+      select: { userId: true },
+    });
+    const order = await prisma.order.findFirst({
+      where: { demandId: run.demandId },
+      select: { providerId: true, requesterId: true },
+    });
+    const isParticipant =
+      demand?.userId === userId || order?.providerId === userId || order?.requesterId === userId;
+    if (!isParticipant) return fail(res, '无权查看该回', 403);
+  } else if (req.adminOperatorId == null) {
+    return fail(res, '无权查看该回', 403);
+  }
+
+  const events = await loopRunService.getEvents(req.params.id, req.adminOperatorId != null);
+  success(res, events);
+});
+
+// 运营：幂等种子（adminGate）
+loopRouter.post('/admin/seed-builtins', adminGate, async (_req: Request, res: Response) => {
+  try {
+    const summary = await seedBuiltinLoops();
+    success(res, summary, 'seed 完成');
+  } catch (err: any) {
+    console.error('[loop] seed-builtins failed', err);
+    fail(res, err?.message || 'seed 失败', 500);
+  }
+});
+
+// 运营：对给定 demand 跑内置执行器（paths + validate.*），结果用于影子校验
+// 本质只读影子：写回的是 demand.paths 与校验结论，不改 Demand/Order 主事务（宪法 #5）
+loopRouter.post('/admin/run-builtin', adminGate, async (req: Request, res: Response) => {
+  const { demandId, executorCodes } = (req.body || {}) as { demandId?: string; executorCodes?: unknown };
+  if (!demandId) return fail(res, 'demandId 必填', 400);
+
+  const codes: string[] =
+    Array.isArray(executorCodes) && (executorCodes as unknown[]).length
+      ? (executorCodes as string[])
+      : ['builtin.earth.demand.paths', 'builtin.heaven.validate.demand_fields', 'builtin.heaven.validate.paths'];
+
+  const results: Array<Record<string, unknown>> = [];
+  for (const code of codes) {
+    const exec = getLoopExecutor(code);
+    if (!exec) {
+      results.push({ code, status: 'FAILED', outcome: { error: 'executor 未注册' } });
+      continue;
+    }
+    try {
+      const r = await exec.execute({ demandId }, { loopRunId: '' });
+      results.push({ code, status: r.status, outcome: r.outcome });
+    } catch (err: any) {
+      results.push({ code, status: 'FAILED', outcome: { error: err?.message || 'executor 抛错' } });
+    }
+  }
+  success(res, results, '内置执行器已运行');
+});

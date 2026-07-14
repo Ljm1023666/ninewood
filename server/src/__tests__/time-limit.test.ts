@@ -12,6 +12,7 @@ const m = vi.hoisted(() => {
   const $transaction = vi.fn();
   const holdForDemand = vi.fn();
   const circleMemberFindUnique = vi.fn();
+  const userFindUnique = vi.fn();
   const triggerAutoReceivePush = vi.fn();
   // cron（processTimeLimitReminders）相关
   const orderFindMany = vi.fn();
@@ -22,6 +23,7 @@ const m = vi.hoisted(() => {
     $transaction,
     holdForDemand,
     circleMemberFindUnique,
+    userFindUnique,
     triggerAutoReceivePush,
     orderFindMany,
     messageFindFirst,
@@ -35,6 +37,7 @@ vi.mock("../lib/prisma.js", () => ({
     demand: { create: m.demandCreate },
     $transaction: m.$transaction,
     circleMember: { findUnique: m.circleMemberFindUnique },
+    user: { findUnique: m.userFindUnique },
     // cron
     order: { findMany: m.orderFindMany },
     message: { findFirst: m.messageFindFirst, createMany: m.messageCreateMany },
@@ -90,6 +93,7 @@ beforeEach(() => {
   m.$transaction.mockReset();
   m.holdForDemand.mockReset();
   m.circleMemberFindUnique.mockReset();
+  m.userFindUnique.mockReset();
   m.triggerAutoReceivePush.mockReset();
   m.orderFindMany.mockReset();
   m.messageFindFirst.mockReset();
@@ -97,6 +101,7 @@ beforeEach(() => {
 
   m.holdForDemand.mockResolvedValue({});
   m.circleMemberFindUnique.mockResolvedValue(null);
+  m.userFindUnique.mockResolvedValue({ birthday: null });
   m.triggerAutoReceivePush.mockResolvedValue({ totalSent: 0 });
 
   m.$transaction.mockImplementation(async (cb: any) => {

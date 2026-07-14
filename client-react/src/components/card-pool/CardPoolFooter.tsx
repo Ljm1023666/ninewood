@@ -76,16 +76,8 @@ export const CardPoolFooter = forwardRef<HTMLDivElement, CardPoolFooterProps>(
               toast('该范围已在手牌中', 'info')
             }
           }}
+          onClearHand={hand.length > 0 ? onClearHand : undefined}
         />
-        {hand.length > 0 && (
-          <button
-            type="button"
-            onClick={onClearHand}
-            className="-mt-1 flex w-full items-center justify-center gap-1 border-t border-border/30 px-3 py-1.5 text-sm text-text-muted/50 hover:text-destructive/60 transition-colors"
-          >
-            清空手牌
-          </button>
-        )}
         <TableDiscard
           discard={discard}
           onRestore={(c) => {

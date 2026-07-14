@@ -1,4 +1,4 @@
-import { config } from '../../config.js';
+import { config, resolveLlmCredentials } from '../../config.js';
 import { contentFilter } from '../content-filter/index.js';
 import type {
   ChatCompletionParams,
@@ -8,11 +8,22 @@ import type {
   ToolDefinition,
 } from './types.js';
 
-// ── 构建 MiniMax 请求体 ──
+// ── 构建 LLM 请求体 ──
+
+function resolveModel(model?: string) {
+  return model || config.aiModel;
+}
+
+function llmEndpoint(model?: string) {
+  const resolvedModel = resolveModel(model);
+  const creds = resolveLlmCredentials(resolvedModel);
+  return { model: resolvedModel, ...creds };
+}
 
 function buildBody(params: ChatCompletionParams, stream: boolean) {
+  const model = resolveModel(params.model);
   const body: Record<string, unknown> = {
-    model: params.model || config.aiModel,
+    model,
     max_tokens: params.maxTokens ?? 1024,
     temperature: params.temperature ?? 0.1,
     stream,
@@ -20,7 +31,15 @@ function buildBody(params: ChatCompletionParams, stream: boolean) {
   };
 
   if (params.thinking) {
-    body.thinking = { type: 'enabled' };
+    if (model.startsWith('deepseek-v4')) {
+      body.thinking_mode = 'thinking';
+    } else {
+      body.thinking = { type: 'enabled' };
+    }
+  } else if (model.toLowerCase().startsWith('qwen')) {
+    body.enable_thinking = false;
+  } else if (model.startsWith('deepseek-v4')) {
+    body.thinking_mode = 'non-thinking';
   }
 
   if (params.webSearch) {
@@ -221,12 +240,13 @@ export async function readSSEStream(
 /** 非流式聊天补全 */
 export async function chatCompletion(params: ChatCompletionParams): Promise<ChatCompletionResult> {
   const body = buildBody(params, false);
+  const { baseUrl, apiKey } = llmEndpoint(params.model);
 
-  const r = await fetch(`${config.aiBaseUrl}/chat/completions`, {
+  const r = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.aiApiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
   });
@@ -246,12 +266,13 @@ export async function chatCompletionStream(
 ): Promise<string> {
   const { onEvent, ...chatParams } = params;
   const body = buildBody(chatParams, true);
+  const { baseUrl, apiKey } = llmEndpoint(chatParams.model);
 
-  const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
+  const aiRes = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.aiApiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
   });
@@ -291,8 +312,10 @@ export async function chatCompletionStream(
 export async function agentStream(params: AgentStreamParams): Promise<void> {
   const { onEvent, onToolCall, tools, ...chatParams } = params;
 
+  const model = resolveModel(chatParams.model);
+
   const body: Record<string, unknown> = {
-    model: chatParams.model || config.aiModel,
+    model,
     max_tokens: chatParams.maxTokens ?? 4096,
     temperature: chatParams.temperature ?? 0.1,
     stream: true,
@@ -300,13 +323,15 @@ export async function agentStream(params: AgentStreamParams): Promise<void> {
   };
 
   if (chatParams.thinking) {
-    if ((body.model as string).startsWith('deepseek-v4')) {
-      body.thinking_mode = 'thinking'
+    if (model.startsWith('deepseek-v4')) {
+      body.thinking_mode = 'thinking';
     } else {
-      body.thinking = { type: 'enabled' }
+      body.thinking = { type: 'enabled' };
     }
-  } else if ((body.model as string).startsWith('deepseek-v4')) {
-    body.thinking_mode = 'non-thinking'
+  } else if (model.toLowerCase().startsWith('qwen')) {
+    body.enable_thinking = false;
+  } else if (model.startsWith('deepseek-v4')) {
+    body.thinking_mode = 'non-thinking';
   }
 
   if (chatParams.webSearch) {
@@ -325,11 +350,13 @@ export async function agentStream(params: AgentStreamParams): Promise<void> {
     body.tool_choice = 'auto';
   }
 
-  const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
+  const { baseUrl, apiKey } = llmEndpoint(chatParams.model);
+
+  const aiRes = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.aiApiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
   });

@@ -11,7 +11,10 @@ export const transactionRouter = Router()
 // GET /api/transactions/:demandId/breakdown — 结算明细
 transactionRouter.get('/:demandId/breakdown', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const result = await transactionService.getByDemand(req.params.demandId)
+    const result = await transactionService.getByDemand(
+      req.params.demandId,
+      req.user!.userId,
+    )
     success(res, result)
   } catch (e: any) {
     fail(res, e.message || 'server error', e.status || 500)

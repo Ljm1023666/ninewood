@@ -204,6 +204,7 @@ export function TemplateChatRightShell({
   inputRow,
   embedInLayout = false,
   headerLeading,
+  headerTrailing,
   avatarFallback,
   onProfileClick,
   variant = 'default',
@@ -213,6 +214,7 @@ export function TemplateChatRightShell({
   inputRow: React.ReactNode
   embedInLayout?: boolean
   headerLeading?: React.ReactNode
+  headerTrailing?: React.ReactNode
   avatarFallback?: string
   /** 点击"联系人信息" → 跳转 /profile/:id */
   onProfileClick?: () => void
@@ -310,6 +312,9 @@ export function TemplateChatRightShell({
         ) : (
           nameBlock
         )}
+        {headerTrailing ? (
+          <div className="ml-auto flex shrink-0 items-center gap-1">{headerTrailing}</div>
+        ) : null}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

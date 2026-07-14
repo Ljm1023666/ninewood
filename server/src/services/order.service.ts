@@ -1,7 +1,11 @@
 ﻿import { prisma } from '../lib/prisma.js';
 import { OrderStatus } from '@prisma/client';
 import { walletService } from './wallet.service.js';
+import { assertMinorCanSpend } from './minor-guard.js';
 import { calculateSettlement } from './settlement.js';
+import { shadowOnOrderConfirmed, shadowOnLoopCancelled } from './loop/shadow-hooks.js';
+import { refreshServiceCardEvidenceForOrder } from './service-card-evidence.service.js';
+import { triggerResourceHeaven } from './loop/heaven-runner.service.js';
 
 export const orderService = {
   async create(demandId: string, applicationId: string, userId: string) {
@@ -23,6 +27,12 @@ export const orderService = {
     const agreedPrice = application.offerPrice || demand.minPrice;
 
     const order = await prisma.$transaction(async (tx: any) => {
+      const dup = await tx.order.findFirst({
+        where: { demandId },
+        select: { id: true },
+      });
+      if (dup) throw { status: 400, message: '该需求已生成订单' };
+
       const created = await tx.order.create({
         data: {
           demandId,
@@ -174,20 +184,44 @@ export const orderService = {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
     if (!order) throw { status: 404, message: '订单不存在' };
     if (order.requesterId !== userId) throw { status: 403, message: '仅需求方可确认' };
+    if (order.status === 'COMPLETED') throw { status: 400, message: '订单已完成' };
     if (order.status !== 'WAITING_REVIEW') throw { status: 400, message: '订单状态不允许确认' };
 
-    // P0-03: 主路径走 wallet.settleDemand（消费托管 + 资金分配）
-    const { breakdown } = await walletService.settleDemand(order.demandId, Number(order.agreedPrice));
+    const skipServiceFee = Boolean(order.paidAt);
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'COMPLETED', completedAt: new Date() },
+    const { breakdown } = await prisma.$transaction(async (tx) => {
+      const { breakdown } = await walletService.settleDemand(
+        order.demandId,
+        Number(order.agreedPrice),
+        { skipServiceFee },
+        tx,
+      );
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      });
+
+      await tx.user.update({
+        where: { id: order.providerId },
+        data: { completedOrders: { increment: 1 } },
+      });
+
+      return { breakdown };
     });
 
-    await prisma.user.update({
-      where: { id: order.providerId },
-      data: { completedOrders: { increment: 1 } },
+    // Wave B+E: 影子记账 + 验证串联（失败隔离；验证在 CLOSED 前，绝不阻断结算）
+    shadowOnOrderConfirmed(
+      order.demandId,
+      order.id,
+      { price: Number(order.agreedPrice), serviceFee: Number(breakdown.serviceFee) },
+    ).catch((err) => {
+      console.error('[loop-shadow] order confirm hook failed', orderId, err);
     });
+    refreshServiceCardEvidenceForOrder(orderId).catch((err) => {
+      console.error('[service-card] evidence refresh failed', orderId, err);
+    });
+    triggerResourceHeaven('builtin.heaven.validate.order_wallet_consistency', { orderId });
 
     // 兼容：旧 Deposit/DepositDemand 表仅记录位，不作为主路径。
     const oldDeposit = await prisma.depositDemand.findFirst({
@@ -280,6 +314,13 @@ export const orderService = {
       });
     });
 
+    // Wave B: 影子记账（失败隔离，不影响取消主路径）
+    if (order.demandId) {
+      shadowOnLoopCancelled(order.demandId, 'ORDER_CANCELLED').catch((err) => {
+        console.error('[loop-shadow] order cancel hook failed', orderId, err);
+      });
+    }
+
     return { message: '订单已取消' };
   },
 
@@ -311,39 +352,64 @@ export const orderService = {
     if (order.status !== 'IN_PROGRESS') throw { status: 400, message: '订单状态不允许部分完成' };
     if (newPrice >= Number(order.agreedPrice)) throw { status: 400, message: '部分完成报价必须低于原价' };
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status: 'COMPLETED', agreedPrice: newPrice, completedAt: new Date() },
-    });
+    const skipServiceFee = Boolean(order.paidAt);
 
-    await prisma.user.update({
-      where: { id: order.providerId },
-      data: { completedOrders: { increment: 1 } },
-    });
+    const { remainingDemand } = await prisma.$transaction(async (tx) => {
+      const { breakdown } = await walletService.settleDemand(
+        order.demandId,
+        newPrice,
+        { skipServiceFee },
+        tx,
+      );
 
-    const remainingPrice = Number(order.demand.minPrice) - newPrice;
-    const remainingDemand = await prisma.demand.create({
-      data: {
-        userId: order.requesterId,
-        title: `[剩余] ${order.demand.title}`,
-        description: `原订单部分完成，剩余部分：${description}。原需求：${order.demand.description}`,
-        minPrice: Math.max(1, remainingPrice),
-        category: order.demand.category,
-        serviceType: order.demand.serviceType,
-        cityCode: order.demand.cityCode,
-        expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        mediaUrls: JSON.parse(JSON.stringify(order.demand.mediaUrls)),
-      },
-    });
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'COMPLETED', agreedPrice: newPrice, completedAt: new Date() },
+      });
 
-    await prisma.message.create({
-      data: {
-        fromUserId: userId,
-        toUserId: order.requesterId,
-        orderId,
-        content: `接单方提出部分完成：¥${newPrice}，说明：${description}。剩余需求已生成草稿，请确认发布。`,
-        type: 'SYSTEM',
-      },
+      await tx.user.update({
+        where: { id: order.providerId },
+        data: { completedOrders: { increment: 1 } },
+      });
+
+      const remainingPrice = Number(order.demand.minPrice) - newPrice;
+      const remainingDemand = await tx.demand.create({
+        data: {
+          userId: order.requesterId,
+          title: `[剩余] ${order.demand.title}`,
+          description: `原订单部分完成，剩余部分：${description}。原需求：${order.demand.description}`,
+          minPrice: Math.max(1, remainingPrice),
+          category: order.demand.category,
+          serviceType: order.demand.serviceType,
+          cityCode: order.demand.cityCode,
+          expireAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          mediaUrls: JSON.parse(JSON.stringify(order.demand.mediaUrls)),
+          status: 'ACTIVE',
+        },
+      });
+
+      const remainingDeposit = walletService.calculateDeposit(
+        Math.max(1, remainingPrice),
+      );
+      await assertMinorCanSpend(order.requesterId, remainingDeposit);
+      await walletService.holdForDemand(
+        order.requesterId,
+        remainingDemand.id,
+        remainingDeposit,
+        tx,
+      );
+
+      await tx.message.create({
+        data: {
+          fromUserId: userId,
+          toUserId: order.requesterId,
+          orderId,
+          content: `接单方提出部分完成：¥${newPrice}，说明：${description}。剩余需求已生成草稿，请确认发布。服务费 ¥${breakdown.serviceFee.toFixed(2)}。`,
+          type: 'SYSTEM',
+        },
+      });
+
+      return { remainingDemand };
     });
 
     return {

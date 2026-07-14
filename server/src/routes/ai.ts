@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { config } from '../config.js';
+import { config, resolveLlmCredentials } from '../config.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { aiLimiter } from '../middleware/rate-limit.js';
+import { publicErrorMessage } from '../utils/safe-error.js';
 import { prisma } from '../lib/prisma.js';
 import {
   getDescendantLeafIds,
@@ -18,6 +21,10 @@ import {
 } from '../services/ai/client.js';
 
 export const aiRouter = Router();
+
+// 平台 LLM 额度保护：所有 AI 接口需登录
+aiRouter.use(authMiddleware);
+aiRouter.use(aiLimiter);
 
 // ── 辅助：发送错误并结束 SSE ──
 
@@ -42,12 +49,13 @@ function sseError(res: Response, message: string) {
 // POST /api/ai/analyze-demand
 aiRouter.post('/analyze-demand', async (req: Request, res: Response) => {
   try {
-    const { text } = req.body;
+    const { text, mode } = req.body;
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ error: '请输入需求描述' });
     }
 
-    const system = `你是九木平台的需求分析助手。将用户的自然语言需求描述解析为结构化分类。
+    const cardLabel = mode === 'SERVICE_CARD' ? '服务卡' : '需求卡';
+    const system = `你是九木平台的${cardLabel}分析助手。将用户的自然语言描述解析为结构化分类。
 
 返回 JSON（纯 JSON，不要 markdown 包裹）：
 {
@@ -90,6 +98,8 @@ aiRouter.post('/analyze-demand', async (req: Request, res: Response) => {
 - 家政/搬运（线下）`;
 
     const { content, think } = await chatCompletion({
+      model: config.aiFastModel,
+      maxTokens: 512,
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: text },
@@ -111,7 +121,7 @@ aiRouter.post('/analyze-demand', async (req: Request, res: Response) => {
     return res.json({ data, think });
   } catch (e: any) {
     console.error('[AI] analyze-demand error:', e.message);
-    return res.status(500).json({ error: e.message || 'AI 服务异常' });
+    return res.status(500).json({ error: publicErrorMessage(e, 'AI 服务异常') });
   }
 });
 
@@ -153,7 +163,7 @@ aiRouter.post('/discover', async (req: Request, res: Response) => {
     return res.json({ data, think });
   } catch (e: any) {
     console.error('[AI] discover error:', e.message);
-    return res.status(500).json({ error: e.message || 'AI 服务异常' });
+    return res.status(500).json({ error: publicErrorMessage(e, 'AI 服务异常') });
   }
 });
 
@@ -217,9 +227,9 @@ aiRouter.post('/discover-stream', async (req: Request, res: Response) => {
   } catch (e: any) {
     console.error('[AI] discover-stream error:', e.message);
     if (!res.headersSent) {
-      return res.status(500).json({ error: e.message || 'AI 服务异常' });
+      return res.status(500).json({ error: publicErrorMessage(e, 'AI 服务异常') });
     }
-    sseError(res, e.message);
+    sseError(res, publicErrorMessage(e, 'AI 服务异常'));
   }
 });
 
@@ -294,7 +304,7 @@ aiRouter.post('/discover-classify-stream', async (req: Request, res: Response) =
     if (!res.headersSent) {
       return res.status(500).json({ error: e.message || 'AI 服务异常' })
     }
-    sseError(res, e.message)
+    sseError(res, publicErrorMessage(e, 'AI 服务异常'))
   }
 });
 
@@ -305,10 +315,11 @@ aiRouter.post('/analyze-demand-stream', async (req: Request, res: Response) => {
   const reqId = ++_analyzeCount
   console.log(`[analyze-demand-stream #${reqId}] 收到请求`, new Date().toISOString())
   try {
-    const { message, requirementState, thinkMode } = req.body as {
+    const { message, requirementState, thinkMode, mode } = req.body as {
       message?: string
       requirementState?: { confirmed: Record<string, string>; pending: string[] }
       thinkMode?: boolean
+      mode?: 'DEMAND' | 'SERVICE_CARD'
     }
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: '请输入需求描述' })
@@ -327,7 +338,8 @@ aiRouter.post('/analyze-demand-stream', async (req: Request, res: Response) => {
       ? `当前待补充：${requirementState.pending.join('、')}`
       : ''
 
-    const system = `你是九木平台的需求澄清代理。你的任务是与用户进行多轮对话，逐步收集完整、清晰的服务需求。
+    const cardLabel = mode === 'SERVICE_CARD' ? '服务卡' : '需求卡';
+    const system = `你是九木平台的${cardLabel}澄清代理。你的任务是与用户进行多轮对话，逐步收集完整、清晰的${cardLabel}信息。
 
 ${confirmedBlock}
 ${pendingBlock}
@@ -403,17 +415,25 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
     res.flushHeaders()
     sseMeta(res, { source: 'analyze-demand-stream' })
 
-    const aiRes = await fetch(`${config.aiBaseUrl}/chat/completions`, {
+    const { baseUrl, apiKey } = resolveLlmCredentials(model)
+
+    const requestBody: Record<string, unknown> = {
+      model,
+      max_tokens: 768,
+      temperature: 0.1,
+      stream: true,
+      messages,
+    }
+    if (thinkModeEnabled) {
+      requestBody.thinking = { type: 'enabled' }
+    } else if (model.toLowerCase().startsWith('qwen')) {
+      requestBody.enable_thinking = false
+    }
+
+    const aiRes = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.aiApiKey}` },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1024,
-        temperature: 0.1,
-        stream: true,
-        messages,
-        ...(thinkModeEnabled ? { thinking: { type: 'enabled' } } : {}),
-      }),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify(requestBody),
     })
 
     if (!aiRes.ok) {
@@ -479,16 +499,17 @@ ${thinkModeEnabled ? '' : '【重要】直接输出 JSON，不要使用 <think> 
     if (!res.headersSent) {
       return res.status(500).json({ error: e.message || 'AI 服务异常' })
     }
-    sseError(res, e.message)
+    sseError(res, publicErrorMessage(e, 'AI 服务异常'))
   }
 });
 
 // POST /api/ai/agent-demand-stream — Agentic 需求收集 · 流式 + Function Calling
 aiRouter.post('/agent-demand-stream', async (req: Request, res: Response) => {
   try {
-    const { messages, thinkMode } = req.body as {
+    const { messages, thinkMode, mode } = req.body as {
       messages?: { role: string; content: string; reasoning_content?: string }[]
       thinkMode?: boolean
+      mode?: 'DEMAND' | 'SERVICE_CARD'
     }
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: '请提供对话历史' })
@@ -499,12 +520,13 @@ aiRouter.post('/agent-demand-stream', async (req: Request, res: Response) => {
       ? (config.aiThinkModel || config.aiModel)
       : (config.aiFastModel || config.aiModel)
 
-    const SYSTEM_PROMPT = `你是九木平台的智能助手。用户可能在闲聊，也可能在描述服务需求，你需要灵活应对。
+    const cardLabel = mode === 'SERVICE_CARD' ? '服务卡' : '需求卡';
+    const SYSTEM_PROMPT = `你是九木平台的智能助手。用户可能在闲聊，也可能在描述${cardLabel}，你需要灵活应对。
 
 工作方式：
 1. 如果用户只是在聊天（闲聊、问问题、分享心情等），就自然地陪聊，不要强行把话题转到需求上。但心里要记住用户说的信息（兴趣、偏好、状态等），这些是宝贵的上下文。
 2. 如果用户聊着聊着开始提自己的需求（哪怕是从闲聊中转过来的），要结合之前的聊天内容来理解 TA。比如用户之前说困了、无聊、想玩游戏，这些信息都有助于分析 TA 真正想要什么服务。
-3. 只有当用户主动提到想发布需求、且信息确实完整时，才调用 publish_requirement 函数
+3. 只有当用户主动提到想发布${cardLabel}、且信息确实完整时，才调用 publish_requirement 函数
 4. 保持对话自然友好，不要像客服机器人一样机械追问
 
 关键原则：
@@ -583,6 +605,6 @@ ${thinkModeEnabled ? '\n【要求】将你的推理分析过程放在 <think>...
     if (!res.headersSent) {
       return res.status(500).json({ error: e.message || 'AI 服务异常' })
     }
-    sseError(res, e.message)
+    sseError(res, publicErrorMessage(e, 'AI 服务异常'))
   }
 });
