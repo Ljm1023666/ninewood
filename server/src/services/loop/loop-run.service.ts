@@ -5,6 +5,7 @@ import { LoopKind, LoopRunStatus, LoopEventVisibility, Prisma } from '@prisma/cl
 import type { LoopEventInput } from './types.js';
 
 const TERMINAL: LoopRunStatus[] = [
+  LoopRunStatus.SUCCEEDED,
   LoopRunStatus.CLOSED,
   LoopRunStatus.FAILED,
   LoopRunStatus.INCONCLUSIVE,
@@ -86,7 +87,7 @@ export const loopRunService = {
   /** 找到某需求下未关闭的回运行（补建/推进用） */
   async findOpenByDemand(demandId: string): Promise<{ id: string } | null> {
     return prisma.loopRun.findFirst({
-      where: { demandId, status: { not: LoopRunStatus.CLOSED } },
+      where: { demandId, status: { notIn: TERMINAL } },
       orderBy: { createdAt: 'desc' },
       select: { id: true },
     });
@@ -198,8 +199,47 @@ export const loopRunService = {
     return prisma.loopRun.findUnique({
       where: { id },
       include: {
-        definition: { select: { code: true, name: true, loopKind: true, executionMode: true } },
-        offering: { select: { id: true, title: true } },
+        definition: {
+          select: {
+            code: true,
+            name: true,
+            description: true,
+            loopKind: true,
+            executionMode: true,
+            inputSchema: true,
+            outcomeSchema: true,
+          },
+        },
+        offering: { select: { id: true, title: true, summary: true } },
+        events: { orderBy: { createdAt: 'asc' } },
+        verificationRuns: {
+          orderBy: { createdAt: 'asc' },
+          include: {
+            contract: {
+              include: { verifierEndpoint: { select: { id: true, code: true, name: true } } },
+            },
+          },
+        },
+        linksOut: {
+          orderBy: { createdAt: 'asc' },
+          include: {
+            targetRun: {
+              include: {
+                definition: { select: { code: true, name: true, loopKind: true } },
+              },
+            },
+          },
+        },
+        linksIn: {
+          orderBy: { createdAt: 'asc' },
+          include: {
+            sourceRun: {
+              include: {
+                definition: { select: { code: true, name: true, loopKind: true } },
+              },
+            },
+          },
+        },
       },
     });
   },

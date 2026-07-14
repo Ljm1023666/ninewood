@@ -31,6 +31,7 @@ vi.mock('./executors/index.js', () => ({
 vi.mock('./builtin-loops.js', () => ({ seedBuiltinLoops: vi.fn() }));
 vi.mock('./verification.service.js', () => ({
   ensureVerificationContracts: vi.fn().mockResolvedValue({ contracts: 0 }),
+  runForLoopRun: vi.fn().mockResolvedValue('PASSED'),
 }));
 
 import { runOffering } from './offering.service.js';
@@ -47,8 +48,10 @@ describe('runOffering', () => {
   it('无真实执行器 → 不再伪装，直接报 500', async () => {
     m.loopOfferingFindUnique.mockResolvedValue({
       id: 'o1',
-      definition: { code: 'builtin.earth.demand.structure', loopKind: 'EARTH', name: '结构化' },
-      endpoint: { id: 'e1', hostMode: 'PLATFORM_HOSTED' },
+      status: 'ACTIVE',
+      definition: { code: 'builtin.earth.demand.structure', loopKind: 'EARTH', name: '结构化', inputSchema: {}, outcomeSchema: {} },
+      endpoint: { id: 'e1', hostMode: 'PLATFORM_HOSTED', healthStatus: 'ONLINE' },
+      verificationContracts: [{ id: 'vc1' }],
     });
     m.getLoopExecutor.mockReturnValue(undefined);
 
@@ -58,8 +61,10 @@ describe('runOffering', () => {
   it('对需求运行：传入 demandId + endpointId，返回真实结果', async () => {
     m.loopOfferingFindUnique.mockResolvedValue({
       id: 'o1',
-      definition: { code: 'builtin.earth.demand.paths', loopKind: 'EARTH', name: '路径' },
-      endpoint: { id: 'e1', hostMode: 'PLATFORM_HOSTED' },
+      status: 'ACTIVE',
+      definition: { code: 'builtin.earth.demand.paths', loopKind: 'EARTH', name: '路径', inputSchema: {}, outcomeSchema: {} },
+      endpoint: { id: 'e1', hostMode: 'PLATFORM_HOSTED', healthStatus: 'ONLINE' },
+      verificationContracts: [{ id: 'vc1' }],
     });
     const fakeExec = {
       definitionCode: 'builtin.earth.demand.paths',
@@ -81,8 +86,10 @@ describe('runOffering', () => {
   it('非需求 owner → 403', async () => {
     m.loopOfferingFindUnique.mockResolvedValue({
       id: 'o1',
-      definition: { code: 'builtin.earth.demand.paths', loopKind: 'EARTH' },
-      endpoint: { id: 'e1' },
+      status: 'ACTIVE',
+      definition: { code: 'builtin.earth.demand.paths', loopKind: 'EARTH', inputSchema: {}, outcomeSchema: {} },
+      endpoint: { id: 'e1', healthStatus: 'ONLINE' },
+      verificationContracts: [{ id: 'vc1' }],
     });
     m.getLoopExecutor.mockReturnValue({ execute: vi.fn() });
     m.demandFindUnique.mockResolvedValue({ userId: 'other' });
@@ -93,8 +100,10 @@ describe('runOffering', () => {
   it('既无 demandId 也无 input → 400', async () => {
     m.loopOfferingFindUnique.mockResolvedValue({
       id: 'o1',
-      definition: { code: 'x', loopKind: 'HEAVEN' },
-      endpoint: { id: 'e1' },
+      status: 'ACTIVE',
+      definition: { code: 'x', loopKind: 'HEAVEN', inputSchema: {}, outcomeSchema: {} },
+      endpoint: { id: 'e1', healthStatus: 'ONLINE' },
+      verificationContracts: [],
     });
     m.getLoopExecutor.mockReturnValue({ execute: vi.fn() });
 

@@ -68,18 +68,16 @@ function ServiceRow({
 }) {
   const healthKey = item.endpoint?.healthStatus ?? 'UNKNOWN'
   const healthText = HEALTH_LABEL[healthKey] ?? HEALTH_LABEL.UNKNOWN
-  const dealPct =
-    item.dealRate != null ? `${Math.round(item.dealRate * 100)}%` : '—'
-  const successPct =
-    item.recentTotalN > 0
-      ? `${Math.round((item.recentSuccessN / item.recentTotalN) * 100)}%`
-      : '—'
+  const dealPct = item.metrics.dealRate != null ? `${Math.round(item.metrics.dealRate * 100)}%` : '—'
+  const successPct = item.metrics.publicSuccessRate != null
+    ? `${Math.round(item.metrics.publicSuccessRate * 100)}%`
+    : '适配中'
   const duration =
-    item.avgDurationMs == null
+    item.metrics.avgDurationMs == null
       ? '—'
-      : item.avgDurationMs < 1000
-        ? `${item.avgDurationMs}ms`
-        : `${(item.avgDurationMs / 1000).toFixed(1)}s`
+      : item.metrics.avgDurationMs < 1000
+        ? `${item.metrics.avgDurationMs}ms`
+        : `${(item.metrics.avgDurationMs / 1000).toFixed(1)}s`
 
   return (
     <button type="button" className="loop-svc-row" onClick={onOpen}>
@@ -105,7 +103,7 @@ function ServiceRow({
         </span>
         <span className="loop-svc-metric">
           <span className="loop-svc-metric__k">样本</span>
-          <span className="loop-svc-metric__v">{item.recentTotalN || '—'}</span>
+          <span className="loop-svc-metric__v">{item.metrics.sampleSize ?? '—'}</span>
         </span>
       </span>
       <span className={cn('loop-svc-row__status', statusClass(healthKey))}>

@@ -13,9 +13,7 @@ import {
   User,
   LogOut,
   HelpCircle,
-  Route,
   ShieldCheck,
-  Boxes,
   Orbit,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -34,9 +32,7 @@ const NAV_TOP = [
 ]
 
 const NAV_BOTTOM = [
-  { path: '/path-search', icon: Route, label: '路径检索' },
   { path: '/loops', icon: Orbit, label: '回' },
-  { path: '/services', icon: Boxes, label: '找服务' },
   { path: '/search', icon: Search, label: '找人' },
   { path: '/messages', icon: MessageCircle, label: '消息' },
   { path: '/profile', icon: User, label: '我的' },

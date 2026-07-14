@@ -11,11 +11,19 @@ const m = vi.hoisted(() => ({
   loopOfferingUpdate: vi.fn(),
   loopOfferingFindUnique: vi.fn(),
   demandFindUnique: vi.fn(),
+  loopDefinitionFindUnique: vi.fn(),
+  loopRunCreate: vi.fn(),
+  loopRunUpdate: vi.fn(),
+  loopEventCreate: vi.fn(),
+  loopLinkCreate: vi.fn(),
 }));
 
 vi.mock('../../lib/prisma.js', () => ({
   prisma: {
-    loopRun: { findUnique: m.loopRunFindUnique },
+    loopRun: { findUnique: m.loopRunFindUnique, create: m.loopRunCreate, update: m.loopRunUpdate },
+    loopDefinition: { findUnique: m.loopDefinitionFindUnique },
+    loopEvent: { create: m.loopEventCreate },
+    loopLink: { create: m.loopLinkCreate },
     verificationRun: { create: m.verificationRunCreate },
     loopOffering: { update: m.loopOfferingUpdate, findUnique: m.loopOfferingFindUnique },
     demand: { findUnique: m.demandFindUnique },
@@ -32,6 +40,7 @@ const contractOf = (code: string) => ({
   id: 'vc1',
   isRequired: true,
   verifierEndpoint: { code },
+  verifierEndpointId: 'verifier-1',
 });
 
 function runWith(contracts: any[]) {
@@ -39,6 +48,9 @@ function runWith(contracts: any[]) {
     id: 'run-1',
     demandId: 'd1',
     offeringId: 'off-1',
+    inputJson: {},
+    actualOutcome: null,
+    correlationId: 'correlation-1',
     offering: { id: 'off-1', verificationContracts: contracts },
   };
 }
@@ -48,6 +60,11 @@ beforeEach(() => {
   m.verificationRunCreate.mockResolvedValue({});
   m.loopOfferingUpdate.mockResolvedValue({});
   m.loopOfferingFindUnique.mockResolvedValue({ recentSuccessN: 1, recentTotalN: 1 });
+  m.loopDefinitionFindUnique.mockResolvedValue({ id: 'heaven-def' });
+  m.loopRunCreate.mockResolvedValue({ id: 'heaven-run' });
+  m.loopRunUpdate.mockResolvedValue({});
+  m.loopEventCreate.mockResolvedValue({});
+  m.loopLinkCreate.mockResolvedValue({});
 });
 
 describe('runForLoopRun (§6 Wave E)', () => {
@@ -65,6 +82,10 @@ describe('runForLoopRun (§6 Wave E)', () => {
 
   it('校验通过 → PASSED 且 recentSuccessN / recentTotalN 均递增', async () => {
     m.loopRunFindUnique.mockResolvedValue(runWith([contractOf('builtin.heaven.validate.demand_fields')]));
+    m.loopRunFindUnique.mockResolvedValue({
+      ...runWith([contractOf('builtin.heaven.validate.demand_fields')]),
+      actualOutcome: { title: '论文', description: '写一篇', minPrice: 10 },
+    });
     m.demandFindUnique.mockResolvedValue({ title: '论文', description: '写一篇', minPrice: 10 });
 
     const r = await runForLoopRun('run-1');
@@ -81,6 +102,10 @@ describe('runForLoopRun (§6 Wave E)', () => {
 
   it('校验失败 → FAILED 且 recentTotalN 增、recentSuccessN 不增（不抛错）', async () => {
     m.loopRunFindUnique.mockResolvedValue(runWith([contractOf('builtin.heaven.validate.demand_fields')]));
+    m.loopRunFindUnique.mockResolvedValue({
+      ...runWith([contractOf('builtin.heaven.validate.demand_fields')]),
+      actualOutcome: { title: '', description: '', minPrice: -1 },
+    });
     m.demandFindUnique.mockResolvedValue({ title: '', description: '', minPrice: -1 });
 
     const r = await runForLoopRun('run-1');

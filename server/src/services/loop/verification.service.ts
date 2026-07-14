@@ -1,42 +1,52 @@
 // 验证契约服务 · 自然回
 // 详见 docs/specs/TASK-12-natural-loop-handoff.md §6 Wave E
 import { prisma } from '../../lib/prisma.js';
-import { LoopEventVisibility, Prisma } from '@prisma/client';
+import { LoopEventVisibility, LoopKind, LoopLinkRelation, LoopRunStatus, Prisma } from '@prisma/client';
 import { getLoopExecutor } from './executors/index.js';
 import { loopRunService } from './loop-run.service.js';
 
 export type VerificationOutcome = 'PASSED' | 'FAILED' | 'ERROR' | 'INCONCLUSIVE' | 'SKIPPED';
 
-const VERIFIER_CODE = 'builtin.heaven.validate.demand_fields';
+const VERIFIER_BY_EARTH_CODE: Record<string, string> = {
+  'builtin.earth.demand.structure': 'builtin.heaven.validate.demand_fields',
+  'builtin.earth.demand.paths': 'builtin.heaven.validate.paths',
+};
 
 /**
  * 为内置地回 Offering 绑定验证契约（幂等）。
  * 至少把 builtin.heaven.validate.demand_fields 绑到一个 EARTH offering 上。
  */
 export async function ensureVerificationContracts(): Promise<{ contracts: number }> {
-  const verifier = await prisma.capabilityEndpoint.findUnique({ where: { code: VERIFIER_CODE } });
-  if (!verifier) return { contracts: 0 };
-
-  const offering = await prisma.loopOffering.findFirst({
-    where: { status: 'ACTIVE', definition: { loopKind: 'EARTH' } },
-    orderBy: { createdAt: 'asc' },
-  });
-  if (!offering) return { contracts: 0 };
-
-  const existing = await prisma.verificationContract.findUnique({
-    where: { offeringId_verifierEndpointId: { offeringId: offering.id, verifierEndpointId: verifier.id } },
-  });
-  if (existing) return { contracts: 0 };
-
-  await prisma.verificationContract.create({
-    data: {
-      offeringId: offering.id,
-      verifierEndpointId: verifier.id,
-      claimSchema: {},
-      isRequired: true,
+  const offerings = await prisma.loopOffering.findMany({
+    where: {
+      status: 'ACTIVE',
+      definition: { code: { in: Object.keys(VERIFIER_BY_EARTH_CODE) } },
     },
+    include: { definition: { select: { code: true } } },
   });
-  return { contracts: 1 };
+  let contracts = 0;
+  for (const offering of offerings) {
+    const verifierCode = VERIFIER_BY_EARTH_CODE[offering.definition.code];
+    const verifier = await prisma.capabilityEndpoint.findUnique({ where: { code: verifierCode } });
+    if (!verifier) continue;
+    await prisma.verificationContract.upsert({
+      where: {
+        offeringId_verifierEndpointId: {
+          offeringId: offering.id,
+          verifierEndpointId: verifier.id,
+        },
+      },
+      create: {
+        offeringId: offering.id,
+        verifierEndpointId: verifier.id,
+        claimSchema: {},
+        isRequired: true,
+      },
+      update: { isRequired: true },
+    });
+    contracts++;
+  }
+  return { contracts };
 }
 
 /**
@@ -57,7 +67,7 @@ export async function runForLoopRun(loopRunId: string): Promise<VerificationOutc
   const contracts = run.offering.verificationContracts.filter((c) => c.isRequired);
   if (contracts.length === 0) return 'SKIPPED';
 
-  let overall: VerificationOutcome = 'PASSED';
+  const outcomes: VerificationOutcome[] = [];
 
   for (const contract of contracts) {
     const code = contract.verifierEndpoint.code;
@@ -65,13 +75,42 @@ export async function runForLoopRun(loopRunId: string): Promise<VerificationOutc
     let status: VerificationOutcome = 'ERROR';
     let resultJson: Prisma.InputJsonValue = {};
 
+    let verifierRunId: string | null = null;
     try {
+      verifierRunId = await loopRunService.create({
+        definitionCode: code,
+        loopKind: LoopKind.HEAVEN,
+        initiatorRef: 'system:verification',
+        receiverRef: `endpoint:${contract.verifierEndpointId}`,
+        parentRunId: run.id,
+        correlationId: run.correlationId ?? run.id,
+        inputJson: { parentRunId: run.id, contractId: contract.id },
+      });
+      await prisma.loopLink.create({
+        data: {
+          sourceRunId: run.id,
+          targetRunId: verifierRunId,
+          relation: LoopLinkRelation.VERIFY,
+          meta: { contractId: contract.id },
+        },
+      });
+      await loopRunService.transition(verifierRunId, LoopRunStatus.EXECUTING);
+      await loopRunService.appendEvent(verifierRunId, {
+        type: 'VERIFICATION_STARTED',
+        actorRef: 'system:verification',
+        visibility: LoopEventVisibility.ACTOR,
+        payload: { parentRunId: run.id, contractId: contract.id },
+      });
       if (!exec) {
         status = 'SKIPPED';
       } else {
+        const fields =
+          run.actualOutcome && typeof run.actualOutcome === 'object'
+            ? run.actualOutcome
+            : run.inputJson;
         const r = await exec.execute(
-          { demandId: run.demandId, loopRunId },
-          { loopRunId },
+          { demandId: run.demandId ?? undefined, fields, loopRunId },
+          { loopRunId: verifierRunId },
         );
         status =
           r.status === 'SUCCEEDED'
@@ -90,12 +129,38 @@ export async function runForLoopRun(loopRunId: string): Promise<VerificationOutc
       data: { contractId: contract.id, loopRunId, status, resultJson },
     });
 
-    await updateOfferingMetrics(run.offeringId!, status === 'PASSED');
-
-    if (status !== 'PASSED') {
-      overall = status === 'ERROR' ? 'ERROR' : status;
+    if (verifierRunId) {
+      await loopRunService.appendEvent(verifierRunId, {
+        type: 'VERIFICATION_RESULT',
+        actorRef: 'system:verification',
+        visibility: LoopEventVisibility.ACTOR,
+        payload: { status, result: resultJson },
+      });
+      await loopRunService.transition(
+        verifierRunId,
+        status === 'PASSED'
+          ? LoopRunStatus.SUCCEEDED
+          : status === 'FAILED'
+            ? LoopRunStatus.FAILED
+            : LoopRunStatus.INCONCLUSIVE,
+        { actualOutcome: resultJson },
+      );
     }
+
+    outcomes.push(status);
   }
+
+  const overall: VerificationOutcome = outcomes.includes('FAILED')
+    ? 'FAILED'
+    : outcomes.every((status) => status === 'PASSED')
+      ? 'PASSED'
+      : outcomes.includes('ERROR')
+        ? 'ERROR'
+        : outcomes.includes('INCONCLUSIVE')
+          ? 'INCONCLUSIVE'
+          : 'SKIPPED';
+
+  await updateOfferingMetrics(run.offeringId!, overall === 'PASSED');
 
   return overall;
 }
@@ -155,12 +220,12 @@ async function runShadowDemandValidators(
  * 有 offering → runForLoopRun；人回无 offering → 需求字段校验桩。
  * 仅记事件 / VerificationRun，不改 LoopRun 状态、不阻断结算。
  */
-export async function verifyDemandShadowByRunId(loopRunId: string): Promise<void> {
+export async function verifyDemandShadowByRunId(loopRunId: string): Promise<VerificationOutcome> {
   const run = await prisma.loopRun.findUnique({
     where: { id: loopRunId },
     select: { id: true, demandId: true, offeringId: true },
   });
-  if (!run) return;
+  if (!run) return 'SKIPPED';
 
   let overall: VerificationOutcome = 'SKIPPED';
   if (run.offeringId) {
@@ -176,6 +241,7 @@ export async function verifyDemandShadowByRunId(loopRunId: string): Promise<void
     payload: { overall },
     idempotencyKey: `verify:${run.id}`,
   });
+  return overall;
 }
 
 /**

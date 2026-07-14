@@ -6,15 +6,38 @@ import { LoopKind, LoopRunStatus } from '@prisma/client';
 import { adminGate } from '../middleware/admin-gate.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { success, fail } from '../utils/response.js';
-import { seedBuiltinLoops } from '../services/loop/builtin-loops.js';
 import { loopRunService } from '../services/loop/loop-run.service.js';
-import { listOfferings, retrieveOffering, runOffering } from '../services/loop/offering.service.js';
+import { ensureSystemOfferings, listOfferings, retrieveOffering, retryOfferingVerification, runOffering } from '../services/loop/offering.service.js';
+import { recommendLoops } from '../services/loop/recommendation.service.js';
 import { listHeavenCapabilities } from '../services/loop/heaven-runner.service.js';
 import { getLoopExecutor } from '../services/loop/executors/index.js';
 // 副作用：注册内置回执行器（Executor 注册表）
 import '../services/loop/executors/index.js';
 
 export const loopRouter = Router();
+
+const parseCsv = (value: unknown): string[] =>
+  typeof value === 'string' ? value.split(',').map((item) => item.trim()).filter(Boolean) : [];
+
+async function canAccessRun(run: any, userId: string, isAdmin: boolean): Promise<boolean> {
+  if (isAdmin || run.initiatorRef === `user:${userId}`) return true;
+  if (run.parentRunId) {
+    const parent = await loopRunService.getById(run.parentRunId);
+    if (parent && await canAccessRun(parent, userId, isAdmin)) return true;
+  }
+  if (!run.demandId && !run.orderId) return false;
+  const [demand, order] = await Promise.all([
+    run.demandId
+      ? prisma.demand.findUnique({ where: { id: run.demandId }, select: { userId: true } })
+      : null,
+    run.orderId
+      ? prisma.order.findUnique({ where: { id: run.orderId }, select: { providerId: true, requesterId: true } })
+      : run.demandId
+        ? prisma.order.findFirst({ where: { demandId: run.demandId }, select: { providerId: true, requesterId: true } })
+        : null,
+  ]);
+  return demand?.userId === userId || order?.providerId === userId || order?.requesterId === userId;
+}
 
 // 公开：列出内置/公开回定义
 loopRouter.get('/definitions', async (_req: Request, res: Response) => {
@@ -32,6 +55,26 @@ loopRouter.get('/definitions', async (_req: Request, res: Response) => {
     },
   });
   success(res, defs);
+});
+
+loopRouter.get('/recommend', async (req: Request, res: Response) => {
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  const paths = parseCsv(req.query.paths);
+  const facets = parseCsv(req.query.facets);
+  if (!q && paths.length === 0 && facets.length === 0) {
+    return fail(res, 'q、paths、facets 至少提供一个', 400);
+  }
+  try {
+    const data = await recommendLoops({
+      q: q || undefined,
+      paths,
+      facets,
+      limit: Number(req.query.limit) || 20,
+    });
+    return success(res, data);
+  } catch (err: any) {
+    return fail(res, err?.message || '回推荐失败', err?.status || 500, err?.details);
+  }
 });
 
 // 公开：需求者检索「可用方案」（offering）
@@ -148,23 +191,26 @@ loopRouter.get('/runs/:id', authMiddleware, async (req: Request, res: Response) 
   const run = await loopRunService.getById(req.params.id);
   if (!run) return fail(res, '回不存在', 404);
 
-  if (run.demandId) {
-    const demand = await prisma.demand.findUnique({
-      where: { id: run.demandId },
-      select: { userId: true },
-    });
-    const order = await prisma.order.findFirst({
-      where: { demandId: run.demandId },
-      select: { providerId: true, requesterId: true },
-    });
-    const isParticipant =
-      demand?.userId === userId || order?.providerId === userId || order?.requesterId === userId;
-    if (!isParticipant) return fail(res, '无权查看该回', 403);
-  } else if (req.adminOperatorId == null) {
-    return fail(res, '无权查看该回', 403);
-  }
+  const isAdmin = req.adminOperatorId != null;
+  if (!await canAccessRun(run, userId, isAdmin)) return fail(res, '无权查看该回', 403);
+  const events = isAdmin ? run.events : run.events.filter((event) => event.visibility !== 'SYSTEM_ONLY');
+  const verificationRuns = run.verificationRuns.map((item) => ({
+    id: item.id,
+    status: item.status,
+    resultJson: item.resultJson,
+    createdAt: item.createdAt,
+    verifier: item.contract.verifierEndpoint,
+  }));
+  success(res, { ...run, events, verificationRuns });
+});
 
-  success(res, run);
+loopRouter.post('/runs/:id/retry-verification', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await retryOfferingVerification(req.params.id, req.user!.userId);
+    success(res, result, '验证已重试');
+  } catch (err: any) {
+    fail(res, err?.message || '重试验证失败', err?.status || 500);
+  }
 });
 
 // 回事件（默认不含 SYSTEM_ONLY；admin 可看全）
@@ -173,21 +219,7 @@ loopRouter.get('/runs/:id/events', authMiddleware, async (req: Request, res: Res
   const run = await loopRunService.getById(req.params.id);
   if (!run) return fail(res, '回不存在', 404);
 
-  if (run.demandId) {
-    const demand = await prisma.demand.findUnique({
-      where: { id: run.demandId },
-      select: { userId: true },
-    });
-    const order = await prisma.order.findFirst({
-      where: { demandId: run.demandId },
-      select: { providerId: true, requesterId: true },
-    });
-    const isParticipant =
-      demand?.userId === userId || order?.providerId === userId || order?.requesterId === userId;
-    if (!isParticipant) return fail(res, '无权查看该回', 403);
-  } else if (req.adminOperatorId == null) {
-    return fail(res, '无权查看该回', 403);
-  }
+  if (!await canAccessRun(run, userId, req.adminOperatorId != null)) return fail(res, '无权查看该回', 403);
 
   const events = await loopRunService.getEvents(req.params.id, req.adminOperatorId != null);
   success(res, events);
@@ -196,7 +228,7 @@ loopRouter.get('/runs/:id/events', authMiddleware, async (req: Request, res: Res
 // 运营：幂等种子（adminGate）
 loopRouter.post('/admin/seed-builtins', adminGate, async (_req: Request, res: Response) => {
   try {
-    const summary = await seedBuiltinLoops();
+    const summary = await ensureSystemOfferings();
     success(res, summary, 'seed 完成');
   } catch (err: any) {
     console.error('[loop] seed-builtins failed', err);

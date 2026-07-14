@@ -1,6 +1,13 @@
 import api from './index'
 
 export type LoopKind = 'HUMAN' | 'EARTH' | 'HEAVEN'
+export type LoopContract = Record<string, unknown>
+
+export type LoopVerificationSummary = {
+  status: 'VERIFIED' | 'UNAVAILABLE'
+  verifierCount: number
+  verifiers: Array<{ id: string; code: string; name: string }>
+}
 
 /** 后端统一响应信封（axios res.data） */
 type ApiEnvelope<T> = { code: number; message: string; data: T }
@@ -11,20 +18,77 @@ export type LoopOfferingItem = {
   summary: string | null
   loopKind: LoopKind
   definitionCode: string
+  definitionName: string
+  definitionDescription: string | null
   paths: string[]
-  dealRate: number | null
-  avgDurationMs: number | null
-  recentSuccessN: number
-  recentTotalN: number
+  inputSchema: LoopContract
+  outcomeSchema: LoopContract
+  metrics: {
+    dealRate: number | null
+    avgDurationMs: number | null
+    publicSuccessRate: number | null
+    sampleSize: number | null
+    successRateStatus: 'PUBLIC' | 'ADAPTING'
+  }
   requiresVerification: boolean
-  endpoint: { healthStatus: string | null }
+  verification: LoopVerificationSummary
+  endpoint: { healthStatus: string | null; hostMode: string | null }
 }
 
 export type LoopOfferingDetail = LoopOfferingItem & {
-  definitionName: string
-  definitionDescription: string | null
-  endpoint: { healthStatus: string | null; hostMode: string | null }
   internalSuccessRate?: number | null
+}
+
+export type LoopRecommendation = LoopOfferingItem & {
+  executionMode: string
+  match: { matchedPaths: string[]; textMatched: boolean; reasons: string[] }
+}
+
+export type LoopRecommendationResult = {
+  query: string
+  resolved: {
+    paths: string[]
+    facets: string[]
+    suggestions: string[]
+    status: 'hit' | 'partial' | 'miss'
+  }
+  items: LoopRecommendation[]
+  humanFallback: null | {
+    kind: 'HUMAN'
+    title: string
+    description: string
+    paths: string[]
+    facets: string[]
+    requiresConfirmation: true
+  }
+}
+
+export type LoopLinkSummary = {
+  id: string
+  relation: string
+  targetRun?: { id: string; status: string; definition: { code: string; name: string; loopKind: LoopKind } }
+  sourceRun?: { id: string; status: string; definition: { code: string; name: string; loopKind: LoopKind } }
+}
+
+export type LoopRunDetail = {
+  id: string
+  loopKind: LoopKind
+  status: string
+  initiatorRef: string
+  receiverRef: string | null
+  inputJson: Record<string, unknown>
+  expectedOutcome: Record<string, unknown>
+  actualOutcome: Record<string, unknown> | null
+  demandId: string | null
+  orderId: string | null
+  startedAt: string
+  completedAt: string | null
+  definition: { code: string; name: string; description: string | null; executionMode: string }
+  offering: { id: string; title: string; summary: string | null } | null
+  events: Array<{ id: string; type: string; actorRef: string; payload: Record<string, unknown>; createdAt: string }>
+  verificationRuns: Array<{ id: string; status: string; resultJson: unknown; createdAt: string; verifier: { id: string; code: string; name: string } }>
+  linksOut: LoopLinkSummary[]
+  linksIn: LoopLinkSummary[]
 }
 
 export type MyLoopItem = {
@@ -86,6 +150,17 @@ export type HeavenCapabilityItem = {
 }
 
 export const loopApi = {
+  async recommend(params: { q?: string; paths?: string[]; facets?: string[]; limit?: number }): Promise<LoopRecommendationResult> {
+    const res = await api.get<ApiEnvelope<LoopRecommendationResult>>('/loops/recommend', {
+      params: {
+        q: params.q || undefined,
+        paths: params.paths?.join(',') || undefined,
+        facets: params.facets?.join(',') || undefined,
+        limit: params.limit,
+      },
+    })
+    return res.data.data
+  },
   /** 公开检索「可用方案」（offering）。绝不返回内部成功率。 */
   async listOfferings(params: {
     q?: string
@@ -115,6 +190,7 @@ export const loopApi = {
     id: string,
     body: { demandId?: string; input?: Record<string, unknown> },
   ): Promise<{
+    runId: string
     ran: boolean
     preview: boolean
     code: string
@@ -123,6 +199,18 @@ export const loopApi = {
   } | null> {
     const res = await api.post<ApiEnvelope<any>>(`/loops/offerings/${id}/run`, body)
     return res.data?.data ?? null
+  },
+
+  async getRun(id: string): Promise<LoopRunDetail> {
+    const res = await api.get<ApiEnvelope<LoopRunDetail>>(`/loops/runs/${id}`)
+    return res.data.data
+  },
+
+  async retryVerification(id: string): Promise<{ runId: string; status: string; verification: string }> {
+    const res = await api.post<ApiEnvelope<{ runId: string; status: string; verification: string }>>(
+      `/loops/runs/${id}/retry-verification`,
+    )
+    return res.data.data
   },
 
   async listMyRuns(params: {

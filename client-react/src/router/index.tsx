@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Layout from '@/components/layout/Layout'
 import { BentoAppShell } from '@/components/layout/BentoAppShell'
@@ -6,6 +6,7 @@ import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
 import { useUserStore } from '@/stores/user'
+import { migrateLegacyLoopUrl } from './loop-route-migration'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
@@ -61,15 +62,21 @@ const DeadPool = lazy(() => import('@/views/DeadPool'))
 const MyTags = lazy(() => import('@/views/MyTags'))
 const FiltersPreview = lazy(() => import('@/views/FiltersPreview'))
 const TaxVisualizerPage = lazy(() => import('@/views/tax-visualizer/TaxVisualizerPage'))
-const PathSearchPage = lazy(() => import('@/views/path-search/PathSearchPage'))
 const PublishPathsPage = lazy(() => import('@/views/demand-paths/PublishPathsPage'))
 const DemandPathsPage = lazy(() => import('@/views/demand-paths/DemandPathsPage'))
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 const Dashboard = lazy(() => import('@/views/Dashboard'))
-const LoopOfferingsPage = lazy(() => import('@/views/loop/LoopOfferingsPage'))
-const LoopOfferingDetailPage = lazy(() => import('@/views/loop/LoopOfferingDetailPage'))
+const LoopOfferingDetailPage = lazy(() => import('@/views/loop/LoopOfferingRoutePage'))
 const MyLoopsPage = lazy(() => import('@/views/loop/MyLoopsPage'))
+const LoopDiscoverPage = lazy(() => import('@/views/loop/LoopDiscoverPage'))
+const LoopAcceptPage = lazy(() => import('@/views/loop/LoopAcceptPage'))
+const LoopRunDetailPage = lazy(() => import('@/views/loop/LoopRunDetailPage'))
+
+function LegacyLoopRedirect() {
+  const location = useLocation()
+  return <Navigate to={migrateLegacyLoopUrl(location.pathname, location.search)} replace />
+}
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
   return (
@@ -525,10 +532,18 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'loops',
+            path: 'loops/mine',
             element: (
               <LazyLoad>
                 <MyLoopsPage />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'loops/runs/:id',
+            element: (
+              <LazyLoad>
+                <LoopRunDetailPage />
               </LazyLoad>
             ),
           },
@@ -564,22 +579,6 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
-          {
-            path: 'services',
-            element: (
-              <LazyLoad>
-                <LoopOfferingsPage />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'services/:id',
-            element: (
-              <LazyLoad>
-                <LoopOfferingDetailPage />
-              </LazyLoad>
-            ),
-          },
         ],
       },
     ],
@@ -602,11 +601,31 @@ export const router = createBrowserRouter([
       },
       {
         path: '/path-search',
-        element: (
-          <LazyLoad>
-            <PathSearchPage />
-          </LazyLoad>
-        ),
+        element: <LegacyLoopRedirect />,
+      },
+      {
+        path: '/services',
+        element: <LegacyLoopRedirect />,
+      },
+      {
+        path: '/services/:id',
+        element: <LegacyLoopRedirect />,
+      },
+      {
+        path: '/loops',
+        element: <LegacyLoopRedirect />,
+      },
+      {
+        path: '/loops/discover',
+        element: <LazyLoad><LoopDiscoverPage /></LazyLoad>,
+      },
+      {
+        path: '/loops/accept',
+        element: <LazyLoad><LoopAcceptPage /></LazyLoad>,
+      },
+      {
+        path: '/loops/offerings/:id',
+        element: <LazyLoad><LoopOfferingDetailPage /></LazyLoad>,
       },
     ],
   },

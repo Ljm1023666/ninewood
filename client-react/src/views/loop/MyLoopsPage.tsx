@@ -12,6 +12,7 @@ import {
   Users,
 } from 'lucide-react'
 import { loopApi, type LoopKind, type MyLoopItem, type MyLoopSummary, type HeavenCapabilityItem } from '@/api/loop'
+import LoopHubNav from './LoopHubNav'
 
 type DisplayMode = 'single' | 'split'
 type SplitDirection = 'horizontal' | 'vertical'
@@ -78,7 +79,7 @@ export default function MyLoopsPage() {
   const navigate = useNavigate()
 
   // 从 URL 读取初始视图状态；刷新/分享后仍可还原。
-  const initialMode: DisplayMode = searchParams.get('mode') === 'split' ? 'split' : 'single'
+  const initialMode: DisplayMode = searchParams.get('mode') === 'single' ? 'single' : 'split'
   const initialKinds = parseKinds(searchParams.get('kinds'))
   const initialDir: SplitDirection = searchParams.get('dir') === 'vertical' ? 'vertical' : 'horizontal'
   const initialSort: SortMode = (searchParams.get('sort') as SortMode) || 'recent'
@@ -88,7 +89,7 @@ export default function MyLoopsPage() {
   const [displayMode, setDisplayMode] = useState<DisplayMode>(initialMode)
   const [direction, setDirection] = useState<SplitDirection>(initialDir)
   const [selectedKinds, setSelectedKinds] = useState<LoopKind[]>(
-    initialKinds.length ? initialKinds : ['EARTH'],
+    initialKinds.length ? initialKinds : ALL_KINDS,
   )
   const [sort, setSort] = useState<SortMode>(initialSort)
   const [items, setItems] = useState<MyLoopItem[]>([])
@@ -304,6 +305,7 @@ export default function MyLoopsPage() {
 
   return (
     <div className="my-loops-page">
+      <LoopHubNav />
       <header className="my-loops-head">
         <div>
           <p className="my-loops-kicker">MY LOOPS / 运行中心</p>
@@ -519,7 +521,7 @@ export default function MyLoopsPage() {
                 <HeavenCapabilityCard
                   key={cap.id}
                   cap={cap}
-                  onClick={() => navigate(`/services/${cap.id}`)}
+                  onClick={() => navigate(`/loops/offerings/${cap.id}`)}
                 />
               ))}
             </div>
@@ -597,7 +599,7 @@ export default function MyLoopsPage() {
                 </div>
                 <div className="my-loops-list">
                   {(visibleItems.get(kind) ?? []).map((item) => (
-                    <LoopRunCard key={item.id} item={item} />
+                    <LoopRunCard key={item.id} item={item} onClick={() => navigate(`/loops/runs/${item.id}`)} />
                   ))}
                   {(visibleItems.get(kind) ?? []).length === 0 && (
                     <div className="my-loops-pane__empty">这个分区暂时没有运行记录。</div>
@@ -612,13 +614,19 @@ export default function MyLoopsPage() {
   )
 }
 
-function LoopRunCard({ item }: { item: MyLoopItem }) {
+function LoopRunCard({ item, onClick }: { item: MyLoopItem; onClick: () => void }) {
   const meta = KIND_META[item.kind]
   const Icon = meta.icon
   const status = STATUS_LABEL[item.status] ?? item.status
   const latest = item.latestEvent?.type?.replaceAll('_', ' ').toLowerCase()
   return (
-    <article className="my-loops-card">
+    <article
+      className="my-loops-card"
+      role="link"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onClick() }}
+    >
       <div className="my-loops-card__top">
         <span className="my-loops-card__icon">
           <Icon size={16} />

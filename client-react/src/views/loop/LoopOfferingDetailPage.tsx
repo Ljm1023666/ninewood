@@ -122,6 +122,7 @@ function pipelineFor(code: string, title: string): PipelineSpec {
 
 type RunMode = 'demand' | 'free'
 type RunResult = {
+  runId: string
   ran: boolean
   preview: boolean
   code: string
@@ -146,6 +147,7 @@ export default function LoopOfferingDetailPage() {
     paths: '',
     mediaUrls: '',
   })
+  const [schemaValues, setSchemaValues] = useState<Record<string, string>>({})
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<RunResult>(null)
   const [runError, setRunError] = useState<string | null>(null)
@@ -195,9 +197,21 @@ export default function LoopOfferingDetailPage() {
   }, [data])
 
   const freeFields = useMemo(
-    () => (data ? freeFieldsFor(data.definitionCode) : []),
+    () => (data && Object.keys((data.inputSchema.properties as Record<string, unknown> | undefined) ?? {}).length === 0
+      ? freeFieldsFor(data.definitionCode)
+      : []),
     [data],
   )
+  const schemaFields = useMemo(() => {
+    const properties = (data?.inputSchema.properties as Record<string, Record<string, unknown>> | undefined) ?? {}
+    const required = new Set((data?.inputSchema.required as string[] | undefined) ?? [])
+    return Object.entries(properties).map(([name, schema]) => ({
+      name,
+      type: Array.isArray(schema.type) ? String(schema.type[0]) : String(schema.type ?? 'string'),
+      description: String(schema.description ?? name),
+      required: required.has(name),
+    }))
+  }, [data])
 
   const run = async () => {
     if (!data) return
@@ -212,8 +226,20 @@ export default function LoopOfferingDetailPage() {
         }
         const r = await loopApi.runOffering(data.id, { demandId: selectedDemandId })
         setResult(r)
+        if (r?.runId) navigate(`/loops/runs/${r.runId}`)
       } else {
         const input: Record<string, unknown> = {}
+        for (const field of schemaFields) {
+          const raw = schemaValues[field.name]?.trim()
+          if (!raw) continue
+          input[field.name] = field.type === 'number' || field.type === 'integer'
+            ? Number(raw)
+            : field.type === 'array'
+              ? raw.split(',').map((value) => value.trim()).filter(Boolean)
+              : field.type === 'boolean'
+                ? raw === 'true'
+                : raw
+        }
         if (freeFields.includes('title') && form.title.trim()) input.title = form.title.trim()
         if (freeFields.includes('description') && form.description.trim()) {
           input.description = form.description.trim()
@@ -247,6 +273,7 @@ export default function LoopOfferingDetailPage() {
         }
         const r = await loopApi.runOffering(data.id, { input })
         setResult(r)
+        if (r?.runId) navigate(`/loops/runs/${r.runId}`)
       }
     } catch (e: any) {
       setRunError(e?.response?.data?.message || e?.message || '运行失败')
@@ -268,8 +295,8 @@ export default function LoopOfferingDetailPage() {
       <div className="loop-svc-root">
         <div className="loop-svc-empty">
           <p>{error || '方案不存在'}</p>
-          <button type="button" className="loop-svc-empty__btn" onClick={() => navigate('/services')}>
-            返回找服务
+          <button type="button" className="loop-svc-empty__btn" onClick={() => navigate('/loops/discover')}>
+            返回发现回
           </button>
         </div>
       </div>
@@ -284,17 +311,16 @@ export default function LoopOfferingDetailPage() {
     data.definitionDescription ||
     '把口语描述变成可检索、可接单的标准需求字段。'
   const exampleJson = JSON.stringify(pipeline.exampleOut, null, 2)
-  const dealPct = data.dealRate != null ? `${Math.round(data.dealRate * 100)}%` : '—'
-  const successPct =
-    data.recentTotalN > 0
-      ? `${Math.round((data.recentSuccessN / data.recentTotalN) * 100)}%`
-      : '—'
+  const dealPct = data.metrics.dealRate != null ? `${Math.round(data.metrics.dealRate * 100)}%` : '—'
+  const successPct = data.metrics.publicSuccessRate != null
+    ? `${Math.round(data.metrics.publicSuccessRate * 100)}%`
+    : '验证适配中'
   const duration =
-    data.avgDurationMs == null
+    data.metrics.avgDurationMs == null
       ? '—'
-      : data.avgDurationMs < 1000
-        ? `${data.avgDurationMs}ms`
-        : `${(data.avgDurationMs / 1000).toFixed(1)}s`
+      : data.metrics.avgDurationMs < 1000
+        ? `${data.metrics.avgDurationMs}ms`
+        : `${(data.metrics.avgDurationMs / 1000).toFixed(1)}s`
 
   const imageUri =
     result && typeof result.outcome.dataUri === 'string' ? result.outcome.dataUri : null
@@ -308,9 +334,9 @@ export default function LoopOfferingDetailPage() {
   return (
     <div className="loop-svc-root">
       <main className="loop-svc-shell">
-        <button type="button" className="loop-svc-back" onClick={() => navigate('/services')}>
+        <button type="button" className="loop-svc-back" onClick={() => navigate('/loops/discover')}>
           <MsIcon name="arrow_left_alt" className="text-[14px]" />
-          返回找服务
+          返回发现回
         </button>
 
         <header>
@@ -416,6 +442,27 @@ export default function LoopOfferingDetailPage() {
             </div>
           ) : (
             <div className="loop-svc-run__form">
+              {schemaFields.map((field) => field.name === 'description' ? (
+                <textarea
+                  key={field.name}
+                  className="loop-svc-run__input"
+                  placeholder={`${field.description}${field.required ? '（必填）' : ''}`}
+                  rows={3}
+                  value={schemaValues[field.name] ?? ''}
+                  onChange={(event) => setSchemaValues((current) => ({ ...current, [field.name]: event.target.value }))}
+                  aria-label={field.description}
+                />
+              ) : (
+                <input
+                  key={field.name}
+                  className="loop-svc-run__input"
+                  type={field.type === 'number' || field.type === 'integer' ? 'number' : 'text'}
+                  placeholder={`${field.description}${field.type === 'array' ? '（逗号分隔）' : ''}${field.required ? '（必填）' : ''}`}
+                  value={schemaValues[field.name] ?? ''}
+                  onChange={(event) => setSchemaValues((current) => ({ ...current, [field.name]: event.target.value }))}
+                  aria-label={field.description}
+                />
+              ))}
               {freeFields.includes('title') && (
                 <input
                   className="loop-svc-run__input"
@@ -467,10 +514,10 @@ export default function LoopOfferingDetailPage() {
                   aria-label="附件地址"
                 />
               )}
-              {freeFields.length === 0 && !data.definitionCode.includes('health') && (
+              {schemaFields.length === 0 && freeFields.length === 0 && !data.definitionCode.includes('health') && (
                 <p className="loop-svc-run__hint">该能力依赖已有需求数据，请改用「选一条需求」。</p>
               )}
-              {freeFields.length === 0 && data.definitionCode.includes('health') && (
+              {schemaFields.length === 0 && freeFields.length === 0 && data.definitionCode.includes('health') && (
                 <p className="loop-svc-run__hint">无需填写；点击下方按钮探测接口健康。</p>
               )}
               <button
@@ -478,7 +525,7 @@ export default function LoopOfferingDetailPage() {
                 className="loop-svc-run__btn"
                 disabled={
                   running ||
-                  (freeFields.length === 0 && !data.definitionCode.includes('health'))
+                  (schemaFields.length === 0 && freeFields.length === 0 && !data.definitionCode.includes('health'))
                 }
                 onClick={() => void run()}
               >
@@ -518,7 +565,7 @@ export default function LoopOfferingDetailPage() {
           <span>平均耗时 {duration}</span>
           <span className="loop-svc-status__sep">·</span>
           <span>
-            近期样本 {data.recentSuccessN}/{data.recentTotalN}
+            公开样本 {data.metrics.sampleSize ?? '验证适配中'}
           </span>
         </section>
 
@@ -536,9 +583,9 @@ export default function LoopOfferingDetailPage() {
             <button
               type="button"
               className="loop-svc-next__link"
-              onClick={() => navigate('/path-search')}
+              onClick={() => navigate('/loops/accept')}
             >
-              去路径检索
+              去承接人回
               <MsIcon name="arrow_outward" className="text-[16px]" />
             </button>
           </div>

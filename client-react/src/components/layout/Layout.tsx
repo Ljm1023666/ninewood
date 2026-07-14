@@ -77,10 +77,11 @@ export default function Layout() {
   }, [me, token, connectChat, disconnectChat])
 
   useEffect(() => {
+    if (!me) return
     fetchUnreadCount()
     const timer = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(timer)
-  }, [fetchUnreadCount])
+  }, [fetchUnreadCount, me])
 
   useKeyboard([
     { key: 'k', ctrl: true, handler: () => navigate('/') },

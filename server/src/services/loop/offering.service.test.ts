@@ -33,6 +33,7 @@ import { listOfferings, retrieveOffering, ensureSystemOfferings } from './offeri
 beforeEach(() => {
   Object.values(m).forEach((f: any) => f.mockReset());
   m.seedBuiltinLoops.mockResolvedValue({ definitions: 10, endpoints: 9, offerings: 9 });
+  m.loopOfferingFindMany.mockResolvedValue([]);
 });
 
 describe('listOfferings (§3.3)', () => {

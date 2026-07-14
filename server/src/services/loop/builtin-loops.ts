@@ -7,6 +7,7 @@ import {
   LoopExecutionMode,
   CapabilityHostMode,
   CapabilityHealth,
+  Prisma,
 } from '@prisma/client';
 
 /** 人回影子模板 code：需求创建时自动关联的 LoopDefinition */
@@ -25,27 +26,58 @@ export interface BuiltinDefinitionSpec {
   /** 上架物标题/摘要（当 hasEndpoint 时必填） */
   offeringTitle?: string;
   offeringSummary?: string;
-  /** 测试期模拟指标（展示用；幂等 seed 会回写） */
-  demoMetrics?: {
-    dealRate: number;
-    avgDurationMs: number;
-    recentSuccessN: number;
-    recentTotalN: number;
-  };
+  capabilityPaths?: string[];
+  inputSchema?: Record<string, unknown>;
+  outcomeSchema?: Record<string, unknown>;
+  verifierCode?: string;
 }
 
-/** 测试期演示指标：让列表/详情有可展示数字（非真实生产统计） */
-const DEMO = {
-  structure: { dealRate: 0.72, avgDurationMs: 1840, recentSuccessN: 86, recentTotalN: 100 },
-  paths: { dealRate: 0.81, avgDurationMs: 420, recentSuccessN: 94, recentTotalN: 100 },
-  media: { dealRate: 0.55, avgDurationMs: 3200, recentSuccessN: 41, recentTotalN: 68 },
-  cover: { dealRate: 0.48, avgDurationMs: 5100, recentSuccessN: 29, recentTotalN: 52 },
-  fields: { dealRate: 0.91, avgDurationMs: 180, recentSuccessN: 198, recentTotalN: 210 },
-  pathValidate: { dealRate: 0.88, avgDurationMs: 95, recentSuccessN: 176, recentTotalN: 190 },
-  attach: { dealRate: 0.79, avgDurationMs: 640, recentSuccessN: 112, recentTotalN: 130 },
-  wallet: { dealRate: 0.96, avgDurationMs: 210, recentSuccessN: 240, recentTotalN: 248 },
-  ping: { dealRate: 0.99, avgDurationMs: 48, recentSuccessN: 990, recentTotalN: 1000 },
+const TEXT_INPUT_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string', minLength: 2, description: '需求标题' },
+    description: { type: 'string', minLength: 2, description: '自然语言需求描述' },
+    minPrice: { type: 'number', minimum: 0, description: '最低预算' },
+  },
+  anyOf: [{ required: ['title'] }, { required: ['description'] }],
+  additionalProperties: true,
 } as const;
+
+const STRUCTURED_OUTCOME_SCHEMA = {
+  type: 'object',
+  required: ['title', 'description', 'paths'],
+  properties: {
+    title: { type: 'string', minLength: 2 },
+    description: { type: 'string', minLength: 2 },
+    minPrice: { type: ['number', 'null'], minimum: 0 },
+    paths: { type: 'array', items: { type: 'string' } },
+  },
+  additionalProperties: true,
+} as const;
+
+const PATH_OUTCOME_SCHEMA = {
+  type: 'object',
+  required: ['paths', 'count'],
+  properties: {
+    paths: { type: 'array', minItems: 1, items: { type: 'string', minLength: 3 } },
+    count: { type: 'integer', minimum: 1 },
+  },
+  additionalProperties: true,
+} as const;
+
+// 旧版 seed 曾持续写入这些演示统计。仅当整组数值仍与已知演示元组完全一致时清理，
+// 避免覆盖已经产生的真实运行数据；清理后后续 seed 不再写入任何指标。
+const LEGACY_DEMO_METRICS: Record<string, [number, number, number, number]> = {
+  'builtin.earth.demand.structure': [0.72, 1840, 86, 100],
+  'builtin.earth.demand.paths': [0.81, 420, 94, 100],
+  'builtin.earth.media.normalize': [0.55, 3200, 41, 68],
+  'builtin.earth.demand.card_cover': [0.48, 5100, 29, 52],
+  'builtin.heaven.validate.demand_fields': [0.91, 180, 198, 210],
+  'builtin.heaven.validate.paths': [0.88, 95, 176, 190],
+  'builtin.heaven.validate.attachment_safety': [0.79, 640, 112, 130],
+  'builtin.heaven.validate.order_wallet_consistency': [0.96, 210, 240, 248],
+  'builtin.heaven.health.endpoint_ping': [0.99, 48, 990, 1000],
+};
 
 export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
   {
@@ -72,7 +104,10 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '需求智能结构化',
     offeringSummary: '把一段口语描述自动整理成标准需求字段，便于检索与接单。',
-    demoMetrics: DEMO.structure,
+    capabilityPaths: ['intent:需求整理', 'tag:需求结构化', 'cat:平台工具'],
+    inputSchema: TEXT_INPUT_SCHEMA,
+    outcomeSchema: STRUCTURED_OUTCOME_SCHEMA,
+    verifierCode: 'builtin.heaven.validate.demand_fields',
   },
   {
     code: 'builtin.earth.demand.paths',
@@ -85,7 +120,10 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '自动生成检索路径',
     offeringSummary: '根据需求字段自动生成可检索的 path（tag:/cat:/rgn:），提升曝光。',
-    demoMetrics: DEMO.paths,
+    capabilityPaths: ['intent:路径生成', 'tag:路径', 'tag:检索', 'cat:平台工具'],
+    inputSchema: TEXT_INPUT_SCHEMA,
+    outcomeSchema: PATH_OUTCOME_SCHEMA,
+    verifierCode: 'builtin.heaven.validate.paths',
   },
   {
     code: 'builtin.earth.media.normalize',
@@ -98,7 +136,10 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '附件标准化',
     offeringSummary: '统一附件格式与资源地址，便于展示与审核。',
-    demoMetrics: DEMO.media,
+    capabilityPaths: ['intent:附件处理', 'tag:附件', 'cat:平台工具'],
+    inputSchema: { type: 'object', properties: { mediaUrls: { type: 'array', items: { type: 'string' } } }, required: ['mediaUrls'], additionalProperties: true },
+    outcomeSchema: { type: 'object', additionalProperties: true },
+    verifierCode: 'builtin.heaven.validate.attachment_safety',
   },
   {
     code: 'builtin.earth.demand.card_cover',
@@ -111,7 +152,10 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '需求卡封面生成',
     offeringSummary: '自动为需求卡生成封面视觉。',
-    demoMetrics: DEMO.cover,
+    capabilityPaths: ['intent:封面生成', 'tag:封面', 'tag:图片', 'cat:平台工具'],
+    inputSchema: TEXT_INPUT_SCHEMA,
+    outcomeSchema: { type: 'object', additionalProperties: true },
+    verifierCode: 'builtin.heaven.validate.demand_fields',
   },
 
   // ── 天回（接口 ↔ 接口，验证/监管桩） ──────────────────────────────────
@@ -126,7 +170,6 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '需求字段合规校验',
     offeringSummary: '系统自动校验需求的标题/描述/最低价是否合规。',
-    demoMetrics: DEMO.fields,
   },
   {
     code: 'builtin.heaven.validate.paths',
@@ -139,7 +182,6 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '路径可检索性校验',
     offeringSummary: '系统自动校验需求的检索路径是否非空且编码合法。',
-    demoMetrics: DEMO.pathValidate,
   },
   {
     code: 'builtin.heaven.validate.attachment_safety',
@@ -152,7 +194,6 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '附件安全扫描',
     offeringSummary: '系统自动对附件做安全扫描（扩展名白名单/黑名单）。',
-    demoMetrics: DEMO.attach,
   },
   {
     code: 'builtin.heaven.validate.order_wallet_consistency',
@@ -165,7 +206,6 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '订单-钱包一致性校验',
     offeringSummary: '系统自动校验订单与结算记录的一致性（只读，不改账）。',
-    demoMetrics: DEMO.wallet,
   },
   {
     code: 'builtin.heaven.health.endpoint_ping',
@@ -178,7 +218,6 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '接口健康检查',
     offeringSummary: '系统自动对能力接口做健康检查，保障可用性。',
-    demoMetrics: DEMO.ping,
   },
 ];
 
@@ -207,6 +246,8 @@ export async function seedBuiltinLoops(): Promise<{
         initiatorKind: spec.initiatorKind,
         receiverKind: spec.receiverKind,
         executionMode: spec.executionMode,
+        inputSchema: (spec.inputSchema ?? {}) as Prisma.InputJsonValue,
+        outcomeSchema: (spec.outcomeSchema ?? {}) as Prisma.InputJsonValue,
         isBuiltin: true,
         isPublic: true,
       },
@@ -217,6 +258,8 @@ export async function seedBuiltinLoops(): Promise<{
         initiatorKind: spec.initiatorKind,
         receiverKind: spec.receiverKind,
         executionMode: spec.executionMode,
+        inputSchema: (spec.inputSchema ?? {}) as Prisma.InputJsonValue,
+        outcomeSchema: (spec.outcomeSchema ?? {}) as Prisma.InputJsonValue,
       },
     });
     defCount++;
@@ -232,7 +275,9 @@ export async function seedBuiltinLoops(): Promise<{
         ownerId: null,
         hostMode: CapabilityHostMode.PLATFORM_HOSTED,
         executionMode: spec.executionMode,
-        paths: [],
+        paths: spec.capabilityPaths ?? [],
+        inputSchema: (spec.inputSchema ?? {}) as Prisma.InputJsonValue,
+        outputSchema: (spec.outcomeSchema ?? {}) as Prisma.InputJsonValue,
         healthStatus: CapabilityHealth.ONLINE,
         successRatePublic: false,
       },
@@ -240,24 +285,12 @@ export async function seedBuiltinLoops(): Promise<{
         name: spec.name,
         hostMode: CapabilityHostMode.PLATFORM_HOSTED,
         executionMode: spec.executionMode,
+        paths: spec.capabilityPaths ?? [],
+        inputSchema: (spec.inputSchema ?? {}) as Prisma.InputJsonValue,
+        outputSchema: (spec.outcomeSchema ?? {}) as Prisma.InputJsonValue,
       },
     });
     epCount++;
-
-    const metrics = spec.demoMetrics;
-    const metricPatch = metrics
-      ? {
-          dealRate: metrics.dealRate,
-          avgDurationMs: metrics.avgDurationMs,
-          recentSuccessN: metrics.recentSuccessN,
-          recentTotalN: metrics.recentTotalN,
-          // 测试期：用样本成功率填内部字段，便于后续 admin 查看
-          internalSuccessRate:
-            metrics.recentTotalN > 0
-              ? Math.round((metrics.recentSuccessN / metrics.recentTotalN) * 1000) / 1000
-              : null,
-        }
-      : {};
 
     const existing = await prisma.loopOffering.findFirst({
       where: { definitionId: def.id, title: spec.offeringTitle! },
@@ -269,18 +302,34 @@ export async function seedBuiltinLoops(): Promise<{
           endpointId: endpoint.id,
           title: spec.offeringTitle!,
           summary: spec.offeringSummary ?? null,
-          paths: [],
+          paths: spec.capabilityPaths ?? [],
           status: 'ACTIVE',
-          requiresVerification: false,
-          ...metricPatch,
+          requiresVerification: spec.loopKind === LoopKind.EARTH,
         },
       });
       offCount++;
-    } else if (metrics) {
-      // 幂等回写演示指标（测试期空表/零值可被刷新）
+    } else {
+      const legacy = LEGACY_DEMO_METRICS[spec.code];
+      const clearLegacyMetrics = legacy
+        && existing.dealRate === legacy[0]
+        && existing.avgDurationMs === legacy[1]
+        && existing.recentSuccessN === legacy[2]
+        && existing.recentTotalN === legacy[3]
+        ? {
+            dealRate: null,
+            avgDurationMs: null,
+            recentSuccessN: 0,
+            recentTotalN: 0,
+            internalSuccessRate: null,
+          }
+        : {};
       await prisma.loopOffering.update({
         where: { id: existing.id },
-        data: metricPatch,
+        data: {
+          paths: spec.capabilityPaths ?? [],
+          requiresVerification: spec.loopKind === LoopKind.EARTH,
+          ...clearLegacyMetrics,
+        },
       });
     }
   }

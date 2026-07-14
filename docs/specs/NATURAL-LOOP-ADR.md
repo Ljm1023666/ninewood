@@ -1,6 +1,6 @@
 # ADR · 自然回（Natural Loop）领域模型
 
-> **状态**：Accepted（产品决策） / Implementation = TASK-12  
+> **状态**：Superseded by `NATURAL-LOOP-V2-ADR.md`
 > **日期**：2026-07-12  
 > **相关**：`docs/specs/TASK-12-natural-loop-handoff.md`
 
