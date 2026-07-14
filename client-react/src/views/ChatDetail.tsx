@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { TemplateChatRightShell } from '@/components/ui/chat-template'
 import type { TemplateContact } from '@/components/ui/chat-template'
 import { BackButton } from '@/components/ui/back-button'
+import { MsgChatDepthPane, MsgComposerRebound } from '@/components/ui/msg-chat-depth-pane'
 
 function getSenderId(m: ChatMessage): string {
   return m.senderId || m.fromUserId || ''
@@ -137,10 +138,8 @@ export default function ChatDetail() {
     if (!connected) startPolling()
     return () => {
       stopPolling()
-      clearMessages()
     }
   }, [
-    clearMessages,
     connected,
     currentMergeId,
     fetchMessages,
@@ -150,6 +149,13 @@ export default function ChatDetail() {
     startPolling,
     stopPolling,
   ])
+
+  // 仅在离开聊天页时清空，切换会话不清空，避免右侧闪白
+  useEffect(() => {
+    return () => {
+      clearMessages()
+    }
+  }, [clearMessages])
 
   useEffect(() => {
     const serviceCardId = searchParams.get('serviceCardId')
@@ -168,6 +174,7 @@ export default function ChatDetail() {
     unreadAnchorCaptured.current = false
     setUnreadAnchorKey(null)
     setPendingOutgoing([])
+    // 切换会话时不强制骨架闪白；右侧景深切场已承接过渡
     setInitialLoading(true)
     cardAttachSent.current = false
   }, [peerId, currentMergeId])
@@ -357,6 +364,7 @@ export default function ChatDetail() {
   ]
 
   const hasChat = isMergeChat ? !!currentMergeId : !!peerId
+  const paneKey = isMergeChat ? `merge:${currentMergeId}` : peerId
 
   return (
     <>
@@ -391,7 +399,7 @@ export default function ChatDetail() {
           <>
             <button
               type="button"
-              className="rounded-md px-2 py-1 text-xs text-text-muted hover:bg-bg-secondary hover:text-text-primary"
+              className="msg-chat-header__action msg-chat-header__action--muted"
               onClick={() => setShowReport(true)}
             >
               举报
@@ -399,7 +407,7 @@ export default function ChatDetail() {
             <button
               type="button"
               disabled={blocking}
-              className="rounded-md px-2 py-1 text-xs text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+              className="msg-chat-header__action msg-chat-header__action--danger"
               onClick={() => void handleBlockPeer()}
             >
               拉黑
@@ -408,12 +416,13 @@ export default function ChatDetail() {
         ) : undefined
       }
       middle={
+        <MsgChatDepthPane paneKey={paneKey || 'chat'}>
         <div
           ref={listRef}
           className="thin-scroll flex min-h-0 flex-1 flex-col overflow-y-auto bg-bg-primary px-3 py-3"
         >
           <div className="msg-thread">
-            {initialLoading && messages.length === 0 ? (
+            {initialLoading && messages.length === 0 && !threadContact ? (
               <div className="flex flex-col gap-3 pt-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
@@ -451,8 +460,6 @@ export default function ChatDetail() {
                         hideAvatar={false}
                         isGroupedWithPrev={groupedWithPrev}
                         isGroupedWithNext={false}
-                        showTimestamp
-                        timestamp={p.createdAt}
                         sendStatus={p.status}
                         onRetry={() => retryPending(p)}
                       />
@@ -490,11 +497,11 @@ export default function ChatDetail() {
                     {m.cardAttachment && (
                       <div className={cn('mb-2 max-w-[360px] rounded-xl border border-border bg-bg-card p-3', isMine ? 'ml-auto' : 'mr-auto')}>
                         <div className="mb-2 flex items-center justify-between gap-3">
-                          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+                          <span className="text-sm font-semibold text-text-secondary">
                             {m.cardAttachment.cardType === 'SERVICE_CARD' ? '服务卡' : '需求卡'}
                           </span>
                           {m.cardAttachment.snapshot.category && (
-                            <span className="text-xs text-text-muted">{m.cardAttachment.snapshot.category}</span>
+                            <span className="text-sm text-text-secondary">{m.cardAttachment.snapshot.category}</span>
                           )}
                         </div>
                         {m.cardAttachment.snapshot.coverImage && (
@@ -504,14 +511,14 @@ export default function ChatDetail() {
                             alt=""
                           />
                         )}
-                        <strong className="block text-sm text-text-primary">
+                        <strong className="block text-[15px] text-text-primary">
                           {m.cardAttachment.snapshot.title || '卡片'}
                         </strong>
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-text-secondary">
                           {m.cardAttachment.snapshot.summary || m.cardAttachment.snapshot.description || ''}
                         </p>
                         {m.cardAttachment.snapshot.evidence?.length ? (
-                          <p className="mt-2 text-xs text-[var(--accent-color)]">
+                          <p className="mt-2 text-sm text-[var(--accent-color)]">
                             {m.cardAttachment.snapshot.evidence[0].label} 已完成 {m.cardAttachment.snapshot.evidence[0].completedCount} 次
                           </p>
                         ) : null}
@@ -528,9 +535,7 @@ export default function ChatDetail() {
                                 fromUser?: { nickname?: string }
                               }
                             ).fromUser?.nickname || '成员'
-                          : isMine
-                            ? undefined
-                            : peerNickname
+                          : undefined
                       }
                       avatarUrl={
                         isMergeChat
@@ -546,8 +551,6 @@ export default function ChatDetail() {
                       hideAvatar={false}
                       isGroupedWithPrev={isGroupedWithPrev}
                       isGroupedWithNext={isGroupedWithNext}
-                      showTimestamp={!isGroupedWithNext}
-                      timestamp={m.createdAt}
                       onImageClick={setPreviewImage}
                     />
                   </div>
@@ -556,6 +559,7 @@ export default function ChatDetail() {
             )}
           </div>
         </div>
+        </MsgChatDepthPane>
       }
       inputRow={hasChat ? (
         <div className="msg-composer">
@@ -579,44 +583,47 @@ export default function ChatDetail() {
             </div>
           ) : null}
 
-          <div className="msg-composer__bar">
-            <button
-              type="button"
-              className="msg-composer__icon-btn"
-              onClick={() => setShowEmoji(!showEmoji)}
-              title="表情"
-            >
-              <MsIcon name="mood" size={20} />
-            </button>
+          <MsgComposerRebound playKey={paneKey || 'chat'}>
+            <div className="msg-composer__bar">
+              <button
+                type="button"
+                className="msg-composer__icon-btn"
+                onClick={() => setShowEmoji(!showEmoji)}
+                title="表情"
+              >
+                <MsIcon name="mood" size={20} />
+              </button>
 
-            <textarea
-              ref={textareaRef}
-              value={input}
-              rows={1}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  void send()
-                }
-              }}
-              placeholder="输入消息…（Shift+Enter 换行）"
-              className="msg-composer__input thin-scroll"
-            />
+              <textarea
+                ref={textareaRef}
+                value={input}
+                rows={1}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    void send()
+                  }
+                }}
+                placeholder="输入消息…"
+                title="Enter 发送，Shift+Enter 换行"
+                className="msg-composer__input thin-scroll"
+              />
 
-            <button
-              type="button"
-              title="发送"
-              onClick={() => void send()}
-              disabled={!input.trim()}
-              className={cn(
-                'msg-composer__send',
-                input.trim() && 'msg-composer__send--active',
-              )}
-            >
-              <MsIcon name="send" size={20} />
-            </button>
-          </div>
+              <button
+                type="button"
+                title="发送"
+                onClick={() => void send()}
+                disabled={!input.trim()}
+                className={cn(
+                  'msg-composer__send',
+                  input.trim() && 'msg-composer__send--active',
+                )}
+              >
+                <MsIcon name="send" size={20} />
+              </button>
+            </div>
+          </MsgComposerRebound>
         </div>
       ) : null}
     />
@@ -630,7 +637,7 @@ export default function ChatDetail() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="mb-3 text-base font-semibold text-text-primary">举报用户</h3>
-            <label className="mb-1 block text-xs text-text-muted">类型</label>
+            <label className="mb-1 block text-sm text-text-secondary">类型</label>
             <select
               value={reportCategory}
               onChange={(e) =>
@@ -644,7 +651,7 @@ export default function ChatDetail() {
               <option value="scam">诈骗</option>
               <option value="other">其他</option>
             </select>
-            <label className="mb-1 block text-xs text-text-muted">说明</label>
+            <label className="mb-1 block text-sm text-text-secondary">说明</label>
             <textarea
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}

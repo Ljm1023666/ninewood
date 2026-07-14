@@ -25,11 +25,9 @@ import {
 } from '@/utils/user-cover-presets'
 
 import {
-
   preloadPackGalleryGpuTextures,
-
   preloadPackGalleryGpuTexturesDelta,
-
+  invalidatePackGalleryGpuPreload,
 } from '@/utils/preload-pack-gallery-gpu'
 
 import { loadPackGalleryImages } from '@/utils/pack-gallery-bridge'
@@ -88,7 +86,7 @@ function emit(key: string) {
 
 /** 纹理结构变更时递增，使旧 blob 缓存失效 */
 
-const PACK_GALLERY_CACHE_VERSION = 8
+const PACK_GALLERY_CACHE_VERSION = 9
 
 
 
@@ -101,23 +99,75 @@ export function getPackGalleryKey(scope: BlackScope): string {
 
 
 function revokeItemBlobs(item: PackCardImageItem) {
-
-  if (item.src.startsWith('blob:')) URL.revokeObjectURL(item.src)
-
-  if (item.backSrc?.startsWith('blob:')) URL.revokeObjectURL(item.backSrc)
-
+  if (item.src.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(item.src)
+    } catch {
+      /* noop */
+    }
+  }
+  if (item.backSrc?.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(item.backSrc)
+    } catch {
+      /* noop */
+    }
+  }
 }
 
-
-
 function revokeGalleryItems(items: PackCardImageItem[]) {
-
   for (const item of items) {
-
     revokeItemBlobs(item)
+  }
+}
 
+/** HD 替换后暂存旧 blob，避免 GPU 预载 / useTexture 仍在读时被 revoke */
+const orphanItemsByKey = new Map<string, PackCardImageItem[]>()
+const ORPHAN_REVOKE_MS = 12000
+
+function collectLiveUrls(items: PackCardImageItem[]): Set<string> {
+  const urls = new Set<string>()
+  for (const item of items) {
+    urls.add(item.src)
+    if (item.backSrc) urls.add(item.backSrc)
+  }
+  return urls
+}
+
+function deferRevokeGalleryItems(key: string, items: PackCardImageItem[]) {
+  const stale = items.filter(
+    (item) => item.src.startsWith('blob:') || item.backSrc?.startsWith('blob:'),
+  )
+  if (stale.length === 0) return
+  const bucket = orphanItemsByKey.get(key) ?? []
+  bucket.push(...stale)
+  orphanItemsByKey.set(key, bucket)
+  window.setTimeout(() => {
+    flushOrphanBlobs(key)
+  }, ORPHAN_REVOKE_MS)
+}
+
+function flushOrphanBlobs(key: string, force = false) {
+  const orphans = orphanItemsByKey.get(key)
+  if (!orphans?.length) return
+
+  const live = force
+    ? new Set<string>()
+    : collectLiveUrls(snapshots.get(key)?.items ?? [])
+  const remain: PackCardImageItem[] = []
+
+  for (const item of orphans) {
+    const frontLive = live.has(item.src)
+    const backLive = item.backSrc ? live.has(item.backSrc) : false
+    if (frontLive || backLive) {
+      remain.push(item)
+      continue
+    }
+    revokeItemBlobs(item)
   }
 
+  if (remain.length > 0) orphanItemsByKey.set(key, remain)
+  else orphanItemsByKey.delete(key)
 }
 
 
@@ -328,6 +378,7 @@ async function upgradeTexturesInBackground(
   const indexById = new Map(
     upgraded.map((item, index) => [item.id ?? `idx:${index}`, index]),
   )
+  const stale: PackCardImageItem[] = []
 
   for (const card of cards) {
     const index = indexById.get(card.id)
@@ -340,7 +391,8 @@ async function upgradeTexturesInBackground(
     await yieldToMain()
     if (!hd) continue
 
-    revokeItemBlobs(previous)
+    // 先替换引用，发布后再回收旧 blob，避免 useTexture 读到已 revoke 的 URL
+    stale.push(previous)
     upgraded[index] = hd
 
     if (HD_TEXTURE_CARD_GAP_MS > 0) {
@@ -351,7 +403,10 @@ async function upgradeTexturesInBackground(
   }
 
   const base = snapshots.get(key)
-  if (!base) return
+  if (!base) {
+    deferRevokeGalleryItems(key, stale)
+    return
+  }
 
   const texturesComplete = cards.every((c) => {
     const itemIndex = indexById.get(c.id)
@@ -359,12 +414,15 @@ async function upgradeTexturesInBackground(
     return upgraded[itemIndex]?.src.startsWith('blob:') ?? false
   })
 
+  // 取消仍在队列中的旧 blob preload，再发布新 URL
+  invalidatePackGalleryGpuPreload()
   publishSnapshot(key, {
     ...base,
     items: upgraded,
     texturesComplete,
   })
   preloadPackGalleryGpuTexturesDelta(seedItems, upgraded)
+  deferRevokeGalleryItems(key, stale)
 }
 
 
@@ -448,7 +506,8 @@ export function warmPackGalleryFromCards(
   const existing = snapshots.get(key)
   const packOpenOpts: GalleryBuildOptions = {
     deferHdUpgrade: true,
-    deferGpuPreload: true,
+    // 快纹理就绪后立即 GPU 预载，缩短 loading→sceneReady
+    deferGpuPreload: false,
   }
 
   if (existing?.ready) {
@@ -638,9 +697,13 @@ export function evictPackGallery(scope: BlackScope): void {
 
   const key = getPackGalleryKey(scope)
 
+  invalidatePackGalleryGpuPreload()
+
   const snap = snapshots.get(key)
 
   if (snap) revokeGalleryItems(snap.items)
+
+  flushOrphanBlobs(key, true)
 
   snapshots.delete(key)
 

@@ -7,10 +7,17 @@ import { useLocation } from 'react-router-dom'
  */
 export default function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation()
+  // 消息页有自己的持久化左右分栏；切换会话时不能重挂整个壳层。
+  // 回中心三 Tab 共用持久壳，key 稳住以免切页整容器闪一下。
+  const pageKey = location.pathname.startsWith('/messages/')
+    ? '/messages'
+    : /^\/loops\/(discover|mine|accept)(\/|$)/.test(location.pathname)
+      ? '/loops-hub'
+      : location.pathname
 
   return (
     <div
-      key={location.pathname}
+      key={pageKey}
       style={{
         display: 'flex',
         flexDirection: 'column',

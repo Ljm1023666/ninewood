@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { formatMessageTime } from '@/utils/time'
 import {
   MessageContextMenu,
   SendStatusIndicator,
@@ -64,8 +63,6 @@ export function MessageBubble({
   hideAvatar,
   isGroupedWithPrev = false,
   isGroupedWithNext = false,
-  showTimestamp = false,
-  timestamp,
   sendStatus,
   onRetry,
   onImageClick,
@@ -90,10 +87,6 @@ export function MessageBubble({
   const isVideo = videoExts.test(content)
   const isMedia = isImage || isVideo
   const showAvatar = !hideAvatar
-  const timeLabel =
-    timestamp && showTimestamp && !sendStatus
-      ? formatMessageTime(timestamp)
-      : null
 
   return (
     <>
@@ -197,17 +190,6 @@ export function MessageBubble({
                     <p className="msg-bubble__text">{content}</p>
                   )}
                 </div>
-
-                {timeLabel && (
-                  <span
-                    className={cn(
-                      'msg-time',
-                      showTimestamp && 'msg-time--visible',
-                    )}
-                  >
-                    {timeLabel}
-                  </span>
-                )}
               </div>
             </div>
           </div>

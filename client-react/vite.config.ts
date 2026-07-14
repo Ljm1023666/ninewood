@@ -26,7 +26,7 @@ export default defineConfig({
     allowedHosts: ['ninewood.local', 'localhost'],
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
         // 转发 Cookie，配合 HttpOnly 会话
         configure: (proxy) => {
@@ -39,9 +39,9 @@ export default defineConfig({
           })
         },
       },
-      '/uploads': { target: 'http://localhost:3001', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:3002', changeOrigin: true },
       '/socket.io': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3002',
         changeOrigin: true,
         ws: true,
       },

@@ -43,6 +43,7 @@ import {
   Menu,
   MessageCircle,
   MessageSquareDot,
+  Search,
   Send,
   Settings,
   Smile,
@@ -180,6 +181,8 @@ const menuItems = [
 export type HomeProps = {
   /** 覆盖左侧联系人列表；不传则用模板默认 20 条 */
   contacts?: TemplateContact[]
+  /** 会话首屏加载中；已有列表时保留现有内容，避免刷新闪烁 */
+  contactsLoading?: boolean
   /** 受控：当前会话（高亮列表项 + 右侧信息）；不传则组件内 useState */
   currentChat?: TemplateContact | null
   /** 与路由会话 id 一致时高亮左侧条目 */
@@ -313,7 +316,9 @@ export function TemplateChatRightShell({
           nameBlock
         )}
         {headerTrailing ? (
-          <div className="ml-auto flex shrink-0 items-center gap-1">{headerTrailing}</div>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            {headerTrailing}
+          </div>
         ) : null}
       </div>
 
@@ -381,6 +386,7 @@ function LeftChatListPanel({
   embedInLayout = false,
   onNewChat,
   onNavigateToSearch,
+  loading = false,
   variant = 'default',
 }: {
   contactList: TemplateContact[]
@@ -391,6 +397,7 @@ function LeftChatListPanel({
   onNewChat?: () => void
   /** 点击"新建群聊" */
   onNavigateToSearch?: () => void
+  loading?: boolean
   variant?: 'default' | 'internal'
 }) {
   const [search, setSearch] = useState('')
@@ -420,80 +427,128 @@ function LeftChatListPanel({
           embedInLayout ? 'h-full min-h-0' : 'h-screen',
         )}
       >
-        <header className="internal-page-header shrink-0 border-b border-[var(--internal-hairline)] px-4">
-          <BackButton compact />
-          <h1 className="internal-display-title ml-4">消息</h1>
+        <header className="internal-page-header msg-list-header shrink-0 px-4">
+          <div className="flex min-w-0 items-center">
+            <BackButton compact />
+            <h1 className="internal-display-title ml-4">消息</h1>
+          </div>
+          <div className="msg-list-header__actions">
+            <button
+              type="button"
+              className="msg-list-header__action"
+              onClick={onNavigateToSearch}
+              aria-label="新建群聊"
+              title="新建群聊"
+            >
+              <Users className="size-4" />
+            </button>
+            <button
+              type="button"
+              className="msg-list-header__action"
+              onClick={onNewChat}
+              aria-label="发起新会话"
+              title="发起新会话"
+            >
+              <SquarePen className="size-4" />
+            </button>
+          </div>
         </header>
-        <div className="shrink-0 border-b border-[var(--internal-hairline)] px-4 py-2">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜索会话"
-            className="msg-list-search"
-          />
+        <div className="msg-list-search-wrap shrink-0 px-4 pb-3">
+          <div className="msg-list-search-field">
+            <Search className="msg-list-search__icon size-4" aria-hidden />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="搜索会话"
+              className="msg-list-search"
+            />
+          </div>
         </div>
-        <ScrollArea className="min-h-0 flex-1">
-          {filtered.map(({ contact, origIndex }) => {
-            const selected = !!contact.id && contact.id === selectedContactId
-            const initial = contact.name?.charAt(0) ?? '?'
-            return (
-              <button
-                key={contact.id ?? `${contact.name}-${origIndex}`}
-                type="button"
-                onClick={() => onPick(contact, origIndex)}
-                className={cn(
-                  'internal-message-row w-full text-left',
-                  selected && 'internal-message-row--active',
-                )}
-              >
-                {contact.type === 'merge' ? (
-                  <div className="internal-message-avatar">
-                    <Users className="size-4 text-[var(--internal-accent)]" />
-                  </div>
-                ) : contact.image ? (
-                  <img
-                    src={contact.image}
-                    alt=""
-                    className="size-10 shrink-0 border border-[var(--internal-hairline)] object-cover"
-                  />
-                ) : (
-                  <div className="internal-message-avatar">{initial}</div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-text-primary">
-                      {contact.name}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-1.5">
-                      {contact.lastMessageAt ? (
-                        <span className="text-[11px] tabular-nums text-text-muted">
-                          {formatChatTime(contact.lastMessageAt)}
-                        </span>
-                      ) : null}
-                      {(contact.unreadCount ?? 0) > 0 ? (
-                        <span className="msg-list-unread-badge">
-                          {(contact.unreadCount ?? 0) > 99
-                            ? '99+'
-                            : contact.unreadCount}
-                        </span>
-                      ) : null}
+        <ScrollArea
+          className="min-h-0 flex-1"
+          aria-busy={loading && contactList.length === 0}
+        >
+          <div className="msg-list-rows">
+            {loading && contactList.length === 0
+              ? Array.from({ length: 5 }, (_, index) => (
+                  <div key={index} className="msg-list-skeleton" aria-hidden>
+                    <span className="msg-list-skeleton__avatar" />
+                    <span className="msg-list-skeleton__copy">
+                      <span className="msg-list-skeleton__name" />
+                      <span className="msg-list-skeleton__message" />
                     </span>
                   </div>
-                  <p
-                    className={cn(
-                      'mt-1 truncate text-sm',
-                      (contact.unreadCount ?? 0) > 0
-                        ? 'font-medium text-text-primary'
-                        : 'text-text-muted',
-                    )}
-                  >
-                    {contact.message || '暂无消息'}
-                  </p>
-                </div>
-              </button>
-            )
-          })}
+                ))
+              : null}
+            {filtered.map(({ contact, origIndex }) => {
+              const selected = !!contact.id && contact.id === selectedContactId
+              const initial = contact.name?.charAt(0) ?? '?'
+              return (
+                <button
+                  key={contact.id ?? `${contact.name}-${origIndex}`}
+                  type="button"
+                  onClick={() => onPick(contact, origIndex)}
+                  className={cn(
+                    'internal-message-row w-full text-left',
+                    selected && 'internal-message-row--active',
+                  )}
+                >
+                  {contact.type === 'merge' ? (
+                    <div className="internal-message-avatar">
+                      <Users className="size-4 text-[var(--internal-accent)]" />
+                    </div>
+                  ) : contact.image ? (
+                    <img
+                      src={contact.image}
+                      alt=""
+                      className="internal-message-avatar object-cover"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div className="internal-message-avatar">{initial}</div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-[15px] font-semibold leading-tight text-text-primary">
+                        {contact.name}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        {contact.lastMessageAt ? (
+                          <span className="msg-list-time">
+                            {formatChatTime(contact.lastMessageAt)}
+                          </span>
+                        ) : null}
+                        {(contact.unreadCount ?? 0) > 0 ? (
+                          <span className="msg-list-unread-badge">
+                            {(contact.unreadCount ?? 0) > 99
+                              ? '99+'
+                              : contact.unreadCount}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                    <p
+                      className={cn(
+                        'mt-1 truncate text-[14px] leading-snug',
+                        (contact.unreadCount ?? 0) > 0
+                          ? 'font-medium text-text-primary'
+                          : 'text-text-secondary',
+                      )}
+                    >
+                      {contact.message || '暂无消息'}
+                    </p>
+                  </div>
+                </button>
+              )
+            })}
+            {!loading && filtered.length === 0 ? (
+              <div className="msg-list-empty">
+                <MessageCircle className="size-5" aria-hidden />
+                <span>{search.trim() ? '没有匹配的会话' : '暂无会话'}</span>
+              </div>
+            ) : null}
+          </div>
         </ScrollArea>
       </aside>
     )
@@ -630,7 +685,9 @@ function DefaultRightChatPanel({
         currentChat={currentChat}
         middle={<div className="h-full w-full" />}
         inputRow={
-          currentChat ? <TemplateChatInputRow inputProps={{ readOnly: true }} /> : null
+          currentChat ? (
+            <TemplateChatInputRow inputProps={{ readOnly: true }} />
+          ) : null
         }
         embedInLayout={embedInLayout}
         variant="internal"
@@ -645,7 +702,9 @@ function DefaultRightChatPanel({
         currentChat={currentChat}
         middle={<div className="h-full w-full" />}
         inputRow={
-          currentChat ? <TemplateChatInputRow inputProps={{ readOnly: true }} /> : null
+          currentChat ? (
+            <TemplateChatInputRow inputProps={{ readOnly: true }} />
+          ) : null
         }
         embedInLayout={embedInLayout}
         onProfileClick={() => {
@@ -737,6 +796,7 @@ function TemplateNavigateSidebar() {
 // ** Home Component（与所给模板一致；可选 props 接入路由数据） **
 export function Home({
   contacts: contactsProp,
+  contactsLoading = false,
   currentChat: currentChatProp,
   selectedContactId,
   onSelectContact,
@@ -786,6 +846,7 @@ export function Home({
     >
       <LeftChatListPanel
         contactList={contacts}
+        loading={contactsLoading}
         onPick={pick}
         selectedContactId={selectedContactId}
         embedInLayout={embedInLayout}
@@ -808,6 +869,7 @@ export function Home({
     >
       <LeftChatListPanel
         contactList={contacts}
+        loading={contactsLoading}
         onPick={pick}
         selectedContactId={selectedContactId}
         embedInLayout={embedInLayout}

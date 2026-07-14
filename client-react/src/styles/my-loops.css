@@ -5,52 +5,72 @@
   --loops-text: var(--text-primary);
   --loops-muted: var(--text-muted);
   --loops-accent: var(--accent-color);
+  --loops-content-width: 1480px;
+  --loop-hub-nav-pad: 32px;
   width: 100%;
-  min-height: 100%;
+  min-height: 0;
+  height: 100%;
   overflow-y: auto;
-  padding: 40px 48px 64px;
+  padding: 0;
   color: var(--loops-text);
   background: var(--loops-bg);
+}
+
+.my-loops-shell {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--loops-content-width) + var(--loop-hub-nav-pad) * 2);
+  margin: 0;
+  padding: 16px var(--loop-hub-nav-pad) 64px;
+}
+
+.my-loops-top {
+  margin-bottom: 16px;
+  border: 1px solid var(--loops-line);
+  border-radius: 14px;
+  background: var(--loops-panel);
+  overflow: hidden;
 }
 
 .my-loops-head,
 .my-loops-toolbar,
 .my-loops-summary,
 .my-loops-board {
-  width: min(1480px, 100%);
-  margin-inline: auto;
+  width: 100%;
+  margin-inline: 0;
 }
 
 .my-loops-head {
   display: flex;
   justify-content: space-between;
-  gap: 32px;
+  gap: 24px;
   align-items: flex-start;
-  margin-bottom: 28px;
+  margin-bottom: 0;
+  padding: 18px 20px 16px;
 }
 
 .my-loops-kicker,
 .my-loops-pane__eyebrow {
-  margin: 0 0 8px;
-  font: 500 13px/18px ui-monospace, SFMono-Regular, Consolas, monospace;
-  letter-spacing: .08em;
+  margin: 0 0 6px;
+  font: 500 12px/16px ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .06em;
   color: var(--text-secondary);
 }
 
 .my-loops-head h1 {
   margin: 0;
-  font-size: 40px;
-  line-height: 48px;
-  letter-spacing: -.04em;
+  font-size: 28px;
+  line-height: 34px;
+  letter-spacing: -.03em;
 }
 
 .my-loops-subtitle {
   max-width: 760px;
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   color: var(--text-secondary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 24px;
+  line-height: 22px;
 }
 
 .my-loops-refresh,
@@ -91,16 +111,17 @@
 .my-loops-summary {
   display: grid;
   grid-template-columns: 1.3fr repeat(3, 1fr) 1fr;
-  border: 1px solid var(--loops-line);
-  background: var(--loops-panel);
-  margin-bottom: 24px;
+  border: 0;
+  border-top: 1px solid var(--loops-line);
+  background: transparent;
+  margin-bottom: 0;
 }
 
 .my-loops-summary__all,
 .my-loops-summary__success,
 .my-loops-summary__kind {
-  min-height: 104px;
-  padding: 20px;
+  min-height: 88px;
+  padding: 16px 20px;
 }
 
 .my-loops-summary__all,
@@ -160,8 +181,12 @@
 .my-loops-toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  margin-bottom: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--loops-line);
+  background: color-mix(in srgb, var(--loops-bg) 55%, var(--loops-panel));
 }
 
 .my-loops-segment {
@@ -609,9 +634,9 @@
 
 /* ── 天回·系统自动能力看板 ── */
 .my-loops-heaven {
-  width: min(1480px, 100%);
-  margin: 8px auto 32px;
-  padding: 24px;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 20px;
   border: 1px solid var(--loops-line);
   background: var(--loops-panel);
   border-radius: 14px;
@@ -622,21 +647,21 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .my-loops-heaven__head h2 {
   margin: 0;
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 20px;
+  line-height: 28px;
   letter-spacing: -.02em;
 }
 
 .my-loops-heaven__head .my-loops-subtitle {
-  margin-top: 8px;
+  margin-top: 6px;
   max-width: 720px;
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 13px;
+  line-height: 20px;
 }
 
 .my-loops-heaven__grid {
@@ -661,15 +686,13 @@
   transform: translateY(-2px);
 }
 
-/* macOS grouped-content treatment for the run center. */
+/* 亮色：统一顶栏容器，不再各自垫圆角/阴影造成色带割裂 */
 html[data-appearance='light'] .my-loops-page {
-  padding: 32px 40px 56px;
+  padding: 0;
 }
 
-html[data-appearance='light'] .my-loops-summary {
-  overflow: hidden;
+html[data-appearance='light'] .my-loops-top {
   border-color: rgba(60, 60, 67, .14);
-  border-radius: 14px;
   box-shadow: var(--elevation-1);
 }
 
@@ -678,11 +701,9 @@ html[data-appearance='light'] .my-loops-summary__kind.is-active {
 }
 
 html[data-appearance='light'] .my-loops-toolbar {
-  padding: 10px;
-  border: 1px solid rgba(60, 60, 67, .12);
-  border-radius: 12px;
-  background: var(--bg-secondary);
-  box-shadow: var(--elevation-1);
+  border-color: rgba(60, 60, 67, .10);
+  background: color-mix(in srgb, var(--loops-bg) 70%, #fff);
+  box-shadow: none;
 }
 
 html[data-appearance='light'] .my-loops-refresh,
@@ -703,4 +724,3 @@ html[data-appearance='light'] .my-loops-card:hover {
   border-color: rgba(0, 122, 255, .30);
   box-shadow: var(--elevation-2);
 }
-

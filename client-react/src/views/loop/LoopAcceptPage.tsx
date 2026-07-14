@@ -1,6 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import PathSearchPage from '@/views/path-search/PathSearchPage'
-import LoopHubNav from './LoopHubNav'
 
 class PathSearchErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -31,11 +30,8 @@ class PathSearchErrorBoundary extends Component<{ children: ReactNode }, { faile
 
 export default function LoopAcceptPage() {
   return (
-    <div className="loop-hub-page loop-hub-page--scroll-fill">
-      <LoopHubNav />
-      <PathSearchErrorBoundary>
-        <PathSearchPage />
-      </PathSearchErrorBoundary>
-    </div>
+    <PathSearchErrorBoundary>
+      <PathSearchPage />
+    </PathSearchErrorBoundary>
   )
 }

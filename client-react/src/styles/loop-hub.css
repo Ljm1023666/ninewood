@@ -1,7 +1,26 @@
 .loop-hub-page {
-  min-height: 100%;
+  --loop-hub-content-width: 1120px;
+  --loop-hub-nav-pad: 32px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+.loop-hub-page:has(.loop-discover) {
+  --loop-hub-content-width: 960px;
+}
+
+.loop-hub-page--hub > .loop-discover,
+.loop-hub-page--hub > .loop-run-detail,
+.loop-hub-page--hub > .my-loops-page {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* 承接页：铺满 Layout 主栏并在 psa-root 内滚动（修复结果被 overflow:hidden 裁切） */
@@ -32,50 +51,89 @@
   z-index: 8;
   display: flex;
   align-items: center;
-  gap: 4px;
-  min-height: 52px;
-  padding: 0 32px;
+  min-height: 48px;
+  padding: 0 var(--loop-hub-nav-pad, 32px);
   border-bottom: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
-  backdrop-filter: saturate(180%) blur(22px);
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(18px);
 }
 
-.loop-hub-nav a,
-.loop-hub-brand {
+/* 登录页「账号 ID / 手机号 / QQ 邮箱」同款滑块：伪元素滑动指示当前 Tab */
+.loop-hub-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+}
+
+.loop-hub-tabs::before {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 16px) / 3);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent-color) 18%, transparent),
+    0 1px 2px color-mix(in srgb, var(--text-primary) 8%, transparent);
+  content: '';
+  pointer-events: none;
+  transition: left 180ms ease-out;
+}
+
+.loop-hub-tabs.is-mine::before {
+  left: calc(33.3333% + 2.6667px);
+}
+
+.loop-hub-tabs.is-accept::before {
+  left: calc(66.6667% + 1.3333px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-hub-tabs::before { transition: none; }
+}
+
+.loop-hub-nav a {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   min-height: 32px;
-  padding: 0 11px;
+  padding: 0 12px;
   border-radius: 8px;
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 650;
   text-decoration: none;
-  transition: background-color 160ms var(--ease-out-quart), color 160ms var(--ease-out-quart);
+  white-space: nowrap;
+  transition: color 160ms var(--ease-out-quart);
 }
 
-.loop-hub-brand {
-  margin-right: 20px;
-  padding-left: 0;
-  color: var(--text-primary);
-  font-size: 15px;
+.loop-hub-nav a:hover { color: var(--text-primary); }
+.loop-hub-nav a.is-active,
+.loop-hub-nav a.active {
+  color: var(--accent-color);
+  background: transparent;
+  box-shadow: none;
 }
-
-.loop-hub-nav a:hover { background: color-mix(in srgb, var(--text-primary) 7%, transparent); }
-.loop-hub-nav a.active { background: var(--accent-ghost); color: var(--accent-color); }
 
 .loop-discover,
 .loop-run-detail {
-  width: min(1120px, calc(100% - 48px));
-  margin: 0 auto;
-  padding: 46px 0 72px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--loop-hub-content-width, 1120px) + var(--loop-hub-nav-pad, 32px) * 2);
+  margin: 0;
+  padding: 20px var(--loop-hub-nav-pad, 32px) 64px;
 }
 
-.loop-discover { width: min(960px, calc(100% - 48px)); }
-
 .loop-discover-hero {
-  padding: 14px 0 30px;
+  padding: 4px 0 20px;
   text-align: left;
 }
 
@@ -90,28 +148,29 @@
 }
 
 .loop-discover h1 {
-  margin: 12px 0 8px;
-  font-size: 42px;
+  margin: 8px 0 6px;
+  font-size: 34px;
   font-weight: 720;
-  letter-spacing: -.045em;
-  line-height: 1.08;
+  letter-spacing: -.04em;
+  line-height: 1.12;
 }
 
 .loop-discover-hero > p {
   max-width: 600px;
   margin: 0;
   color: var(--text-secondary);
-  font-size: 17px;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 .loop-query-form {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
-  margin: 28px 0 0;
+  margin: 18px 0 0;
   padding: 8px 8px 8px 16px;
   border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--bg-secondary);
   box-shadow: var(--elevation-1);
 }
@@ -261,13 +320,12 @@
 .loop-timeline .loop-json { grid-column: 1 / -1; }
 
 @media (max-width: 760px) {
-  .loop-hub-nav { gap: 2px; padding: 0 12px; }
-  .loop-hub-brand { margin-right: auto; }
-  .loop-hub-brand span { display: none; }
+  .loop-hub-page,
+  .my-loops-page { --loop-hub-nav-pad: 12px; }
   .loop-hub-nav a { padding: 0 8px; }
   .loop-discover,
-  .loop-run-detail { width: min(100% - 28px, 1120px); padding-top: 28px; }
-  .loop-discover h1 { font-size: 32px; }
+  .loop-run-detail { padding-top: 16px; }
+  .loop-discover h1 { font-size: 28px; }
   .loop-query-form { grid-template-columns: 1fr; padding: 10px; }
   .loop-query-form button { margin-left: 0; }
   .loop-contract-grid { grid-template-columns: 1fr; }

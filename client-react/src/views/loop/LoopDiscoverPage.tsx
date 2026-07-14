@@ -7,7 +7,6 @@ import {
   createEmptyDemandSession,
   upsertDemandSession,
 } from '@/utils/demand-session-history'
-import LoopHubNav from './LoopHubNav'
 
 function formatDuration(value: number | null) {
   if (value == null) return '待运行后估算'
@@ -66,9 +65,7 @@ export default function LoopDiscoverPage() {
   }
 
   return (
-    <div className="loop-hub-page">
-      <LoopHubNav />
-      <main className="loop-discover">
+    <main className="loop-discover">
         <header className="loop-discover-hero">
           <span className="loop-eyebrow"><Compass size={15} /> NATURAL LOOP</span>
           <h1>说出你想完成的事</h1>
@@ -139,6 +136,5 @@ export default function LoopDiscoverPage() {
           </section>
         )}
       </main>
-    </div>
   )
 }

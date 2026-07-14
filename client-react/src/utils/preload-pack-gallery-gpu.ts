@@ -4,6 +4,13 @@ import type { PackCardImageItem } from '@/components/ui/3d-gallery-photography'
 
 const GPU_PRELOAD_BATCH = 2
 
+/** 递增后废弃进行中的 idle 预载队列，避免继续 preload 已 revoke 的 blob */
+let preloadEpoch = 0
+
+export function invalidatePackGalleryGpuPreload() {
+  preloadEpoch += 1
+}
+
 function collectTextureUrls(items: PackCardImageItem[]): string[] {
   return [
     ...new Set(items.flatMap((item) => [item.src, item.backSrc ?? item.src])),
@@ -13,17 +20,23 @@ function collectTextureUrls(items: PackCardImageItem[]): string[] {
 function staggerPreload(urls: string[]) {
   if (urls.length === 0) return
 
+  const epoch = preloadEpoch
   let index = 0
 
-  const pump = (deadline?: IdleDeadline) => {
+  const pump = () => {
+    if (epoch !== preloadEpoch) return
     const batchEnd = Math.min(index + GPU_PRELOAD_BATCH, urls.length)
     while (index < batchEnd) {
-      useTexture.preload(urls[index])
+      try {
+        useTexture.preload(urls[index])
+      } catch {
+        /* preload 同步失败忽略；异步加载错误由画廊 ErrorBoundary 兜底 */
+      }
       index += 1
     }
     if (index < urls.length) {
       if (typeof requestIdleCallback === 'function') {
-        requestIdleCallback(pump, { timeout: 120 })
+        requestIdleCallback(() => pump(), { timeout: 120 })
       } else {
         setTimeout(() => pump(), 0)
       }
@@ -31,7 +44,7 @@ function staggerPreload(urls: string[]) {
   }
 
   if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(pump, { timeout: 120 })
+    requestIdleCallback(() => pump(), { timeout: 120 })
   } else {
     pump()
   }

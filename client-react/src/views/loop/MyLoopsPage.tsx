@@ -12,7 +12,6 @@ import {
   Users,
 } from 'lucide-react'
 import { loopApi, type LoopKind, type MyLoopItem, type MyLoopSummary, type HeavenCapabilityItem } from '@/api/loop'
-import LoopHubNav from './LoopHubNav'
 
 type DisplayMode = 'single' | 'split'
 type SplitDirection = 'horizontal' | 'vertical'
@@ -305,7 +304,8 @@ export default function MyLoopsPage() {
 
   return (
     <div className="my-loops-page">
-      <LoopHubNav />
+      <div className="my-loops-shell">
+      <div className="my-loops-top">
       <header className="my-loops-head">
         <div>
           <p className="my-loops-kicker">MY LOOPS / 运行中心</p>
@@ -453,6 +453,7 @@ export default function MyLoopsPage() {
           </select>
         </label>
       </section>
+      </div>
 
       {error && (
         <div className="my-loops-state my-loops-state--error">
@@ -610,6 +611,7 @@ export default function MyLoopsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

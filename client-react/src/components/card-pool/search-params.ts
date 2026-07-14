@@ -68,12 +68,12 @@ export async function fetchFirstDemandId(
   return d.demands?.[0]?.id ?? null
 }
 
-/** 获取卡包开启动画所需的卡片数据（最多 20 张） */
+/** 获取卡包开启动画所需的卡片数据（最多 9 张） */
 export async function fetchPackContents(
   scope: BlackScope,
 ): Promise<PackCardData[]> {
   const params = scopeToApiParams(scope)
-  const r = await demandApi.list({ ...params, page: 1, limit: 20 })
+  const r = await demandApi.list({ ...params, page: 1, limit: 9 })
   const d = r.data.data as {
     demands?: {
       id: string

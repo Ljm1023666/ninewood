@@ -476,22 +476,6 @@ export default function PathSearchPage() {
       <AuroraBackdrop />
 
       <div className="psa-shell">
-        <div className="psa-topbar psa-rise psa-d1">
-          <div className="psa-brand">
-            <button type="button" className="psa-back" onClick={() => navigate(-1)}>
-              <MsIcon name="arrow_back" size={16} />
-              返回
-            </button>
-            <div className="psa-brand__logo">
-              <MsIcon name="hub" size={20} />
-            </div>
-            <div>
-              <div className="psa-brand__name">九木</div>
-              <div className="psa-brand__tag psa-mono">极光神经 · 路径引擎</div>
-            </div>
-          </div>
-        </div>
-
         <div className="psa-hero">
           <div className="psa-kicker psa-mono psa-rise psa-d2">
             路径解析 · 交叉命中 · 可筛选排序

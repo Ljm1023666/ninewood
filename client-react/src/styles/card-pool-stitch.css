@@ -146,17 +146,15 @@ html[data-appearance='light'] .card-pool-stitch {
 }
 
 .card-pool-stitch__meta {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: var(--cp-ink-mute);
+  letter-spacing: 0.01em;
+  color: var(--cp-ink-dim);
 }
 
 .card-pool-stitch__stats {
-  font-size: 0.75rem;
-  color: var(--cp-ink-mute);
+  font-size: 0.8125rem;
+  color: var(--cp-ink-dim);
   white-space: nowrap;
 }
 
@@ -392,7 +390,7 @@ html[data-appearance='light'] .card-pool-stitch {
   border-radius: 7px;
   padding: 0.2rem 0.5rem;
   text-align: center;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
@@ -408,7 +406,7 @@ html[data-appearance='light'] .card-pool-stitch {
   z-index: 4;
   border-radius: 6px;
   padding: 0.15rem 0.5rem;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--cp-badge-ink);
@@ -430,7 +428,7 @@ html[data-appearance='light'] .card-pool-stitch {
   border: 1px solid var(--cp-drag-border);
   background: var(--cp-drag-bg);
   padding: 0.25rem 0.65rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--cp-drag-ink);
   opacity: 0;
@@ -473,9 +471,9 @@ html[data-appearance='light'] .card-pool-stitch {
 
 .card-pool-hand-dock__meta-hint {
   margin-top: 0.125rem;
-  font-size: 0.625rem;
-  line-height: 1.35;
-  color: var(--cp-ink-mute);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--cp-ink-dim);
 }
 
 .card-pool-hand-dock__deck {
@@ -516,7 +514,7 @@ html[data-appearance='light'] .card-pool-stitch {
 }
 
 .card-pool-hand-dock__clear {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--cp-ink-mute);
   transition: color 0.15s ease;
@@ -534,7 +532,7 @@ html[data-appearance='light'] .card-pool-stitch {
   border: 1px solid var(--cp-chip-border);
   background: var(--cp-chip-bg);
   padding: 0.2rem 0.625rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--cp-chip-ink);
 }
@@ -660,8 +658,8 @@ html[data-appearance='light'] .card-pool-stitch .card-pool-hand-stack-card {
 
 .card-pool-hand-stack-card__hint {
   margin: 0;
-  font-size: 0.6875rem;
-  color: var(--cp-ink-mute);
+  font-size: 0.8125rem;
+  color: var(--cp-ink-dim);
 }
 
 .card-pool-hand-stack-card__badge {
@@ -680,4 +678,87 @@ html[data-appearance='light'] .card-pool-stitch .card-pool-hand-stack-card {
   color: var(--cp-badge-ink);
   background: var(--cp-badge);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   开包舞台 / 3D 画廊：跟随全局 data-appearance（不绑 OS dark:）
+   ═══════════════════════════════════════════════════════════════ */
+:root,
+html[data-appearance='dark'] {
+  --pack-stage-bg: #050505;
+  --pack-stage-fg: rgba(255, 255, 255, 0.92);
+  --pack-stage-fg-muted: rgba(255, 255, 255, 0.55);
+  --pack-stage-fg-subtle: rgba(255, 255, 255, 0.38);
+  --pack-stage-control-bg: rgba(255, 255, 255, 0.12);
+  --pack-stage-control-bg-hover: rgba(255, 255, 255, 0.22);
+  --pack-stage-control-border: rgba(255, 255, 255, 0.18);
+  --pack-stage-control-fg: rgba(255, 255, 255, 0.92);
+  --pack-stage-scrim: rgba(0, 0, 0, 0.36);
+  --pack-card-glow: 0 0 40px 18px rgba(255, 255, 255, 0.045);
+  --pack-card-shimmer-l: 12%;
+  --pack-spinner-track: rgba(255, 255, 255, 0.15);
+  --pack-spinner-head: rgba(255, 255, 255, 0.72);
+}
+
+html[data-appearance='light'] {
+  --pack-stage-bg: #f3f4f8;
+  --pack-stage-fg: rgba(20, 20, 28, 0.92);
+  --pack-stage-fg-muted: rgba(63, 63, 74, 0.78);
+  --pack-stage-fg-subtle: rgba(107, 114, 128, 0.85);
+  --pack-stage-control-bg: rgba(255, 255, 255, 0.88);
+  --pack-stage-control-bg-hover: rgba(255, 255, 255, 1);
+  --pack-stage-control-border: rgba(15, 23, 42, 0.12);
+  --pack-stage-control-fg: rgba(20, 20, 28, 0.92);
+  --pack-stage-scrim: rgba(15, 23, 42, 0.28);
+  --pack-card-glow: 0 0 36px 14px rgba(15, 23, 42, 0.08);
+  --pack-card-shimmer-l: 90%;
+  --pack-spinner-track: rgba(15, 23, 42, 0.12);
+  --pack-spinner-head: rgba(15, 23, 42, 0.55);
+}
+
+.pack-stage-root {
+  background: var(--pack-stage-bg);
+  color: var(--pack-stage-fg);
+}
+
+.pack-stage-hint {
+  color: var(--pack-stage-fg-muted);
+}
+
+.pack-stage-hint-subtle {
+  color: var(--pack-stage-fg-subtle);
+}
+
+.pack-stage-close {
+  background: var(--pack-stage-control-bg);
+  color: var(--pack-stage-control-fg);
+  border: 1px solid var(--pack-stage-control-border);
+}
+
+.pack-stage-close:hover {
+  background: var(--pack-stage-control-bg-hover);
+}
+
+.pack-stage-control {
+  background: var(--pack-stage-control-bg);
+  color: var(--pack-stage-control-fg);
+  border: 1px solid var(--pack-stage-control-border);
+}
+
+.pack-stage-control:hover:not(:disabled) {
+  background: var(--pack-stage-control-bg-hover);
+}
+
+.pack-stage-loading {
+  background: var(--pack-stage-bg);
+  color: var(--pack-stage-fg-muted);
+}
+
+.pack-stage-spinner {
+  border-color: var(--pack-spinner-track);
+  border-top-color: var(--pack-spinner-head);
+}
+
+.pack-stage-title-scrim {
+  background: var(--pack-stage-scrim);
 }

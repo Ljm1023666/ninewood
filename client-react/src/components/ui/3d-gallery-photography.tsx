@@ -14,7 +14,6 @@ import { Html, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { getFlipCardTitleBarClass } from '@/utils/flip-card-title-bar'
 import { getGalleryTitleBarHeightRatio } from '@/utils/pack-card-texture'
-import { cn } from '@/lib/utils'
 
 export type PackCardImageItem = {
   src: string
@@ -176,6 +175,7 @@ const FlippableCardPlane = forwardRef<
     material: THREE.ShaderMaterial
     enableFlip?: boolean
     enableHover?: boolean
+    disableClothDeform?: boolean
     onBackMaterialRef?: (mat: THREE.ShaderMaterial | null) => void
     onCardNavigate?: (id: string) => void
   }
@@ -193,6 +193,7 @@ const FlippableCardPlane = forwardRef<
     material,
     enableFlip,
     enableHover = false,
+    disableClothDeform = false,
     onBackMaterialRef,
     onCardNavigate,
   },
@@ -302,7 +303,11 @@ const FlippableCardPlane = forwardRef<
             if (showBack) setFlipped((v) => !v)
           }}
         >
-          <planeGeometry args={[1, 1, 32, 32]} />
+          <planeGeometry
+            args={
+              disableClothDeform ? [1, 1, 1, 1] : [1, 1, 32, 32]
+            }
+          />
         </mesh>
         {domTitleBar && title ? (
           <mesh
@@ -317,7 +322,7 @@ const FlippableCardPlane = forwardRef<
                 className={`w-full overflow-hidden backdrop-blur-sm ${getFlipCardTitleBarClass(price)}`}
                 style={{ padding: '14px 10px' }}
               >
-                <p className="m-0 line-clamp-2 text-center text-[15px] font-bold leading-tight text-white">
+                <p className="m-0 line-clamp-2 text-center text-[15px] font-bold leading-tight text-[var(--pack-stage-fg)]">
                   {title}
                 </p>
               </div>
@@ -344,7 +349,11 @@ const FlippableCardPlane = forwardRef<
               setFlipped((v) => !v)
             }}
           >
-            <planeGeometry args={[1, 1, 32, 32]} />
+            <planeGeometry
+              args={
+                disableClothDeform ? [1, 1, 1, 1] : [1, 1, 32, 32]
+              }
+            />
           </mesh>
         ) : null}
       </group>
@@ -692,6 +701,7 @@ function GalleryScene({
             material={material}
             enableFlip={enableFlip}
             enableHover={enableHover}
+            disableClothDeform={disableClothDeform}
             onCardNavigate={onCardNavigate}
             onBackMaterialRef={(mat) => {
               planeBackMatRefs.current[i] = mat
@@ -706,11 +716,22 @@ function GalleryScene({
 function FallbackGallery({ images }: { images: ImageItem[] }) {
   const normalizedImages = useMemo(() => images.map(normalizeImage), [images])
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-black p-4">
-      <p className="mb-4 text-white/60">WebGL 不可用</p>
+    <div
+      className="flex h-full flex-col items-center justify-center p-4"
+      style={{ background: 'var(--pack-stage-bg)' }}
+    >
+      <p className="mb-4 text-[var(--pack-stage-fg-muted)]">WebGL 不可用</p>
       <div className="grid max-h-96 grid-cols-2 gap-4 overflow-y-auto">
         {normalizedImages.map((img, i) => (
-          <img key={i} src={img.src} alt={img.alt ?? ''} className="h-32 w-full rounded object-cover" />
+          <img
+            key={i}
+            src={img.src}
+            alt={img.alt ?? ''}
+            className="h-32 w-full rounded object-cover"
+            onError={(e) => {
+              e.currentTarget.style.visibility = 'hidden'
+            }}
+          />
         ))}
       </div>
     </div>
@@ -769,7 +790,11 @@ export default function InfiniteGallery(props: InfiniteGalleryProps) {
   }
 
   return (
-    <div ref={containerRef} className={cn(className, 'bg-black')} style={style}>
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ ...style, background: 'var(--pack-stage-bg)' }}
+    >
       <Canvas
         camera={{ position: [0, 0, 0], fov: 55 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}

@@ -16,21 +16,21 @@ import {
   scopeTitle,
 } from '@/components/card-pool/scope'
 import type { BlackScope, HandEntry } from '@/components/card-pool/types'
-import type { PackCardData } from '@/components/card-pool/search-params'
 import {
   fetchFirstDemandId,
-  fetchPackContents,
   fetchTotalForScope,
   scopeToApiParams,
 } from '@/components/card-pool/search-params'
+import type { PackCardData } from '@/components/card-pool/search-params'
 import {
   evictAllPackGalleries,
   evictPackGallery,
+  ensurePackGallery,
   getPackGalleryKey,
   getPackGallerySnapshot,
+  prefetchPackGallery,
   warmPackGalleryFromCards,
 } from '@/utils/pack-gallery-cache'
-import { loadPackGalleryImages } from '@/utils/pack-gallery-bridge'
 import { cn } from '@/lib/utils'
 import {
   RootSummaryBlackCard,
@@ -136,16 +136,18 @@ export default function CardPool() {
   const rootScopeInHand = handScopeKeys.has(scopeKey(focus))
 
   const tryAddToHand = useCallback(
-    (scope: BlackScope) => addToHand(scope),
+    (scope: BlackScope) => {
+      const added = addToHand(scope)
+      if (added) prefetchPackGallery(scope)
+      return added
+    },
     [addToHand],
   )
 
   useEffect(() => {
     if (packOpening) return
     for (const entry of hand) {
-      const key = getPackGalleryKey(entry.scope)
-      const snap = getPackGallerySnapshot(key)
-      if (snap.ready) loadPackGalleryImages(key, snap.items)
+      prefetchPackGallery(entry.scope)
     }
   }, [hand, packOpening])
 
@@ -287,14 +289,14 @@ export default function CardPool() {
     }
 
     setOpeningCarousel(true)
-    void fetchPackContents(entry.scope)
-      .then((cards) => {
-        if (cards.length === 0) {
+    void ensurePackGallery(entry.scope)
+      .then((snap) => {
+        if (snap.cards.length === 0) {
           toast('当前范围内暂无需求', 'error')
           return
         }
-        void warmPackGalleryFromCards(entry.scope, cards)
-        setPackOpening({ cards, cacheKey, scope: entry.scope })
+        void warmPackGalleryFromCards(entry.scope, snap.cards)
+        setPackOpening({ cards: snap.cards, cacheKey, scope: entry.scope })
       })
       .catch((e: unknown) => {
         const err = e as {

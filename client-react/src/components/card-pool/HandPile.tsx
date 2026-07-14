@@ -586,7 +586,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                 })}
               </div>
             ) : (
-              <span className="text-xs text-text-muted">拖入黑卡加入</span>
+              <span className="text-sm text-text-secondary">拖入黑卡加入</span>
             )}
 
             <div className="card-pool-hand-dock__actions">

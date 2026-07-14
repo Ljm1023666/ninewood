@@ -72,6 +72,7 @@ const MyLoopsPage = lazy(() => import('@/views/loop/MyLoopsPage'))
 const LoopDiscoverPage = lazy(() => import('@/views/loop/LoopDiscoverPage'))
 const LoopAcceptPage = lazy(() => import('@/views/loop/LoopAcceptPage'))
 const LoopRunDetailPage = lazy(() => import('@/views/loop/LoopRunDetailPage'))
+const LoopHubLayout = lazy(() => import('@/views/loop/LoopHubLayout'))
 
 function LegacyLoopRedirect() {
   const location = useLocation()
@@ -90,6 +91,11 @@ function LazyLoad({ children }: { children: React.ReactNode }) {
       {children}
     </Suspense>
   )
+}
+
+/** 回中心 Tab 切换：无整页 loader，避免初次点 Tab 白屏闪烁 */
+function HubLazy({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={null}>{children}</Suspense>
 }
 
 function AuthGuard() {
@@ -466,27 +472,15 @@ export const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: (
-                  <LazyLoad>
-                    <MessagesIndexPlaceholder />
-                  </LazyLoad>
-                ),
+                element: <MessagesIndexPlaceholder />,
               },
               {
                 path: ':userId',
-                element: (
-                  <LazyLoad>
-                    <ChatDetail />
-                  </LazyLoad>
-                ),
+                element: <ChatDetail />,
               },
               {
                 path: 'merge/:mergeId',
-                element: (
-                  <LazyLoad>
-                    <ChatDetail />
-                  </LazyLoad>
-                ),
+                element: <ChatDetail />,
               },
             ],
           },
@@ -532,20 +526,50 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'loops/mine',
-            element: (
-              <LazyLoad>
-                <MyLoopsPage />
-              </LazyLoad>
-            ),
-          },
-          {
             path: 'loops/runs/:id',
             element: (
               <LazyLoad>
                 <LoopRunDetailPage />
               </LazyLoad>
             ),
+          },
+          {
+            path: 'loops',
+            element: (
+              <LazyLoad>
+                <LoopHubLayout />
+              </LazyLoad>
+            ),
+            children: [
+              {
+                index: true,
+                element: <LegacyLoopRedirect />,
+              },
+              {
+                path: 'discover',
+                element: (
+                  <HubLazy>
+                    <LoopDiscoverPage />
+                  </HubLazy>
+                ),
+              },
+              {
+                path: 'mine',
+                element: (
+                  <HubLazy>
+                    <MyLoopsPage />
+                  </HubLazy>
+                ),
+              },
+              {
+                path: 'accept',
+                element: (
+                  <HubLazy>
+                    <LoopAcceptPage />
+                  </HubLazy>
+                ),
+              },
+            ],
           },
           {
             path: 'my-service-cards',
@@ -613,15 +637,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/loops',
-        element: <LegacyLoopRedirect />,
-      },
-      {
-        path: '/loops/discover',
-        element: <LazyLoad><LoopDiscoverPage /></LazyLoad>,
-      },
-      {
-        path: '/loops/accept',
-        element: <LazyLoad><LoopAcceptPage /></LazyLoad>,
+        element: <Navigate to="/loops/discover" replace />,
       },
       {
         path: '/loops/offerings/:id',

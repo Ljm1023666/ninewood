@@ -26,6 +26,7 @@ import {
   MorphingCardStack,
   type CardData,
 } from '@/components/ui/morphing-card-stack'
+import { toast } from '@/components/ui/confirm-dialog'
 
 type AnimationPhase = 'scatter' | 'line' | 'circle'
 type ViewMode = 'opening' | 'falling' | 'loading' | 'gallery'
@@ -39,6 +40,8 @@ const OVERSCROLL_THRESHOLD = 160
 const WHEEL_DELTA_CLAMP = 56
 /** 掉落时长（放缓，为画廊纹理合成争取时间） */
 const FALL_MS = 2400
+/** 画廊 loading 超时后回退到 2D 堆叠 */
+const GALLERY_LOADING_TIMEOUT_MS = 12000
 
 const lerp = (start: number, end: number, t: number) =>
   start * (1 - t) + end * t
@@ -70,13 +73,14 @@ function getShimmerClass(price: string): string {
 
 function getShimmerColor(price: string): string {
   const n = parsePriceNumber(price)
-  if (n > 10000) return 'hsl(250, 30%, 12%)'
-  if (n > 3000) return 'hsl(35, 30%, 12%)'
-  if (n > 1000) return 'hsl(0, 30%, 12%)'
-  if (n > 500) return 'hsl(18, 30%, 12%)'
-  if (n > 100) return 'hsl(265, 30%, 12%)'
-  if (n > 10) return 'hsl(220, 30%, 12%)'
-  return 'hsl(150, 30%, 12%)'
+  const l = 'var(--pack-card-shimmer-l)'
+  if (n > 10000) return `hsl(250, 30%, ${l})`
+  if (n > 3000) return `hsl(35, 30%, ${l})`
+  if (n > 1000) return `hsl(0, 30%, ${l})`
+  if (n > 500) return `hsl(18, 30%, ${l})`
+  if (n > 100) return `hsl(265, 30%, ${l})`
+  if (n > 10) return `hsl(220, 30%, ${l})`
+  return `hsl(150, 30%, ${l})`
 }
 
 const MAX_SIZE_SCALE = 2.2
@@ -213,14 +217,14 @@ const PackCardFace = memo(function PackCardFace({
           animate={{ height: barH }}
           transition={{ type: 'spring', ...TITLE_BAR_SPRING }}
           className={cn(
-            'absolute top-0 left-0 right-0 flex items-center overflow-hidden px-2 bg-black/35',
+            'pack-stage-title-scrim absolute top-0 left-0 right-0 flex items-center overflow-hidden px-2',
             getShimmerClass(card.price),
           )}
         >
           <motion.p
             animate={{ fontSize: titleFontSize }}
             transition={{ type: 'spring', ...TITLE_BAR_SPRING }}
-            className="w-full font-bold text-white text-center whitespace-nowrap leading-none"
+            className="w-full text-center font-bold leading-none whitespace-nowrap text-[var(--pack-stage-fg)]"
           >
             {card.title.length > titleMaxChars
               ? card.title.slice(0, titleMaxChars) + '…'
@@ -257,7 +261,7 @@ const packCardShellStyle = {
   position: 'absolute' as const,
   transformStyle: 'preserve-3d' as const,
   perspective: '1000px',
-  boxShadow: '0 0 40px 18px rgba(255,255,255,0.045)',
+  boxShadow: 'var(--pack-card-glow)',
   willChange: 'transform' as const,
 }
 
@@ -449,13 +453,13 @@ const PackCardFaceMotion = memo(function PackCardFaceMotion({
         <motion.div
           style={{ height: barH }}
           className={cn(
-            'absolute top-0 left-0 right-0 flex items-center overflow-hidden px-2 bg-black/35',
+            'pack-stage-title-scrim absolute top-0 left-0 right-0 flex items-center overflow-hidden px-2',
             getShimmerClass(card.price),
           )}
         >
           <motion.p
             style={{ fontSize: titleFontSize }}
-            className="w-full font-bold text-white text-center whitespace-nowrap leading-none truncate"
+            className="w-full truncate text-center font-bold leading-none whitespace-nowrap text-[var(--pack-stage-fg)]"
           >
             {card.title}
           </motion.p>
@@ -591,7 +595,7 @@ function GatherCardsHint({
       <motion.p
         style={{ opacity }}
         onClick={onGather}
-        className="text-sm text-white/50 tracking-widest cursor-pointer hover:text-white/80 transition-colors pointer-events-auto"
+        className="pack-stage-hint text-sm tracking-widest cursor-pointer transition-colors pointer-events-auto hover:text-[var(--pack-stage-fg)]"
       >
         点击聚拢卡牌
       </motion.p>
@@ -601,18 +605,18 @@ function GatherCardsHint({
 
 function PackGalleryLoadingOverlay({ label }: { label: string }) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-[55] flex flex-col items-center justify-center bg-black">
+    <div className="pack-stage-loading pointer-events-none absolute inset-0 z-[55] flex flex-col items-center justify-center">
       <div
-        className="mb-4 size-9 animate-spin rounded-full border-2 border-white/15 border-t-white/70"
+        className="pack-stage-spinner mb-4 size-9 animate-spin rounded-full border-2"
         aria-hidden
       />
-      <p className="font-mono text-sm tracking-widest text-white/55">{label}</p>
+      <p className="font-mono text-sm tracking-widest">{label}</p>
     </div>
   )
 }
 
-function packGalleryLoadingLabel(ready: boolean): string {
-  if (!ready) return '正在合成卡面纹理…'
+function packGalleryLoadingLabel(hasTextures: boolean): string {
+  if (!hasTextures) return '正在合成卡面纹理…'
   return '正在初始化场景…'
 }
 
@@ -652,20 +656,40 @@ export function PackOpeningAnimation({
   viewModeRef.current = viewMode
 
   const galleryLoadActive = viewMode === 'loading' || viewMode === 'gallery'
-  const { ready: galleryReady } = usePackGallery(galleryCacheKey, cards)
+  const { ready: galleryReady, items: galleryItems } = usePackGallery(
+    galleryCacheKey,
+    cards,
+  )
+  const galleryHasTextures = galleryReady && galleryItems.length > 0
 
   const galleryVisible = viewMode === 'gallery'
 
   const galleryRuntimeRef = useRef(galleryRuntime)
   galleryRuntimeRef.current = galleryRuntime
 
-  // 快纹理就绪即可进入画廊，HD 升级在后台进行
-  const galleryFullyReady = galleryReady
+  const fallbackToCardStack = useCallback((message: string) => {
+    galleryRuntimeRef.current.hide()
+    galleryRuntimeRef.current.setLayerOpacity(0)
+    galleryLoadStartedRef.current = false
+    galleryRevealedRef.current = false
+    if (containerRef.current) containerRef.current.style.opacity = '1'
+    toast(message, 'info')
+    setFallComplete(false)
+    fallProgress.set(0)
+    setViewMode('opening')
+    setShowCardStack(true)
+  }, [fallProgress])
 
-  // 开包起即预热纹理（与开包动画并行），loading 阶段才挂载 Canvas
+  // 开包起即预热纹理；快纹理就绪后即触发 GPU 预载（不必等到 loading）
   useEffect(() => {
     void warmPackGalleryFromCards(galleryScope, cards)
   }, [galleryScope, cards])
+
+  useEffect(() => {
+    if (galleryHasTextures) {
+      preloadPackGalleryGpuForScope(galleryScope)
+    }
+  }, [galleryHasTextures, galleryScope])
 
   useEffect(() => {
     const rt = galleryRuntimeRef.current
@@ -682,7 +706,7 @@ export function PackOpeningAnimation({
     }
 
     rt.show(galleryCacheKey)
-    if (galleryReady) {
+    if (galleryHasTextures) {
       activatePackGalleryImages(galleryCacheKey)
       if (viewMode === 'loading') {
         preloadPackGalleryGpuForScope(galleryScope)
@@ -692,10 +716,33 @@ export function PackOpeningAnimation({
     if (viewMode === 'loading') {
       rt.setLayerOpacity(0)
     }
-  }, [galleryLoadActive, viewMode, galleryCacheKey, galleryScope, cards, galleryReady])
+  }, [
+    galleryLoadActive,
+    viewMode,
+    galleryCacheKey,
+    galleryScope,
+    galleryHasTextures,
+  ])
 
   useEffect(() => {
-    if (viewMode !== 'loading' || !galleryFullyReady || galleryRevealedRef.current) {
+    if (viewMode !== 'loading' || !galleryReady) return
+    if (galleryItems.length === 0) {
+      fallbackToCardStack('暂无可用卡面纹理，已回退到卡牌堆叠')
+    }
+  }, [viewMode, galleryReady, galleryItems.length, fallbackToCardStack])
+
+  useEffect(() => {
+    if (viewMode !== 'loading') return
+    const timer = window.setTimeout(() => {
+      if (viewModeRef.current === 'loading') {
+        fallbackToCardStack('画廊初始化超时，已回退到卡牌堆叠')
+      }
+    }, GALLERY_LOADING_TIMEOUT_MS)
+    return () => clearTimeout(timer)
+  }, [viewMode, fallbackToCardStack])
+
+  useEffect(() => {
+    if (viewMode !== 'loading' || !galleryHasTextures || galleryRevealedRef.current) {
       return
     }
 
@@ -707,6 +754,7 @@ export function PackOpeningAnimation({
       const REVEAL_MS = 480
       const start = performance.now()
       const tick = (now: number) => {
+        if (viewModeRef.current !== 'loading') return
         const t = Math.min(1, (now - start) / REVEAL_MS)
         const eased = t * t * (3 - 2 * t)
         rt.setLayerOpacity(eased)
@@ -725,14 +773,21 @@ export function PackOpeningAnimation({
     }
 
     return rt.subscribeSceneReady(revealGallery)
-  }, [viewMode, galleryFullyReady])
+  }, [viewMode, galleryHasTextures])
 
-  /** 入画廊约 2.5s 后再启动 HD 升级，避免首屏卡顿 */
+  const visitedGalleryRef = useRef(false)
+
+  /** HD 升级放到离开画廊后，避免浏览中/预载中热换纹理导致错位与 blob 崩溃 */
   useEffect(() => {
-    if (viewMode !== 'gallery') return
+    if (viewMode === 'gallery') {
+      visitedGalleryRef.current = true
+      return
+    }
+    if (!visitedGalleryRef.current) return
+    if (viewMode !== 'opening') return
     const timer = window.setTimeout(() => {
       resumePackGalleryHdUpgrade(galleryScope)
-    }, 2500)
+    }, 800)
     return () => clearTimeout(timer)
   }, [viewMode, galleryScope])
 
@@ -740,8 +795,10 @@ export function PackOpeningAnimation({
     return () => {
       galleryRuntimeRef.current.hide()
       galleryRuntimeRef.current.setLayerOpacity(0)
+      // 关闭开包页时顺带完成延后的 HD，供下次热开包
+      resumePackGalleryHdUpgrade(galleryScope)
     }
-  }, [])
+  }, [galleryScope])
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('line'), 400)
@@ -816,10 +873,29 @@ export function PackOpeningAnimation({
   )
 
   const [scrollAtMax, setScrollAtMax] = useState(false)
-  const [wheelScroll, setWheelScroll] = useState(0)
   const [arcMorphReady, setArcMorphReady] = useState(false)
+  /** line→成环先走弹簧，完成后再交给 MotionValue，避免中段动画被瞬切 */
+  const [circleEnterDone, setCircleEnterDone] = useState(false)
+  const circleEnterDoneRef = useRef(false)
   const morphValueRef = useRef(0)
   const rotateValueRef = useRef(0)
+
+  useEffect(() => {
+    circleEnterDoneRef.current = circleEnterDone
+  }, [circleEnterDone])
+
+  useEffect(() => {
+    if (phase !== 'circle') {
+      setCircleEnterDone(false)
+      circleEnterDoneRef.current = false
+      return
+    }
+    const timer = window.setTimeout(() => {
+      circleEnterDoneRef.current = true
+      setCircleEnterDone(true)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [phase])
 
   const syncScrollDerived = useCallback(
     (scroll: number) => {
@@ -833,6 +909,10 @@ export function PackOpeningAnimation({
       setArcMorphReady((prev) => {
         const ready = morphValue > 0.85
         return prev === ready ? prev : ready
+      })
+      setScrollAtMax((prev) => {
+        const atMax = scroll >= MAX_SCROLL - 2
+        return prev === atMax ? prev : atMax
       })
       return { morphValue, rotateValue }
     },
@@ -864,6 +944,12 @@ export function PackOpeningAnimation({
         return
       }
 
+      // 成环弹簧未结束时若用户滚轮，提前切换到 MotionValue，避免卡死在静态环
+      if (!circleEnterDoneRef.current) {
+        circleEnterDoneRef.current = true
+        setCircleEnterDone(true)
+      }
+
       const atBottom = scrollRef.current >= MAX_SCROLL - 2
       const { morphValue } = syncScrollDerived(scrollRef.current)
 
@@ -873,7 +959,6 @@ export function PackOpeningAnimation({
         if (t >= 1 && viewModeRef.current === 'opening') {
           scrollRef.current = MAX_SCROLL
           virtualScroll.set(MAX_SCROLL)
-          setWheelScroll(MAX_SCROLL)
           syncScrollDerived(MAX_SCROLL)
           setFallComplete(false)
           fallProgress.set(0)
@@ -897,8 +982,6 @@ export function PackOpeningAnimation({
         Math.max(scrollRef.current + step, 0),
         MAX_SCROLL,
       )
-      setScrollAtMax(scrollRef.current >= MAX_SCROLL - 2)
-      setWheelScroll(scrollRef.current)
       virtualScroll.set(scrollRef.current)
       syncScrollDerived(scrollRef.current)
     }
@@ -989,12 +1072,10 @@ export function PackOpeningAnimation({
     setQueueStart(0)
   }, [cards, total, containerSize.width, containerSize.height])
 
-  /** 画廊 X：回到底弧底部，而非退出整个开包 */
   const exitGalleryToArc = useCallback(() => {
     scrollRef.current = MAX_SCROLL
     virtualScroll.set(MAX_SCROLL)
     syncScrollDerived(MAX_SCROLL)
-    setWheelScroll(MAX_SCROLL)
     setArcMorphReady(true)
     setScrollAtMax(true)
     overscrollRef.current = 0
@@ -1011,10 +1092,14 @@ export function PackOpeningAnimation({
     arcMorphReady &&
     scrollAtMax
 
+  // 成环入场用弹簧；入场结束后（或滚轮介入）再用 MotionValue 驱动滚轮/掉落
   const useMotionCards =
     phase === 'circle' &&
     !showCardStack &&
-    (viewMode === 'falling' || (viewMode === 'loading' && fallComplete))
+    circleEnterDone &&
+    (viewMode === 'opening' ||
+      viewMode === 'falling' ||
+      (viewMode === 'loading' && fallComplete))
 
   const cardsFalling =
     viewMode === 'falling' || (viewMode === 'loading' && fallComplete)
@@ -1028,24 +1113,28 @@ export function PackOpeningAnimation({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
         className={cn(
-          'fixed inset-0',
+          'pack-stage-root fixed inset-0',
           galleryVisible ? 'z-[60] pointer-events-none' : 'z-50',
         )}
         style={{
-          backgroundColor: galleryVisible ? 'transparent' : '#000000',
+          backgroundColor: galleryVisible
+            ? 'transparent'
+            : 'var(--pack-stage-bg)',
         }}
       >
         {viewMode === 'loading' ? (
           <PackGalleryLoadingOverlay
-            label={packGalleryLoadingLabel(galleryReady)}
+            label={packGalleryLoadingLabel(galleryHasTextures)}
           />
         ) : null}
 
         {galleryVisible ? (
           <>
-            <div className="pointer-events-none absolute bottom-10 left-0 z-[60] w-full text-center font-mono text-[11px] font-semibold uppercase text-white">
+            <div className="pack-stage-hint pointer-events-none absolute bottom-10 left-0 z-[60] w-full text-center font-mono text-[12px] font-semibold uppercase">
               <p>滚轮浏览 · 单击翻面</p>
-              <p className="opacity-60">3 秒无操作恢复自动播放</p>
+              <p className="pack-stage-hint-subtle opacity-80">
+                3 秒无操作恢复自动播放
+              </p>
             </div>
           </>
         ) : null}
@@ -1063,10 +1152,8 @@ export function PackOpeningAnimation({
             } else onClose()
           }}
           className={cn(
-            'pointer-events-auto absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-            galleryVisible
-              ? 'bg-white/15 text-white shadow-lg backdrop-blur-sm hover:bg-white/25'
-              : 'bg-white/10 text-white hover:bg-white/20',
+            'pack-stage-close pointer-events-auto absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+            galleryVisible && 'shadow-lg backdrop-blur-sm',
           )}
           aria-label={
             viewMode === 'gallery'
@@ -1096,7 +1183,7 @@ export function PackOpeningAnimation({
         >
             {atArcBottom ? (
               <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 pointer-events-none text-center">
-                <p className="font-mono text-xs tracking-widest text-white/70">
+                <p className="pack-stage-hint font-mono text-xs tracking-widest">
                   继续下滑 · 卡片落入画廊
                 </p>
               </div>
@@ -1107,7 +1194,7 @@ export function PackOpeningAnimation({
               active={!showCardStack && phase === 'circle'}
               className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 pointer-events-none text-center"
             >
-              <p className="font-mono text-xs tracking-widest text-white/70">
+              <p className="pack-stage-hint font-mono text-xs tracking-widest">
                 滚轮展开底弧 · 点击聚拢卡牌
               </p>
             </PackOpeningMorphHint>
@@ -1170,22 +1257,22 @@ export function PackOpeningAnimation({
                     opacity: 1,
                   }
                 } else if (phase === 'circle') {
-                  const w = containerSize.width || containerRef.current?.offsetWidth || 0
-                  const h = containerSize.height || containerRef.current?.offsetHeight || 0
-                  const morphValue = Math.min(1, Math.max(0, wheelScroll / MORPH_END))
-                  const rotateValue =
-                    wheelScroll <= MORPH_END
-                      ? 0
-                      : ((wheelScroll - MORPH_END) /
-                          Math.max(MAX_SCROLL - MORPH_END, 1)) *
-                        360
+                  // 成环入场：弹簧从 line 过渡到 morph=0 圆环
+                  const w =
+                    containerSize.width ||
+                    containerRef.current?.offsetWidth ||
+                    0
+                  const h =
+                    containerSize.height ||
+                    containerRef.current?.offsetHeight ||
+                    0
                   target = computeCircleArcTarget(
                     i,
                     total,
                     w,
                     h,
-                    morphValue,
-                    rotateValue,
+                    morphValueRef.current,
+                    rotateValueRef.current,
                   )
                 }
 
@@ -1246,11 +1333,11 @@ export function PackOpeningAnimation({
                           type="button"
                           onClick={() => setQueueStart((p) => Math.max(0, p - 1))}
                           disabled={queueStart === 0}
-                          className="rounded-lg bg-white dark:bg-black px-3 py-1.5 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="pack-stage-control rounded-lg px-3 py-1.5 text-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           ← 上一张
                         </button>
-                        <span className="text-sm text-black dark:text-white tabular-nums min-w-[80px] text-center font-medium">
+                        <span className="min-w-[80px] text-center text-sm font-medium tabular-nums text-[var(--pack-stage-fg)]">
                           {queueStart + 1}–{queueStart + visibleCards.length} /{' '}
                           {allStackCards.length}
                         </span>
@@ -1258,7 +1345,7 @@ export function PackOpeningAnimation({
                           type="button"
                           onClick={() => setQueueStart((p) => p + 1)}
                           disabled={queueRemaining <= 0}
-                          className="rounded-lg bg-white dark:bg-black px-3 py-1.5 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="pack-stage-control rounded-lg px-3 py-1.5 text-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           下一张 →
                         </button>
@@ -1302,7 +1389,7 @@ export function PackOpeningAnimation({
                   setShowCardStack(false)
                   setGatherOrigins(null)
                 }}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 rounded-full bg-white dark:bg-black px-4 py-2 text-sm text-black dark:text-white hover:opacity-80 transition-opacity border border-black/15 dark:border-white/15"
+                className="pack-stage-control absolute bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full px-4 py-2 text-sm transition-opacity hover:opacity-90"
               >
                 返回散落视图
               </button>

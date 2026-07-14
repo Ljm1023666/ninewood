@@ -30,6 +30,18 @@ Append-only operational lessons to reduce repeated mistakes.
 
 ## 2026-07-14
 
+- HD 画廊纹理若在 GPU `useTexture.preload` / Canvas 仍引用时立刻 `revokeObjectURL`，会抛出 `Could not load blob:` 并冒泡成路由级白屏。必须先发布新 URL、作废预载队列，旧 blob 延后回收；并为画廊加 ErrorBoundary。
+- 浏览画廊期间热换 HD 纹理会导致卡面错位；HD 应在离开画廊后再启动。
+
+## 2026-07-14
+
+- 开包/3D 画廊若硬编码 `#000` + Tailwind `dark:`，会跟 OS 偏好而不是 `data-appearance`；控件可能在黑场上消失。舞台色必须用跟随 App 主题的 `--pack-stage-*`。
+- 底弧滚轮若用 `setState(wheelScroll)` 驱动 20 路 Framer spring，会整页重渲；circle 阶段应与 falling 一样走 MotionValue。
+- `prefetchPackGallery` 已存在但未接入会导致冷启动必等 API+纹理；加手牌时应立即预取，快纹理 ready 后勿再 defer GPU 预载。
+- `ready:true` 且 `items:[]` 时 Canvas 不挂载，`onSceneReady` 永不触发 → 永久「正在初始化场景」；必须超时/空纹理回退。
+
+## 2026-07-14
+
 - 顶层文档会互相污染新会话（Roadmap / 冻结 Task handoff / 旧 ADR）。过期主线、已完成 Stage·Task、一次性报告应迁入 `docs/archive/`，并用 **全 AI 工具**忽略机制阻断：权威清单 `.llmignore` → `node scripts/sync-ai-ignores.mjs` 同步到各工具 ignore；Claude Code 加 `permissions.deny`；行为层靠 `AGENTS.md` / `CLAUDE.md` / `.github/copilot-instructions.md`。勿只配 `.cursorignore`。
 - 自然回现行权威是 `docs/回的理念.md` + `NATURAL-LOOP-V2-ADR.md`；勿再默认打开已归档的 `NATURAL-LOOP-ADR.md` 或 Task-12「找服务」终态叙事。
 - `CLAUDE.md` / `MEMORY.md` 的包管理与仓库路径若与 `AGENTS.md` 冲突，以 `AGENTS.md` + `README.md`（pnpm）为准并应立即对齐，否则协作纪律名存实亡。

@@ -1,4 +1,5 @@
 import {
+  Component,
   createContext,
   useCallback,
   useContext,
@@ -22,6 +23,7 @@ import {
 import { bindPackGalleryImagesBridge } from '@/utils/pack-gallery-bridge'
 import {
   preloadPackGalleryGpuTexturesDelta,
+  invalidatePackGalleryGpuPreload,
 } from '@/utils/preload-pack-gallery-gpu'
 import { cn } from '@/lib/utils'
 
@@ -40,6 +42,60 @@ type FrameLoopMode = 'always' | 'never'
 type DisplayFlags = {
   onTop: boolean
   showTitle: boolean
+}
+
+/** 吞掉 drei/three blob 纹理加载崩溃，避免冒泡成路由级 Unexpected Application Error */
+class GalleryTextureErrorBoundary extends Component<
+  {
+    resetKey: string | number
+    onRecover?: () => void
+    children: ReactNode
+  },
+  { hasError: boolean; retry: number }
+> {
+  state = { hasError: false, retry: 0 }
+  private recoverTimer: ReturnType<typeof setTimeout> | null = null
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error) {
+    invalidatePackGalleryGpuPreload()
+    console.warn('[pack-gallery] texture load failed, remounting canvas', error)
+    if (this.recoverTimer) clearTimeout(this.recoverTimer)
+    this.recoverTimer = setTimeout(() => {
+      this.recoverTimer = null
+      this.setState((prev) => ({ hasError: false, retry: prev.retry + 1 }))
+      this.props.onRecover?.()
+    }, 120)
+  }
+
+  componentDidUpdate(prevProps: Readonly<{ resetKey: string | number }>) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      if (this.recoverTimer) clearTimeout(this.recoverTimer)
+      this.setState({ hasError: false })
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.recoverTimer) clearTimeout(this.recoverTimer)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-full w-full items-center justify-center text-[var(--pack-stage-fg-muted)]">
+          卡面纹理加载失败，正在重试…
+        </div>
+      )
+    }
+    return (
+      <div key={`${this.props.resetKey}-${this.state.retry}`} className="h-full w-full">
+        {this.props.children}
+      </div>
+    )
+  }
 }
 
 function sameImageList(a: PackCardImageItem[], b: PackCardImageItem[]): boolean {
@@ -483,34 +539,39 @@ function PackGalleryHost({
     >
       <div
         ref={blackLayerRef}
-        className="absolute inset-0 isolate bg-black will-change-[opacity]"
-        style={{ opacity: 0 }}
+        className="absolute inset-0 isolate will-change-[opacity]"
+        style={{ opacity: 0, background: 'var(--pack-stage-bg)' }}
       >
         {mountGallery ? (
-          <InfiniteGallery
-            key={galleryMountKey}
-            images={images}
-            speed={1.2}
-            visibleCount={10}
-            interactive={false}
-            wheelImpulseRef={wheelImpulseRef}
-            sceneControlRef={sceneControlRef}
-            enableFlip
-            enableHover={false}
-            disableClothDeform
-            frameLoop={frameLoop}
-            className="h-full w-full cursor-default bg-black"
-            onSceneReady={onSceneReady}
-            onCardNavigate={onCardNavigate}
-            sceneReadyFrameCount={6}
-            blurSettings={{
-              blurIn: { start: 0.0, end: 0.08 },
-              blurOut: { start: 0.92, end: 0.98 },
-              maxBlur: 0,
-            }}
-          />
+          <GalleryTextureErrorBoundary
+            resetKey={galleryMountKey}
+            onRecover={onSceneReady}
+          >
+            <InfiniteGallery
+              key={galleryMountKey}
+              images={images}
+              speed={1.2}
+              visibleCount={8}
+              interactive={false}
+              wheelImpulseRef={wheelImpulseRef}
+              sceneControlRef={sceneControlRef}
+              enableFlip
+              enableHover={false}
+              disableClothDeform
+              frameLoop={frameLoop}
+              className="h-full w-full cursor-default"
+              onSceneReady={onSceneReady}
+              onCardNavigate={onCardNavigate}
+              sceneReadyFrameCount={3}
+              blurSettings={{
+                blurIn: { start: 0.0, end: 0.08 },
+                blurOut: { start: 0.92, end: 0.98 },
+                maxBlur: 0,
+              }}
+            />
+          </GalleryTextureErrorBoundary>
         ) : displayFlags.onTop && !imagesReady ? (
-          <div className="flex h-full w-full items-center justify-center text-white/50">
+          <div className="flex h-full w-full items-center justify-center text-[var(--pack-stage-fg-muted)]">
             生成卡面纹理…
           </div>
         ) : null}
@@ -518,7 +579,7 @@ function PackGalleryHost({
       {/* mix-blend 层禁止做 opacity 动画（会迫使 WebGL 每帧重合成）；滚轮时直接卸载 */}
       {displayFlags.showTitle && titleShown ? (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-3 mix-blend-exclusion">
-          <h1 className="text-center font-serif text-4xl font-bold tracking-tighter text-white md:text-7xl">
+          <h1 className="text-center font-serif text-4xl font-bold tracking-tighter text-[var(--pack-stage-fg)] md:text-7xl">
             <span className="italic">Ninewood</span>
           </h1>
         </div>

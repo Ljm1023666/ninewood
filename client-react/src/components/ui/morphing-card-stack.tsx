@@ -155,7 +155,7 @@ export function MorphingCardStack({
                     layout === "stack" && isTopCard && "cursor-grab active:cursor-grabbing",
                     layout === "grid" && "w-full aspect-square bg-card",
                     layout === "list" && !card.shimmerClass && "bg-card",
-                    layout === "list" && card.shimmerClass && "bg-white dark:bg-black",
+                    layout === "list" && card.shimmerClass && "bg-[var(--pack-stage-control-bg)]",
                     layout === "list" && "w-full",
                     isExpanded && "ring-2 ring-primary",
                     layout === "list" && card.shimmerClass && "border-l-[3px]",
@@ -176,7 +176,7 @@ export function MorphingCardStack({
                       <div className={cn(
                         "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
                         card.shimmerClass
-                          ? "bg-black/5 dark:bg-white/10 text-black dark:text-white"
+                          ? "bg-[color-mix(in_srgb,var(--pack-stage-fg)_8%,transparent)] text-[var(--pack-stage-fg)]"
                           : "bg-secondary text-foreground",
                       )}>
                         {card.icon}
@@ -185,13 +185,13 @@ export function MorphingCardStack({
                     <div className="min-w-0 flex-1">
                       <h3 className={cn(
                         "font-semibold truncate",
-                        card.shimmerClass ? "text-black dark:text-white" : "text-card-foreground",
+                        card.shimmerClass ? "text-[var(--pack-stage-fg)]" : "text-card-foreground",
                       )}>{card.title}</h3>
                       {layout !== "list" && (
                         <p
                           className={cn(
                             "text-sm mt-1",
-                            card.shimmerClass ? "text-black/70 dark:text-white/70" : "text-muted-foreground",
+                            card.shimmerClass ? "text-[var(--pack-stage-fg-muted)]" : "text-muted-foreground",
                             layout === "stack" && "line-clamp-3",
                             layout === "grid" && "line-clamp-2",
                           )}

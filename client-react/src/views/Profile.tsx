@@ -388,7 +388,7 @@ export default function Profile() {
                 aria-hidden
               />
               <div
-                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/15 via-background/50 to-background transition-opacity"
+                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-transparent via-background/25 to-background/78 transition-opacity"
                 style={{
                   opacity: showCoverBackground ? 1 : 0,
                   transitionDuration: `${COVER_BG_FADE_MS}ms`,
@@ -418,330 +418,418 @@ export default function Profile() {
               aria-hidden
             />
           )}
-          <div className="internal-profile-shell relative z-10 box-border flex min-h-full w-full max-w-[1000px] shrink-0 flex-col self-center px-4 pb-16 pt-2 sm:px-6">
-            <PageHeader
-              title="主页"
-              onBack="back"
-              divider={false}
-            />
+          <div className="internal-profile-shell relative z-10 box-border flex min-h-full w-full max-w-[1120px] shrink-0 self-center px-5 pb-14 pt-2">
+            <div className="internal-profile-main min-w-0 flex-1">
+              <PageHeader title="主页" onBack="back" divider={false} />
 
-            <div className="internal-profile-page">
-            <section className="internal-profile-hero">
-              <div className="internal-profile-hero__head">
-                {isMe ? (
-                  <button
-                    type="button"
-                    onClick={() => avatarInputRef.current?.click()}
-                    disabled={uploadingKind !== null}
-                    className={cn(
-                      'internal-profile-hero__avatar',
-                      uploadingKind !== null && 'cursor-not-allowed opacity-70',
-                    )}
-                    aria-label="更换头像"
-                    title="更换头像"
-                  >
-                    {displayUser?.avatarUrl ? (
-                      <img src={displayUser.avatarUrl} alt="" />
-                    ) : (
-                      (displayUser?.nickname || '?')[0]
-                    )}
-                  </button>
-                ) : (
-                  <div className="internal-profile-hero__avatar">
-                    {displayUser?.avatarUrl ? (
-                      <img src={displayUser.avatarUrl} alt="" />
-                    ) : (
-                      (displayUser?.nickname || '?')[0]
-                    )}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <h2 className="internal-profile-hero__name">
-                    {displayUser?.nickname}
-                  </h2>
-                  <p className="internal-profile-hero__badge">
-                    {certLabel[level]}
-                  </p>
-                </div>
-              </div>
-
-              <p className="internal-profile-hero__bio">
-                {displayUser?.bio || '这个人很懒，什么都没写...'}
-              </p>
-              {(displayUser?.ipRegion || displayUser?.cityCode) && (
-                <p className="internal-profile-hero__meta">
-                  <MsIcon name={STITCH_PROFILE_ICONS.location} size={16} className="shrink-0" />
-                  IP 属地：{displayUser.ipRegion || displayUser.cityCode}
-                </p>
-              )}
-              {displayUser?.birthday && (
-                <p className="internal-profile-hero__meta">
-                  <MsIcon name="cake" size={16} className="shrink-0" />
-                  {new Date(displayUser.birthday).toLocaleDateString('zh-CN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              )}
-
-              <div className="internal-profile-hero__actions">
-                {isMe ? (
-                  <>
-                    <SettingsActionButton onClick={() => setEditDialogOpen(true)}>
-                      <MsIcon name={STITCH_PROFILE_ICONS.edit} size={16} className="mr-1.5 inline" />
-                      编辑资料
-                    </SettingsActionButton>
-                    <div
-                      className={
-                        pageCoverUrl
-                          ? 'internal-profile-hero__cover-action internal-profile-hero__cover-action--with-switch'
-                          : 'internal-profile-hero__cover-action'
-                      }
-                    >
-                      <SettingsActionButton
-                        onClick={() => coverInputRef.current?.click()}
+              <div className="internal-profile-page">
+                <section className="internal-profile-hero">
+                  <div className="internal-profile-hero__head">
+                    {isMe ? (
+                      <button
+                        type="button"
+                        onClick={() => avatarInputRef.current?.click()}
                         disabled={uploadingKind !== null}
+                        className={cn(
+                          'internal-profile-hero__avatar',
+                          uploadingKind !== null &&
+                            'cursor-not-allowed opacity-70',
+                        )}
+                        aria-label="更换头像"
+                        title="更换头像"
                       >
-                        {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
-                      </SettingsActionButton>
-                      {pageCoverUrl ? (
-                        <div
-                          className={`internal-profile-hero__cover-switch transition-opacity${
-                            coverBgEnabled
-                              ? ' opacity-100'
-                              : ' opacity-40'
-                          }`}
-                          style={{
-                            transitionDuration: `${COVER_BG_FADE_MS}ms`,
-                            transitionTimingFunction: COVER_BG_EASE_CSS,
-                          }}
-                        >
-                          <MaterialSwitch
-                            checked={coverBgEnabled}
-                            onCheckedChange={handleCoverBgToggle}
-                            size="sm"
-                            showIcons
-                            checkedIcon={<SunIcon />}
-                            uncheckedIcon={<MoonIcon />}
-                            haptic="light"
-                            aria-label={coverBgEnabled ? '关闭封面背景' : '开启封面背景'}
+                        {displayUser?.avatarUrl ? (
+                          <img src={displayUser.avatarUrl} alt="" />
+                        ) : (
+                          (displayUser?.nickname || '?')[0]
+                        )}
+                      </button>
+                    ) : (
+                      <div className="internal-profile-hero__avatar">
+                        {displayUser?.avatarUrl ? (
+                          <img src={displayUser.avatarUrl} alt="" />
+                        ) : (
+                          (displayUser?.nickname || '?')[0]
+                        )}
+                      </div>
+                    )}
+                    <div className="internal-profile-hero__copy min-w-0 flex-1">
+                      <div className="internal-profile-hero__title-row">
+                        <h2 className="internal-profile-hero__name">
+                          {displayUser?.nickname}
+                        </h2>
+                        {level !== 'NONE' ? (
+                          <span
+                            className="internal-profile-hero__verified"
+                            title={certLabel[level]}
+                            aria-label={certLabel[level]}
+                          >
+                            <MsIcon
+                              name={STITCH_PROFILE_ICONS.verified}
+                              size={14}
+                              filled
+                            />
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="internal-profile-hero__bio">
+                        {displayUser?.bio || '这个人很懒，什么都没写...'}
+                      </p>
+                      {(displayUser?.ipRegion || displayUser?.cityCode) && (
+                        <p className="internal-profile-hero__meta">
+                          <MsIcon
+                            name={STITCH_PROFILE_ICONS.location}
+                            size={15}
+                            className="shrink-0"
                           />
-                        </div>
+                          IP 属地：
+                          {displayUser.ipRegion || displayUser.cityCode}
+                        </p>
+                      )}
+                      {displayUser?.birthday ? (
+                        <p className="internal-profile-hero__meta">
+                          <MsIcon name="cake" size={15} className="shrink-0" />
+                          {new Date(displayUser.birthday).toLocaleDateString(
+                            'zh-CN',
+                            {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            },
+                          )}
+                        </p>
                       ) : null}
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <SettingsActionButton
-                      variant={isFollowing ? 'default' : 'primary'}
-                      onClick={handleFollow}
-                      disabled={isFollowLoading}
-                    >
-                      {isFollowing ? (
-                        <>
-                          <MsIcon name="how_to_reg" size={16} className="mr-1.5 inline" />
-                          已关注
-                        </>
-                      ) : (
-                        <>
-                          <MsIcon name="person_add" size={16} className="mr-1.5 inline" />
-                          关注
-                        </>
-                      )}
-                    </SettingsActionButton>
-                    <SettingsActionButton
-                      onClick={() => navigate(`/messages/${displayUser?.id}`)}
-                      aria-label="发消息"
-                    >
-                      <MsIcon name={STITCH_PROFILE_ICONS.message} size={16} />
-                    </SettingsActionButton>
-                  </>
-                )}
-              </div>
-            </section>
+                  </div>
 
-            <section className="internal-profile-metrics-row">
-              <button
-                type="button"
-                onClick={() => gotoFollowList('following')}
-                className="internal-profile-metrics-row__cell"
-              >
-                <span className="internal-profile-metrics-row__value">
-                  {followCounts.following}
-                </span>
-                <span className="internal-profile-metrics-row__label">关注</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => gotoFollowList('followers')}
-                className="internal-profile-metrics-row__cell"
-              >
-                <span className="internal-profile-metrics-row__value">
-                  {followCounts.followers}
-                </span>
-                <span className="internal-profile-metrics-row__label">粉丝</span>
-              </button>
-              <div className="internal-profile-metrics-row__cell">
-                <MsIcon name={STITCH_PROFILE_ICONS.verified} size={22} className="text-text-primary" />
-                <span className="internal-profile-metrics-row__label">
-                  {certLabel[level]}
-                </span>
-                {promo ? (
-                  <div className="mt-1 h-1 w-full max-w-[120px] overflow-hidden bg-white/10">
-                    <div
-                      className="h-full bg-[var(--internal-accent)] transition-[width_0.8s]"
-                      style={{ width: `${promoProgress}%` }}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="internal-profile-grid">
-              {[
-                {
-                  icon: STITCH_PROFILE_ICONS.star,
-                  label: '信誉积分',
-                  value: user?.creditScore || certStatus?.creditScore || 60,
-                },
-                {
-                  icon: STITCH_PROFILE_ICONS.bolt,
-                  label: '本月抢单',
-                  value: `${user?.snatchCredits || certStatus?.snatchCredits || 0}/3`,
-                },
-                {
-                  icon: STITCH_PROFILE_ICONS.trending,
-                  label: '完成订单',
-                  value:
-                    user?.completedOrders || certStatus?.completedOrders || 0,
-                },
-                {
-                  icon: STITCH_PROFILE_ICONS.group,
-                  label: '关注/粉丝比',
-                  value:
-                    followCounts.followers > 0
-                      ? `${Math.round((followCounts.following / Math.max(followCounts.followers, 1)) * 100)}%`
-                      : '0%',
-                },
-              ].map((item, i) => (
-                <div key={i} className="internal-profile-grid__cell">
-                  <div className="internal-profile-grid__icon">
-                    <MsIcon name={item.icon} size={18} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="internal-profile-grid__label">{item.label}</p>
-                    <p className="internal-profile-grid__value">{item.value}</p>
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            {isMe ? (
-              <nav className="internal-profile-dock" aria-label="个人中心导航">
-                {[
-                  { icon: STITCH_PROFILE_ICONS.cert, label: '认证', path: '/cert-center' },
-                  { icon: STITCH_PROFILE_ICONS.demands, label: '需求', path: '/my-demands' },
-                  { icon: STITCH_PROFILE_ICONS.favorites, label: '收藏', tab: 'favorites' as const },
-                  { icon: STITCH_PROFILE_ICONS.orders, label: '订单', path: '/orders' },
-                  { icon: STITCH_PROFILE_ICONS.chat, label: '消息', path: '/messages' },
-                  { icon: STITCH_PROFILE_ICONS.settings, label: '设置', path: '/settings' },
-                ].map((item) => (
-                  <button
-                    key={item.tab || item.path}
-                    type="button"
-                    onClick={() =>
-                      item.tab ? setContentTab(item.tab) : navigate(item.path!)
-                    }
-                    className="internal-profile-dock__btn"
-                  >
-                    <MsIcon name={item.icon} size={22} aria-hidden />
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </nav>
-            ) : null}
-
-            {contentTab === 'favorites' && isMe ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <SettingsActionButton onClick={() => setContentTab('profile')}>
-                    ← 返回
-                  </SettingsActionButton>
-                  <span className="text-base font-bold text-text-primary">
-                    我的收藏
-                  </span>
-                </div>
-                {favoriteLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <span className="loader" />
-                  </div>
-                ) : favoriteDemands.length === 0 ? (
-                  <div className="py-8 text-center text-base font-semibold text-text-muted">
-                    暂无收藏
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      {favoriteDemands.map((demand) => (
-                        <div key={demand.id} className="settings-panel p-4">
-                          <div className="flex items-center justify-between gap-3">
-                            <button
-                              type="button"
-                              onClick={() => navigate(`/demands/${demand.id}`)}
-                              className="min-w-0 flex-1 text-left"
-                            >
-                              <p className="truncate text-base font-bold text-[#e2e2e2]">
-                                {demand.title}
-                              </p>
-                              <p className="mt-0.5 font-mono text-sm font-semibold text-text-muted">
-                                ¥{demand.minPrice} · {demand.category}
-                              </p>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => toggleFavorite(demand.id)}
-                              className="settings-action-btn !px-2"
-                              aria-label="取消收藏"
-                            >
+                  <div className="internal-profile-hero__actions">
+                    {isMe ? (
+                      <>
+                        <SettingsActionButton
+                          onClick={() => setEditDialogOpen(true)}
+                        >
+                          <MsIcon
+                            name={STITCH_PROFILE_ICONS.edit}
+                            size={16}
+                            className="mr-1.5 inline"
+                          />
+                          编辑资料
+                        </SettingsActionButton>
+                        <SettingsActionButton
+                          onClick={() => coverInputRef.current?.click()}
+                          disabled={uploadingKind !== null}
+                        >
+                          {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
+                        </SettingsActionButton>
+                        {pageCoverUrl ? (
+                          <div
+                            className={cn(
+                              'internal-profile-hero__cover-switch',
+                              !coverBgEnabled &&
+                                'internal-profile-hero__cover-switch--off',
+                            )}
+                          >
+                            <MaterialSwitch
+                              checked={coverBgEnabled}
+                              onCheckedChange={handleCoverBgToggle}
+                              size="sm"
+                              showIcons
+                              checkedIcon={<SunIcon />}
+                              uncheckedIcon={<MoonIcon />}
+                              haptic="light"
+                              aria-label={
+                                coverBgEnabled
+                                  ? '关闭封面背景'
+                                  : '开启封面背景'
+                              }
+                            />
+                          </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <SettingsActionButton
+                          variant={isFollowing ? 'default' : 'primary'}
+                          onClick={handleFollow}
+                          disabled={isFollowLoading}
+                        >
+                          {isFollowing ? (
+                            <>
                               <MsIcon
-                                name={STITCH_PROFILE_ICONS.favorites}
+                                name="how_to_reg"
                                 size={16}
-                                filled
-                                className="text-[var(--internal-accent)]"
+                                className="mr-1.5 inline"
                               />
-                            </button>
+                              已关注
+                            </>
+                          ) : (
+                            <>
+                              <MsIcon
+                                name="person_add"
+                                size={16}
+                                className="mr-1.5 inline"
+                              />
+                              关注
+                            </>
+                          )}
+                        </SettingsActionButton>
+                        <SettingsActionButton
+                          onClick={() =>
+                            navigate(`/messages/${displayUser?.id}`)
+                          }
+                          aria-label="发消息"
+                        >
+                          <MsIcon
+                            name={STITCH_PROFILE_ICONS.message}
+                            size={16}
+                          />
+                        </SettingsActionButton>
+                      </>
+                    )}
+                  </div>
+                </section>
+
+                {contentTab === 'profile' ? (
+                  <>
+                    <section className="internal-profile-metrics-row">
+                      <button
+                        type="button"
+                        onClick={() => gotoFollowList('following')}
+                        className="internal-profile-metrics-row__cell"
+                      >
+                        <span className="internal-profile-metrics-row__value">
+                          {followCounts.following}
+                        </span>
+                        <span className="internal-profile-metrics-row__label">
+                          关注
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => gotoFollowList('followers')}
+                        className="internal-profile-metrics-row__cell"
+                      >
+                        <span className="internal-profile-metrics-row__value">
+                          {followCounts.followers}
+                        </span>
+                        <span className="internal-profile-metrics-row__label">
+                          粉丝
+                        </span>
+                      </button>
+                      <div className="internal-profile-metrics-row__cell">
+                        <MsIcon
+                          name={STITCH_PROFILE_ICONS.verified}
+                          size={22}
+                          className="text-[var(--internal-accent)]"
+                        />
+                        <span className="internal-profile-metrics-row__label">
+                          {certLabel[level]}
+                        </span>
+                        {promo ? (
+                          <div className="internal-profile-metrics-row__progress">
+                            <div
+                              className="internal-profile-metrics-row__progress-bar"
+                              style={{ width: `${promoProgress}%` }}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    </section>
+
+                    <section className="internal-profile-grid">
+                      {[
+                        {
+                          icon: STITCH_PROFILE_ICONS.star,
+                          label: '信誉积分',
+                          value:
+                            user?.creditScore ||
+                            certStatus?.creditScore ||
+                            60,
+                        },
+                        {
+                          icon: STITCH_PROFILE_ICONS.bolt,
+                          label: '本月抢单',
+                          value: `${user?.snatchCredits || certStatus?.snatchCredits || 0}/3`,
+                        },
+                        {
+                          icon: STITCH_PROFILE_ICONS.trending,
+                          label: '完成订单',
+                          value:
+                            user?.completedOrders ||
+                            certStatus?.completedOrders ||
+                            0,
+                        },
+                        {
+                          icon: STITCH_PROFILE_ICONS.group,
+                          label: '关注/粉丝比',
+                          value:
+                            followCounts.followers > 0
+                              ? `${Math.round((followCounts.following / Math.max(followCounts.followers, 1)) * 100)}%`
+                              : '0%',
+                        },
+                      ].map((item) => (
+                        <div
+                          key={item.label}
+                          className="internal-profile-grid__cell"
+                        >
+                          <div className="internal-profile-grid__icon">
+                            <MsIcon name={item.icon} size={18} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="internal-profile-grid__label">
+                              {item.label}
+                            </p>
+                            <p className="internal-profile-grid__value">
+                              {item.value}
+                            </p>
                           </div>
                         </div>
                       ))}
-                    </div>
-                    {favoriteTotalPages > 1 ? (
-                      <div className="mt-2 flex justify-center gap-2">
-                        {Array.from(
-                          { length: Math.min(5, favoriteTotalPages) },
-                          (_, i) => i + 1,
-                        ).map((page) => (
-                          <button
-                            key={page}
-                            type="button"
-                            onClick={() => loadFavPage(page)}
-                            className={cn(
-                              'h-9 w-9 border font-mono text-sm font-bold',
-                              page === favPage
-                                ? 'border-[var(--internal-accent)] bg-[var(--internal-accent)]/10 text-text-primary'
-                                : 'border-[var(--internal-hairline)] text-text-muted hover:text-text-primary',
-                            )}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
+                    </section>
                   </>
-                )}
+                ) : null}
+
+                {contentTab === 'favorites' && isMe ? (
+                  <section className="internal-profile-favorites">
+                    <div className="internal-profile-favorites__bar">
+                      <SettingsActionButton
+                        onClick={() => setContentTab('profile')}
+                      >
+                        ← 返回
+                      </SettingsActionButton>
+                      <h3 className="internal-profile-favorites__title">
+                        我的收藏
+                      </h3>
+                    </div>
+                    {favoriteLoading ? (
+                      <div className="flex items-center justify-center py-10">
+                        <span className="loader" />
+                      </div>
+                    ) : favoriteDemands.length === 0 ? (
+                      <div className="internal-profile-favorites__empty">
+                        暂无收藏
+                      </div>
+                    ) : (
+                      <>
+                        <div className="internal-profile-favorites__list">
+                          {favoriteDemands.map((demand) => (
+                            <div
+                              key={demand.id}
+                              className="internal-profile-favorites__row"
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  navigate(`/demands/${demand.id}`)
+                                }
+                                className="internal-profile-favorites__link"
+                              >
+                                <p className="internal-profile-favorites__name">
+                                  {demand.title}
+                                </p>
+                                <p className="internal-profile-favorites__meta">
+                                  ¥{demand.minPrice} · {demand.category}
+                                </p>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleFavorite(demand.id)}
+                                className="internal-profile-favorites__unfav"
+                                aria-label="取消收藏"
+                              >
+                                <MsIcon
+                                  name={STITCH_PROFILE_ICONS.favorites}
+                                  size={16}
+                                  filled
+                                />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        {favoriteTotalPages > 1 ? (
+                          <div className="internal-profile-favorites__pages">
+                            {Array.from(
+                              { length: Math.min(5, favoriteTotalPages) },
+                              (_, i) => i + 1,
+                            ).map((page) => (
+                              <button
+                                key={page}
+                                type="button"
+                                onClick={() => loadFavPage(page)}
+                                className={cn(
+                                  'internal-profile-favorites__page',
+                                  page === favPage &&
+                                    'internal-profile-favorites__page--active',
+                                )}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </>
+                    )}
+                  </section>
+                ) : null}
               </div>
-            ) : null}
             </div>
+
+            {isMe ? (
+              <nav className="internal-profile-rail" aria-label="个人中心导航">
+                {[
+                  {
+                    icon: STITCH_PROFILE_ICONS.cert,
+                    label: '认证',
+                    path: '/cert-center',
+                  },
+                  {
+                    icon: STITCH_PROFILE_ICONS.demands,
+                    label: '需求',
+                    path: '/my-demands',
+                  },
+                  {
+                    icon: STITCH_PROFILE_ICONS.favorites,
+                    label: '收藏',
+                    tab: 'favorites' as const,
+                  },
+                  {
+                    icon: STITCH_PROFILE_ICONS.orders,
+                    label: '订单',
+                    path: '/orders',
+                  },
+                  {
+                    icon: STITCH_PROFILE_ICONS.chat,
+                    label: '消息',
+                    path: '/messages',
+                  },
+                  {
+                    icon: STITCH_PROFILE_ICONS.settings,
+                    label: '设置',
+                    path: '/settings',
+                  },
+                ].map((item) => {
+                  const active = item.tab ? contentTab === item.tab : false
+                  return (
+                    <button
+                      key={item.tab || item.path}
+                      type="button"
+                      onClick={() =>
+                        item.tab
+                          ? setContentTab(item.tab)
+                          : navigate(item.path!)
+                      }
+                      className={cn(
+                        'internal-profile-rail__btn',
+                        active && 'internal-profile-rail__btn--active',
+                      )}
+                    >
+                      <MsIcon name={item.icon} size={22} aria-hidden />
+                      <span>{item.label}</span>
+                    </button>
+                  )
+                })}
+              </nav>
+            ) : null}
           </div>
         </div>
       </motion.div>
