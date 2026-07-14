@@ -8,7 +8,6 @@ import { Footer } from '@/components/ui/footer-section'
 
 import { SearchBar } from '@/components/ui/search-bar'
 import { InputWithTags } from '@/components/ui/input-with-tags'
-import { SparklesCore } from '@/components/ui/sparkles'
 import { getAuthToken } from '@/api/auth-session'
 
 export default function Discover() {
@@ -107,25 +106,8 @@ export default function Discover() {
       {
         title: 'Ninewood',
         subtitle: { line1: '', line2: '' },
-        render: () => (
-          <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-2xl h-40 z-0 bg-black">
-            <div className="absolute inset-x-0 top-0 flex flex-col items-center">
-              <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-              <div className="h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm mt-px" />
-              <div className="h-px w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent mt-1" />
-              <div className="h-[3px] w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent blur-sm mt-px" />
-            </div>
-            <SparklesCore
-              background="transparent"
-              minSize={0.4}
-              maxSize={1}
-              particleDensity={100}
-              className="w-full h-full"
-              particleColor="#FFFFFF"
-              speed={0.6}
-            />
-          </div>
-        ),
+        // 与卡池画廊中央品牌字一致：serif + italic + tracking-tighter
+        titleClassName: 'font-serif italic tracking-tighter',
       },
       {
         title: '遇见',

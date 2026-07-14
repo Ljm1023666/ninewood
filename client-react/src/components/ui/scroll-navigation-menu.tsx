@@ -170,7 +170,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/" className="text-2xl font-bold text-white">
+                <Link
+                  to="/"
+                  className="font-serif text-2xl font-bold italic tracking-tighter text-white"
+                >
                   Ninewood
                 </Link>
               </motion.div>
@@ -209,7 +212,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/" className="text-2xl font-bold text-white">
+                <Link
+                  to="/"
+                  className="font-serif text-2xl font-bold italic tracking-tighter text-white"
+                >
                   Ninewood
                 </Link>
               </motion.div>

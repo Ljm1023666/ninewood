@@ -8,6 +8,8 @@ interface SectionContent {
   title: string
   subtitle: { line1: string; line2: string }
   render?: () => React.ReactNode
+  /** 标题额外 class（如卡池画廊同款 serif 斜体） */
+  titleClassName?: string
 }
 
 interface HorizonHeroSectionProps {
@@ -764,7 +766,12 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
         className="hero-content cosmos-content"
         style={{ opacity: Math.max(0, 1 - scrollProgress * totalSections) }}
       >
-        <h1 ref={titleRef} className="hero-title">
+        <h1
+          ref={titleRef}
+          className={['hero-title', sections[0]?.titleClassName]
+            .filter(Boolean)
+            .join(' ')}
+        >
           {splitTitle(sections[0]?.title || 'DISCOVER')}
         </h1>
 
