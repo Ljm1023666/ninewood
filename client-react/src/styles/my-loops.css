@@ -661,3 +661,46 @@
   transform: translateY(-2px);
 }
 
+/* macOS grouped-content treatment for the run center. */
+html[data-appearance='light'] .my-loops-page {
+  padding: 32px 40px 56px;
+}
+
+html[data-appearance='light'] .my-loops-summary {
+  overflow: hidden;
+  border-color: rgba(60, 60, 67, .14);
+  border-radius: 14px;
+  box-shadow: var(--elevation-1);
+}
+
+html[data-appearance='light'] .my-loops-summary__kind.is-active {
+  background: rgba(0, 122, 255, .10);
+}
+
+html[data-appearance='light'] .my-loops-toolbar {
+  padding: 10px;
+  border: 1px solid rgba(60, 60, 67, .12);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  box-shadow: var(--elevation-1);
+}
+
+html[data-appearance='light'] .my-loops-refresh,
+html[data-appearance='light'] .my-loops-segment button,
+html[data-appearance='light'] .my-loops-state button {
+  border-color: rgba(60, 60, 67, .16);
+  border-radius: 9px;
+}
+
+html[data-appearance='light'] .my-loops-card,
+html[data-appearance='light'] .my-loops-pane,
+html[data-appearance='light'] .my-loops-heaven {
+  border-color: rgba(60, 60, 67, .14);
+  box-shadow: var(--elevation-1);
+}
+
+html[data-appearance='light'] .my-loops-card:hover {
+  border-color: rgba(0, 122, 255, .30);
+  box-shadow: var(--elevation-2);
+}
+

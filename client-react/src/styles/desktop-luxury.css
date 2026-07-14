@@ -41,16 +41,16 @@ html[data-appearance='light'] .dlp-page {
   color-scheme: light;
   --wallet-serif: 'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif;
   --success-color: #10b981;
-  --price-foreground: #111111;
-  --price-surface: rgba(0, 0, 0, 0.05);
-  --price-border: rgba(0, 0, 0, 0.12);
-  --wallet-panel-bg: rgba(0, 0, 0, 0.03);
+  --price-foreground: #1d1d1f;
+  --price-surface: rgba(0, 122, 255, 0.08);
+  --price-border: rgba(60, 60, 67, 0.18);
+  --wallet-panel-bg: rgba(255, 255, 255, 0.88);
   --wallet-glass-bg: var(--bg-card);
   --wallet-glass-border: var(--border-color);
-  --wallet-glow-a: rgba(0, 0, 0, 0.015);
-  --wallet-glow-b: rgba(0, 0, 0, 0.008);
+  --wallet-glow-a: rgba(0, 122, 255, 0.04);
+  --wallet-glow-b: rgba(94, 92, 230, 0.025);
   --wallet-hero-radial: none;
-  --wallet-accent-gradient: linear-gradient(135deg, #111111, #333333);
+  --wallet-accent-gradient: linear-gradient(135deg, #007aff, #0a84ff);
   --wallet-on-accent: #ffffff;
   --wallet-divider: rgba(0, 0, 0, 0.08);
 }

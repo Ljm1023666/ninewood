@@ -4,7 +4,7 @@ Use this file as the compact handoff state between sessions.
 
 ## Intent
 
-落地统一卡片体系：需求卡保留原链路，新增服务卡、经验聚合、统一检索和消息卡片附件；同时保留已完成的 `/loops` 回运行中心。
+将 `/cert-center` 收敛为 Layout 内嵌工作台（方案 C），消除与全站双壳层割裂；此前还修复路径检索居中/滚动与发现页 Ninewood 字体对齐。
 
 ## Changes Made
 
@@ -32,6 +32,7 @@ Use this file as the compact handoff state between sessions.
 
 ## Active Issues
 
+- `/cert-center` 已并入 `Layout`；独立顶栏/注销/主题开关已去掉，改为页内 sticky 二级导航与主栏滚动。内容区 Stitch 文案与部分大块营销间距仍可继续压缩。
 - 全量前端 lint 仍有仓库既有错误；本次修改文件的定向 eslint 已通过。
 - 并列比例当前是独立滑块，未做自动归一化；调试阶段先保留可观察性。
 - 天回周期能力现在只做真实检测/上报，订单结算、福利发放、推送和任务调度等主流程仍由原业务调度器执行，避免看板伪装成事务执行器。
@@ -44,8 +45,7 @@ Use this file as the compact handoff state between sessions.
 
 ## Next Steps
 
-1. 登录后打开 `/publish`，创建并发布一张服务卡，验证 `/my-service-cards` 和公开详情。
-2. 用需求者/服务者身份在 `/search` 搜索同一关键词，验证需求卡与服务卡类型区分和排序。
-3. 从服务卡详情进入咨询，验证消息保存卡片快照；编辑服务卡后历史消息内容不变。
-4. 完成一个订单后验证对应 claim 的 ServiceCardEvidence 更新，并确认订单-钱包资源天回产生 LoopRun。
+1. 打开 `http://localhost:3080/cert-center`，确认左侧全局 Sidebar 仍在，页内可切换仪表盘/认证中心等分区并正常滚动。
+2. 未认证账号走介绍流，章节锚点与「立即认证」滚动到上传区。
+3. 若仍感觉内容区偏营销，继续压缩 intro/hero 段落与玻璃卡片密度。
 

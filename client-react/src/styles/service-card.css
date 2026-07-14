@@ -1,9 +1,47 @@
+.publish-page {
+  min-height: 100%;
+  background: var(--bg-primary);
+}
+
+.publish-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 56px);
+}
+
+.publish-header {
+  padding: 0 4px;
+}
+
+.publish-eyebrow,
+.publish-confirm-panel > p,
+.publish-choice-column > div > div > p,
+.publish-ai-summary p:first-child,
+.publish-aftermath > div > p,
+.publish-section > p {
+  letter-spacing: 0.08em;
+}
+
+.publish-title {
+  font-size: clamp(2rem, 3.25vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+}
+
+.publish-ai-badge {
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 2px 8px rgba(28, 28, 30, 0.05);
+}
+
 .publish-layout {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
-  gap: 40px;
-  min-height: calc(100vh - 220px);
+  grid-template-columns: minmax(0, 1.3fr) minmax(340px, 0.7fr);
+  gap: clamp(24px, 3vw, 40px);
+  min-height: calc(100vh - 250px);
   flex: 1;
+  margin-top: clamp(28px, 4vw, 48px);
 }
 
 .publish-choice-column {
@@ -15,14 +53,94 @@
 .publish-confirm-panel {
   display: flex;
   min-width: 0;
-  min-height: calc(100vh - 220px);
+  min-height: 560px;
   flex-direction: column;
+  border: 1px solid rgba(60, 60, 67, 0.16);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 40px rgba(28, 28, 30, 0.08);
 }
 
 .publish-action-dock {
-  min-height: 112px;
+  min-height: 104px;
   margin-top: auto;
-  padding-top: 32px;
+  padding-top: 24px;
+}
+
+.publish-choice-list {
+  padding: 6px;
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  border-radius: 18px;
+  background: rgba(229, 229, 234, 0.58);
+}
+
+.publish-choice-card {
+  padding: 20px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+}
+
+.publish-choice-card:hover {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.publish-choice-card.is-selected {
+  border-color: rgba(0, 122, 255, 0.28);
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(28, 28, 30, 0.08);
+}
+
+.publish-choice-icon {
+  border-radius: 11px;
+  background: rgba(60, 60, 67, 0.1);
+  color: var(--text-secondary);
+}
+
+.publish-choice-icon.is-selected {
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--accent-color);
+}
+
+.publish-ai-summary {
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 16px rgba(28, 28, 30, 0.04);
+}
+
+.publish-aftermath,
+.publish-section {
+  border-top: 1px solid rgba(60, 60, 67, 0.14);
+}
+
+.publish-confirm-icon {
+  border-radius: 14px;
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--accent-color);
+}
+
+.publish-step {
+  border-radius: 999px;
+  background: rgba(60, 60, 67, 0.1);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.publish-step-active {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+.publish-primary-action {
+  border-radius: 12px;
+  background: var(--accent-color);
+  color: #ffffff;
+  box-shadow: 0 5px 14px rgba(0, 122, 255, 0.24);
+}
+
+.publish-primary-action:hover {
+  background: var(--accent-hover);
 }
 
 .publish-input {
@@ -84,4 +202,33 @@
 
 .publish-tag button:hover {
   color: var(--text-primary);
+}
+
+html[data-appearance='dark'] .publish-ai-badge,
+html[data-appearance='dark'] .publish-confirm-panel,
+html[data-appearance='dark'] .publish-ai-summary {
+  background: rgba(44, 44, 46, 0.9);
+  border-color: rgba(235, 235, 245, 0.16);
+}
+
+html[data-appearance='dark'] .publish-choice-list {
+  background: rgba(58, 58, 60, 0.58);
+  border-color: rgba(235, 235, 245, 0.16);
+}
+
+html[data-appearance='dark'] .publish-choice-card:hover,
+html[data-appearance='dark'] .publish-choice-card.is-selected {
+  background: rgba(44, 44, 46, 0.94);
+}
+
+@media (max-width: 860px) {
+  .publish-shell { padding: 24px 16px; }
+  .publish-header { flex-direction: column; }
+  .publish-layout { grid-template-columns: 1fr; }
+  .publish-confirm-panel { min-height: auto; }
+}
+
+@media (max-width: 560px) {
+  .publish-aftermath { grid-template-columns: 1fr; }
+  .publish-ai-summary > div:last-child { grid-template-columns: 1fr; }
 }

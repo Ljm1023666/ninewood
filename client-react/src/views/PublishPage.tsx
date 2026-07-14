@@ -23,28 +23,28 @@ export default function PublishPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-bg-primary">
-      <div className="flex min-h-full w-full flex-col px-14 py-12">
-        <header className="flex items-start justify-between gap-8">
+    <div className="publish-page h-full overflow-y-auto">
+      <div className="publish-shell flex min-h-full w-full flex-col">
+        <header className="publish-header flex items-start justify-between gap-8">
           <div>
-            <p className="mb-3 flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.12em] text-text-muted">
-              <span className="size-1 bg-text-primary" />
+            <p className="publish-eyebrow mb-3 flex items-center gap-2 text-xs font-medium uppercase text-text-muted">
+              <span className="size-1 rounded-full bg-[var(--accent-color)]" />
               发布工作台
             </p>
-            <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight text-text-primary">
+            <h1 className="publish-title max-w-3xl font-bold tracking-tight text-text-primary">
               先决定，你要让谁找到你
             </h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-text-secondary">
               需求卡用于寻找服务者，服务卡用于展示你的能力。接下来由 AI 帮你整理成一张清晰、可检索的卡片。
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-2 border border-border bg-bg-card px-3 py-2 font-mono text-xs text-text-secondary">
-            <Sparkles className="size-3.5 text-text-primary" />
+          <div className="publish-ai-badge flex shrink-0 items-center gap-2 px-3 py-2 text-xs text-text-secondary">
+            <Sparkles className="size-3.5 text-[var(--accent-color)]" />
             AI 辅助整理
           </div>
         </header>
 
-        <main className="publish-layout mt-12">
+        <main className="publish-layout">
           <section className="publish-choice-column">
             <div className="mb-6 flex items-end justify-between">
               <div>
@@ -54,24 +54,24 @@ export default function PublishPage() {
               <span className="text-sm text-text-muted">可随时切换</span>
             </div>
 
-            <div className="space-y-3">
+            <div className="publish-choice-list space-y-3">
               <button
                 type="button"
                 aria-pressed={!isService}
                 onClick={() => changeMode('demand')}
-                className={`group flex w-full items-start gap-6 rounded-none border p-7 text-left transition-[border-color,background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] ${
+                className={`publish-choice-card group flex w-full items-start gap-5 text-left transition-[border-color,background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] ${
                   !isService
-                    ? 'border-text-primary bg-bg-tertiary'
-                    : 'border-border bg-bg-card hover:border-text-muted'
+                    ? 'is-selected'
+                    : 'hover:border-[var(--accent-color)]'
                 }`}
               >
-                <span className={`flex size-10 shrink-0 items-center justify-center ${!isService ? 'bg-text-primary text-bg-primary' : 'bg-bg-tertiary text-text-secondary'}`}>
+                <span className={`publish-choice-icon flex size-10 shrink-0 items-center justify-center ${!isService ? 'is-selected' : ''}`}>
                   <FileText className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-4">
                     <span className="text-base font-semibold text-text-primary">发布需求卡</span>
-                    {!isService && <Check className="size-4 text-text-primary" />}
+                    {!isService && <Check className="size-4 text-[var(--accent-color)]" />}
                   </span>
                   <span className="mt-2 block text-base leading-7 text-text-secondary">
                     说清楚你要解决的问题，让合适的服务者主动找到你。
@@ -83,19 +83,19 @@ export default function PublishPage() {
                 type="button"
                 aria-pressed={isService}
                 onClick={() => changeMode('service')}
-                className={`group flex w-full items-start gap-6 rounded-none border p-7 text-left transition-[border-color,background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] ${
+                className={`publish-choice-card group flex w-full items-start gap-5 text-left transition-[border-color,background-color,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] ${
                   isService
-                    ? 'border-text-primary bg-bg-tertiary'
-                    : 'border-border bg-bg-card hover:border-text-muted'
+                    ? 'is-selected'
+                    : 'hover:border-[var(--accent-color)]'
                 }`}
               >
-                <span className={`flex size-10 shrink-0 items-center justify-center ${isService ? 'bg-text-primary text-bg-primary' : 'bg-bg-tertiary text-text-secondary'}`}>
+                <span className={`publish-choice-icon flex size-10 shrink-0 items-center justify-center ${isService ? 'is-selected' : ''}`}>
                   <BriefcaseBusiness className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-4">
                     <span className="text-base font-semibold text-text-primary">发布服务卡</span>
-                    {isService && <Check className="size-4 text-text-primary" />}
+                    {isService && <Check className="size-4 text-[var(--accent-color)]" />}
                   </span>
                   <span className="mt-2 block text-base leading-7 text-text-secondary">
                     展示你能提供的服务，让有明确需求的人找到你。
@@ -104,7 +104,7 @@ export default function PublishPage() {
               </button>
             </div>
 
-            <div className="mt-8 border border-border bg-bg-secondary p-6">
+            <div className="publish-ai-summary mt-8 p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-text-muted">AI 会优先整理</p>
@@ -132,7 +132,7 @@ export default function PublishPage() {
               </div>
             </div>
 
-            <div className="mt-8 grid flex-1 grid-cols-2 gap-8 border-t border-border pt-8">
+            <div className="publish-aftermath mt-8 grid flex-1 grid-cols-2 gap-8 pt-8">
               <div>
                 <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-text-muted">发布后</p>
                 <div className="mt-5 space-y-5">
@@ -167,10 +167,10 @@ export default function PublishPage() {
             </div>
           </section>
 
-          <aside className="publish-confirm-panel border border-border bg-bg-card p-8">
+          <aside className="publish-confirm-panel p-8">
             <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-text-muted">STEP 02 / 当前选择</p>
             <div className="mt-10">
-              <div className="flex size-12 items-center justify-center bg-bg-tertiary text-text-primary">
+              <div className="publish-confirm-icon flex size-12 items-center justify-center">
                 {isService ? <BriefcaseBusiness className="size-6" /> : <FileText className="size-6" />}
               </div>
               <p className="mt-6 font-mono text-xs font-medium uppercase tracking-[0.08em] text-text-secondary">
@@ -185,24 +185,24 @@ export default function PublishPage() {
                   : '从你想解决的问题开始，AI 会协助整理目标、预算、时间和检索路径，减少反复填写。'}
               </p>
             </div>
-            <div className="mt-10 border-t border-border pt-7">
+            <div className="publish-section mt-10 pt-7">
               <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-text-muted">工作流预览</p>
               <div className="mt-4 space-y-3">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-6 items-center justify-center bg-text-primary font-mono text-[10px] text-bg-primary">01</span>
+                  <span className="publish-step publish-step-active flex size-6 items-center justify-center text-[10px]">01</span>
                   <span className="text-base text-text-secondary">用自然语言描述你的想法</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="flex size-6 items-center justify-center bg-bg-tertiary font-mono text-[10px] text-text-secondary">02</span>
+                  <span className="publish-step flex size-6 items-center justify-center text-[10px]">02</span>
                   <span className="text-base text-text-secondary">AI 提问并生成结构化草稿</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="flex size-6 items-center justify-center bg-bg-tertiary font-mono text-[10px] text-text-secondary">03</span>
+                  <span className="publish-step flex size-6 items-center justify-center text-[10px]">03</span>
                   <span className="text-base text-text-secondary">确认后发布到检索网络</span>
                 </div>
               </div>
             </div>
-            <div className="mt-8 border-t border-border pt-7">
+            <div className="publish-section mt-8 pt-7">
               <p className="font-mono text-xs font-medium uppercase tracking-[0.08em] text-text-muted">发布规则</p>
               <div className="mt-4 space-y-3 text-sm leading-6 text-text-secondary">
                 <p>发布前可以返回修改，发布后仍可编辑或下架。</p>
@@ -212,7 +212,7 @@ export default function PublishPage() {
             <div className="publish-action-dock">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 bg-text-primary px-5 py-3.5 text-sm font-semibold text-bg-primary transition-[background-color,transform] duration-200 hover:bg-text-secondary active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                className="publish-primary-action flex w-full items-center justify-center gap-2 px-5 py-3.5 text-sm font-semibold transition-[background-color,transform] duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                 onClick={() => navigate(isService ? '/demands/create?mode=service' : '/demands/create')}
               >
                 开始用 AI 整理 <ArrowRight className="size-4" />

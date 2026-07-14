@@ -1,0 +1,312 @@
+/* macOS-inspired app shell: restrained translucency is reserved for navigation only. */
+html[data-appearance='light'] {
+  color-scheme: light;
+}
+
+html[data-appearance='light'] .sidebar-ct-accent {
+  background: color-mix(in srgb, #ffffff 78%, transparent);
+  border-color: rgba(60, 60, 67, 0.12) !important;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.72) inset;
+}
+
+html[data-appearance='light'] .sidebar {
+  backdrop-filter: saturate(180%) blur(24px);
+}
+
+html[data-appearance='light'] .sidebar a[aria-current='page'] {
+  background: rgba(0, 122, 255, 0.12);
+  color: #007aff;
+}
+
+html[data-appearance='light'] .sidebar a:hover {
+  background: rgba(60, 60, 67, 0.08);
+}
+
+html[data-appearance='light'] button,
+html[data-appearance='light'] input,
+html[data-appearance='light'] textarea,
+html[data-appearance='light'] select {
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-appearance='light'] ::selection {
+  background: rgba(0, 122, 255, 0.24);
+}
+
+/* Shared internal pages: settings, lists, orders and profile use the same grouped surface. */
+html[data-appearance='light'] .internal-shell .internal-group,
+html[data-appearance='light'] .internal-shell .internal-list-card {
+  border-color: rgba(60, 60, 67, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.06);
+}
+
+html[data-appearance='light'] .internal-shell .internal-group__row {
+  border-color: rgba(60, 60, 67, 0.12);
+}
+
+html[data-appearance='light'] .internal-shell .internal-group__row:hover,
+html[data-appearance='light'] .internal-shell .internal-list-card:hover {
+  background: #fbfbfd;
+}
+
+html[data-appearance='light'] .internal-shell .internal-page-header {
+  border-color: rgba(60, 60, 67, 0.14);
+}
+
+html[data-appearance='light'] .internal-shell .internal-settings-section__label,
+html[data-appearance='light'] .internal-shell .internal-eyebrow-label {
+  color: #6e6e73;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+html[data-appearance='light'] .internal-shell .settings-toggle {
+  width: 42px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: #d1d1d6;
+}
+
+html[data-appearance='light'] .internal-shell .settings-toggle::after {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  content: '';
+  transform: translateX(-8px);
+  transition: transform 180ms ease;
+}
+
+html[data-appearance='light'] .internal-shell .settings-toggle--on::after {
+  transform: translateX(8px);
+}
+
+html[data-appearance='light'] .internal-shell .settings-appearance-segment {
+  border-radius: 10px;
+  border-color: rgba(60, 60, 67, 0.16);
+}
+
+html[data-appearance='light'] .internal-shell .settings-appearance-segment__btn {
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  text-transform: none;
+}
+
+html[data-appearance='light'] .internal-shell .settings-appearance-segment__btn--active {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(28, 28, 30, 0.12);
+}
+
+html[data-appearance='light'] .internal-shell .internal-stat-card {
+  border-color: rgba(60, 60, 67, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.06);
+}
+
+html[data-appearance='light'] .internal-shell .internal-result-avatar {
+  border-radius: 12px;
+  border-color: rgba(60, 60, 67, 0.14);
+}
+
+/* 承接人回：移除旧的“极光/赛博”皮肤，改为 macOS 搜索工作台。 */
+html[data-appearance='light'] .psa-root {
+  --void: #f5f5f7;
+  --violet: #007aff;
+  --violet-soft: #0a84ff;
+  --cyan: #007aff;
+  --magenta: #5e5ce6;
+  --gold: #ff9f0a;
+  --ink: #1d1d1f;
+  --ink-dim: #515154;
+  --ink-mute: #86868b;
+  --line: rgba(60, 60, 67, 0.16);
+  --muted-border: rgba(60, 60, 67, 0.22);
+  --glass: rgba(255, 255, 255, 0.92);
+  background: #f5f5f7;
+  font-family: var(--font-sans);
+}
+
+html[data-appearance='light'] .psa-root .psa-backdrop {
+  display: none;
+}
+
+html[data-appearance='light'] .psa-root .psa-shell {
+  max-width: 1360px;
+  padding: 24px clamp(20px, 3vw, 40px) 56px;
+}
+
+html[data-appearance='light'] .psa-root .psa-topbar {
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 18px rgba(28, 28, 30, 0.05);
+}
+
+html[data-appearance='light'] .psa-root .psa-brand__logo {
+  border-radius: 10px;
+  background: rgba(0, 122, 255, 0.12);
+  box-shadow: none;
+  color: #007aff;
+}
+
+html[data-appearance='light'] .psa-root .psa-brand__tag,
+html[data-appearance='light'] .psa-root .psa-kicker,
+html[data-appearance='light'] .psa-root .psa-subtitle,
+html[data-appearance='light'] .psa-root .psa-statline {
+  font-family: var(--font-sans);
+  letter-spacing: normal;
+}
+
+html[data-appearance='light'] .psa-root .psa-hero {
+  padding: 40px 0 12px;
+  text-align: center;
+}
+
+html[data-appearance='light'] .psa-root .psa-kicker {
+  color: #007aff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html[data-appearance='light'] .psa-root .psa-title {
+  margin: 8px 0;
+  background: none;
+  color: #1d1d1f;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  letter-spacing: -0.04em;
+  text-shadow: none;
+}
+
+html[data-appearance='light'] .psa-root .psa-subtitle {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  color: #6e6e73;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+html[data-appearance='light'] .psa-root .psa-searchwrap {
+  max-width: 760px;
+  width: 100%;
+  margin: 24px auto 0;
+}
+
+html[data-appearance='light'] .psa-root .psa-searchwrap::before {
+  display: none;
+}
+
+html[data-appearance='light'] .psa-root .psa-search {
+  min-height: 54px;
+  border: 1px solid rgba(60, 60, 67, 0.18);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.08);
+}
+
+html[data-appearance='light'] .psa-root .psa-search:focus-within {
+  border-color: rgba(0, 122, 255, 0.72);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.14);
+}
+
+html[data-appearance='light'] .psa-root .psa-search__go {
+  margin-right: 6px;
+  border-radius: 10px;
+  background: #007aff;
+  color: #fff;
+}
+
+html[data-appearance='light'] .psa-root .psa-grid {
+  grid-template-columns: 264px minmax(0, 1fr) 264px;
+  gap: 20px;
+}
+
+html[data-appearance='light'] .psa-root .psa-panel,
+html[data-appearance='light'] .psa-root .psa-card,
+html[data-appearance='light'] .psa-root .psa-state {
+  border: 1px solid rgba(60, 60, 67, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.07);
+}
+
+html[data-appearance='light'] .psa-root .psa-panel::before,
+html[data-appearance='light'] .psa-root .psa-card::before {
+  display: none;
+}
+
+html[data-appearance='light'] .psa-root .psa-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 122, 255, 0.34);
+  box-shadow: 0 14px 30px rgba(28, 28, 30, 0.1);
+}
+
+html[data-appearance='light'] .psa-root .psa-seg,
+html[data-appearance='light'] .psa-root .psa-stepper,
+html[data-appearance='light'] .psa-root .psa-sortsel {
+  border-radius: 10px;
+  background: #e5e5ea;
+}
+
+html[data-appearance='light'] .psa-root .psa-seg__btn {
+  border-radius: 8px;
+  font-family: var(--font-sans);
+}
+
+html[data-appearance='light'] .psa-root .psa-seg__btn--on {
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(28, 28, 30, 0.14);
+  color: #007aff;
+}
+
+html[data-appearance='light'] .psa-root .psa-timeline__track {
+  width: 2px;
+  background: #d1d1d6;
+}
+
+html[data-appearance='light'] .psa-root .psa-timeline__avatar {
+  box-shadow: 0 0 0 4px #f5f5f7;
+}
+
+.loop-accept-recovery {
+  display: grid;
+  min-height: 420px;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: #515154;
+  text-align: center;
+}
+
+.loop-accept-recovery__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 159, 10, 0.14);
+  color: #c77200;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.loop-accept-recovery h1 { margin: 0; color: #1d1d1f; font-size: 20px; }
+.loop-accept-recovery p { margin: 0; }
+.loop-accept-recovery button {
+  margin-top: 8px;
+  border-radius: 10px;
+  background: #007aff;
+  padding: 10px 16px;
+  color: #fff;
+  font-weight: 600;
+}

@@ -1,23 +1,22 @@
 ---
 name: Ninewood
-version: 3.0
+version: 3.1
 description: >
-  A pure dark-themed professional workspace platform connecting freelancers and employers.
-  Trust-first, efficiency-driven, visually restrained. Pure black & white foundation with color used freely.
+  A macOS-inspired professional workspace platform connecting freelancers and employers.
+  Trust-first, efficiency-driven, visually restrained. Light system surfaces with controlled Apple Blue emphasis.
   WCAG 2.1 AA compliant.
 colors:
-  pure-black:        { value: "#000000", role: neutral-bg }
-  near-black:        { value: "#0A0A0A", role: neutral-surface }
-  card-black:        { value: "#0F0F0F", role: neutral-card }
-  elevated-gray:     { value: "#1A1A1A", role: neutral-elevated }
-  pure-white:        { value: "#FFFFFF", role: neutral-text }
-  off-white:         { value: "#9A9A9A", role: neutral-text-secondary }
-  muted-gray:        { value: "#5A5A5A", role: neutral-text-muted }
-  border-gray:       { value: "#2A2A2A", role: neutral-border }
-  accent:            { value: "#3388FF", role: primary }
-  accent-hover:      { value: "#5599FF", role: primary-hover }
-  accent-muted:      { value: "rgba(51,136,255,0.12)", role: primary-muted }
-  accent-ghost:      { value: "rgba(51,136,255,0.06)", role: primary-ghost }
+  workspace:         { value: "#F5F5F7", role: neutral-bg }
+  surface:           { value: "#FFFFFF", role: neutral-surface }
+  surface-secondary: { value: "#E5E5EA", role: neutral-elevated }
+  text:              { value: "#1D1D1F", role: neutral-text }
+  text-secondary:    { value: "#515154", role: neutral-text-secondary }
+  muted-gray:        { value: "#86868B", role: neutral-text-muted }
+  border-gray:       { value: "rgba(60,60,67,0.18)", role: neutral-border }
+  accent:            { value: "#007AFF", role: primary }
+  accent-hover:      { value: "#0A84FF", role: primary-hover }
+  accent-muted:      { value: "rgba(0,122,255,0.12)", role: primary-muted }
+  accent-ghost:      { value: "rgba(0,122,255,0.06)", role: primary-ghost }
   semantic-green:    { value: "#00CC66", role: success }
   semantic-orange:   { value: "#FF9900", role: warning }
   semantic-red:      { value: "#FF3333", role: error }
@@ -40,38 +39,38 @@ spacing:
   card-padding: 1.25rem
 components:
   button-primary:
-    bg: "{colors.pure-white}"
-    color: "{colors.pure-black}"
+    bg: "{colors.accent}"
+    color: "#FFFFFF"
     radius: "{radius.md}"
     padding: 12px 24px
   button-primary-hover:
-    bg: "{colors.off-white}"
+    bg: "{colors.accent-hover}"
   button-ghost:
     bg: transparent
     color: "{colors.muted-gray}"
     radius: "{radius.md}"
     padding: 12px 16px
   button-ghost-hover:
-    bg: "rgba(255,255,255,0.06)"
-    color: "{colors.pure-white}"
+    bg: "{colors.accent-ghost}"
+    color: "{colors.accent}"
   card-list-item:
-    bg: "{colors.card-black}"
+    bg: "{colors.surface}"
     radius: "{radius.md}"
   card-list-item-hover:
-    bg: "{colors.near-black}"
+    bg: "{colors.workspace}"
     border: "{colors.border-gray}"
   input:
-    bg: "{colors.near-black}"
+    bg: "{colors.surface}"
     border: "{colors.border-gray}"
     radius: "{radius.md}"
     padding: 14px 16px
   toggle-on:
-    bg: "{colors.pure-white}"
+    bg: "{colors.accent}"
     radius: "{radius.full}"
     h: 28px
     w: 52px
   toggle-off:
-    bg: "{colors.elevated-gray}"
+    bg: "{colors.surface-secondary}"
     radius: "{radius.full}"
     h: 28px
     w: 52px

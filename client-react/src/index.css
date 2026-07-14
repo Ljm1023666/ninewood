@@ -15,6 +15,7 @@
 @import "./styles/loop-services.css";
 @import "./styles/my-loops.css";
 @import "./styles/loop-hub.css";
+@import "./styles/macos-surface.css";
 @import "./styles/service-card.css";
 
 /* Stitch Material Symbols Outlined */
@@ -45,61 +46,61 @@ html:not(.ms-icons-ready) .ms-icon {
    遵循 DESIGN.md: 纯黑 #000 打底，纯白 #FFF 强调，灰度桥接层次
    WCAG 2.1 AA 对比度 — 主体文字 #FFF on #000 = 21:1 */
 :root {
-  /* ── 强调色：纯白（黑白主题）── */
-  --accent-color: #FFFFFF;
-  --accent-hover: #CCCCCC;
-  --accent-muted: rgba(255, 255, 255, 0.08);
-  --accent-ghost: rgba(255, 255, 255, 0.04);
-  --accent-gradient: linear-gradient(135deg, #FFFFFF, #CCCCCC);
-  --primary-start: #FFFFFF;
-  --primary-end: #CCCCCC;
+  /* ── macOS 系统色：浅灰工作区 + 单一蓝色强调 ── */
+  --accent-color: #007AFF;
+  --accent-hover: #0A84FF;
+  --accent-muted: rgba(0, 122, 255, 0.14);
+  --accent-ghost: rgba(0, 122, 255, 0.08);
+  --accent-gradient: linear-gradient(135deg, #007AFF, #0A84FF);
+  --primary-start: #007AFF;
+  --primary-end: #0A84FF;
   --primary-gradient: var(--accent-gradient);
 
-  /* ── 背景层级：纯黑白灰度阶 ── */
-  --bg-primary: #000000;
-  --bg-secondary: #0A0A0A;
-  --bg-tertiary: #1A1A1A;
-  --bg-card: #0F0F0F;
+  /* ── 背景层级 ── */
+  --bg-primary: #F5F5F7;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #E5E5EA;
+  --bg-card: #FFFFFF;
 
   /* ── 文字层级 ── */
-  --text-primary: #FFFFFF;
-  --text-secondary: #C8C8C8;
-  --text-muted: #ADADAD;
+  --text-primary: #1D1D1F;
+  --text-secondary: #515154;
+  --text-muted: #86868B;
 
   /* ── 边框 ── */
-  --border-color: #2A2A2A;
+  --border-color: rgba(60, 60, 67, 0.18);
 
   /* ── 语义色 ── */
-  --success-color: #00CC66;
-  --warning-color: #FF9900;
-  --error-color: #FF3333;
-  --brand-red: #FF3333;
-  --brand-red-light: #FF5555;
+  --success-color: #34C759;
+  --warning-color: #FF9F0A;
+  --error-color: #FF3B30;
+  --brand-red: #FF3B30;
+  --brand-red-light: #FF6961;
 
   /* ── 玻璃态 ── */
   --glass-blur: 12px;
 
   /* ── 圆角 ── */
-  --radius: 10px;
-  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-sm: 8px;
 
   /* 全局侧栏宽度（Layout Sidebar） */
   --sidebar-w: 72px;
 
   /* ── 阴影 ── */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.55);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 14px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 28px rgba(28, 28, 30, 0.10);
+  --shadow-lg: 0 18px 50px rgba(28, 28, 30, 0.14);
 
   /* Material「Paper」式层级：纯灰度抬升 */
   --elevation-1:
-    0 1px 3px rgba(0, 0, 0, 0.5),
-    0 1px 2px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 5px 18px rgba(28, 28, 30, 0.06),
+    0 0 0 1px rgba(60, 60, 67, 0.08);
   --elevation-2:
-    0 6px 16px rgba(0, 0, 0, 0.42),
-    0 2px 6px rgba(0, 0, 0, 0.32),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+    0 14px 32px rgba(28, 28, 30, 0.12),
+    0 2px 8px rgba(28, 28, 30, 0.05),
+    0 0 0 1px rgba(60, 60, 67, 0.10);
 
   /* 无霓虹发光 */
   --glow-primary: 0 0 20px rgba(51, 136, 255, 0.12);
@@ -123,7 +124,7 @@ html:not(.ms-icons-ready) .ms-icon {
   --font-family: 'HarmonyOS Sans', 'PingFang SC', 'Microsoft YaHei', 'Inter', system-ui, sans-serif;
   --font-mono: 'Inter', 'Roboto Mono', 'JetBrains Mono', 'Fira Code', monospace;
   /* 桌面全局字号缩放：Stitch 稿中 9–12px 标签在宽屏下过小 */
-  --ui-type-scale: 1.45;
+  --ui-type-scale: 0.9;
   --font-size-micro: max(14px, 0.875rem);
   --font-size-caption: max(15px, 0.9375rem);
   --font-size-body: max(17px, 1.0625rem);
@@ -181,7 +182,7 @@ html:not(.ms-icons-ready) .ms-icon {
   --color-muted-foreground: var(--text-muted);
   /* shadcn 风格登录等组件用 */
   --color-primary: var(--primary-start);
-  --color-primary-foreground: #000000;
+  --color-primary-foreground: #ffffff;
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
   --color-input: var(--border-color);
@@ -677,23 +678,13 @@ html[data-appearance="dark"] {
 
 /* 侧栏品牌色带：蓝强调色带 + 暗底 */
 .sidebar-ct-accent {
-  background: linear-gradient(
-    90deg,
-    var(--accent-color) 0,
-    var(--accent-hover) 3px,
-    rgba(10, 10, 10, 0.9) 3px,
-    var(--accent-ghost) 100%
-  );
+  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 10px 28px rgba(28, 28, 30, 0.08);
 }
 
 [data-appearance="light"] .sidebar-ct-accent {
-  background: linear-gradient(
-    90deg,
-    var(--accent-color) 0px,
-    var(--accent-color) 3px,
-    rgba(255, 255, 255, 0.01) 3px,
-    rgba(255, 255, 255, 0.01) 100%
-  );
+  background: color-mix(in srgb, #ffffff 88%, transparent);
 }
 
 /* ── UI 优化：间距系统 ── */
@@ -884,7 +875,7 @@ html[data-appearance="dark"] {
 
 /* ── 内部页 Achromatic Precision（随 data-appearance 深/浅色切换） ── */
 .internal-shell {
-  --internal-accent: #3388FF;
+  --internal-accent: #0A84FF;
   --internal-bg: #000000;
   --internal-text: #f0f0f0;
   --internal-text-secondary: #d8dce6;
@@ -898,7 +889,7 @@ html[data-appearance="dark"] {
   --internal-hover: rgba(255, 255, 255, 0.02);
   --internal-hover-md: rgba(255, 255, 255, 0.03);
   --internal-panel-bg: rgba(255, 255, 255, 0.01);
-  --internal-radius: 12px;
+  --internal-radius: 14px;
   --internal-gutter: 24px;
   --internal-margin: 48px;
   --internal-rhythm: 48px;
@@ -921,19 +912,19 @@ html[data-appearance="dark"] {
 }
 
 html[data-appearance="light"] .internal-shell {
-  --internal-bg: #f5f5f5;
-  --internal-text: #111111;
-  --internal-text-secondary: #2a2a2a;
-  --internal-text-muted: #333333;
-  --internal-hairline: rgba(0, 0, 0, 0.08);
+  --internal-bg: #f5f5f7;
+  --internal-text: #1d1d1f;
+  --internal-text-secondary: #515154;
+  --internal-text-muted: #86868b;
+  --internal-hairline: rgba(60, 60, 67, 0.16);
   --internal-card: #ffffff;
-  --internal-card-hover: #fafafa;
-  --internal-surface: #eeeeee;
-  --internal-surface-hover: #e5e5e5;
-  --internal-border: #d0d0d0;
-  --internal-hover: rgba(0, 0, 0, 0.03);
-  --internal-hover-md: rgba(0, 0, 0, 0.04);
-  --internal-panel-bg: rgba(0, 0, 0, 0.02);
+  --internal-card-hover: #fbfbfd;
+  --internal-surface: #e5e5ea;
+  --internal-surface-hover: #d1d1d6;
+  --internal-border: rgba(60, 60, 67, 0.18);
+  --internal-hover: rgba(60, 60, 67, 0.06);
+  --internal-hover-md: rgba(60, 60, 67, 0.1);
+  --internal-panel-bg: rgba(255, 255, 255, 0.9);
 
   --bg-secondary: #eeeeee;
   --bg-tertiary: #e0e0e0;
@@ -1213,8 +1204,8 @@ html[data-appearance="light"] .internal-shell {
 }
 
 .internal-shell .internal-display-title {
-  font-size: 34px;
-  font-weight: 500;
+  font-size: 30px;
+  font-weight: 650;
   line-height: 1.25;
   letter-spacing: -0.03em;
   color: var(--internal-text);
@@ -1222,7 +1213,7 @@ html[data-appearance="light"] .internal-shell {
 
 @media (min-width: 768px) {
   .internal-shell .internal-display-title {
-    font-size: 42px;
+    font-size: 34px;
     line-height: 1.2;
   }
 }
@@ -1230,10 +1221,10 @@ html[data-appearance="light"] .internal-shell {
 .internal-shell__column {
   width: 100%;
   flex-shrink: 0;
-  padding-top: 48px;
+  padding-top: 32px;
   padding-bottom: 48px;
-  padding-left: 48px;
-  padding-right: 48px;
+  padding-left: clamp(20px, 3vw, 40px);
+  padding-right: clamp(20px, 3vw, 40px);
 }
 
 /* Stitch 顶栏：h-vertical-rhythm 48px + hairline-bottom + mb 16px */
@@ -1242,7 +1233,7 @@ html[data-appearance="light"] .internal-shell {
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  height: 48px;
+  height: 52px;
   flex-shrink: 0;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--internal-hairline);
@@ -1265,7 +1256,7 @@ html[data-appearance="light"] .internal-shell {
   width: 100%;
   min-height: 44px;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--internal-hairline);
   background: var(--internal-surface);
 }
@@ -1278,8 +1269,8 @@ html[data-appearance="light"] .internal-shell {
   min-height: 36px;
   padding: 8px 12px;
   border: none;
-  border-radius: 6px;
-  font-size: 18px;
+  border-radius: 9px;
+  font-size: 15px;
   line-height: 20px;
   font-weight: 500;
   color: var(--internal-text-secondary);
@@ -1371,8 +1362,9 @@ html[data-appearance='light'] .liquid-metal-button {
 }
 
 .internal-status-chip {
-  padding: 6px 12px;
-  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
 }
@@ -1380,6 +1372,9 @@ html[data-appearance='light'] .liquid-metal-button {
 .settings-panel {
   border: 1px solid var(--internal-hairline);
   background: var(--internal-panel-bg);
+  border-radius: var(--internal-radius);
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.06);
+  overflow: hidden;
 }
 
 .settings-row {
@@ -1389,7 +1384,7 @@ html[data-appearance='light'] .liquid-metal-button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px 24px;
-  padding: 24px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--internal-hairline);
 }
 
@@ -1423,7 +1418,7 @@ html[data-appearance='light'] .liquid-metal-button {
 
 .settings-row__label {
   margin: 0;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 28px;
   color: var(--internal-text);
@@ -1432,9 +1427,10 @@ html[data-appearance='light'] .liquid-metal-button {
 .settings-row__desc {
   margin: 8px 0 0;
   font-family: var(--font-mono);
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 26px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
   color: var(--internal-text-secondary);
 }
 

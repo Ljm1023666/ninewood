@@ -231,11 +231,14 @@ export default function PathSearchPage() {
         intentMatch: intentMatchParam,
         sort: sortParam,
       })
-      const data = res.data.data
+      const data = res.data?.data
+      if (!data || !Array.isArray(data.items) || !data.meta) {
+        throw new Error('检索服务返回的数据不完整')
+      }
       setItems(data.items)
       setMeta(data.meta)
-      setCoverage(data.coverage)
-      setTotal(data.total)
+      setCoverage(data.coverage ?? {})
+      setTotal(Number.isFinite(data.total) ? data.total : data.items.length)
     } catch (e: unknown) {
       const ax = e as { response?: { data?: { message?: string } }; code?: string; message?: string }
       const msg =
@@ -285,6 +288,12 @@ export default function PathSearchPage() {
   useEffect(() => {
     const el = gridRef.current
     if (!el) return
+    if (typeof ResizeObserver === 'undefined') {
+      const updateCompact = () => setCompact(window.innerWidth < 900)
+      updateCompact()
+      window.addEventListener('resize', updateCompact)
+      return () => window.removeEventListener('resize', updateCompact)
+    }
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width ?? 0
       setCompact(w > 0 && w < 900)

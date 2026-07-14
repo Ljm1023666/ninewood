@@ -80,7 +80,7 @@ export default function CertCenter() {
 
   if (!certStatus) {
     return (
-      <div className="cert-stitch cert-stitch--ambient flex min-h-screen items-center justify-center">
+      <div className="cert-stitch cert-stitch--embedded flex h-full min-h-0 items-center justify-center">
         <span className="loader" />
       </div>
     )
@@ -135,7 +135,6 @@ export default function CertCenter() {
             rightsHighlight={rightsHighlight}
             onShowIntro={() => {
               setCenterIntroMode(true)
-              window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
           />
         )
@@ -150,7 +149,6 @@ export default function CertCenter() {
         if (next === 'center' && !isNone) {
           setCenterIntroMode(false)
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' })
       }}
       onCertify={scrollToUpload}
       onUpgrade={upgrade}

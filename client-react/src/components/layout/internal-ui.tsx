@@ -758,7 +758,7 @@ export function InternalStatCard({
   return (
     <div
       className={cn(
-        'border border-[var(--internal-hairline)] bg-[var(--internal-panel-bg)] p-5',
+        'internal-stat-card border border-[var(--internal-hairline)] bg-[var(--internal-panel-bg)] p-5',
         className,
       )}
     >
@@ -809,7 +809,7 @@ export function SearchResultRow({
       className={cn('p-4', className)}
     >
       <div className="relative z-[1] flex items-center gap-4">
-        <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[var(--internal-hairline)] bg-[var(--internal-surface)] font-mono text-sm text-text-primary">
+        <div className="internal-result-avatar flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[var(--internal-hairline)] bg-[var(--internal-surface)] font-mono text-sm text-text-primary">
           {avatar ?? avatarFallback?.charAt(0) ?? '?'}
         </div>
         <div className="min-w-0 flex-1">

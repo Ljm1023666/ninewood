@@ -208,24 +208,24 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: 'cert-center',
-        element: (
-          <LazyLoad>
-            <CertCenter />
-          </LazyLoad>
-        ),
-      },
-      {
-        path: 'cert-intro',
-        element: (
-          <LazyLoad>
-            <CertIntro />
-          </LazyLoad>
-        ),
-      },
-      {
         element: <Layout />,
         children: [
+          {
+            path: 'cert-center',
+            element: (
+              <LazyLoad>
+                <CertCenter />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'cert-intro',
+            element: (
+              <LazyLoad>
+                <CertIntro />
+              </LazyLoad>
+            ),
+          },
           {
             path: 'discover',
             element: <Navigate to="/" replace />,

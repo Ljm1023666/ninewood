@@ -1,8 +1,6 @@
-import { type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { useUserStore } from '@/stores/user'
-import { useThemeStore } from '@/stores/theme'
 import { cn } from '@/lib/utils'
 import {
   certAsideTierModifier,
@@ -27,13 +25,17 @@ const INTRO_TOP_NAV: { id: CertIntroSection; label: string }[] = [
   { id: 'cert-ecosystem', label: '开发者生态' },
 ]
 
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
+const PANEL_NAV = [...CERT_WORKSPACE_NAV, ...CERT_WORKSPACE_FOOTER_NAV]
 
-function userAvatarUrl(avatarUrl: string | null | undefined) {
-  if (avatarUrl) return avatarUrl
-  return 'https://lh3.googleusercontent.com/aida-public/AB6AXuDRuMtmLpsqydaTbZwkJVIDJFoDrOzU-g9rUJKskZyFx7Ga4nGDZ5ZXZCpNeszGON4ZjtyeehP2IdnBuO9YmF-_IBv_H_ZGB1KYJkva-t6vy2ZitNlr2UhCqsWWmodic58ZqfQBNU-_qBfzozK2iixHGlw9rgT1C5deoh6olgiPzsIf24GNzGpHZoOlABnGbiDlODG42Xt_h46VeE-qnFEhF2oCMUUYBVoC3HxCbzZkDiNlSy8BLDanzvRg7rQLfkIA2q6QMuCPMes'
+function scrollToSection(id: string, root: HTMLElement | null) {
+  const el = document.getElementById(id)
+  if (!el) return
+  if (root) {
+    const top = el.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop - 24
+    root.scrollTo({ top, behavior: 'smooth' })
+    return
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 export function CertWorkspaceShell({
@@ -59,17 +61,18 @@ export function CertWorkspaceShell({
   showIntroTopNav?: boolean
   certificationLevel?: string
 }) {
-  const navigate = useNavigate()
+  const scrollRef = useRef<HTMLDivElement>(null)
   const user = useUserStore((s) => s.user)
-  const logout = useUserStore((s) => s.logout)
-  const toggleDarkMode = useThemeStore((s) => s.toggleDarkMode)
-  const isDark = useThemeStore((s) => s.current.dark)
-  const activeSection = useCertIntroScrollSpy()
+  const activeSection = useCertIntroScrollSpy(scrollRef)
   const level = certificationLevel ?? user?.certificationLevel
   const tierClass = certTierClass(level)
   const asideTier = certAsideTierModifier(level)
   const certified = isCertifiedLevel(level)
-  const levelText = certified ? levelDisplay(level) : 'Ninewood 会员'
+  const levelText = certified ? levelDisplay(level) : '未认证会员'
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [panel])
 
   const handleCertify = () => {
     onPanelChange('center')
@@ -77,129 +80,79 @@ export function CertWorkspaceShell({
   }
 
   return (
-    <div className="cert-stitch cert-stitch--radial cert-stitch__scroll cert-stitch__scroll--thin">
-      <header className="cert-stitch-intro-header">
-        <div className="cert-stitch-intro-header__inner">
-          <div className="cert-stitch-intro-header__brand">
-            <button
-              type="button"
-              className="cert-stitch-intro-header__logo"
-              onClick={() => onPanelChange('center')}
-            >
-              Ninewood
-            </button>
-            {showIntroTopNav && panel === 'center' ? (
-              <nav className="cert-stitch-intro-header__nav">
-                {INTRO_TOP_NAV.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={cn(activeSection === item.id && 'is-active')}
-                    onClick={() => scrollToSection(item.id)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </nav>
-            ) : null}
+    <div
+      ref={scrollRef}
+      className="cert-stitch cert-stitch--embedded cert-stitch--radial cert-workspace thin-scroll"
+    >
+      <div className="cert-workspace__inner">
+        <header className="cert-workspace__header">
+          <div className="min-w-0">
+            <p className="cert-workspace__eyebrow">
+              <span className="cert-workspace__eyebrow-dot" />
+              认证工作台
+            </p>
+            <h1 className="cert-workspace__title">认证中心</h1>
+            <p className="cert-workspace__sub">
+              <span className={cn(tierClass, certified && 'cert-tier--highlight')}>{levelText}</span>
+              <span className="cert-workspace__sub-sep" aria-hidden>
+                ·
+              </span>
+              <span>{user?.nickname || '会员'}</span>
+            </p>
           </div>
-          <div className="cert-stitch-intro-header__actions">
-            <div className="cert-stitch-intro-header__icons">
-              <button type="button" aria-label="主题" onClick={toggleDarkMode}>
-                <MsIcon name={isDark ? 'light_mode' : 'dark_mode'} size={22} />
+          <div className="cert-workspace__actions">
+            {onUpgrade ? (
+              <button
+                type="button"
+                className="cert-workspace__btn cert-workspace__btn--ghost"
+                onClick={onUpgrade}
+                disabled={upgradeDisabled || upgrading}
+                title={upgradeHint}
+              >
+                {upgrading ? '提交中…' : '提升等级'}
               </button>
-            </div>
-            <button type="button" className="cert-stitch-btn-pill" onClick={handleCertify}>
+            ) : null}
+            <button type="button" className="cert-workspace__btn cert-workspace__btn--primary" onClick={handleCertify}>
               立即认证
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <aside
-        className={cn(
-          'cert-stitch-intro-aside',
-          certified && 'cert-stitch-intro-aside--certified',
-          asideTier,
-        )}
-      >
-        <div className="cert-stitch-intro-aside__profile">
-          <div className="cert-stitch-intro-aside__profile-row">
-            <div className={cn('cert-stitch-intro-aside__avatar', tierClass)}>
-              <img src={userAvatarUrl(user?.avatarUrl)} alt="" />
-              {certified ? (
-                <span className={cn('cert-stitch-intro-aside__badge', tierClass)} aria-hidden>
-                  <MsIcon name="verified" size={16} filled />
-                </span>
-              ) : null}
-            </div>
-            <div>
-              <p className={cn('cert-stitch-intro-aside__name', tierClass, certified && 'cert-tier--highlight')}>
-                {user?.nickname || '精英开发者'}
-              </p>
-              <p className={cn('cert-stitch-intro-aside__role', tierClass)}>
-                {levelText}
-              </p>
-            </div>
-          </div>
-        </div>
-        <nav className="cert-stitch-intro-aside__nav">
-          {CERT_WORKSPACE_NAV.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={cn(
-                'cert-stitch-intro-aside__link',
-                panel === item.id && 'is-active',
-              )}
-              onClick={() => onPanelChange(item.id)}
-            >
-              <MsIcon name={item.icon} size={20} filled={panel === item.id} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-        <div className="cert-stitch-intro-aside__footer">
-          <button
-            type="button"
-            className="cert-stitch-intro-aside__upgrade"
-            onClick={onUpgrade ?? handleCertify}
-            disabled={upgrading}
-            title={upgradeHint}
-          >
-            {upgrading ? '提交中…' : '提升等级'}
-          </button>
-          {CERT_WORKSPACE_FOOTER_NAV.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={cn(
-                'cert-stitch-intro-aside__link',
-                panel === item.id && 'is-active',
-              )}
-              onClick={() => onPanelChange(item.id)}
-            >
-              <MsIcon name={item.icon} size={20} />
-              {item.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="cert-stitch-intro-aside__link"
-            onClick={() => {
-              logout()
-              navigate('/login')
-            }}
-          >
-            <MsIcon name="logout" size={20} />
-            注销
-          </button>
-        </div>
-      </aside>
+        {showIntroTopNav && panel === 'center' ? (
+          <nav className="cert-workspace__section-nav" aria-label="介绍章节">
+            {INTRO_TOP_NAV.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={cn(activeSection === item.id && 'is-active')}
+                onClick={() => scrollToSection(item.id, scrollRef.current)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        ) : null}
 
-      <main className="cert-stitch-intro-main">
-        <div className="cert-stitch-intro-main__inner">{children}</div>
-      </main>
+        <div className="cert-workspace__body">
+          <aside className={cn('cert-workspace__rail', asideTier)} aria-label="认证分区">
+            <nav className="cert-workspace__rail-nav">
+              {PANEL_NAV.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={cn('cert-workspace__rail-link', panel === item.id && 'is-active')}
+                  onClick={() => onPanelChange(item.id)}
+                >
+                  <MsIcon name={item.icon} size={18} filled={panel === item.id} />
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <main className="cert-workspace__main">{children}</main>
+        </div>
+      </div>
     </div>
   )
 }

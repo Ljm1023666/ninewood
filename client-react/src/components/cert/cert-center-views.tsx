@@ -88,8 +88,8 @@ export function CertCenterDashboardView({
     <>
       <header className="cert-stitch-page-head">
         <div>
-          <h1>认证中心</h1>
-          <p>Manage your technical authority level and unlock premium operational capabilities.</p>
+          <h1>等级与进度</h1>
+          <p>管理你的认证等级，解锁更高阶的交易与运营能力。</p>
         </div>
         <button
           type="button"

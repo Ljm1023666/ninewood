@@ -55,17 +55,17 @@ export function certTierClass(level?: string): string {
   }
 }
 
-/** 侧栏等级修饰 class（铜 / 银 / 金 / 顶级金） */
+/** 工作台侧栏等级修饰 class（铜 / 银 / 金 / 顶级金） */
 export function certAsideTierModifier(level?: string): string {
   switch (level) {
     case 'BASIC':
-      return 'cert-stitch-intro-aside--basic'
+      return 'cert-workspace__rail--basic'
     case 'INTERMEDIATE':
-      return 'cert-stitch-intro-aside--intermediate'
+      return 'cert-workspace__rail--intermediate'
     case 'ADVANCED':
-      return 'cert-stitch-intro-aside--advanced'
+      return 'cert-workspace__rail--advanced'
     case 'MASTER':
-      return 'cert-stitch-intro-aside--master'
+      return 'cert-workspace__rail--master'
     default:
       return ''
   }
