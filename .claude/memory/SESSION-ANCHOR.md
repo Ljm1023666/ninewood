@@ -4,26 +4,25 @@ Use this file as the compact handoff state between sessions.
 
 ## Intent
 
-回中心顶栏：消除 Tab 错位、初次切换闪烁；Tab 切换做成登录页同款滑块。
+提交并推送：生产客户端指向 `tothetomorrow.com`、资料封面原图、Windows 云端接入文档，以及 **macOS 发布页 AI 复刻说明**。
 
 ## Changes Made
 
-- `LoopHubLayout`：三 Tab 共用持久壳；挂载时预取三页 chunk；HubLazy fallback=null。
-- 路由：`discover/mine/accept` 收拢到 Auth Layout 下的 `loops` 父路由（此前 discover/accept 与 mine 分属两棵树易整页闪）。
-- `LoopHubNav`：登录页 `sign-in-flow-login-methods` 式 `::before` 滑块。
-- `PageTransition`：`/loops/(discover|mine|accept)` 共用 key `/loops-hub`。
-- 各页去掉重复 `LoopHubNav` 包裹。
+- 前端 `runtime-origin`：Electron/生产 API·Socket·静态资源走 `https://tothetomorrow.com`
+- Profile 封面优先原图 `/uploads/covers/…`
+- 文档：`docs/MACOS-PUBLISH-PAGE-AI.md`（发布页 AI 业务+实现）、`docs/WINDOWS-CURSOR-CLOUD-ACCESS.md`
+- 云端 LLM 已切公网 + 本机 Key 同步（仅服务器 `.env`，不进 Git）
 
 ## Decisions
 
-- **全 AI 隔离（用户已定，勿改）**：`.llmignore` 为权威源。
+- 短信/LLM 密钥唯一源：`/opt/ninewood/server/.env`
+- LLM 不经 Mac Tailscale；pm2 需干净重启以免旧 env 覆盖 dotenv
 
 ## Active Issues
 
-- 承接人回 PathSearch 仍重，首次进 hub 预取可能略增网络；可接受以换无闪烁。
-- `/cert-center`、PRODUCT/DESIGN YAML 对齐仍待。
+- 无阻塞；用户验收发布页「分析」即可
 
 ## Next Steps
 
-1. 浏览器验收：连续点三 Tab——滑块应平滑，初次不应整页 loader。
-2. （可选）详情页 `/loops/runs|/offerings` 也可挂进同一壳。
+1. macOS 侧按 `docs/MACOS-PUBLISH-PAGE-AI.md` 对齐
+2. 如需前端产物上云，另做 build/deploy（勿提交 `_frontend_dist.tgz`）

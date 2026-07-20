@@ -1,0 +1,15 @@
+---
+description: Windows Cursor 云端 SSH 接入约定（生产机密钥路径）
+alwaysApply: true
+---
+
+# Windows Cursor → 云端
+
+- 生产 API：`https://tothetomorrow.com/api`
+- SSH：`root@8.217.208.203`（或 Tailscale `100.105.76.91` / `ninewood-prod`）
+- 私钥：`%USERPROFILE%\.ssh\id_ed25519_ninewood`（勿提交 Git）
+- 云端根：`/opt/ninewood`；pm2：`ninewood`；禁止改废弃机 `8.218.95.92`
+- 有 shell 且密钥可用时自行 SSH；连不上则说明原因，可请 Mac Cursor 代操作
+- 全文：`docs/WINDOWS-CURSOR-CLOUD-ACCESS.md`（桌面副本：`九木-Windows端Cursor云端接入.md`）
+- 短信/人机验证：**唯一**读云端 `/opt/ninewood/server/.env`（与 macOS 相同，无副本文件）
+- 禁止：私钥/secrets 进仓库；在云端擅自填付费 LLM Key

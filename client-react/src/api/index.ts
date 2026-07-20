@@ -1,13 +1,11 @@
 import axios from 'axios'
+import { getApiBaseURL } from '@/config/runtime-origin'
 import { getAuthToken, setAuthToken } from './auth-session'
 
 export { setAuthToken }
 
-const baseURL =
-  location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api'
-
 const api = axios.create({
-  baseURL,
+  baseURL: getApiBaseURL(),
   timeout: 15000,
   withCredentials: true,
 })

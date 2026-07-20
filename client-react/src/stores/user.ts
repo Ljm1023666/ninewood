@@ -3,6 +3,7 @@ import { authApi } from '@/api/auth'
 import { setAuthToken } from '@/api/index'
 import { userApi } from '@/api/user'
 import { useChatStore } from '@/stores/chat'
+import { prefetchProfileCover } from '@/utils/prefetch-cover'
 
 const AUTH_CHANNEL =
   typeof BroadcastChannel !== 'undefined'
@@ -92,7 +93,9 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const res = await authApi.getMe()
       const token = get().token
-      set({ user: res.data.data, ready: true })
+      const user = res.data.data
+      set({ user, ready: true })
+      prefetchProfileCover(user?.coverUrl)
       // Cookie 会话下内存 token 可能为空，Socket 走 withCredentials
       useChatStore.getState().connect(token || undefined)
     } catch {
@@ -105,6 +108,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   setAuth(data) {
     setAuthToken(data.token)
     set({ token: data.token, user: data.user })
+    prefetchProfileCover(data.user?.coverUrl)
     useChatStore.getState().connect(data.token)
     broadcastAuth('login')
   },
@@ -114,7 +118,9 @@ export const useUserStore = create<UserState>((set, get) => ({
     if (!token) return
     try {
       const res = await authApi.getMe()
-      set({ user: res.data.data })
+      const user = res.data.data
+      set({ user })
+      prefetchProfileCover(user?.coverUrl)
     } catch {
       /* 保持原 user，由拦截器处理 401 */
     }

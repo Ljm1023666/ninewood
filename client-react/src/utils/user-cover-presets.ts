@@ -2,9 +2,10 @@
  * 封面 URL 策略：
  * - **卡包开包**：thumb 400px（性能）
  * - **静态卡面正面**：detail 800px q98（9:16）
- * - **3D 开包画廊**：原图合成 WebP，宽 800–1080px
+ * - **3D 开包画廊 / 多卡同时**：detail 档（约 800px，勿按原图尺寸加载）
  * - **InfoCard 顶图**：*-infocard 800×682 cover（与翻面卡 48% 顶区同比例，独立裁切）
- * - **主页背景全屏/氛围**：covers 原图或 thumb；detail 保留原图比例
+ * - **个人主页封面**：covers 原图（带宽充足，全屏高清，不走 covers-detail 压缩档）
+ * - **列表/氛围/消息预览等「多张同时」**：thumb，勿拉原图
  * - **display 档**：同时生成 JPEG / WebP / AVIF，前端用 DisplayCoverPicture 选用
  */
 
@@ -143,6 +144,36 @@ export function normalizeCardCoverOriginalUrl(url: string): string {
   return trimmed
 }
 
+/** 将 covers-detail / thumb / infocard 还原为 covers 原图路径 */
+export function normalizeProfileCoverOriginalUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return trimmed
+  const prefixes = [
+    '/uploads/covers-detail/',
+    '/uploads/covers-thumb/',
+    '/uploads/covers-infocard/',
+  ] as const
+  for (const prefix of prefixes) {
+    if (trimmed.startsWith(prefix)) {
+      const base = trimmed.slice(prefix.length).replace(/\.[^.]+$/, '')
+      return `/uploads/covers/${base}.jpg`
+    }
+  }
+  return trimmed
+}
+
+/** 个人主页全屏：始终用 covers 原图（高清，不压缩） */
+export function toPreferOriginalProfileCoverUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return trimmed
+  const original = normalizeProfileCoverOriginalUrl(trimmed)
+  if (original.startsWith('/uploads/covers/')) return original
+  // 误配成卡面路径时也还原原图，避免再落到 detail
+  const cardOriginal = normalizeCardCoverOriginalUrl(original)
+  if (cardOriginal.startsWith('/uploads/card-covers/')) return cardOriginal
+  return trimmed
+}
+
 /** InfoCard 顶图（翻面卡背面 / 发布预览背面等） */
 export function resolveProfileBackCoverUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim()
@@ -169,16 +200,16 @@ export function resolveDemandCardBackHeroUrl(input: {
   return resolveProfileBackCoverUrl(resolveDemandCardCoverUrl(input))
 }
 
-/** display 档 404 时回退原图（兼容 .webp / .avif 请求） */
+/** display 档 404 时先回退同素材更小/更大档，最后才原图（避免一失败就拉 1–2MB） */
 export function fallbackDisplayCoverSrc(current: string): string | null {
   const asJpeg = current.replace(/\.(avif|webp)$/i, '.jpg')
   const steps: [string, string][] = [
-    ['/uploads/card-covers-infocard/', '/uploads/card-covers/'],
+    ['/uploads/card-covers-infocard/', '/uploads/card-covers-detail/'],
+    ['/uploads/card-covers-thumb/', '/uploads/card-covers-detail/'],
     ['/uploads/card-covers-detail/', '/uploads/card-covers/'],
-    ['/uploads/card-covers-thumb/', '/uploads/card-covers/'],
-    ['/uploads/covers-infocard/', '/uploads/covers/'],
+    ['/uploads/covers-infocard/', '/uploads/covers-detail/'],
+    ['/uploads/covers-thumb/', '/uploads/covers-detail/'],
     ['/uploads/covers-detail/', '/uploads/covers/'],
-    ['/uploads/covers-thumb/', '/uploads/covers/'],
   ]
   for (const [from, to] of steps) {
     if (asJpeg.includes(from)) return asJpeg.replace(from, to)
@@ -206,33 +237,35 @@ export function resolveDemandCardCoverDetailUrl(input: {
   return toCardCoverDetailUrl(resolveDemandCardCoverUrl(input))
 }
 
-/** 将 thumb / detail 档 URL 升级为原图（3D 画廊纹理，高于 detail 800px） */
+/**
+ * 3D 画廊纹理：统一到 detail（约 800px）。
+ * 带宽受限时不再拉原图（1–2MB）；detail 已够纹理清晰度。
+ */
 export function upgradeCardCoverUrlForGallery(url: string): string {
   const trimmed = url.trim()
   if (!trimmed) return trimmed
-
-  const displayPrefixes = [
-    '/uploads/card-covers-thumb/',
-    '/uploads/card-covers-detail/',
-    '/uploads/card-covers-infocard/',
-  ] as const
-
-  for (const prefix of displayPrefixes) {
-    if (trimmed.includes(prefix)) {
-      const base = trimmed.slice(prefix.length).replace(/\.[^.]+$/, '')
-      return `/uploads/card-covers/${base}.jpg`
-    }
+  const original = normalizeCardCoverOriginalUrl(trimmed)
+  if (original.startsWith('/uploads/card-covers/')) {
+    return toCardCoverDetailUrl(original)
   }
+  return trimmed
+}
 
-  if (
-    trimmed.startsWith('/uploads/card-covers/') &&
-    !trimmed.includes('-detail/') &&
-    !trimmed.includes('-thumb/') &&
-    !trimmed.includes('-infocard/')
-  ) {
-    return trimmed
-  }
+/** 全屏/大图展示：covers / card-covers 原图 → detail */
+export function toPreferDetailCoverUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return trimmed
+  if (trimmed.startsWith('/uploads/covers/')) return toProfileCoverDetailUrl(trimmed)
+  if (trimmed.startsWith('/uploads/card-covers/')) return toCardCoverDetailUrl(trimmed)
+  return trimmed
+}
 
+/** 列表/氛围/小预览：covers / card-covers 原图 → thumb */
+export function toPreferThumbCoverUrl(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return trimmed
+  if (trimmed.startsWith('/uploads/covers/')) return toProfileCoverThumbUrl(trimmed)
+  if (trimmed.startsWith('/uploads/card-covers/')) return toCardCoverThumbUrl(trimmed)
   return trimmed
 }
 

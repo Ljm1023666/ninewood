@@ -10,6 +10,7 @@ import {
   toDisplayCoverSources,
   type DisplayCoverSources,
 } from '@/utils/user-cover-presets'
+import { resolvePublicUrl } from '@/config/runtime-origin'
 
 export interface DisplayCoverPictureProps
   extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> {
@@ -19,7 +20,7 @@ export interface DisplayCoverPictureProps
   pictureClassName?: string
 }
 
-/** display 档封面：<picture> 优先 AVIF/WebP，<img> 回退 JPEG */
+/** display 档封面：<picture> 优先 AVIF/WebP，<img> 回退 JPEG。默认 lazy；主页开屏传 eager。 */
 export function DisplayCoverPicture({
   sources: sourcesInput,
   alt = '',
@@ -27,6 +28,8 @@ export function DisplayCoverPicture({
   pictureClassName,
   style,
   onError,
+  loading = 'lazy',
+  fetchPriority,
   ...imgProps
 }: DisplayCoverPictureProps) {
   const initialJpeg =
@@ -39,13 +42,17 @@ export function DisplayCoverPicture({
 
   const activeSources = toDisplayCoverSources(jpegSrc)
   const managed = isManagedDisplayJpegUrl(activeSources.jpeg)
+  const jpeg = resolvePublicUrl(activeSources.jpeg)
+  const avif = resolvePublicUrl(activeSources.avif)
+  const webp = resolvePublicUrl(activeSources.webp)
 
   const handleError = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       const fb = fallbackDisplayCoverSrc(e.currentTarget.src)
       if (fb && fb !== e.currentTarget.src) {
+        const next = resolvePublicUrl(fb)
         setJpegSrc(fb)
-        e.currentTarget.src = fb
+        e.currentTarget.src = next
         return
       }
       onError?.(e)
@@ -57,16 +64,19 @@ export function DisplayCoverPicture({
     <picture className={pictureClassName ?? className}>
       {managed ? (
         <>
-          <source srcSet={activeSources.avif} type="image/avif" />
-          <source srcSet={activeSources.webp} type="image/webp" />
+          <source srcSet={avif} type="image/avif" />
+          <source srcSet={webp} type="image/webp" />
         </>
       ) : null}
       <img
         {...imgProps}
-        src={activeSources.jpeg}
+        src={jpeg}
         alt={alt}
         className={className}
         style={style}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        decoding={imgProps.decoding ?? 'async'}
         onError={handleError}
       />
     </picture>

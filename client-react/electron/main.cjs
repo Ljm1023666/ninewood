@@ -3,10 +3,17 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
-// 开发环境忽略自签证书（basicSsl）
+/** 生产 Web/API 同源（域名，勿硬编码 IP） */
+const PRODUCTION_APP_URL = 'https://tothetomorrow.com';
+
+// 仅开发环境忽略自签证书；打包后走正式 HTTPS，不再放行任意证书
 app.on('certificate-error', (event, _webContents, _url, _error, _certificate, callback) => {
-  event.preventDefault();
-  callback(true);
+  if (!app.isPackaged) {
+    event.preventDefault();
+    callback(true);
+    return;
+  }
+  callback(false);
 });
 
 function createWindow() {
@@ -21,27 +28,45 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      // 生产请求 https://tothetomorrow.com；保持默认 webSecurity
     },
     frame: true,
     backgroundColor: '#0a0a1a',
   });
 
-  // 与 vite.config.ts 中 server.port 一致；basicSsl 已移除，须用 http
+  // 与 vite.config.ts 中 server.port 一致
   const devURL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:3080';
+  const prodURL = process.env.ELECTRON_APP_URL || PRODUCTION_APP_URL;
+  // 默认：打包后加载生产域名（与 macOS/Web 一致）。本地离线包：ELECTRON_USE_LOCAL_DIST=1
+  const useLocalDist =
+    process.env.ELECTRON_USE_LOCAL_DIST === '1' ||
+    process.env.ELECTRON_USE_LOCAL_DIST === 'true';
 
   async function loadApp() {
-    for (let i = 0; i < 10; i++) {
+    if (app.isPackaged && !useLocalDist) {
       try {
-        await mainWindow.loadURL(devURL);
-        if (process.env.NODE_ENV !== 'production') {
-          mainWindow.webContents.openDevTools({ mode: 'detach' });
-        }
+        await mainWindow.loadURL(prodURL);
         return;
-      } catch {
-        if (i < 9) await new Promise(r => setTimeout(r, 1500));
+      } catch (err) {
+        console.error('[electron] load production URL failed, fallback to local dist', err);
       }
     }
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+
+    if (!app.isPackaged) {
+      for (let i = 0; i < 10; i++) {
+        try {
+          await mainWindow.loadURL(devURL);
+          mainWindow.webContents.openDevTools({ mode: 'detach' });
+          return;
+        } catch {
+          if (i < 9) await new Promise((r) => setTimeout(r, 1500));
+        }
+      }
+    }
+
+    // 本地 dist（开发失败回退，或 ELECTRON_USE_LOCAL_DIST=1）
+    // 此时渲染进程走 file:，API 由 runtime-origin 解析到 PRODUCTION_ORIGIN
+    await mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
   loadApp();

@@ -9,8 +9,7 @@
   --primary-color-subtle: rgba(0, 122, 255, 0.06);
 
   /* ── 字体族 ── */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-display: var(--font-sans);
   --font-numeric: 'Inter', var(--font-sans);
 

@@ -1,52 +1,60 @@
 # Ninewood 配置信息
 
-> 最后更新：2026-05-24
+> 最后更新：2026-07-16（Ninewood 生产 ECS → 8.217.208.203；客户端统一走域名）
 
 ## 云服务器
 
 | 项目 | 值 |
 |------|-----|
-| 公网 IP | 121.40.158.46 |
-| 内网 IP | 172.24.4.229 |
-| 实例 ID | iZbp10ts0x7eaw4ttrz7rpZ |
-| 配置 | 阿里云 ECS 4核8G 通用算力型 u1 |
-| 系统 | Ubuntu 22.04 |
-| 磁盘 | 40GB ESSD |
+| 实例名 | launch-advisor-20260608 |
+| 公网 IP | **8.217.208.203** |
+| 内网 IP | 172.22.214.112 |
+| 实例 ID | i-j6cbw5rsmyhi7aazt5bb |
+| 地域 | 中国香港（D 区） |
+| 配置 | 阿里云 ECS 2vCPU / 2GiB（`ecs.e-c1m1.large`） |
+| 系统 | Ubuntu 22.04 64-bit |
+| 磁盘 | 40GB ESSD Entry |
 | root 密码 | baby.3134 |
-| SSH 登录 | Workbench 远程连接 或 `ssh root@121.40.158.46` |
+| SSH 登录 | Workbench 或 `ssh root@8.217.208.203` |
 | code 部署路径 | /opt/ninewood |
-| PM2 进程 | ninewood (3001), classifier (8001) |
-| nginx 配置 | /etc/nginx/sites-available/ninewood |
-| SSL 证书 | Let's Encrypt, 自动续期, /etc/letsencrypt/live/tothetomorrow.com/ |
-| 状态 | ⚠️ 2026-05-24 已停止（节省停机模式），公网 IP 可能改变；重启后需 `pm2 resurrect` 恢复服务 |
-| DNS | 重启后若 IP 变了，需在阿里云更新 @ 和 www 两条 A 记录指向新 IP |
+| PM2 进程 | `ninewood`（Node :3001）；分类器 python :8001 |
+| nginx | `/etc/nginx/sites-available/ninewood`（HTTP+HTTPS；`/api` `/uploads` `/socket.io` → 127.0.0.1:3001） |
+| SSL | ✅ Let's Encrypt：`tothetomorrow.com` / `www`（2026-07-15 签发，约 2026-10-13 到期；另有 bot/xian 子域证） |
+| 状态 | ✅ 2026-07-15 运行中 |
+| 旧机（废弃） | 8.218.95.92（上一台）；更早 121.40.158.46 — 勿再当作 Ninewood 生产入口；bot/xian 仍可能在旧机 |
 
 ## 数据库（云服务器 PostgreSQL）
 
 | 项目 | 值 |
 |------|-----|
-| 数据库 | nine_db |
+| 运行方式 | Docker：`ninewood-postgres-1`（`postgres:16-alpine`），仅监听 `127.0.0.1:5432` |
+| 数据库名 | **`ninewood`**（不是本地的 `nine_db`） |
 | 用户 | ninewood |
-| 密码 | baby.3134 |
-| 连接(本地) | SSH 隧道 localhost:5433 → 服务器 localhost:5432 |
+| 密码 | 与云端 `/opt/ninewood/server/.env` 中 `DATABASE_URL` 一致 |
+| 连接(服务器本机) | `postgresql://ninewood:***@127.0.0.1:5432/ninewood?schema=public` |
+| 连接(本地电脑) | SSH 隧道：`ssh -L 15432:127.0.0.1:5432 root@8.217.208.203`，再连 `localhost:15432`（勿占本地 5433） |
+| Redis | Docker：`ninewood-redis-1` → `127.0.0.1:6379` |
+
+> **2026-07-15**：已将本地库数据 + uploads 推上云端；证书/DNS 同日切到新机。**注意**：iOS 已连本机业务库/API——改运维时禁止停 Postgres / 改 `DATABASE_URL` / 清空 schema。
 
 ## 数据库（本地开发 PostgreSQL）
 
 | 项目 | 值 |
 |------|-----|
-| 版本 | **PostgreSQL 18**（端口 **5433**；16 占用 5432，勿混用） |
+| 版本 | **PostgreSQL 18**（端口 **5433**；勿与云隧道端口混用） |
 | 数据库 | nine_db |
 | 用户 | postgres |
 | 密码 | 198514 |
 | 连接 | `postgresql://postgres:198514@localhost:5433/nine_db` |
 
-## 域名
+## 域名 / DNS
 
 | 项目 | 值 |
 |------|-----|
 | 域名 | tothetomorrow.com |
 | 注册商 | 阿里云 |
-| DNS | @ → 121.40.158.46, www → 121.40.158.46 |
+| 公网 A 记录 | `@` / `www` → **`8.217.208.203`**（2026-07-16 已切；旧 `8.218.95.92` / `121.40.158.46` 废弃） |
+| HTTPS | 已启用；`certbot` 自动续期 |
 
 ## hCaptcha
 
@@ -85,17 +93,16 @@
 | 路径 | /opt/ninewood/server/classifier |
 | 虚拟环境 | .venv (Python 3.10) |
 | 模型 | BAAI/bge-small-zh-v1.5 (192MB) |
-| 索引 | FAISS, 723 个向量 |
-| 托管 | PM2 (classifier) |
+| 托管 | 进程监听 :8001（以实机为准） |
 
 ## CORS 配置
 
 | 来源 | 说明 |
 |------|------|
-| https://tothetomorrow.com | 正式域名 |
+| https://tothetomorrow.com | 正式域名（客户端唯一生产入口） |
 | https://www.tothetomorrow.com | www 子域名 |
 | http://localhost:3080 | 本地 Vite 开发 |
-| app://. | Electron 客户端 |
+| app://. | Electron 本地 dist（file:/app 协议时） |
 
 ## 本地素材库（头像 / 主页背景 / 卡面）
 
@@ -111,11 +118,11 @@
 
 当前规模（2026-06-15）：头像 12 · 背景 45 · 卡面 19
 
+## 本地启动
 
 | 项目 | 值 |
 |------|-----|
-| 脚本 | E:\Ninewood\scripts\start-ninewood.bat |
-| 快捷方式 | 桌面\Ninewood.lnk |
+| 脚本 | `D:\ninewood\scripts\start-ninewood.bat`（若路径迁移需自行改） |
 | 启动内容 | Server(3001) + Client(3080) + Electron |
 
 ## GitHub

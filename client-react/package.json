@@ -8,7 +8,7 @@
     "dev": "vite",
     "dev:electron": "vite",
     "build": "tsc -b && vite build",
-    "build:electron": "npm run build && electron-builder --config electron-builder.json",
+    "build:electron": "vite build && electron-builder --config electron-builder.json",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",

@@ -10,6 +10,8 @@
 | [DEVELOPMENT-GUIDE.md](./DEVELOPMENT-GUIDE.md) | 产品 / 开发 | **开发主线**：需求原文 §1 + 实现对照（取代旧 Roadmap） |
 | [ENGINEERING_OVERVIEW.md](./ENGINEERING_OVERVIEW.md) | 开发者 | 仓库结构、技术栈、模块与端口 |
 | [LLM-CONFIG.md](./LLM-CONFIG.md) | 开发 / 运维 | 大模型提供商、环境变量、BYOK |
+| [MACOS-PUBLISH-PAGE-AI.md](./MACOS-PUBLISH-PAGE-AI.md) | macOS / 运维 | **发布页 AI**：业务逻辑、实现路径、公网 LLM 部署复刻 |
+| [WINDOWS-CURSOR-CLOUD-ACCESS.md](./WINDOWS-CURSOR-CLOUD-ACCESS.md) | Windows Cursor | 云端 SSH / 生产机接入（与 macOS 同机） |
 | [RELEASE-NOTES.md](./RELEASE-NOTES.md) | 开发 / 考古 | 稳定版本 tag 索引与发布说明 |
 | [回的理念.md](./回的理念.md) | 产品 / 领域 | 自然回（天地人）产品准则原文 |
 | [tax-visualizer.md](./tax-visualizer.md) | 功能说明 | 税务可视化页 |

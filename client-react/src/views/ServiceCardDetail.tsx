@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, ExternalLink, Pause, Play, Send } from 'lucide-react'
 import { serviceCardApi, type ServiceCard } from '@/api/service-card'
+import { toPreferDetailCoverUrl } from '@/utils/user-cover-presets'
 
 export default function ServiceCardDetail() {
   const { id } = useParams<{ id: string }>()
@@ -68,7 +69,15 @@ export default function ServiceCardDetail() {
             </div>
             <span className="rounded-full border border-border px-3 py-1 text-xs text-text-muted">{card.status === 'PUBLISHED' ? '已发布' : card.status === 'PAUSED' ? '已下架' : '草稿'}</span>
           </div>
-          {card.coverImage && <img className="mt-8 max-h-80 w-full rounded-xl object-cover" src={card.coverImage} alt="" />}
+          {card.coverImage && (
+            <img
+              className="mt-8 max-h-80 w-full rounded-xl object-cover"
+              src={toPreferDetailCoverUrl(card.coverImage)}
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          )}
           <section className="mt-8 border-t border-border pt-6">
             <h2 className="text-lg font-semibold text-text-primary">服务说明</h2>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-text-secondary">{card.description}</p>

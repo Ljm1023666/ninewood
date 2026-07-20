@@ -17,6 +17,7 @@ import { TemplateChatRightShell } from '@/components/ui/chat-template'
 import type { TemplateContact } from '@/components/ui/chat-template'
 import { BackButton } from '@/components/ui/back-button'
 import { MsgChatDepthPane, MsgComposerRebound } from '@/components/ui/msg-chat-depth-pane'
+import { toPreferThumbCoverUrl } from '@/utils/user-cover-presets'
 
 function getSenderId(m: ChatMessage): string {
   return m.senderId || m.fromUserId || ''
@@ -507,8 +508,10 @@ export default function ChatDetail() {
                         {m.cardAttachment.snapshot.coverImage && (
                           <img
                             className="mb-3 h-28 w-full rounded-lg object-cover"
-                            src={m.cardAttachment.snapshot.coverImage}
+                            src={toPreferThumbCoverUrl(m.cardAttachment.snapshot.coverImage)}
                             alt=""
+                            loading="lazy"
+                            decoding="async"
                           />
                         )}
                         <strong className="block text-[15px] text-text-primary">

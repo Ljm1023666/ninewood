@@ -55,3 +55,9 @@ Append-only operational lessons to reduce repeated mistakes.
 - 任何会自动注入会话的工具记忆，若不再维护为权威事实，就不能留在根目录：应归档并从注入路径移除。一次性诊断报告同样应归档，避免它的过期统计重新成为默认上下文。
 - 设计规范以已落地的全局 CSS token 为准；当 frontmatter、正文和实现不一致时，重写过时正文并删除设计文档中的发布历史，发布记录只保留在 `docs/RELEASE-NOTES.md`。
 - 认证页的视觉重构必须把业务状态机与展示层分开：可替换背景、导航、字段外观和动效，但不得改变验证码、合规同意、年龄校验与法律弹窗的触发条件。
+
+## 2026-07-15
+
+- 香港 ECS 公网约 1 Mbps 时，封面原图 1.5–2MB 体感「十几秒」；同素材 `covers-detail`/`thumb` 约 100KB/25KB，免费侧应默认走 display 档 + nginx 直出缓存，勿擅自点阿里云「立即支付并更改」。
+- Profile 开屏若直接绑 `user.coverUrl`（`/uploads/covers/*` 原图），会成为首屏最大阻塞；须走 `toPreferDetailCoverUrl` + `DisplayCoverPicture`（AVIF/WebP）。
+- 3D 画廊 `upgradeCardCoverUrlForGallery` 拉原图在窄带上得不偿失；统一 detail 足够纹理清晰度。

@@ -8,7 +8,7 @@
  *
  * covers（用户主页背景）:
  *   thumb 400px q85 — 氛围模糊层
- *   detail 640px q98 — 全宽静态展示（保留原图比例）
+ *   detail 1440px q90 — 个人主页全屏（略压缩，保清晰；优先 AVIF/WebP）
  *   infocard 800×682 cover — InfoCard 顶图（与背景原图同素材、不同裁切）
  */
 import fs from 'fs'
@@ -46,7 +46,7 @@ export const ASSET_DISPLAY_KINDS = {
     sourcePrefix: '/uploads/covers/',
     tiers: {
       thumb: { dir: 'covers-thumb', width: 400, quality: 85 },
-      detail: { dir: 'covers-detail', width: 640, quality: 98 },
+      detail: { dir: 'covers-detail', width: 1440, quality: 90 },
       infocard: {
         dir: 'covers-infocard',
         width: INFOCARD_HERO_WIDTH,

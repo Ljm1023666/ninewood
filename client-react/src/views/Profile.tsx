@@ -22,8 +22,13 @@ import {
 import { STITCH_PROFILE_ICONS } from '@/constants/stitch-icons'
 import { useProfileCoverBg } from '@/hooks/use-profile-cover-bg'
 import { useThemeStore } from '@/stores/theme'
+import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
+import {
+  toPreferOriginalProfileCoverUrl,
+  toDisplayCoverSources,
+} from '@/utils/user-cover-presets'
 
-/** 开屏：原图停留 → 渐隐开屏层 + 主页浮现 */
+/** 开屏：主页单张封面 → covers 原图（高清，不压缩） */
 const INTRO_HOLD_MS = 2400
 const INTRO_REVEAL_S = 1.65
 const INTRO_REVEAL_EASE = [0.32, 0.72, 0, 1] as const
@@ -52,8 +57,14 @@ export default function Profile() {
       typeof displayUser?.coverUrl === 'string'
         ? displayUser.coverUrl.trim()
         : ''
-    return trimmed || null
+    if (!trimmed) return null
+    // 主页单张：covers 原图（带宽已够，全屏高清）
+    return toPreferOriginalProfileCoverUrl(trimmed)
   }, [displayUser?.coverUrl])
+  const pageCoverSources = useMemo(
+    () => (pageCoverUrl ? toDisplayCoverSources(pageCoverUrl) : null),
+    [pageCoverUrl],
+  )
   const { coverBgEnabled, setCoverBgEnabled } = useProfileCoverBg()
   const showCoverBackground = coverBgEnabled && Boolean(pageCoverUrl)
   const solidBg = useThemeStore((s) => s.current.bgPrimary)
@@ -297,12 +308,16 @@ export default function Profile() {
                     : 'pointer-events-none',
                 )}
               >
-                <img
-                  src={pageCoverUrl}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  aria-hidden
-                />
+                {pageCoverSources ? (
+                  <DisplayCoverPicture
+                    sources={pageCoverSources}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                    loading="eager"
+                    fetchPriority="high"
+                    aria-hidden
+                  />
+                ) : null}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{
@@ -366,17 +381,21 @@ export default function Profile() {
         <div className="internal-shell relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
               {pageCoverUrl ? (
             <>
-              <img
-                src={pageCoverUrl}
-                alt=""
-                className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover transition-opacity"
-                style={{
-                  opacity: showCoverBackground ? 1 : 0,
-                  transitionDuration: `${COVER_BG_FADE_MS}ms`,
-                  transitionTimingFunction: COVER_BG_EASE_CSS,
-                }}
-                aria-hidden
-              />
+              {pageCoverSources ? (
+                <DisplayCoverPicture
+                  sources={pageCoverSources}
+                  alt=""
+                  className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover transition-opacity"
+                  style={{
+                    opacity: showCoverBackground ? 1 : 0,
+                    transitionDuration: `${COVER_BG_FADE_MS}ms`,
+                    transitionTimingFunction: COVER_BG_EASE_CSS,
+                  }}
+                  loading="eager"
+                  fetchPriority="high"
+                  aria-hidden
+                />
+              ) : null}
               <div
                 className="pointer-events-none absolute inset-0 z-0 transition-opacity"
                 style={{

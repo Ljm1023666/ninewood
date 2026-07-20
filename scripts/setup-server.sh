@@ -3,7 +3,7 @@ set -e
 
 echo "============================================"
 echo "  Ninewood Server Setup"
-echo "  Target: tothetomorrow.com (121.40.158.46)"
+echo "  Target: tothetomorrow.com (8.217.208.203)"
 echo "============================================"
 
 # ── 1. 系统更新 + 基础工具 ──

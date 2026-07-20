@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client'
+import { getSocketURL } from '@/config/runtime-origin'
 
 let socket: Socket | null = null
 let pingInterval: ReturnType<typeof setInterval> | null = null
@@ -17,7 +18,7 @@ export function connectSocket(token?: string): Socket {
     socket = null
   }
 
-  socket = io('/', {
+  socket = io(getSocketURL(), {
     auth: token ? { token } : {},
     withCredentials: true,
     transports: ['websocket', 'polling'],

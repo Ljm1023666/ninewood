@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { resolvePublicUrl } from '@/config/runtime-origin'
 
 // 去掉 @radix-ui/react-avatar 依赖，避免其 use-sync-external-store CJS shim
 // 在 Vite 8 Rolldown 预构建下导致 React 双实例、resolveDispatcher 返回 null
@@ -30,12 +31,13 @@ interface AvatarImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 }
 
 const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
-  ({ className, onLoadingStatusChange, onLoad, onError, ...props }, ref) => {
+  ({ className, onLoadingStatusChange, onLoad, onError, src, ...props }, ref) => {
     const [status, setStatus] = React.useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+    const resolvedSrc = typeof src === 'string' ? resolvePublicUrl(src) : src
 
     React.useEffect(() => {
       setStatus('idle')
-    }, [props.src])
+    }, [resolvedSrc])
 
     const handleLoad = React.useCallback(
       (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -62,13 +64,14 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
       }
     }, [status, onLoadingStatusChange])
 
-    if (status === 'error' || !props.src) {
+    if (status === 'error' || !resolvedSrc) {
       return null
     }
 
     return (
       <img
         ref={ref}
+        src={resolvedSrc}
         className={cn('absolute inset-0 h-full w-full object-cover', className)}
         onLoad={handleLoad}
         onError={handleError}

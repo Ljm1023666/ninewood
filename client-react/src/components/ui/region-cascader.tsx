@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from './select'
 import { cn } from '@/lib/utils'
+import { getApiBaseURL } from '@/config/runtime-origin'
 
 interface RegionNode {
   id: number
@@ -28,13 +29,6 @@ interface RegionCascaderProps {
 }
 
 const PARENT_ID_CHINA = 100000
-
-function getApiBaseURL(): string {
-  if (typeof window !== 'undefined' && window.location.protocol === 'file:') {
-    return 'http://localhost:3001/api'
-  }
-  return '/api'
-}
 
 async function fetchRegions(parentId: number): Promise<RegionNode[]> {
   const res = await fetch(

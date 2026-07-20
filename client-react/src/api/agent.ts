@@ -1,5 +1,6 @@
 import api from './index'
 import { getAuthToken } from './auth-session'
+import { getApiBaseURL } from '@/config/runtime-origin'
 import type { AgentAccessMode } from '@/types/agent-access'
 
 export interface AgentConversation {
@@ -206,8 +207,7 @@ export function streamMessage(
   onError: (handler: (err: Error) => void) => void
 } {
   const token = getAuthToken()
-  const baseURL =
-    location.protocol === 'file:' ? 'http://localhost:3001/api' : '/api'
+  const baseURL = getApiBaseURL()
 
   const controller = new AbortController()
   const eventHandlers = new Map<string, Array<(data: unknown) => void>>()

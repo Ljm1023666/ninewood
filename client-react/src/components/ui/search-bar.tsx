@@ -7,12 +7,19 @@ import { cn } from '@/lib/utils'
 interface SearchBarProps {
   placeholder?: string
   onSearch?: (query: string) => void
+  /** dark：叠在深色英雄上；light：浅色页面区 */
+  tone?: 'dark' | 'light'
 }
 
-const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
+const SearchBar = ({
+  placeholder = 'Search...',
+  onSearch,
+  tone = 'dark',
+}: SearchBarProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const isLight = tone === 'light'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
@@ -32,7 +39,7 @@ const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
   }, [isFocused])
 
   return (
-    <div className="relative flex justify-center w-full">
+    <div className="relative flex w-full justify-center">
       <motion.form
         onSubmit={handleSubmit}
         className="relative flex items-center justify-center"
@@ -42,18 +49,27 @@ const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
       >
         <div
           className={cn(
-            'flex items-center w-full rounded-full border relative overflow-hidden transition-colors',
-            isFocused
-              ? 'border-purple-400/70 bg-white/20 shadow-lg shadow-purple-500/20'
-              : 'border-white/40 bg-white/10 backdrop-blur-md',
+            'relative flex w-full items-center overflow-hidden rounded-full border transition-colors',
+            isLight
+              ? isFocused
+                ? 'border-[var(--accent-color)]/50 bg-bg-card shadow-md'
+                : 'border-border bg-bg-card'
+              : isFocused
+                ? 'border-white/50 bg-white/20 shadow-lg shadow-black/20'
+                : 'border-white/40 bg-white/10 backdrop-blur-md',
           )}
         >
-          <div className="pl-4 py-2.5">
+          <div className="py-2.5 pl-4">
             <Search
               className={cn(
-                'transition-colors',
-                isFocused ? 'text-purple-300' : 'text-white/50',
-                'size-4.5',
+                'size-4.5 transition-colors',
+                isLight
+                  ? isFocused
+                    ? 'text-[var(--accent-color)]'
+                    : 'text-text-muted'
+                  : isFocused
+                    ? 'text-white'
+                    : 'text-white/50',
               )}
             />
           </div>
@@ -68,8 +84,12 @@ const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             className={cn(
-              'w-full py-2.5 bg-transparent outline-none placeholder:text-white/50 font-medium text-sm relative z-10',
-              isFocused ? 'text-white' : 'text-white/80',
+              'relative z-10 w-full bg-transparent py-2.5 font-medium text-sm outline-none',
+              isLight
+                ? 'text-text-primary placeholder:text-text-muted'
+                : isFocused
+                  ? 'text-white placeholder:text-white/50'
+                  : 'text-white/80 placeholder:text-white/50',
             )}
           />
 
@@ -80,9 +100,14 @@ const SearchBar = ({ placeholder = 'Search...', onSearch }: SearchBarProps) => {
                 initial={{ opacity: 0, scale: 0.8, x: -10 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.8, x: -10 }}
-                className="px-4 py-1.5 mr-1.5 text-xs font-medium rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shrink-0"
+                className={cn(
+                  'mr-1.5 shrink-0 rounded-full px-4 py-1.5 text-xs font-medium shadow-lg',
+                  isLight
+                    ? 'bg-[var(--accent-color)] text-white'
+                    : 'bg-white text-black',
+                )}
               >
-                Search
+                搜索
               </motion.button>
             )}
           </AnimatePresence>
