@@ -506,20 +506,36 @@ n = UPDATE orders SET status='CANCELLED'
 
 ## 11. 评审检查表（全部未勾选；勾完前禁止 Accepted）
 
-### 11.1 原五项（保留）
+> **工程证据（实现侧已具备签字条件，仍待产品勾选）**  
+> - 实现提交：`b922fba`（及前序 `9003b8b` 交易核心）  
+> - 本地迁移已验证（含 `down.sql` 回滚重放）；**云端未 migrate**  
+> - 真实 PG：同 key 重放、异 key 并发单流水、租约接管、C1/C2/C4 守恒已过  
+> - 勾选完成后：文首改为 **Accepted**，记录接受日期与 `b922fba`，再按 §8 / 发布清单上云
 
-- [ ] 产品确认：剩余需求仅在 accept 时创建（非 propose）  
-- [ ] 产品确认：`PARTIAL_PENDING` 允许 cancel / dispute  
-- [ ] 工程确认：生产强制 Idempotency-Key（**依赖 11.2 前端契约已确认**）  
-- [ ] 工程确认：operationKey 命名表无冲突，且冲突处理按 §5.4 回滚重放  
-- [ ] 前端确认：OrderDetail 两步 UI 可与后端同发  
+### 11.1 产品签字五项（本轮评审主清单）
 
-### 11.2 阻断项补齐后方可具备确认条件
+- [ ] 剩余需求**仅**在 partial accept 后创建（propose 零资金、零建单）  
+- [ ] `PARTIAL_PENDING` 允许 cancel / dispute  
+- [ ] 生产资金接口强制 `Idempotency-Key`  
+- [ ] `operationKey` 命名表无跨操作冲突（见 §5.4）  
+- [ ] 前后端必须**同一发布窗口**上线（破坏性 `/partial` 行为）
 
-- [ ] 产品/工程确认：剩余价口径 `R = max(1, A - P)`，以及 `settlePartialWithRemainder` 步骤（§4.3）  
-- [ ] 产品确认：`WAITING_REVIEW` **禁止 cancel**（推荐）——或显式勾选「保留可取消」并附违约/托管规则  
-- [ ] 工程确认：幂等租约、超时接管、FAILED/SUCCEEDED 独立短事务落库（§5.3）  
-- [ ] 前端确认：§4.5 key 生成/重试复用/重发换新已排期，覆盖 prepay/cancel/confirm/partial accept  
-- [ ] 工程确认：§9.4 守恒用例 C1–C5 列入 CI  
+### 11.2 评审补看（前端幂等契约）
 
-评审通过后将文首状态改为 **Accepted**，再开实现 PR。
+- [ ] 前端网络重试 / 超时自动重试必须**复用原 key**，不得重新生成  
+- [ ] 仅当用户**明确重新发起**操作（上一意图已终态）才换新 key  
+- [ ] 覆盖：`prepay` / `cancel` / `confirm` / `partial/accept`（实现见 `client-react/src/api/idempotency.ts`）
+
+### 11.3 仍需显式确认的设计项
+
+- [ ] 剩余价口径 `R = max(1, A - P)` 与 `settlePartialWithRemainder`（§4.3）  
+- [ ] `WAITING_REVIEW` **禁止 cancel**（当前实现已按推荐落地）——或显式改为「可取消」并附规则  
+- [ ] 幂等租约 / 超时接管 / 终态独立落库（§5.3，已实现）  
+- [ ] §9.4 守恒用例已入 CI（已实现；C3/C5 可后续补强）
+
+### 11.4 Accepted 之后的发布顺序（禁止提前）
+
+1. 勾选本节 → 文首 `Proposed` 改为 `Accepted`，写明接受日期与 `b922fba`  
+2. 云端：备份 → `prisma migrate status` → 确认当前服务版本  
+3. 先部署增量迁移，再同窗口发布匹配的后端 + 前端  
+4. 发布后：测试账号小额 `prepay` / `cancel` / `partial accept` + 账本守恒冒烟  
