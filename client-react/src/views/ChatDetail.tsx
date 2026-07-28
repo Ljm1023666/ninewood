@@ -18,11 +18,11 @@ import type { TemplateContact } from '@/components/ui/chat-template'
 import { BackButton } from '@/components/ui/back-button'
 import { MsgChatDepthPane, MsgComposerRebound } from '@/components/ui/msg-chat-depth-pane'
 import { toPreferThumbCoverUrl } from '@/utils/user-cover-presets'
+import { getChatThreadContentState } from './chat-thread-state'
 
 function getSenderId(m: ChatMessage): string {
   return m.senderId || m.fromUserId || ''
 }
-
 function messageRowKey(m: ChatMessage, idx: number): string {
   return m.id || `${m.createdAt}-${idx}`
 }
@@ -69,6 +69,7 @@ export default function ChatDetail() {
   const [input, setInput] = useState('')
   const [showEmoji, setShowEmoji] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const [peerUser, setPeerUser] = useState<{
     nickname: string
@@ -86,6 +87,7 @@ export default function ChatDetail() {
   const listRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
+  const loadRequestRef = useRef(0)
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -107,13 +109,42 @@ export default function ChatDetail() {
       }, 10000)
       return
     }
-    pollRef.current = setInterval(() => fetchMessages(peerId), 10000)
+    pollRef.current = setInterval(() => {
+      void fetchMessages(peerId).catch(() => {
+        toast('消息同步失败', 'error')
+      })
+    }, 10000)
   }, [connected, currentMergeId, fetchMessages, isMergeChat, peerId])
+
+  const loadCurrentMessages = useCallback(async () => {
+    const requestId = ++loadRequestRef.current
+    setInitialLoading(true)
+    setLoadError(null)
+
+    try {
+      if (isMergeChat) {
+        if (!currentMergeId) return
+        setMergeMessages([])
+        const response = await messageApi.getMergeMessages(currentMergeId)
+        if (loadRequestRef.current === requestId) {
+          setMergeMessages((response.data.data ?? []) as ChatMessage[])
+        }
+      } else {
+        if (!peerId) return
+        await fetchMessages(peerId)
+      }
+    } catch {
+      if (loadRequestRef.current !== requestId) return
+      if (isMergeChat) setMergeMessages([])
+      setLoadError('消息加载失败，请检查网络后重试。')
+    } finally {
+      if (loadRequestRef.current === requestId) setInitialLoading(false)
+    }
+  }, [currentMergeId, fetchMessages, isMergeChat, peerId])
 
   useEffect(() => {
     if (isMergeChat) {
       if (!currentMergeId) return
-      setMergeMessages([])
       messageApi
         .getMerges()
         .then((r) => {
@@ -122,30 +153,31 @@ export default function ChatDetail() {
           setMergeTitle(current?.title || '群聊')
         })
         .catch(() => setMergeTitle('群聊'))
-      messageApi
-        .getMergeMessages(currentMergeId)
-        .then((r) => setMergeMessages((r.data.data ?? []) as ChatMessage[]))
-        .catch(() => setMergeMessages([]))
+      void loadCurrentMessages()
       if (!connected) startPolling()
-      return () => stopPolling()
+      return () => {
+        loadRequestRef.current += 1
+        stopPolling()
+      }
     }
     if (!peerId) return
     userApi
       .get(peerId)
       .then((r) => setPeerUser(r.data.data))
       .catch(() => setPeerUser(null))
-    fetchMessages(peerId)
+    void loadCurrentMessages()
     void fetchUnreadCount()
     if (!connected) startPolling()
     return () => {
+      loadRequestRef.current += 1
       stopPolling()
     }
   }, [
     connected,
     currentMergeId,
-    fetchMessages,
     fetchUnreadCount,
     isMergeChat,
+    loadCurrentMessages,
     peerId,
     startPolling,
     stopPolling,
@@ -213,6 +245,13 @@ export default function ChatDetail() {
     }
     return items
   }, [messages, pendingOutgoing])
+
+  const threadContentState = getChatThreadContentState({
+    loading: initialLoading,
+    loadError,
+    itemCount: threadItems.length,
+    hasConversationPreview: Boolean(threadContact?.message?.trim()),
+  })
 
   useEffect(() => {
     scrollBottom()
@@ -420,11 +459,15 @@ export default function ChatDetail() {
         <MsgChatDepthPane paneKey={paneKey || 'chat'}>
         <div
           ref={listRef}
-          className="thin-scroll flex min-h-0 flex-1 flex-col overflow-y-auto bg-bg-primary px-3 py-3"
+          className="thin-scroll flex min-h-0 flex-1 flex-col overflow-y-auto bg-transparent px-3 py-3"
         >
           <div className="msg-thread">
-            {initialLoading && messages.length === 0 && !threadContact ? (
-              <div className="flex flex-col gap-3 pt-2">
+            {threadContentState === 'loading' ? (
+              <div
+                className="flex flex-col gap-3 pt-2"
+                role="status"
+                aria-label="正在加载消息"
+              >
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
@@ -443,6 +486,55 @@ export default function ChatDetail() {
                     {i % 2 === 0 && <div className="size-9 shrink-0" />}
                   </div>
                 ))}
+                <span className="sr-only">正在加载消息…</span>
+              </div>
+            ) : threadContentState === 'error' ? (
+              <div className="msg-empty-thread" role="alert">
+                <div className="msg-empty-thread__icon" aria-hidden>
+                  <MsIcon name="sync_problem" size={28} />
+                </div>
+                <h2>消息没有加载成功</h2>
+                <p>{loadError}</p>
+                <button
+                  type="button"
+                  className="msg-thread-state__action"
+                  onClick={() => void loadCurrentMessages()}
+                >
+                  重新加载
+                </button>
+              </div>
+            ) : threadContentState === 'mismatch' ||
+              threadContentState === 'empty' ? (
+              <div className="msg-empty-thread" role="status">
+                <div className="msg-empty-thread__icon" aria-hidden>
+                  <MsIcon
+                    name={
+                      threadContentState === 'mismatch'
+                        ? 'sync_problem'
+                        : 'chat_bubble_outline'
+                    }
+                    size={28}
+                  />
+                </div>
+                <h2>
+                  {threadContentState === 'mismatch'
+                    ? '会话记录未同步完整'
+                    : '还没有消息'}
+                </h2>
+                <p>
+                  {threadContentState === 'mismatch'
+                    ? '列表中有最近消息，但正文暂未返回。请重新加载，避免遗漏沟通记录。'
+                    : '发送第一条消息，开始这段对话。'}
+                </p>
+                {threadContentState === 'mismatch' ? (
+                  <button
+                    type="button"
+                    className="msg-thread-state__action"
+                    onClick={() => void loadCurrentMessages()}
+                  >
+                    重新加载
+                  </button>
+                ) : null}
               </div>
             ) : (
               threadItems.map((item) => {

@@ -135,7 +135,7 @@ function BackToTop() {
       onClick={() =>
         containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
       }
-      className="fixed bottom-6 right-6 z-30 flex size-10 items-center justify-center rounded-full border border-border/50 bg-card/90 text-foreground/40 shadow-lg backdrop-blur-sm transition-all hover:border-accent/40 hover:text-accent hover:shadow-accent/10"
+      className="liquid-glass-surface fixed bottom-6 right-6 z-30 flex size-10 items-center justify-center rounded-full text-foreground/40 transition-all hover:text-accent"
       aria-label="返回顶部"
     >
       <MsIcon name="keyboard_arrow_up" size={16} />
@@ -195,7 +195,7 @@ export default function HelpDocs() {
     <InternalPageShell
       width="wide"
       flush
-      className="overflow-hidden bg-background text-foreground"
+      className="overflow-hidden text-foreground"
       contentClassName="flex h-full min-h-0 shrink flex-1 flex-col"
     >
       <PageHeader

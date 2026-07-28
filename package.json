@@ -17,7 +17,9 @@
     "prepare": "echo ok",
     "typecheck": "pnpm typecheck:server && pnpm typecheck:client",
     "typecheck:server": "pnpm --filter server run typecheck",
-    "typecheck:client": "pnpm --filter client-react exec tsc --noEmit"
+    "typecheck:client": "pnpm --filter client-react exec tsc --noEmit",
+    "audit:attention": "node scripts/audit-attention-patterns.mjs",
+    "audit:time-sovereignty-baseline": "node scripts/audit-time-sovereignty-baseline.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

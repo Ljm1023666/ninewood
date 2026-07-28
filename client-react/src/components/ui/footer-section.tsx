@@ -56,13 +56,11 @@ const footerLinks: FooterSection[] = [
 
 export function Footer() {
   return (
-    <footer className="relative w-full flex flex-col items-center rounded-t-4xl border-t border-border/30 bg-[radial-gradient(35%_128px_at_50%_0%,theme(backgroundColor.white/8%),transparent)] px-6 py-12 lg:py-16">
-      <div className="bg-foreground/10 absolute top-0 right-1/2 left-1/2 h-px w-1/3 -translate-x-1/2 -translate-y-1/2 rounded-full blur" />
-
+    <footer className="site-footer-glass relative z-10 flex w-full flex-col items-center px-6 pt-14 pb-12 lg:pt-16 lg:pb-16">
       <div className="grid w-full max-w-6xl gap-8 xl:grid-cols-3 xl:gap-8">
         <AnimatedContainer className="space-y-4 text-center xl:text-left">
-          <FrameIcon className="size-5 text-foreground/60 mx-auto xl:mx-0" />
-          <p className="text-muted-foreground mt-8 text-sm md:mt-0">
+          <FrameIcon className="mx-auto size-5 shrink-0 text-text-secondary xl:mx-0" />
+          <p className="mt-8 text-sm leading-normal text-text-muted md:mt-0">
             {new Date().getFullYear()} Ninewood. 保留所有权利。
           </p>
         </AnimatedContainer>
@@ -71,15 +69,15 @@ export function Footer() {
           {footerLinks.map((section, index) => (
             <AnimatedContainer key={section.label} delay={0.1 + index * 0.1}>
               <div>
-                <h3 className="text-xs font-medium text-foreground/60">
+                <h3 className="text-xs font-medium leading-normal text-text-secondary">
                   {section.label}
                 </h3>
-                <ul className="text-muted-foreground mt-4 space-y-2 text-sm">
+                <ul className="mt-4 space-y-2 text-sm leading-normal text-text-muted">
                   {section.links.map((link) => (
                     <li key={link.title}>
                       <Link
                         to={link.href}
-                        className="hover:text-foreground inline-flex items-center transition-all duration-300"
+                        className="inline-flex items-center transition-colors duration-200 hover:text-text-primary"
                       >
                         {link.title}
                       </Link>
@@ -114,10 +112,10 @@ function AnimatedContainer({
 
   return (
     <motion.div
-      initial={{ filter: 'blur(4px)', translateY: -8, opacity: 0 }}
-      whileInView={{ filter: 'blur(0px)', translateY: 0, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.8 }}
+      initial={{ opacity: 0, translateY: 12 }}
+      whileInView={{ opacity: 1, translateY: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ delay, duration: 0.45 }}
       className={className}
     >
       {children}

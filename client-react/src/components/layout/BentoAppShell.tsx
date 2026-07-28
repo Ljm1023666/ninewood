@@ -53,6 +53,13 @@ export function BentoAppShell() {
     return () => clearInterval(timer)
   }, [fetchUnreadCount])
 
+  useEffect(() => {
+    document.documentElement.dataset.layoutAmbient = 'on'
+    return () => {
+      delete document.documentElement.dataset.layoutAmbient
+    }
+  }, [])
+
   useKeyboard([
     { key: 'k', ctrl: true, handler: () => navigate('/') },
     {

@@ -128,6 +128,14 @@ export function CardPoolCategoryTile({
       onHandZoneHoverChange: onPointerHandZoneHover,
     })
 
+  const addToHandViaKeyboard = () => {
+    const rect = handDropZoneRef.current?.getBoundingClientRect()
+    onDropInHand({
+      clientX: rect ? rect.left + rect.width / 2 : 0,
+      clientY: rect ? rect.top + rect.height / 2 : 0,
+    })
+  }
+
   return (
     <div className="group w-full min-w-0">
       <BrowseBlackScopeDragGhost
@@ -141,6 +149,15 @@ export function CardPoolCategoryTile({
         disabled={busy}
         onPointerDown={onPointerDown}
         onClickCapture={onClickCapture}
+        onKeyDown={(e) => {
+          if (busy) return
+          if (e.key === 'Enter' && e.shiftKey) {
+            e.preventDefault()
+            e.stopPropagation()
+            addToHandViaKeyboard()
+          }
+        }}
+        aria-label={`${label}，Enter 进入，Shift+Enter 加入手牌`}
         style={{ '--tile-accent': accent } as CSSProperties}
         className={cn(
           'card-pool-tile w-full text-left outline-none',
@@ -174,7 +191,7 @@ export function CardPoolCategoryTile({
         ) : null}
         <span className="card-pool-tile__drag-hint">
           <Hand className="size-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
-          拖入手牌
+          拖入或 Shift+Enter
         </span>
       </button>
     </div>
@@ -238,7 +255,7 @@ export function CardPoolHandStackCard({
           <span className="card-pool-hand-stack-card__label">{label}</span>
         </div>
         <p className="card-pool-hand-stack-card__hint">
-          双击打开桌面 · 右键更多操作
+          Enter 打开 · 右键更多操作
         </p>
       </div>
       <span className="card-pool-hand-stack-card__badge tabular-nums">

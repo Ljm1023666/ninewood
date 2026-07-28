@@ -163,10 +163,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
           opacity: isScrolled ? 0 : 1,
         }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b ${
+        className={`fixed top-0 left-0 right-0 z-50 border-b liquid-glass-surface ${
           isLight
-            ? 'bg-[#f5f5f7]/95 border-black/8'
-            : 'bg-black/99 border-white/10'
+            ? 'border-black/8'
+            : 'border-white/10'
         } ${className}`}
       >
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">

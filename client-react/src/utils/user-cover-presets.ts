@@ -57,6 +57,16 @@ export const USER_COVER_PRESET_URLS = [
   '/uploads/card-covers/10021.jpg',
 ] as const
 
+/** 全站页面氛围：浅/深固定图（不跟个人主页变） */
+export const THEME_AMBIENT_BG = {
+  light: '/bg/ambient-light.png',
+  dark: '/bg/ambient-dark.png',
+} as const
+
+export function themeAmbientBgUrl(isDark: boolean): string {
+  return isDark ? THEME_AMBIENT_BG.dark : THEME_AMBIENT_BG.light
+}
+
 /** 解析卡面原图 URL */
 export function resolveDemandCardCoverUrl(input: {
   coverImage?: string | null

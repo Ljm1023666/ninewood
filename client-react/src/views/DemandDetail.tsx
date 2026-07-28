@@ -15,10 +15,8 @@ import { CometCard } from '@/components/ui/comet-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { InteractiveProductCard } from '@/components/ui/interactive-product-card'
-import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import {
   resolveDemandCardCoverDetailUrl,
-  resolveDemandCardCoverThumbUrl,
 } from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
 import { useUserStore } from '@/stores/user'
@@ -110,7 +108,7 @@ function scheduleIdle(cb: () => void, timeoutMs: number) {
 
 function pageShell(inner: ReactNode, title = '需求详情') {
   return (
-    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-bg-primary">
+    <div className="relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col items-stretch overflow-y-auto thin-scroll bg-transparent">
       <div className="relative z-20 shrink-0 px-4 pt-3">
         <PageHeader
           title={title}
@@ -159,7 +157,7 @@ function DemandActionPanelWrap({
   label: string
   children: ReactNode
 }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
   const reduceMotion = useReducedMotion()
   const smooth = {
     duration: reduceMotion ? 0.16 : 0.28,
@@ -259,16 +257,6 @@ export default function DemandDetail() {
     })
   }, [demand])
 
-  const publisherAmbientCoverUrl = useMemo(() => {
-    if (!demand) return resolveDemandCardCoverThumbUrl({})
-    return resolveDemandCardCoverThumbUrl({
-      coverImage: demand.coverImage,
-      demandCardCoverUrl: demand.user?.demandCardCoverUrl,
-      mediaUrls: demand.mediaUrls,
-      userId: demand.userId,
-    })
-  }, [demand])
-
   const imageAttachmentCount = useMemo(
     () => attachmentCount(demand || {}),
     [demand],
@@ -279,10 +267,22 @@ export default function DemandDetail() {
     return stripSeedFromDescription((demand.description as string) || '')
   }, [demand])
 
+  const cardPublisherName = useMemo(() => {
+    if (!demand) return ''
+    const name = demand.user?.nickname?.trim()
+    return name || '匿名用户'
+  }, [demand])
+
   const cardTitle = useMemo(() => {
     if (!demand) return ''
     return stripDebugFromTitle((demand.title as string) || '')
   }, [demand])
+
+  /** 背面 InfoCard：橙色条显示用户名，描述区保留需求标题 + 正文 */
+  const cardBackDescription = useMemo(() => {
+    const parts = [cardTitle, cardDescription].filter((s) => s.trim())
+    return parts.join('\n\n')
+  }, [cardTitle, cardDescription])
 
   const fetchAll = useCallback(async () => {
     if (!id) return
@@ -493,8 +493,27 @@ export default function DemandDetail() {
   const hasPrev = canSwipeCycle
   const hasNext = canSwipeCycle
 
+  const bottomAction =
+    demand.status === 'ACTIVE' || demand.status === 'PENDING' ? (
+      demand.userId !== currentUserId ? (
+        <DemandActionPanelWrap label="请求接单">
+          <RequestPanel demandId={demand.id} />
+        </DemandActionPanelWrap>
+      ) : demand.applicantCount > 0 ? (
+        <DemandActionPanelWrap label={`申请接单 (${demand.applicantCount})`}>
+          <ApplicantListPanel demandId={demand.id} />
+        </DemandActionPanelWrap>
+      ) : null
+    ) : demand.status === 'IN_PROGRESS' ? (
+      <DemandActionPanelWrap label="服务进行中">
+        <InProgressPanel demand={demand} userId={currentUserId} />
+      </DemandActionPanelWrap>
+    ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
+      <SettlementPanel demandId={demand.id} />
+    ) : null
+
   return (
-    <div className="demand-detail-page relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-bg-primary">
+    <div className="demand-detail-page relative isolate flex h-full min-h-0 w-full min-w-0 flex-col items-stretch bg-transparent">
       <div className="relative z-20 shrink-0 px-4 pt-3">
         <PageHeader
           title={stripDebugFromTitle(demand.title)}
@@ -503,10 +522,14 @@ export default function DemandDetail() {
           className="mb-0"
         />
       </div>
-      <UserCoverAmbientBg userId={demand.userId} coverUrl={publisherAmbientCoverUrl} />
 
       {/* 不用 overflow-y-auto 包住卡片：会与 x 轴合成 auto，横向裁掉 3D 翻面/倾斜溢出；整页滚动交给外层 layout */}
-      <div className="relative z-10 flex min-h-0 flex-1 w-full flex-col overflow-y-auto thin-scroll">
+      <div
+        className={cn(
+          'relative z-10 flex min-h-0 flex-1 w-full flex-col overflow-y-auto thin-scroll',
+          bottomAction && 'pb-24',
+        )}
+      >
         <div className="flex flex-1 flex-col items-center justify-center overflow-visible px-3 py-6">
         <AnimatePresence mode="sync" custom={direction}>
           <motion.div
@@ -545,8 +568,8 @@ export default function DemandDetail() {
                   imageUrl={publisherCoverUrl}
                   logoUrl={demand.user?.avatarUrl || '/favicon.svg'}
                   publisherUserId={demand.userId}
-                  title={cardTitle}
-                  description={cardDescription}
+                  title={cardPublisherName}
+                  description={cardBackDescription}
                   price={`¥${demand.minPrice}`}
                   avatarTo={
                     demand.userId ? `/profile/${demand.userId}` : undefined
@@ -582,26 +605,12 @@ export default function DemandDetail() {
             />
           </div>
         ) : null}
-
-        {/* ═══ AI 2.5: 两段式接单面板 ═══ */}
-        {demand.status === 'ACTIVE' || demand.status === 'PENDING' ? (
-          demand.userId !== currentUserId ? (
-            <DemandActionPanelWrap label="请求接单">
-              <RequestPanel demandId={demand.id} />
-            </DemandActionPanelWrap>
-          ) : demand.applicantCount > 0 ? (
-            <DemandActionPanelWrap label={`申请接单 (${demand.applicantCount})`}>
-              <ApplicantListPanel demandId={demand.id} />
-            </DemandActionPanelWrap>
-          ) : null
-        ) : demand.status === 'IN_PROGRESS' ? (
-          <DemandActionPanelWrap label="服务进行中">
-            <InProgressPanel demand={demand} userId={currentUserId} />
-          </DemandActionPanelWrap>
-        ) : demand.status === 'COMPLETED' || demand.stage === 'completed' ? (
-          <SettlementPanel demandId={demand.id} />
-        ) : null}
       </div>
+
+      {/* 底部浮层：展开向上覆盖，不把需求卡片上推 */}
+      {bottomAction ? (
+        <div className="absolute inset-x-0 bottom-0 z-30">{bottomAction}</div>
+      ) : null}
     </div>
   )
 }

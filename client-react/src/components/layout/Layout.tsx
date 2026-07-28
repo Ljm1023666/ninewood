@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import PageTransition from './PageTransition'
 import Sidebar from './Sidebar'
 import { useChatStore } from '@/stores/chat'
@@ -10,7 +10,6 @@ import { useUserStore } from '@/stores/user'
 import { isDemandDetailRoute } from '@/utils/user-cover-presets'
 import { suppressLayoutAmbient } from '@/utils/internal-routes'
 import { navigateSubpageExit } from '@/utils/subpage-nav'
-import { userApi } from '@/api/user'
 
 export default function Layout() {
   const location = useLocation()
@@ -21,49 +20,21 @@ export default function Layout() {
   const connectChat = useChatStore((s) => s.connect)
   const disconnectChat = useChatStore((s) => s.disconnect)
 
-  const layoutAmbientUserId = useMemo(() => {
+  /** 氛围开/关只看路由；图源固定为浅/深主题，不跟用户封面 */
+  const layoutAmbientOn = useMemo(() => {
     const p = location.pathname
-    if (isDemandDetailRoute(p)) return null
-    if (suppressLayoutAmbient(p)) return null
-    const m = p.match(/^\/profile\/([^/]+)\/?$/)
-    if (m) return m[1]
-    return me?.id
-  }, [location.pathname, me?.id])
-
-  /** 他人主页：拉取封面供 Layout 氛围层使用（自己用 store 即可） */
-  const [profileOtherCoverUrl, setProfileOtherCoverUrl] = useState<
-    string | null | undefined
-  >(undefined)
+    if (suppressLayoutAmbient(p)) return false
+    return true
+  }, [location.pathname])
 
   useEffect(() => {
-    if (layoutAmbientUserId === null) {
-      setProfileOtherCoverUrl(undefined)
-      return
-    }
-    if (layoutAmbientUserId === me?.id) {
-      setProfileOtherCoverUrl(undefined)
-      return
-    }
-    setProfileOtherCoverUrl(undefined)
-    if (typeof layoutAmbientUserId !== 'string') return
-    let cancelled = false
-    userApi
-      .get(layoutAmbientUserId)
-      .then((r) => {
-        if (cancelled) return
-        const u = r.data.data as { coverUrl?: string | null }
-        setProfileOtherCoverUrl(u?.coverUrl ?? null)
-      })
-      .catch(() => {
-        if (!cancelled) setProfileOtherCoverUrl(null)
-      })
+    document.documentElement.dataset.layoutAmbient = layoutAmbientOn
+      ? 'on'
+      : 'off'
     return () => {
-      cancelled = true
+      delete document.documentElement.dataset.layoutAmbient
     }
-  }, [layoutAmbientUserId, me?.id])
-
-  const ambientCoverUrl =
-    layoutAmbientUserId === me?.id ? me?.coverUrl : profileOtherCoverUrl
+  }, [layoutAmbientOn])
 
   useEffect(() => {
     if (me) {
@@ -97,30 +68,25 @@ export default function Layout() {
 
   return (
     <div
+      data-layout-root=""
       className={
         demandDetail3dOverflow
-          ? 'flex h-screen w-full min-w-0 overflow-visible'
-          : 'flex h-screen w-full min-w-0 overflow-hidden'
+          ? 'relative flex h-screen w-full min-w-0 overflow-visible bg-bg-primary'
+          : 'relative flex h-screen w-full min-w-0 overflow-hidden bg-bg-primary'
       }
     >
+      {/* 氛围：浅/深固定图，铺在整页（含侧栏后方） */}
+      {layoutAmbientOn ? <UserCoverAmbientBg /> : null}
       <ToastContainer />
       <Sidebar />
 
       <main
         className={
           demandDetail3dOverflow
-            ? 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-visible bg-bg-primary'
-            : 'relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-bg-primary'
+            ? 'relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col overflow-visible bg-transparent'
+            : 'relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent'
         }
       >
-        {layoutAmbientUserId !== null && (
-          <UserCoverAmbientBg
-            userId={layoutAmbientUserId ?? undefined}
-            coverUrl={ambientCoverUrl}
-          />
-        )}
-
-        {/* 主栏内容区：PageTransition 包裹路由过渡动画 */}
         <div className="relative z-[1] box-border flex min-h-0 min-w-0 w-full flex-1 flex-col">
           <PageTransition>
             <Outlet />

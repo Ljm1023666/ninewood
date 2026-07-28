@@ -3,22 +3,22 @@
  */
 
 .loop-svc-root {
-  /* 深色默认 token */
-  --ls-void: #0a0a0a;
-  --ls-panel: #141414;
-  --ls-panel-low: #1c1b1b;
-  --ls-line: #262626;
-  --ls-ink: #e5e2e1;
-  --ls-fg: #ffffff;
-  --ls-mute: #9ca3af;
-  --ls-dim: #636565;
-  --ls-hover-bg: #1a1a1a;
-  --ls-seg-active-bg: #1f1f1f;
-  --ls-code-bg: #0e0e0e;
-  --ls-foot-bg: #141313;
-  --ls-chip-border: #444748;
-  --ls-node-hover-border: #525252;
-  --ls-active-glow: 0 0 15px rgba(255, 255, 255, 0.05), inset 0 0 1px rgba(255, 255, 255, 0.2);
+  /* 看不见 UI：透明壳 + 液态玻璃面板 */
+  --ls-void: transparent;
+  --ls-panel: var(--liquid-glass-bg);
+  --ls-panel-low: var(--liquid-glass-chip-bg);
+  --ls-line: var(--liquid-glass-border);
+  --ls-ink: var(--text-primary);
+  --ls-fg: var(--text-primary);
+  --ls-mute: var(--text-secondary);
+  --ls-dim: var(--text-muted);
+  --ls-hover-bg: var(--liquid-glass-chip-bg-hover);
+  --ls-seg-active-bg: var(--liquid-glass-chip-bg-hover);
+  --ls-code-bg: var(--liquid-glass-chip-bg);
+  --ls-foot-bg: transparent;
+  --ls-chip-border: var(--liquid-glass-border);
+  --ls-node-hover-border: var(--liquid-glass-border);
+  --ls-active-glow: var(--liquid-glass-shadow);
   --ls-dot: #ffffff;
   --ls-online: #22c55e;
   --ls-degraded: #fbbf24;
@@ -36,7 +36,7 @@
   width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: var(--ls-void);
+  background: transparent;
   color: var(--ls-ink);
   font-family: var(--ls-sans);
   -webkit-font-smoothing: antialiased;
@@ -833,21 +833,21 @@
 /* ═══════════════ 浅色模式（html[data-appearance='light']） ═══════════════ */
 
 html[data-appearance='light'] .loop-svc-root {
-  --ls-void: #f7f7f5;
-  --ls-panel: #ffffff;
-  --ls-panel-low: #f0f0ee;
-  --ls-line: rgba(0, 0, 0, 0.1);
-  --ls-ink: #1a1a1a;
-  --ls-fg: #111111;
-  --ls-mute: #5c5c5c;
-  --ls-dim: #8a8a8a;
-  --ls-hover-bg: rgba(0, 0, 0, 0.04);
-  --ls-seg-active-bg: rgba(0, 0, 0, 0.06);
-  --ls-code-bg: #f3f3f1;
-  --ls-foot-bg: #efefed;
-  --ls-chip-border: rgba(0, 0, 0, 0.18);
-  --ls-node-hover-border: rgba(0, 0, 0, 0.28);
-  --ls-active-glow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --ls-void: transparent;
+  --ls-panel: var(--liquid-glass-bg);
+  --ls-panel-low: var(--liquid-glass-chip-bg);
+  --ls-line: var(--liquid-glass-border);
+  --ls-ink: var(--text-primary);
+  --ls-fg: var(--text-primary);
+  --ls-mute: var(--text-secondary);
+  --ls-dim: var(--text-muted);
+  --ls-hover-bg: var(--liquid-glass-chip-bg-hover);
+  --ls-seg-active-bg: var(--liquid-glass-chip-bg-hover);
+  --ls-code-bg: var(--liquid-glass-chip-bg);
+  --ls-foot-bg: transparent;
+  --ls-chip-border: var(--liquid-glass-border);
+  --ls-node-hover-border: var(--liquid-glass-border);
+  --ls-active-glow: var(--liquid-glass-shadow);
   --ls-dot: #111111;
   --ls-online: #15803d;
   --ls-degraded: #a16207;

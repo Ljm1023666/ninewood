@@ -33,6 +33,7 @@ import { messageRouter } from './routes/message.js';
 import { serviceCardRouter } from './routes/service-card.js';
 import { cardSearchRouter } from './routes/card-search.js';
 import { shortsRouter } from './routes/shorts.js';
+import { isLegacyShortsEnabled } from './config/legacy-shorts.js';
 import { complaintRouter } from './routes/complaint.js';
 import { reportRouter } from './routes/report.js';
 import { adminRouter } from './routes/admin.js';
@@ -129,7 +130,10 @@ app.use('/api/deposits', depositRouter);
 app.use('/api/messages', messageRouter);
 app.use('/api/service-cards', serviceCardRouter);
 app.use('/api/search', cardSearchRouter);
-app.use('/api/shorts', shortsRouter);
+// Legacy 短视频 Feed：生产永不挂载；非生产仅 ENABLE_LEGACY_SHORTS=1
+if (isLegacyShortsEnabled()) {
+  app.use('/api/shorts', shortsRouter);
+}
 app.use('/api/complaints', complaintRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/admin', adminRouter);

@@ -4,7 +4,10 @@ import {
   type ReactNode,
 } from 'react'
 
-/** 左右两端轻微内收回弹；返回清理函数。 */
+/**
+ * 切换回弹。不用 scaleX/transform：会强制合成层并打断相邻液态玻璃的
+ * backdrop-filter，在分栏接缝闪出一小块「断裂」。
+ */
 export function playHorizontalRebound(
   el: HTMLElement,
   opts?: { delay?: number; shrink?: number },
@@ -15,19 +18,19 @@ export function playHorizontalRebound(
   if (reduced) return () => undefined
 
   const delay = opts?.delay ?? 0
-  const shrink = opts?.shrink ?? 0.988
+  // shrink 保留参数兼容；映射为轻微透明度起伏
+  const dip = Math.min(0.08, Math.max(0.02, (1 - (opts?.shrink ?? 0.988)) * 4))
 
-  el.style.willChange = 'transform'
+  el.style.willChange = 'opacity'
   const animation = el.animate(
     [
-      { transform: 'scaleX(1)', offset: 0 },
-      { transform: `scaleX(${shrink})`, offset: 0.3 },
-      { transform: 'scaleX(1.002)', offset: 0.72 },
-      { transform: 'scaleX(1)', offset: 1 },
+      { opacity: 1, offset: 0 },
+      { opacity: 1 - dip, offset: 0.28 },
+      { opacity: 1, offset: 1 },
     ],
     {
       delay,
-      duration: 420,
+      duration: 360,
       easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
     },
   )

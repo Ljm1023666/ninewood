@@ -6,7 +6,7 @@
   flex: 1 1 0;
   min-height: 0;
   height: 100%;
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
 }
 
@@ -53,9 +53,11 @@
   align-items: center;
   min-height: 48px;
   padding: 0 var(--loop-hub-nav-pad, 32px);
-  border-bottom: 1px solid var(--border-color);
-  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
-  backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 /* 登录页「账号 ID / 手机号 / QQ 邮箱」同款滑块：伪元素滑动指示当前 Tab */
@@ -165,20 +167,22 @@
 
 .loop-query-form {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   margin: 18px 0 0;
-  padding: 8px 8px 8px 16px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 86%, transparent);
-  border-radius: 14px;
-  background: var(--bg-secondary);
-  box-shadow: var(--elevation-1);
+  padding: 16px;
+  border: 1px solid var(--liquid-glass-border);
+  border-radius: 16px;
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 .loop-query-form label { position: absolute; width: 1px; height: 1px; overflow: hidden; }
 
 .loop-query-form textarea {
-  min-height: 52px;
+  min-height: 88px;
   resize: vertical;
   border: 0;
   outline: 0;
@@ -248,11 +252,13 @@
 
 .loop-result-card,
 .loop-human-fallback {
-  border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
+  border: 1px solid var(--liquid-glass-border);
   border-radius: 16px;
-  background: var(--bg-secondary);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
   padding: 20px;
-  box-shadow: var(--elevation-1);
 }
 
 .loop-result-card { transition: box-shadow 180ms var(--ease-out-quart), transform 180ms var(--ease-out-quart); }
@@ -274,8 +280,8 @@
 .loop-human-fallback > span { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); font-size: 13px; font-weight: 620; }
 .loop-human-fallback button { margin-top: 18px; }
 
-.loop-notice { margin: 16px 0; border-radius: 12px; background: var(--bg-secondary); padding: 14px 16px; color: var(--text-secondary); box-shadow: var(--elevation-1); }
-.loop-notice--error { background: color-mix(in srgb, var(--error-color) 9%, var(--bg-secondary)); color: var(--error-color); }
+.loop-notice { margin: 16px 0; border-radius: 12px; border: 1px solid var(--liquid-glass-border); background: var(--liquid-glass-bg); backdrop-filter: var(--liquid-glass-blur); -webkit-backdrop-filter: var(--liquid-glass-blur); padding: 14px 16px; color: var(--text-secondary); box-shadow: var(--liquid-glass-shadow); }
+.loop-notice--error { background: color-mix(in srgb, var(--error-color) 12%, var(--liquid-glass-bg)); color: var(--error-color); }
 
 .loop-back,
 .loop-run-actions button {
@@ -283,9 +289,11 @@
   align-items: center;
   gap: 6px;
   min-height: 34px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--liquid-glass-border);
   border-radius: 9px;
-  background: var(--bg-secondary);
+  background: var(--liquid-glass-chip-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   padding: 0 11px;
   color: var(--text-primary);
   font-size: 13px;
@@ -301,7 +309,7 @@
 
 .loop-contract-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .loop-contract-grid article,
-.loop-detail-section { border: 1px solid var(--border-color); border-radius: 14px; background: var(--bg-secondary); padding: 18px; box-shadow: var(--elevation-1); }
+.loop-detail-section { border: 1px solid var(--liquid-glass-border); border-radius: 14px; background: var(--liquid-glass-bg); backdrop-filter: var(--liquid-glass-blur); -webkit-backdrop-filter: var(--liquid-glass-blur); box-shadow: var(--liquid-glass-shadow); padding: 18px; }
 .loop-contract-grid h2,
 .loop-detail-section h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 15px; }
 .loop-json { max-height: 260px; overflow: auto; margin: 0; border-radius: 9px; background: color-mix(in srgb, var(--bg-tertiary) 70%, transparent); padding: 11px; color: var(--text-secondary); font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }

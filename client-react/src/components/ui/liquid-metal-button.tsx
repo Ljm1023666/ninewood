@@ -25,7 +25,7 @@ function estimateTextButtonWidth(label: string): number {
   return Math.max(MIN_TEXT_BUTTON_WIDTH, textWidth + TEXT_HORIZONTAL_PADDING)
 }
 
-function resolveBorderRadius(shape: 'pill' | 'rect', height: number, radius?: number) {
+function resolveBorderRadius(shape: 'pill' | 'rect', _height: number, radius?: number) {
   if (radius != null) return radius
   // 与参考 preset 一致：胶囊形用 100px 圆角
   return shape === 'pill' ? 100 : 6
@@ -123,7 +123,6 @@ export function LiquidMetalButton({
         : LiquidMetalShapes.circle
       : LiquidMetalShapes.none
   const borderRadius = resolveBorderRadius(resolvedShape, height, radius)
-  const innerHeight = Math.max(height - 4, 28)
 
   const [isHovered, setIsHovered] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
@@ -162,11 +161,9 @@ export function LiquidMetalButton({
     () => ({
       width: staticWidth,
       height,
-      innerWidth: Math.max(staticWidth - 4, 28),
-      innerHeight,
       borderRadius,
     }),
-    [staticWidth, height, innerHeight, borderRadius],
+    [staticWidth, height, borderRadius],
   )
 
   const roundedStyle = `${dimensions.borderRadius}px`
@@ -291,16 +288,21 @@ export function LiquidMetalButton({
     ? 'var(--internal-text, var(--text-primary, #e8e8e8))'
     : 'var(--internal-text-secondary, var(--text-secondary, #888888))'
   const iconNode = icon ?? <Sparkles size={16} />
-  const innerBackground = showMetalGlow
-    ? active
-      ? 'linear-gradient(180deg, var(--lm-inner-top-active) 0%, var(--lm-inner-bottom-active) 100%)'
-      : 'linear-gradient(180deg, var(--lm-inner-top) 0%, var(--lm-inner-bottom) 100%)'
-    : isHovered
-      ? 'var(--internal-hover, rgba(255, 255, 255, 0.03))'
-      : 'transparent'
+  const pressTransform = isPressed
+    ? 'translateY(1px) scale(0.98)'
+    : 'translateY(0) scale(1)'
   const outerShadow = showMetalGlow
     ? getOuterShadow(isPressed, isHovered || active, isLight)
     : 'none'
+  // 仅露出外圈金属描边，中心留给液态玻璃去透出氛围底
+  const rimMask = {
+    padding: 2,
+    WebkitMask:
+      'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+    WebkitMaskComposite: 'xor' as const,
+    mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+    maskComposite: 'exclude' as const,
+  }
 
   return (
     <div
@@ -314,164 +316,157 @@ export function LiquidMetalButton({
       )}
       style={{ height: fullWidth ? `${height}px` : undefined }}
     >
-      <div style={{ perspective: '1000px', perspectiveOrigin: '50% 50%' }}>
+      <div
+        style={{
+          position: 'relative',
+          width: fullWidth ? '100%' : `${dimensions.width}px`,
+          height: `${dimensions.height}px`,
+        }}
+      >
+        {/* 金属 shader 仅作 rim（mask 挖空中心，避免挡住玻璃透底） */}
         <div
           style={{
-            position: 'relative',
-            width: fullWidth ? '100%' : `${dimensions.width}px`,
-            height: `${dimensions.height}px`,
-            transformStyle: 'preserve-3d',
+            position: 'absolute',
+            inset: 0,
+            transform: pressTransform,
+            zIndex: 10,
+            borderRadius: roundedStyle,
+            boxShadow: outerShadow,
+            transition:
+              'box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+            overflow: 'hidden',
+            visibility: showMetalGlow ? 'visible' : 'hidden',
+            ...rimMask,
           }}
         >
-          {/* 金属 shader 层（仅 metalGlow 时） */}
           <div
+            ref={shaderRef}
+            className="shader-container-liquid-metal"
             style={{
-              position: 'absolute',
-              inset: 0,
-              transformStyle: 'preserve-3d',
-              transform: `translateZ(0px) ${isPressed ? 'translateY(1px) scale(0.98)' : 'translateY(0) scale(1)'}`,
-              zIndex: 10,
               borderRadius: roundedStyle,
-              boxShadow: outerShadow,
-              transition: 'box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-              overflow: 'hidden',
-              visibility: showMetalGlow ? 'visible' : 'hidden',
+              position: 'relative',
+              // 抵消 rim padding，让 shader 仍铺满外轮廓
+              margin: -2,
+              width: 'calc(100% + 4px)',
+              height: 'calc(100% + 4px)',
             }}
-          >
-            <div
-              ref={shaderRef}
-              className="shader-container-liquid-metal"
-              style={{
-                borderRadius: roundedStyle,
-                position: 'relative',
-                width: '100%',
-                height: '100%',
-              }}
-            />
-          </div>
-
-          {/* 内填色 */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              transformStyle: 'preserve-3d',
-              transform: `translateZ(10px) ${isPressed ? 'translateY(1px) scale(0.98)' : 'translateY(0) scale(1)'}`,
-              zIndex: 20,
-              pointerEvents: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: showMetalGlow
-                  ? fullWidth
-                    ? 'calc(100% - 4px)'
-                    : `${dimensions.innerWidth}px`
-                  : '100%',
-                height: showMetalGlow ? `${dimensions.innerHeight}px` : '100%',
-                margin: showMetalGlow ? '2px' : 0,
-                borderRadius: roundedStyle,
-                background: innerBackground,
-                boxShadow:
-                  showMetalGlow && isPressed
-                    ? 'inset 0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.15)'
-                    : 'none',
-                transition:
-                  'background-color 0.15s ease, box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            />
-          </div>
-
-          {/* 文字 / 图标 */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transformStyle: 'preserve-3d',
-              transform: 'translateZ(20px)',
-              zIndex: 30,
-              pointerEvents: 'none',
-            }}
-          >
-            {viewMode === 'icon' && (
-              <span
-                style={{
-                  color: contentColor,
-                  filter: 'var(--lm-icon-drop)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {iconNode}
-              </span>
-            )}
-            {viewMode === 'text' && (
-              <span
-                style={{
-                  fontSize: 'var(--lm-label-size, 14px)',
-                  color: contentColor,
-                  fontWeight: active ? 600 : 500,
-                  textShadow: 'var(--lm-text-shadow)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {label}
-              </span>
-            )}
-          </div>
-
-          <button
-            ref={buttonRef}
-            type="button"
-            onClick={handleClick}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onMouseDown={() => !disabled && setIsPressed(true)}
-            onMouseUp={() => setIsPressed(false)}
-            disabled={disabled}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              background: 'transparent',
-              border: 'none',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              outline: 'none',
-              zIndex: 40,
-              transformStyle: 'preserve-3d',
-              transform: 'translateZ(25px)',
-              overflow: 'hidden',
-              borderRadius: roundedStyle,
-            }}
-            aria-label={ariaLabel ?? (viewMode === 'text' ? label : undefined)}
-            aria-pressed={active || undefined}
-            aria-selected={ariaSelected}
-            role={role}
-          >
-            {ripples.map((ripple) => (
-              <span
-                key={ripple.id}
-                style={{
-                  position: 'absolute',
-                  left: `${ripple.x}px`,
-                  top: `${ripple.y}px`,
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  background: 'var(--lm-ripple)',
-                  pointerEvents: 'none',
-                  animation: 'liquid-metal-ripple 0.6s ease-out',
-                }}
-              />
-            ))}
-          </button>
+          />
         </div>
+
+        {/* 中间液态玻璃芯（不用 translateZ，否则 backdrop-filter 失效并易在圆角端断裂） */}
+        <div
+          className={cn(
+            showMetalGlow
+              ? cn(
+                  'liquid-metal-button__glass-core',
+                  active && 'liquid-metal-button__glass-core--active',
+                  isPressed && 'liquid-metal-button__glass-core--pressed',
+                )
+              : undefined,
+          )}
+          style={{
+            position: 'absolute',
+            inset: showMetalGlow ? undefined : 0,
+            zIndex: 20,
+            pointerEvents: 'none',
+            borderRadius: roundedStyle,
+            transform: pressTransform,
+            transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+            background: showMetalGlow
+              ? undefined
+              : isHovered
+                ? 'var(--internal-hover, rgba(255, 255, 255, 0.03))'
+                : 'transparent',
+          }}
+        />
+
+        {/* 文字 / 图标 */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            zIndex: 30,
+            pointerEvents: 'none',
+            transform: pressTransform,
+            transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          {viewMode === 'icon' && (
+            <span
+              style={{
+                color: contentColor,
+                filter: 'var(--lm-icon-drop)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {iconNode}
+            </span>
+          )}
+          {viewMode === 'text' && (
+            <span
+              style={{
+                fontSize: 'var(--lm-label-size, 14px)',
+                color: contentColor,
+                fontWeight: active ? 600 : 500,
+                textShadow: 'var(--lm-text-shadow)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {label}
+            </span>
+          )}
+        </div>
+
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleClick}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseDown={() => !disabled && setIsPressed(true)}
+          onMouseUp={() => setIsPressed(false)}
+          disabled={disabled}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            background: 'transparent',
+            border: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            outline: 'none',
+            zIndex: 40,
+            overflow: 'hidden',
+            borderRadius: roundedStyle,
+          }}
+          aria-label={ariaLabel ?? (viewMode === 'text' ? label : undefined)}
+          aria-pressed={active || undefined}
+          aria-selected={ariaSelected}
+          role={role}
+        >
+          {ripples.map((ripple) => (
+            <span
+              key={ripple.id}
+              style={{
+                position: 'absolute',
+                left: `${ripple.x}px`,
+                top: `${ripple.y}px`,
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                background: 'var(--lm-ripple)',
+                pointerEvents: 'none',
+                animation: 'liquid-metal-ripple 0.6s ease-out',
+              }}
+            />
+          ))}
+        </button>
       </div>
     </div>
   )

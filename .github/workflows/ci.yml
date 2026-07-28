@@ -19,6 +19,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter client-react run lint
       - run: pnpm --filter server run typecheck
+      # 产品时间主权 Phase 0：注意力机制审计（默认警告模式，不阻断）
+      - name: Attention pattern audit (warn)
+        run: node scripts/audit-attention-patterns.mjs
+        env:
+          ATTENTION_AUDIT_STRICT: '0'
 
   test:
     runs-on: ubuntu-latest

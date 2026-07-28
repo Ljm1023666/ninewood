@@ -135,8 +135,10 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     )
     refs.composer.addPass(bloomPass)
 
-    // Create scene elements
-    createStarField()
+    // Create scene elements（浅色去掉星点，其余链路与深色一致）
+    if (!isLight) {
+      createStarField()
+    }
     createNebula()
 
     // Start animation

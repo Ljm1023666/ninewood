@@ -410,13 +410,16 @@ input.msg-composer__input {
   transform: scale(1.04);
 }
 
-/* internal 聊天顶栏收紧 */
+/* internal 聊天顶栏：与左侧 msg-list-header 同高，避免接缝处高低错位 */
 .msg-chat-header--internal {
-  height: 52px !important;
+  height: 60px !important;
   padding-left: 20px !important;
   padding-right: 20px !important;
-  background: var(--msg-toolbar);
-  backdrop-filter: blur(18px) saturate(1.25);
+  border-bottom: 1px solid var(--liquid-glass-border) !important;
+  background: var(--liquid-glass-bg) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 .msg-chat-header--internal .msg-chat-header__avatar {
@@ -960,13 +963,7 @@ input.msg-composer__input {
   padding: 24px;
   text-align: center;
   color: var(--text-muted);
-  background:
-    radial-gradient(
-      circle at 50% 42%,
-      color-mix(in srgb, var(--internal-accent) 5%, transparent),
-      transparent 240px
-    ),
-    var(--internal-bg);
+  background: transparent;
 }
 
 .msg-empty-thread__icon {
@@ -976,11 +973,13 @@ input.msg-composer__input {
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  border: 1px solid var(--internal-hairline);
+  border: 1px solid var(--liquid-glass-border, var(--internal-hairline));
   border-radius: 16px;
   color: var(--internal-accent);
-  background: var(--internal-card);
-  box-shadow: var(--msg-shadow);
+  background: var(--liquid-glass-bg, var(--internal-card));
+  backdrop-filter: var(--liquid-glass-blur, blur(24px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(24px));
+  box-shadow: var(--liquid-glass-shadow, var(--msg-shadow));
 }
 
 .msg-empty-thread h2 {
@@ -996,6 +995,36 @@ input.msg-composer__input {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-secondary);
+}
+
+.msg-thread-state__action {
+  margin-top: 16px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--internal-accent) 30%, transparent);
+  border-radius: 9px;
+  color: var(--internal-accent);
+  background: color-mix(in srgb, var(--internal-accent) 8%, transparent);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 160ms var(--ease-out-quart),
+    border-color 160ms var(--ease-out-quart),
+    transform 120ms var(--ease-out-quart);
+}
+
+.msg-thread-state__action:hover {
+  border-color: color-mix(in srgb, var(--internal-accent) 46%, transparent);
+  background: color-mix(in srgb, var(--internal-accent) 13%, transparent);
+}
+
+.msg-thread-state__action:active {
+  transform: scale(0.98);
+}
+
+.msg-thread-state__action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--internal-accent) 55%, transparent);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

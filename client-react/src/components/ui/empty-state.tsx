@@ -25,7 +25,7 @@ const typeDefaults: Record<string, { title: string; message: string; action?: st
   order: { title: '暂无订单', message: 'No active orders found', icon: ShoppingBag },
   circle: { title: '未加入圈子', message: '发现有趣的圈子，找到志同道合的同行。', action: '发现圈子', icon: Users },
   search: { title: '没有结果', message: '没找到匹配的内容。试试换一批关键词？', icon: SearchX },
-  video: { title: '暂无视频', message: '还没有短视频内容，稍后再来看看。', action: '返回首页', icon: Video },
+  video: { title: '能力已下线', message: '短视频 Feed 已停用，请改用发现或回中心完成现实事项。', action: '去发现', icon: Video },
 }
 
 export function EmptyState({

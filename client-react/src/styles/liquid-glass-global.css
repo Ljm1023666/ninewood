@@ -1,0 +1,331 @@
+/**
+ * 全站「看不见 UI」——氛围开启时：
+ * 1) 表面色 token 改为半透明（所有 bg-card / internal-card / wallet 等自动透出）
+ * 2) 页壳强制透明
+ * 3) 常见表面工具类补 backdrop-filter
+ * 微调材质只改 --liquid-glass-*；禁止再给壳层写实色白/黑
+ */
+
+/* ── 1. Token 重映射 ── */
+html[data-layout-ambient='on'] {
+  --bg-secondary: color-mix(in srgb, #ffffff 14%, transparent);
+  --bg-tertiary: color-mix(in srgb, #ffffff 10%, transparent);
+  --bg-card: color-mix(in srgb, #ffffff 16%, transparent);
+  --card-bg: color-mix(in srgb, #ffffff 16%, transparent);
+  --card-border: 1px solid var(--liquid-glass-border);
+  --card-shadow: var(--liquid-glass-shadow);
+
+  --internal-bg: transparent;
+  --internal-card: color-mix(in srgb, #ffffff 18%, transparent);
+  --internal-card-hover: color-mix(in srgb, #ffffff 26%, transparent);
+  --internal-surface: color-mix(in srgb, #ffffff 12%, transparent);
+  --internal-surface-hover: color-mix(in srgb, #ffffff 18%, transparent);
+  --internal-panel-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  --internal-hover: color-mix(in srgb, #ffffff 8%, transparent);
+  --internal-hover-md: color-mix(in srgb, #ffffff 12%, transparent);
+
+  --wallet-glass-bg: color-mix(in srgb, #ffffff 16%, transparent);
+  --wallet-panel-bg: color-mix(in srgb, #ffffff 12%, transparent);
+  --wallet-btn-ghost-bg: color-mix(in srgb, #ffffff 10%, transparent);
+  --wallet-row-hover: color-mix(in srgb, #ffffff 14%, transparent);
+
+  --color-popover: color-mix(in srgb, #ffffff 22%, transparent);
+  --color-muted: color-mix(in srgb, #ffffff 10%, transparent);
+  --color-secondary: color-mix(in srgb, #ffffff 14%, transparent);
+  --color-sidebar: transparent;
+  --color-sidebar-accent: var(--liquid-glass-chip-bg);
+}
+
+html[data-layout-ambient='on'][data-appearance='dark'] {
+  --bg-secondary: color-mix(in srgb, #ffffff 7%, transparent);
+  --bg-tertiary: color-mix(in srgb, #ffffff 5%, transparent);
+  --bg-card: color-mix(in srgb, #ffffff 9%, transparent);
+  --card-bg: color-mix(in srgb, #ffffff 9%, transparent);
+
+  --internal-card: color-mix(in srgb, #ffffff 9%, transparent);
+  --internal-card-hover: color-mix(in srgb, #ffffff 14%, transparent);
+  --internal-surface: color-mix(in srgb, #ffffff 6%, transparent);
+  --internal-surface-hover: color-mix(in srgb, #ffffff 10%, transparent);
+  --internal-panel-bg: color-mix(in srgb, #ffffff 8%, transparent);
+  --internal-hover: color-mix(in srgb, #ffffff 5%, transparent);
+  --internal-hover-md: color-mix(in srgb, #ffffff 8%, transparent);
+
+  --wallet-glass-bg: color-mix(in srgb, #ffffff 9%, transparent);
+  --wallet-panel-bg: color-mix(in srgb, #ffffff 7%, transparent);
+  --wallet-btn-ghost-bg: color-mix(in srgb, #ffffff 6%, transparent);
+  --wallet-row-hover: color-mix(in srgb, #ffffff 10%, transparent);
+
+  --color-popover: color-mix(in srgb, #1c1c1e 48%, transparent);
+  --color-muted: color-mix(in srgb, #ffffff 6%, transparent);
+  --color-secondary: color-mix(in srgb, #ffffff 8%, transparent);
+}
+
+/* internal-shell 内再叠一层 scoped 变量（覆盖 .internal-shell 自己的赋值） */
+html[data-layout-ambient='on'] .internal-shell {
+  --internal-bg: transparent;
+  --internal-card: color-mix(in srgb, #ffffff 18%, transparent);
+  --internal-card-hover: color-mix(in srgb, #ffffff 26%, transparent);
+  --internal-surface: color-mix(in srgb, #ffffff 12%, transparent);
+  --internal-surface-hover: color-mix(in srgb, #ffffff 18%, transparent);
+  --internal-panel-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  --bg-primary: transparent;
+  --bg-secondary: color-mix(in srgb, #ffffff 12%, transparent);
+  --bg-tertiary: color-mix(in srgb, #ffffff 8%, transparent);
+  --bg-card: color-mix(in srgb, #ffffff 16%, transparent);
+  background-color: transparent !important;
+}
+
+html[data-layout-ambient='on'][data-appearance='dark'] .internal-shell {
+  --internal-card: color-mix(in srgb, #ffffff 9%, transparent);
+  --internal-card-hover: color-mix(in srgb, #ffffff 14%, transparent);
+  --internal-surface: color-mix(in srgb, #ffffff 6%, transparent);
+  --internal-surface-hover: color-mix(in srgb, #ffffff 10%, transparent);
+  --internal-panel-bg: color-mix(in srgb, #ffffff 8%, transparent);
+  --bg-secondary: color-mix(in srgb, #ffffff 7%, transparent);
+  --bg-tertiary: color-mix(in srgb, #ffffff 5%, transparent);
+  --bg-card: color-mix(in srgb, #ffffff 9%, transparent);
+}
+
+/* ── 2. 页壳 / 工作区根：一律透明 ── */
+html[data-layout-ambient='on'] [data-layout-root],
+html[data-layout-ambient='on'] :is(
+  .internal-shell,
+  .internal-messages-layout,
+  .settings-pro,
+  .settings-pro-main,
+  .card-pool-stitch,
+  .nav-matrix-page,
+  .loop-hub-page,
+  .my-loops-page,
+  .loop-svc-root,
+  .wallet-page,
+  .dlp-page,
+  .cert-stitch,
+  .publish-page,
+  .psa-root,
+  .demand-workspace-codex,
+  .demand-detail-page,
+  .agent-codex,
+  .agent-tasks-page,
+  .tax-viz-root,
+  .circle-bento-shell,
+  .bento-app-shell
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* 常见 *-page / *-root / *workspace* 壳（排除弹层/菜单） */
+html[data-layout-ambient='on']
+  :is([class$='-page'], [class$='-root'], [class*='workspace']):not(
+    [role='dialog']
+  ):not([data-radix-popper-content-wrapper] *):not(.fixed) {
+  background-image: none;
+}
+
+html[data-layout-ambient='on']
+  :is([class$='-page'], [class$='-root']):not([role='dialog']):not(.fixed) {
+  background-color: transparent !important;
+}
+
+/* 本地氛围光晕降权 */
+html[data-layout-ambient='on'] :is(
+  .wallet-page__ambient,
+  .dlp-page__ambient,
+  .cert-stitch--radial::before,
+  .cert-stitch--ambient::after,
+  .psa-backdrop
+) {
+  opacity: 0.28;
+}
+
+/* ── 3. Tailwind / shadcn 表面工具类：补模糊（色已由 token 变透） ── */
+html[data-layout-ambient='on']
+  :is(
+    .bg-bg-card,
+    .bg-card,
+    .bg-bg-secondary,
+    .bg-secondary,
+    .bg-bg-tertiary,
+    .bg-muted,
+    .bg-popover
+  ):not(button):not([role='button']):not(input):not(textarea):not(select) {
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+}
+
+/* 实色主按钮 / 强调色块：不要玻璃化 */
+html[data-layout-ambient='on']
+  :is(
+    .bg-accent,
+    .bg-primary,
+    .bg-destructive,
+    .bg-success,
+    .bg-error,
+    .bg-warning,
+    [class*='bg-accent'],
+    [class*='bg-primary']
+  ):is(button, [role='button'], a) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ── 4. 语义收纳件：完整液态玻璃材质 ── */
+html[data-layout-ambient='on']
+  :is(
+    .app-sidebar.sidebar-ct-accent,
+    .liquid-glass-surface,
+    .liquid-glass-chip,
+    .card-pool-stitch__header,
+    .card-pool-hand-dock,
+    .card-pool-hand-stack-card,
+    .card-pool-pack-shell,
+    .demand-detail-action-dock__toggle,
+    .demand-detail-action-panel,
+    .site-footer-glass,
+    .loop-hub-nav,
+    .loop-query-form,
+    .loop-result-card,
+    .loop-human-fallback,
+    .loop-notice,
+    .loop-contract-grid article,
+    .loop-detail-section,
+    .my-loops-top,
+    .my-loops-pane,
+    .my-loops-heaven,
+    .msg-chat-header--internal,
+    .msg-conv-sidebar,
+    .msg-empty-thread__icon,
+    .nav-matrix-page__header,
+    .nav-matrix__tile,
+    .nav-matrix__hero,
+    .psa-rail,
+    .psa-topbar,
+    .psa-search,
+    .psa-panel,
+    .psa-card,
+    .psa-state,
+    .settings-pro-sidebar,
+    .dlp-glass,
+    .cert-workspace__rail,
+    .cert-stitch-intro-header,
+    .publish-choice-card,
+    .publish-confirm-panel,
+    .internal-group,
+    .internal-list-card,
+    .wallet-card,
+    .wallet-panel,
+    .wallet-hero,
+    .wallet-stat,
+    .wallet-ledger,
+    .agent-codex-sidebar,
+    .agent-codex-composer,
+    .codex-composer__surface,
+    .demand-workspace-codex .ws-header,
+    .demand-workspace-codex .ws-composer,
+    .demand-workspace-codex .ws-panel
+  ) {
+  border-color: var(--liquid-glass-border) !important;
+  background: var(--liquid-glass-bg) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  box-shadow: var(--liquid-glass-shadow) !important;
+  isolation: auto;
+}
+
+html[data-layout-ambient='on'] .dlp-cmdbar,
+html[data-layout-ambient='on'] .wallet-topbar {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-layout-ambient='on'] .publish-choice-card:hover,
+html[data-layout-ambient='on'] .publish-choice-card.is-selected,
+html[data-layout-ambient='on'] .internal-group__row:hover,
+html[data-layout-ambient='on'] .internal-list-card:hover {
+  background: var(--liquid-glass-chip-bg-hover) !important;
+}
+
+html[data-layout-ambient='on'] .msg-empty-thread,
+html[data-layout-ambient='on'] .msg-pane-stage,
+html[data-layout-ambient='on'] .msg-chat-depth-pane,
+html[data-layout-ambient='on'] .msg-thread {
+  background: transparent !important;
+}
+
+/* demand / agent 工作区局部 token：禁止实色 canvas */
+html[data-layout-ambient='on'] .demand-workspace-codex {
+  --ws-canvas: transparent;
+  --ws-panel: color-mix(in srgb, #ffffff 16%, transparent);
+  --ws-muted: color-mix(in srgb, #ffffff 10%, transparent);
+  --ws-card: color-mix(in srgb, #ffffff 16%, transparent);
+  --ws-card-hover: color-mix(in srgb, #ffffff 22%, transparent);
+  --ws-composer-bg: color-mix(in srgb, #ffffff 12%, transparent);
+  --ws-user-bubble: color-mix(in srgb, #ffffff 14%, transparent);
+  background: transparent !important;
+}
+
+html[data-layout-ambient='on'][data-appearance='dark'] .demand-workspace-codex {
+  --ws-panel: color-mix(in srgb, #ffffff 9%, transparent);
+  --ws-muted: color-mix(in srgb, #ffffff 5%, transparent);
+  --ws-card: color-mix(in srgb, #ffffff 9%, transparent);
+  --ws-card-hover: color-mix(in srgb, #ffffff 14%, transparent);
+  --ws-composer-bg: color-mix(in srgb, #ffffff 7%, transparent);
+  --ws-user-bubble: color-mix(in srgb, #ffffff 8%, transparent);
+}
+
+html[data-layout-ambient='on'] .agent-codex {
+  --codex-canvas: transparent;
+  --codex-sidebar: color-mix(in srgb, #ffffff 8%, transparent);
+  --codex-workspace: transparent;
+  --codex-composer-bg: color-mix(in srgb, #ffffff 10%, transparent);
+  --codex-user-bubble: color-mix(in srgb, #ffffff 12%, transparent);
+  --codex-menu-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  background: transparent !important;
+}
+
+html[data-layout-ambient='on'][data-appearance='light'] .agent-codex {
+  --codex-sidebar: color-mix(in srgb, #ffffff 18%, transparent);
+  --codex-composer-bg: color-mix(in srgb, #ffffff 16%, transparent);
+  --codex-user-bubble: color-mix(in srgb, #ffffff 14%, transparent);
+  --codex-menu-bg: color-mix(in srgb, #ffffff 20%, transparent);
+}
+
+html[data-layout-ambient='on'] .design-tokens-card,
+html[data-layout-ambient='on'] {
+  --card-bg: color-mix(in srgb, #ffffff 16%, transparent);
+}
+
+html[data-layout-ambient='on'][data-appearance='dark'] {
+  --card-bg: color-mix(in srgb, #ffffff 9%, transparent);
+}
+
+/* macOS 设置分组：禁实白覆盖 */
+html[data-layout-ambient='on'][data-appearance='light'] .internal-shell .internal-group,
+html[data-layout-ambient='on'][data-appearance='light'] .internal-shell .internal-list-card {
+  background: var(--liquid-glass-bg) !important;
+  border-color: var(--liquid-glass-border) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  box-shadow: var(--liquid-glass-shadow) !important;
+}
+
+html[data-layout-ambient='on'][data-appearance='light'] .internal-shell .internal-group__row:hover,
+html[data-layout-ambient='on'][data-appearance='light'] .internal-shell .internal-list-card:hover {
+  background: var(--liquid-glass-chip-bg-hover) !important;
+}
+
+/* 圈子 Bento 侧栏：玻璃化 */
+html[data-layout-ambient='on'] .circle-detail-bento .cdb-sidebar,
+html[data-layout-ambient='on'] .circle-detail-bento .cdb-stat-box,
+html[data-layout-ambient='on'] .circle-detail-bento .cdb-demand-item {
+  border-color: var(--liquid-glass-border) !important;
+  background: var(--liquid-glass-bg) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  box-shadow: var(--liquid-glass-shadow) !important;
+}
+

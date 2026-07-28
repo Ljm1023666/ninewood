@@ -1,25 +1,28 @@
-/* macOS-inspired app shell: restrained translucency is reserved for navigation only. */
+/* macOS-inspired app shell: 侧栏与全站收纳共用液态玻璃 token，勿再叠实色白底 */
 html[data-appearance='light'] {
   color-scheme: light;
 }
 
 html[data-appearance='light'] .sidebar-ct-accent {
-  background: color-mix(in srgb, #ffffff 78%, transparent);
-  border-color: rgba(60, 60, 67, 0.12) !important;
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.72) inset;
+  border-color: var(--liquid-glass-border) !important;
+  background: var(--liquid-glass-bg) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
+  box-shadow: var(--liquid-glass-shadow) !important;
 }
 
 html[data-appearance='light'] .sidebar {
-  backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
 }
 
 html[data-appearance='light'] .sidebar a[aria-current='page'] {
-  background: rgba(0, 122, 255, 0.12);
-  color: #007aff;
+  background: var(--liquid-glass-chip-bg);
+  color: var(--accent-color);
 }
 
 html[data-appearance='light'] .sidebar a:hover {
-  background: rgba(60, 60, 67, 0.08);
+  background: var(--liquid-glass-chip-bg-hover);
 }
 
 html[data-appearance='light'] button,
@@ -117,7 +120,7 @@ html[data-appearance='light'] .internal-shell .internal-result-avatar {
 
 /* 承接人回：移除旧的“极光/赛博”皮肤，改为 macOS 搜索工作台。 */
 html[data-appearance='light'] .psa-root {
-  --void: #f5f5f7;
+  --void: transparent;
   --violet: #007aff;
   --violet-soft: #0a84ff;
   --cyan: #007aff;
@@ -128,8 +131,8 @@ html[data-appearance='light'] .psa-root {
   --ink-mute: #86868b;
   --line: rgba(60, 60, 67, 0.16);
   --muted-border: rgba(60, 60, 67, 0.22);
-  --glass: rgba(255, 255, 255, 0.92);
-  background: #f5f5f7;
+  --glass: var(--liquid-glass-bg);
+  background: transparent;
   font-family: var(--font-sans);
 }
 
@@ -145,10 +148,12 @@ html[data-appearance='light'] .psa-root .psa-shell {
 html[data-appearance='light'] .psa-root .psa-topbar {
   height: 48px;
   padding: 0 12px;
-  border: 1px solid rgba(60, 60, 67, 0.14);
+  border: 1px solid var(--liquid-glass-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 4px 18px rgba(28, 28, 30, 0.05);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 html[data-appearance='light'] .psa-root .psa-brand__logo {
@@ -207,10 +212,12 @@ html[data-appearance='light'] .psa-root .psa-searchwrap::before {
 
 html[data-appearance='light'] .psa-root .psa-search {
   min-height: 54px;
-  border: 1px solid rgba(60, 60, 67, 0.18);
+  border: 1px solid var(--liquid-glass-border);
   border-radius: 15px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.08);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 html[data-appearance='light'] .psa-root .psa-search:focus-within {
@@ -233,10 +240,12 @@ html[data-appearance='light'] .psa-root .psa-grid {
 html[data-appearance='light'] .psa-root .psa-panel,
 html[data-appearance='light'] .psa-root .psa-card,
 html[data-appearance='light'] .psa-root .psa-state {
-  border: 1px solid rgba(60, 60, 67, 0.16);
+  border: 1px solid var(--liquid-glass-border);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.07);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 html[data-appearance='light'] .psa-root .psa-panel::before,

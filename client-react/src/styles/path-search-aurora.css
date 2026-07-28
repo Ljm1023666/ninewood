@@ -7,7 +7,7 @@
 }
 
 .psa-root {
-  --void: #050508;
+  --void: transparent;
   --violet: #7c3aed;
   --violet-soft: #a78bfa;
   --cyan: #22d3ee;
@@ -18,7 +18,7 @@
   --ink-mute: #6b6878;
   --line: rgba(255, 255, 255, 0.08);
   --muted-border: rgba(165, 162, 179, 0.45);
-  --glass: rgba(255, 255, 255, 0.035);
+  --glass: var(--liquid-glass-bg);
   --psa-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   position: relative;
@@ -29,7 +29,7 @@
   flex-direction: column;
   overflow-x: hidden;
   overflow-y: auto;
-  background: var(--void);
+  background: transparent;
   color: var(--ink);
   font-family: 'Inter', 'HarmonyOS Sans', 'PingFang SC', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -212,8 +212,11 @@
   align-items: center;
   gap: 12px;
   padding: 0 8px 0 24px;
-  background: rgba(12, 12, 18, 0.62);
-  backdrop-filter: blur(16px);
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 .psa-search__lead {
   color: var(--cyan);
@@ -396,7 +399,7 @@
     visibility 0s linear 0s;
 }
 
-/* 边缘收纳栏 */
+/* 边缘收纳栏 — 与接单坞同款液态玻璃 */
 .psa-rail {
   z-index: 2;
   min-height: 220px;
@@ -405,18 +408,20 @@
   align-items: center;
   gap: 14px;
   padding: 16px 0;
-  border: none;
+  border: 1px solid var(--liquid-glass-border);
   border-radius: 14px;
-  background: var(--glass);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
   color: var(--ink-dim);
   cursor: pointer;
   transition: color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 .psa-rail:hover {
   color: var(--ink);
-  background: rgba(124, 58, 237, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.4);
+  background: var(--liquid-glass-chip-bg-hover);
+  box-shadow: var(--liquid-glass-shadow);
 }
 .psa-rail__icon {
   color: var(--violet-soft);
@@ -480,9 +485,11 @@
 .psa-panel {
   min-width: 0;
   border-radius: 18px;
-  background: var(--glass);
-  backdrop-filter: blur(14px);
-  box-shadow: inset 0.5px 0.5px 0 rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 .psa-panel::before {
   content: '';
@@ -1379,9 +1386,11 @@
 .psa-state {
   position: relative;
   border-radius: 18px;
-  background: var(--glass);
-  backdrop-filter: blur(14px);
-  box-shadow: inset 0.5px 0.5px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
   padding: 48px 32px;
   text-align: center;
   color: var(--ink-dim);
@@ -1617,8 +1626,10 @@ html[data-appearance='light'] .psa-title {
 
 /* 搜索框 */
 html[data-appearance='light'] .psa-search {
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 html[data-appearance='light'] .psa-search__input {
   color: var(--ink);

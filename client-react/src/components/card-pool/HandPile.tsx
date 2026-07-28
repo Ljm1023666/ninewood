@@ -69,28 +69,28 @@ export function HandEntryCardPackFace({
     <div
       className={cn(
         packButtonClass,
-        'min-h-[108px] overflow-hidden rounded-lg border border-white/[0.08] bg-neutral-950',
+        'min-h-[108px]',
         className,
       )}
     >
       <div
         className={cn(
-          'w-1 shrink-0 self-stretch',
+          'w-1 shrink-0 self-stretch rounded-l-[15px]',
           accent == null &&
-            'bg-gradient-to-b from-[var(--primary-start)] to-neutral-900',
+            'bg-gradient-to-b from-[var(--primary-start)] to-transparent',
         )}
         style={
           accent != null
             ? {
-                background: `linear-gradient(180deg, ${accent} 0%, #171717 100%)`,
+                background: `linear-gradient(180deg, color-mix(in srgb, ${accent} 70%, transparent) 0%, transparent 100%)`,
               }
             : undefined
         }
         aria-hidden
       />
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-2 bg-gradient-to-br from-neutral-950 via-neutral-900 to-black px-3 py-3">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between gap-2 bg-transparent px-3 py-3">
         <span
-          className="line-clamp-5 min-w-0 text-left text-sm font-semibold leading-snug text-white/95"
+          className="line-clamp-5 min-w-0 text-left text-sm font-semibold leading-snug text-[var(--internal-text,var(--text-primary))]"
           style={spectrum}
         >
           {basis}
@@ -417,11 +417,11 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                 <div className="flex min-h-[120px] flex-col items-center justify-center gap-2 border border-dashed border-border px-3 py-2 text-center text-sm text-text-muted">
                   <span>
                     {onDropBlackScope
-                      ? '指针按住黑卡微移提起卡面，拖入下方手牌区松手加入'
-                      : '长按卡池黑卡拖入手牌区加入'}
+                      ? '按住上方分类卡拖到这里，松手即可加入手牌'
+                      : '长按分类卡拖到下方手牌区加入'}
                   </span>
                   <span className="text-sm text-text-muted/90">
-                    卡面为卡池同款卡包造型（仅分类依据文案）；左侧竖条向左拖展开操作；拖入与拖出共用同一套全屏浮层弹簧动画
+                    也可用键盘：聚焦分类卡后按 Shift+Enter；手牌卡按 Enter 打开
                   </span>
                 </div>
               ) : (
@@ -463,6 +463,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                                 duration: 0.85,
                                 bounce: 0,
                               }}
+                              className="absolute outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                               style={{
                                 zIndex,
                                 left: '50%',
@@ -471,7 +472,17 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                                 width: '100%',
                                 maxWidth: '30rem',
                               }}
-                              className="absolute will-change-transform"
+                              role="button"
+                              tabIndex={busy ? -1 : 0}
+                              aria-label={`${scopeCurrentClassificationBasis(entry.scope)}，Enter 打开桌面`}
+                              onKeyDown={(e) => {
+                                if (busy) return
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  onOpenDesktop(entry)
+                                }
+                              }}
                               onDoubleClick={(e) => {
                                 if (!busy) {
                                   e.preventDefault()
@@ -554,36 +565,27 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
               </div>
               {onDropBlackScope ? (
                 <div className="card-pool-hand-dock__meta-hint">
-                  悬停展开 · 左侧条侧滑 · 拖入/拖出共用指针卡面浮层
+                  点击或 Enter 展开 · 拖入分类卡加入 · 手牌卡 Enter 打开
                 </div>
               ) : null}
             </div>
 
             {entries.length > 0 ? (
-              <div className="card-pool-hand-dock__deck" aria-hidden>
-                {entries.slice(0, 3).map((entry, index) => {
-                  const accent = scopeTileAccentColor(entry.scope)
-                  const face = stitchTileFaceGradient(accent)
-                  const offset = index * 14
-                  const rot = -14 + index * 12
-                  return (
-                    <span
-                      key={entry.id}
-                      className="card-pool-hand-dock__mini"
-                      style={{
-                        left: `calc(50% - 1.75rem + ${offset - 14}px)`,
-                        transform: `rotate(${rot}deg)`,
-                        zIndex: index + 1,
-                      }}
-                    >
-                      <span
-                        className="card-pool-hand-dock__mini-spine"
-                        style={{ background: face }}
-                      />
-                      <span className="card-pool-hand-dock__mini-body" />
-                    </span>
-                  )
-                })}
+              <div className="card-pool-hand-dock__deck liquid-glass-surface" aria-hidden>
+                {/* 单层卡包示意，不再扇形叠多张白底小卡造成「多层页面」 */}
+                <span className="card-pool-hand-dock__pack">
+                  <span
+                    className="card-pool-hand-dock__pack-face"
+                    style={{
+                      background: stitchTileFaceGradient(
+                        scopeTileAccentColor(entries[0]!.scope),
+                      ),
+                    }}
+                  />
+                  <span className="card-pool-hand-dock__pack-count tabular-nums">
+                    {Math.min(entries.length, 99)}
+                  </span>
+                </span>
               </div>
             ) : (
               <span className="text-sm text-text-secondary">拖入黑卡加入</span>

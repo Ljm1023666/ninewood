@@ -274,53 +274,63 @@ export function TemplateChatRightShell({
     )
   ) : null
 
+  // 空会话不渲玻璃顶栏：否则与左侧侧栏玻璃 + ml/双边框叠出「断裂小方块」
+  const showHeader =
+    Boolean(headerLeading) ||
+    Boolean(headerTrailing) ||
+    Boolean(nameBlock) ||
+    showHeaderAvatar
+
   return (
     <div
       className={cn(
-        'ml-1 flex min-h-0 min-w-0 flex-1 flex-col',
+        'flex min-h-0 min-w-0 flex-1 flex-col',
+        // internal：分隔线只留侧栏 border-right，去掉 ml-1 + 左描边，避免缝里露出非玻璃条
         variant === 'internal'
-          ? 'border-l border-[var(--internal-hairline)] bg-[var(--bg-primary)]'
-          : 'border-l border-border bg-background',
+          ? 'bg-transparent'
+          : 'ml-1 border-l border-border bg-background',
         embedInLayout ? 'h-full' : 'h-screen',
       )}
     >
-      <div
-        className={cn(
-          'flex shrink-0 items-center gap-2 border-b px-2',
-          variant === 'internal'
-            ? 'msg-chat-header--internal h-11 border-[var(--internal-hairline)] px-4'
-            : 'h-16 border-border',
-        )}
-      >
-        {headerLeading ? (
-          <div className="flex shrink-0 items-center">{headerLeading}</div>
-        ) : null}
-        {showHeaderAvatar ? (
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Avatar
-              className={cn(
-                'msg-chat-header__avatar shrink-0 basis-8',
-                variant === 'internal' ? 'size-8' : 'size-12',
-              )}
-            >
-              {currentChat?.image ? (
-                <AvatarImage src={currentChat.image} alt="" />
-              ) : null}
-              <AvatarFallback className="text-sm font-semibold">
-                {fb}
-              </AvatarFallback>
-            </Avatar>
-            {nameBlock}
-          </div>
-        ) : (
-          nameBlock
-        )}
-        {headerTrailing ? (
-          <div className="ml-auto flex shrink-0 items-center gap-1">
-            {headerTrailing}
-          </div>
-        ) : null}
-      </div>
+      {showHeader ? (
+        <div
+          className={cn(
+            'flex shrink-0 items-center gap-2 border-b px-2',
+            variant === 'internal'
+              ? 'msg-chat-header--internal border-[var(--internal-hairline)] px-4'
+              : 'h-16 border-border',
+          )}
+        >
+          {headerLeading ? (
+            <div className="flex shrink-0 items-center">{headerLeading}</div>
+          ) : null}
+          {showHeaderAvatar ? (
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <Avatar
+                className={cn(
+                  'msg-chat-header__avatar shrink-0 basis-8',
+                  variant === 'internal' ? 'size-8' : 'size-12',
+                )}
+              >
+                {currentChat?.image ? (
+                  <AvatarImage src={currentChat.image} alt="" />
+                ) : null}
+                <AvatarFallback className="text-sm font-semibold">
+                  {fb}
+                </AvatarFallback>
+              </Avatar>
+              {nameBlock}
+            </div>
+          ) : (
+            nameBlock
+          )}
+          {headerTrailing ? (
+            <div className="ml-auto flex shrink-0 items-center gap-1">
+              {headerTrailing}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {middle}
@@ -423,7 +433,7 @@ function LeftChatListPanel({
     return (
       <aside
         className={cn(
-          'flex w-[320px] shrink-0 flex-col border-r border-[var(--internal-hairline)] bg-[var(--bg-primary)]',
+          'flex w-[320px] shrink-0 flex-col border-r border-[var(--internal-hairline)] bg-transparent msg-conv-sidebar',
           embedInLayout ? 'h-full min-h-0' : 'h-screen',
         )}
       >

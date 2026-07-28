@@ -15,7 +15,7 @@ export function LoginMiniNavbar({
   onToggleMode: (login: boolean) => void
 }) {
   return (
-    <nav className="fixed top-0 left-1/2 z-50 flex w-fit -translate-x-1/2 items-center gap-6 rounded-full border border-white/10 bg-white/[0.03] px-6 py-2.5 shadow-xl backdrop-blur-xl mt-6">
+    <nav className="liquid-glass-surface fixed top-0 left-1/2 z-50 mt-6 flex w-fit -translate-x-1/2 items-center gap-6 rounded-full px-6 py-2.5">
       <div className="text-sm font-bold tracking-widest text-[#abc7ff]">· · ·</div>
 
       <div className="flex items-center gap-4">

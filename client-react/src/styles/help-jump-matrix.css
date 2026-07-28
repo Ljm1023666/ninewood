@@ -25,9 +25,10 @@
   height: 64px;
   padding-left: 48px;
   padding-right: 48px;
-  border-bottom: 1px solid var(--nav-matrix-hairline);
-  background: color-mix(in srgb, var(--nav-matrix-surface) 80%, transparent);
-  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--liquid-glass-border, var(--nav-matrix-hairline));
+  background: var(--liquid-glass-bg, color-mix(in srgb, var(--nav-matrix-surface) 80%, transparent));
+  backdrop-filter: var(--liquid-glass-blur, blur(12px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(12px));
 }
 
 .nav-matrix-page__header h1,
@@ -64,9 +65,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid var(--nav-matrix-hairline);
+  border: 1px solid var(--liquid-glass-border, var(--nav-matrix-hairline));
   border-radius: 4px;
-  background: var(--nav-matrix-surface);
+  background: var(--liquid-glass-bg, var(--nav-matrix-surface));
+  backdrop-filter: var(--liquid-glass-blur, none);
+  -webkit-backdrop-filter: var(--liquid-glass-blur, none);
+  box-shadow: var(--liquid-glass-shadow, none);
   padding: 32px;
   text-align: center;
 }
@@ -111,7 +115,7 @@
 
 .nav-matrix__tile {
   position: relative;
-  isolation: isolate;
+  isolation: auto;
   display: flex;
   height: 100%;
   width: 100%;
@@ -120,9 +124,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid var(--nav-matrix-hairline);
+  border: 1px solid var(--liquid-glass-border, var(--nav-matrix-hairline));
   border-radius: 4px;
-  background: transparent;
+  background: var(--liquid-glass-bg, transparent);
+  backdrop-filter: var(--liquid-glass-blur, none);
+  -webkit-backdrop-filter: var(--liquid-glass-blur, none);
+  box-shadow: var(--liquid-glass-shadow, none);
   padding: 0;
   transition:
     background-color 0.2s,
@@ -132,7 +139,7 @@
 
 .nav-matrix__tile:hover {
   z-index: 2;
-  background: var(--nav-matrix-hover);
+  background: var(--liquid-glass-chip-bg-hover, var(--nav-matrix-hover));
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--nav-matrix-accent) 30%, transparent),
     0 0 15px color-mix(in srgb, var(--nav-matrix-accent) 10%, transparent);

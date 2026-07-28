@@ -20,6 +20,8 @@ export function AnimatedThemeToggle({
       className={cn('px-2.5', className)}
       variant="ghost"
       size="icon"
+      aria-label={isDark ? '切换到浅色主题' : '切换到深色主题'}
+      aria-pressed={isDark}
     >
       <SolarSwitch isDark={isDark} />
     </Button>

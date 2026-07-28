@@ -1,47 +1,12 @@
-/** 不铺 Layout 用户封面氛围层的内部页路由 */
-const INTERNAL_AMBIENT_PREFIXES = [
-  '/settings',
-  '/push-settings',
-  '/my-tags-manage',
-  '/orders',
-  '/my-demands',
-  '/my-bids',
-  '/transactions',
-  '/cert-center',
-  '/cert-intro',
-  '/messages',
-  '/circles',
-  '/search',
-  '/providers',
-  '/help',
-  '/privacy',
-  '/terms',
-  '/licenses',
-  '/profile',
-  '/follows',
-  '/welfare',
-  '/dashboard',
-  '/agent',
-  '/filters-preview',
-  '/card-pool',
-  '/new-group',
-  '/tag-stats',
-  '/discover',
-  '/certified-search',
-  '/circle-list',
-  '/my-tags',
-  '/tax-visualizer',
-  '/path-search',
-] as const
+/**
+ * Layout 氛围：默认开启（液态玻璃依赖同一图层）。
+ * 仅星空发现页关闭；其余工作区一律吃主题氛围图。
+ */
+const AMBIENT_SUPPRESS_PREFIXES = ['/discover'] as const
 
 export function suppressLayoutAmbient(pathname: string): boolean {
-  if (
-    pathname === '/demands/create' ||
-    pathname.startsWith('/demands/create/')
-  ) {
-    return true
-  }
-  return INTERNAL_AMBIENT_PREFIXES.some(
+  if (pathname === '/') return true
+  return AMBIENT_SUPPRESS_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   )
 }

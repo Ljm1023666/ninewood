@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import Layout from '@/components/layout/Layout'
 import { BentoAppShell } from '@/components/layout/BentoAppShell'
 import Profile from '@/views/Profile'
@@ -7,6 +7,7 @@ import Settings from '@/views/Settings'
 import LoginPage from '@/views/Login'
 import { useUserStore } from '@/stores/user'
 import { migrateLegacyLoopUrl } from './loop-route-migration'
+import { CardPoolPageSkeleton } from '@/components/card-pool/CardPoolPageSkeleton'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
@@ -79,13 +80,21 @@ function LegacyLoopRedirect() {
   return <Navigate to={migrateLegacyLoopUrl(location.pathname, location.search)} replace />
 }
 
-function LazyLoad({ children }: { children: React.ReactNode }) {
+function LazyLoad({
+  children,
+  fallback,
+}: {
+  children: ReactNode
+  fallback?: ReactNode
+}) {
   return (
     <Suspense
       fallback={
-        <div className="flex h-full min-h-0 w-full min-w-0 items-center justify-center">
-          <span className="loader" />
-        </div>
+        fallback ?? (
+          <div className="flex h-full min-h-0 w-full min-w-0 items-center justify-center">
+            <span className="loader" />
+          </div>
+        )
       }
     >
       {children}
@@ -94,7 +103,7 @@ function LazyLoad({ children }: { children: React.ReactNode }) {
 }
 
 /** 回中心 Tab 切换：无整页 loader，避免初次点 Tab 白屏闪烁 */
-function HubLazy({ children }: { children: React.ReactNode }) {
+function HubLazy({ children }: { children: ReactNode }) {
   return <Suspense fallback={null}>{children}</Suspense>
 }
 
@@ -112,6 +121,9 @@ function AuthGuard() {
   return <Outlet />
 }
 
+/** 已登录工作首页；品牌星空 `/` 仅留给访客 */
+const AUTH_HOME = '/card-pool'
+
 function GuestGuard() {
   const ready = useUserStore((s) => s.ready)
   const user = useUserStore((s) => s.user)
@@ -122,19 +134,34 @@ function GuestGuard() {
       </div>
     )
   }
-  if (user) return <Navigate to="/" replace />
+  if (user) return <Navigate to={AUTH_HOME} replace />
   return <LoginPage />
+}
+
+/** 已登录访问营销首页时进入工作面；访客保留品牌星空 */
+function BrandOrWorkHome() {
+  const ready = useUserStore((s) => s.ready)
+  const user = useUserStore((s) => s.user)
+  if (!ready) {
+    return (
+      <div className="flex h-full min-h-0 w-full items-center justify-center">
+        <span className="loader" />
+      </div>
+    )
+  }
+  if (user) return <Navigate to={AUTH_HOME} replace />
+  return (
+    <LazyLoad>
+      <Discover />
+    </LazyLoad>
+  )
 }
 
 export const router = createBrowserRouter([
   /* 闂佸啿鍘滈崑鎾绘煃閸忓浜?婵☆偓绲鹃悧鐘诲Υ婢舵劖鏅柛顐ｇ箓缁叉椽鏌ｅ鈧崡鎶藉Υ婢舵劖鏅悘鐐舵瑜板棛鈧鍠掗崑鎾绘偣娴ｅ憡鍋ユ俊顐㈢埣閺?闂佸啿鍘滈崑鎾绘煃閸忓浜?*/
   {
     path: '/',
-    element: (
-      <LazyLoad>
-        <Discover />
-      </LazyLoad>
-    ),
+    element: <BrandOrWorkHome />,
   },
   /* 闂佸啿鍘滈崑鎾绘煃閸忓浜?闂傚倸娲犻崑鎾绘偡閺囨俺鍏屾繛鍛劥閵囨劙寮撮悩宕囨殸闁荤姳璀﹂崹鎶藉极?闂佸啿鍘滈崑鎾绘煃閸忓浜?*/
   {
@@ -234,7 +261,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'discover',
-            element: <Navigate to="/" replace />,
+            element: <Navigate to={AUTH_HOME} replace />,
           },
           {
             path: 'card-pool/explorer',
@@ -255,7 +282,7 @@ export const router = createBrowserRouter([
           {
             path: 'card-pool',
             element: (
-              <LazyLoad>
+              <LazyLoad fallback={<CardPoolPageSkeleton />}>
                 <CardPool />
               </LazyLoad>
             ),

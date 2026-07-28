@@ -31,13 +31,15 @@
   --cp-drag-bg: rgba(6, 10, 18, 0.94);
   --cp-drag-ink: #c8f0ff;
   --cp-drag-border: rgba(34, 211, 238, 0.5);
-  --cp-dock-bg: rgba(8, 8, 8, 0.92);
-  --cp-dock-shadow: 0 -18px 56px rgba(0, 0, 0, 0.55);
-  --cp-dock-bar-hover: rgba(255, 255, 255, 0.025);
-  --cp-chip-bg: rgba(24, 24, 26, 0.96);
+  --cp-dock-bg: rgba(28, 28, 30, 0.3);
+  --cp-dock-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 -12px 40px rgba(0, 0, 0, 0.35);
+  --cp-dock-bar-hover: rgba(255, 255, 255, 0.06);
+  --cp-chip-bg: rgba(24, 24, 26, 0.72);
   --cp-chip-border: rgba(255, 255, 255, 0.12);
   --cp-chip-ink: #d0d5df;
-  --cp-crumb-bg: rgba(6, 6, 6, 0.98);
+  --cp-crumb-bg: rgba(6, 6, 6, 0.55);
   --cp-crumb-hover: rgba(255, 255, 255, 0.07);
   --cp-scroll-glow: rgba(34, 211, 238, 0.04);
   --cp-ink: #f5f5f7;
@@ -63,7 +65,8 @@
   --accent-color: #458fff;
 
   color-scheme: dark;
-  background: var(--cp-void);
+  /* 透出 Layout 用户封面氛围层，液态玻璃才有与需求详情同款的透色 */
+  background: transparent;
   color: var(--cp-ink);
   font-family: 'HarmonyOS Sans', 'PingFang SC', 'Inter', system-ui, sans-serif;
 }
@@ -98,13 +101,15 @@ html[data-appearance='light'] .card-pool-stitch {
   --cp-drag-bg: rgba(255, 255, 255, 0.96);
   --cp-drag-ink: #0369a1;
   --cp-drag-border: rgba(14, 165, 233, 0.45);
-  --cp-dock-bg: rgba(255, 255, 255, 0.94);
-  --cp-dock-shadow: 0 -10px 36px rgba(15, 23, 42, 0.08);
-  --cp-dock-bar-hover: rgba(0, 0, 0, 0.03);
-  --cp-chip-bg: rgba(255, 255, 255, 0.95);
+  --cp-dock-bg: rgba(255, 255, 255, 0.26);
+  --cp-dock-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 -12px 40px rgba(15, 23, 42, 0.08);
+  --cp-dock-bar-hover: rgba(255, 255, 255, 0.12);
+  --cp-chip-bg: rgba(255, 255, 255, 0.55);
   --cp-chip-border: rgba(0, 0, 0, 0.1);
   --cp-chip-ink: #4b5563;
-  --cp-crumb-bg: rgba(255, 255, 255, 0.98);
+  --cp-crumb-bg: rgba(255, 255, 255, 0.42);
   --cp-crumb-hover: rgba(0, 0, 0, 0.05);
   --cp-scroll-glow: rgba(14, 165, 233, 0.06);
   --cp-ink: #14141c;
@@ -133,9 +138,16 @@ html[data-appearance='light'] .card-pool-stitch {
 
 /* ── 顶栏 ── */
 .card-pool-stitch__header {
-  border-bottom: 1px solid var(--cp-line);
-  background: linear-gradient(180deg, var(--cp-header-top) 0%, var(--cp-surface) 100%);
+  border-bottom: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
   padding: 0.875rem 1.25rem;
+}
+
+html[data-appearance='light'] .card-pool-stitch .card-pool-stitch__header {
+  background: var(--liquid-glass-bg);
 }
 
 .card-pool-stitch__title {
@@ -165,9 +177,15 @@ html[data-appearance='light'] .card-pool-stitch {
 
 .card-pool-stitch__crumb {
   border-bottom: 1px solid var(--cp-line);
-  background: var(--cp-crumb-bg);
+  background: rgba(28, 28, 30, 0.22);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
   padding-left: 0.75rem;
   padding-right: 1rem;
+}
+
+html[data-appearance='light'] .card-pool-stitch .card-pool-stitch__crumb {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .card-pool-stitch__crumb .card-pool-stitch__crumb-btn {
@@ -198,9 +216,12 @@ html[data-appearance='light'] .card-pool-stitch {
 }
 
 .card-pool-stitch__scroll {
-  background:
-    radial-gradient(ellipse 100% 60% at 50% -12%, var(--cp-scroll-glow), transparent 55%),
-    var(--cp-void);
+  /* 勿铺实色，否则中间区域盖住封面氛围，液态玻璃无法透色 */
+  background: radial-gradient(
+    ellipse 100% 60% at 50% -12%,
+    var(--cp-scroll-glow),
+    transparent 55%
+  );
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
@@ -211,7 +232,7 @@ html[data-appearance='light'] .card-pool-stitch {
   width: 100%;
 }
 
-/* ══ 分类卡面 ══ */
+/* ══ 分类卡面（实体卡，非收纳玻璃） ══ */
 .card-pool-tile {
   --tile-accent: #38bdf8;
 
@@ -441,12 +462,18 @@ html[data-appearance='light'] .card-pool-stitch {
   opacity: 1;
 }
 
-/* ══ 底部手牌 Dock ══ */
+/* ══ 底部手牌 Dock（高透明液态玻璃） ══ */
 .card-pool-hand-dock {
-  border-top: 1px solid var(--cp-line);
-  background: var(--cp-dock-bg);
-  backdrop-filter: blur(22px) saturate(1.2);
-  box-shadow: var(--cp-dock-shadow);
+  border-top: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
+}
+
+html[data-appearance='light'] .card-pool-stitch .card-pool-hand-dock {
+  border-top-color: var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
 }
 
 .card-pool-hand-dock__bar {
@@ -479,10 +506,38 @@ html[data-appearance='light'] .card-pool-stitch {
 .card-pool-hand-dock__deck {
   position: relative;
   display: flex;
-  height: 3rem;
-  width: 5.5rem;
+  height: 2.75rem;
+  min-width: 4.5rem;
   align-items: center;
   justify-content: center;
+  border-radius: 12px;
+  padding: 0 0.5rem;
+}
+
+.card-pool-hand-dock__pack {
+  position: relative;
+  display: flex;
+  height: 2.25rem;
+  width: 3.25rem;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--liquid-glass-border) 80%, transparent);
+}
+
+.card-pool-hand-dock__pack-face {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-pool-hand-dock__pack-count {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .card-pool-hand-dock__mini {
@@ -531,6 +586,8 @@ html[data-appearance='light'] .card-pool-stitch {
   border-radius: 999px;
   border: 1px solid var(--cp-chip-border);
   background: var(--cp-chip-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   padding: 0.2rem 0.625rem;
   font-size: 0.75rem;
   font-weight: 500;
@@ -557,7 +614,7 @@ html[data-appearance='light'] .card-pool-stitch .card-pool-tile__badge {
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
 }
 
-/* ══ 手牌展开叠卡（与分类卡同系） ══ */
+/* ══ 手牌展开叠卡（高透明液态玻璃，与接单收纳同款） ══ */
 .card-pool-tile__pack--hand {
   width: 5.5rem;
   height: 4.75rem;
@@ -570,23 +627,46 @@ html[data-appearance='light'] .card-pool-stitch .card-pool-tile__badge {
   align-items: stretch;
   width: 100%;
   min-height: 7.25rem;
+  /* 不用 overflow:hidden，避免部分浏览器切断 backdrop 采样 */
+  overflow: visible;
+  border-radius: 16px;
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
+}
+
+/* 根卡池总览 / explorer 卡包壳：圆角液态玻璃 */
+.card-pool-pack-shell {
+  border-radius: 16px;
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
   overflow: hidden;
-  border-radius: 14px;
-  border: 1px solid var(--cp-tile-border);
-  background:
-    linear-gradient(125deg, var(--cp-tile-shine) 0%, transparent 38%),
-    linear-gradient(155deg, var(--cp-card-top) 0%, var(--cp-card-bot) 100%);
-  box-shadow:
-    inset 0 1px 0 var(--cp-tile-inset),
-    var(--cp-tile-shadow),
-    0 16px 40px rgba(0, 0, 0, 0.22);
+}
+
+.card-pool-pack-shell__rail {
+  border-right: 1px solid var(--liquid-glass-border);
+  background: transparent;
+}
+
+.card-pool-pack-strip {
+  border-bottom: 1px solid var(--liquid-glass-border);
+}
+
+.card-pool-pack-strip__glass {
+  background: var(--liquid-glass-chip-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
 }
 
 html[data-appearance='light'] .card-pool-stitch .card-pool-hand-stack-card {
-  box-shadow:
-    inset 0 1px 0 var(--cp-tile-inset),
-    var(--cp-tile-shadow),
-    0 12px 32px rgba(15, 23, 42, 0.1);
+  border-color: var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 .card-pool-hand-stack-card--zero .card-pool-hand-stack-card__body {
@@ -608,13 +688,20 @@ html[data-appearance='light'] .card-pool-stitch .card-pool-hand-stack-card {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid var(--cp-line);
-  background: color-mix(in srgb, var(--cp-void) 72%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--cp-ink-mute);
   transition:
     color 0.15s ease,
     background 0.15s ease,
     border-color 0.15s ease;
+}
+
+html[data-appearance='light'] .card-pool-stitch .card-pool-hand-stack-card__close {
+  border-color: rgba(60, 60, 67, 0.14);
+  background: rgba(255, 255, 255, 0.42);
 }
 
 .card-pool-hand-stack-card__close:hover {
@@ -761,4 +848,33 @@ html[data-appearance='light'] {
 
 .pack-stage-title-scrim {
   background: var(--pack-stage-scrim);
+}
+
+/* 卡池 Suspense 骨架 */
+.card-pool-skel-pill,
+.card-pool-skel-pack,
+.card-pool-skel-tile {
+  background: color-mix(in srgb, var(--cp-ink, var(--text-primary)) 8%, transparent);
+  animation: card-pool-skel-pulse 1.2s ease-in-out infinite;
+}
+
+.card-pool-skel-pack {
+  min-height: 9rem;
+  border-radius: 16px;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.12));
+}
+
+.card-pool-skel-tile {
+  min-height: 6rem;
+  border-radius: 14px;
+}
+
+@keyframes card-pool-skel-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.9;
+  }
 }

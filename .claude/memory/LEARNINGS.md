@@ -4,6 +4,14 @@ Append-only operational lessons to reduce repeated mistakes.
 
 ## 2026-07-28
 
+- 产品时间主权 Phase 0：`NODE_ENV=production` 时强制不挂 `/api/shorts`，开发仅 `ENABLE_LEGACY_SHORTS=1`；Accepted 规格不自动授权云端部署。
+- `PushPreference.receivePushes` 默认 true / 无记录全接受，**不得**映射为 NotificationSubscription 的永久开启；Phase 1 须正向订阅重建。
+- 注意力审计默认 WARN（CI）；`ATTENTION_AUDIT_STRICT=1` 才因明确机制词失败。基线脚本只输出聚合，不读排除词/媒体/正文。
+- 「看不见 UI」全站策略：`styles/liquid-glass-global.css`（须在 `index.css` 之后加载）。氛围开启时重映射 `--bg-card` / `--internal-*` 等为半透明，页壳透明，表面补 blur；禁止再给壳写实色。仅 `/` 与 `/discover` suppress 氛围。
+- 「看不见 UI」：收纳壳禁止 `var(--bg-primary|card|secondary)` 实色；页底透明，块面只用 `--liquid-glass-*`。回中心 `my-loops` / `loop-query-form` 曾因 `--loops-bg: var(--bg-primary)` 整页炭黑。
+- 全站页面氛围必须用浅/深固定图（`THEME_AMBIENT_BG`），禁止绑用户 `coverUrl` 或按 userId 抽卡面预设；个人主页有封面才覆盖。
+- 液态玻璃「收纳」必须全局：Layout 默认开主题氛围（`data-layout-ambient`），壳层透明；只对星空/独占背景页 suppress。逐页改玻璃会因实色底/冲突 CSS 立刻回灰白板。
+- `backdrop-filter` 父级若有 `will-change: transform` / `isolation: isolate` 会让玻璃看起来像实色；收纳瓷砖用 `isolation: auto`。
 - 交易可信度 ADR 在 Accepted 前若存在资金守恒、operationKey 事务语义、幂等租约、状态自洽、前端 key 契约任一项未钉死，必须保持 Proposed 并改文档，禁止开工实现。
 - 部分完成不得直接 `settleDemand`（会整笔 consumeHold）；须拆分托管并满足「期末可用+HELD+对方入账+平台收入 = 期初可用+HELD」。
 - 交易可信度改代码前必须先冻结 ADR（`docs/specs/ORDER-TRANSACTION-TRUST-ADR.md`）：部分完成与全额完成一样走双方确认；确认前禁止 settle/建剩余需求/hold；资金写路径要 Idempotency-Key + ledger operationKey + 条件状态更新。

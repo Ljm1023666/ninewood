@@ -371,6 +371,100 @@ html, body {
   box-shadow: var(--shadow-sm);
 }
 
+/* 高透明液态玻璃 — 全站收纳/坞/侧栏同款（对齐需求详情「请求接单」）
+   浅色填充必须足够透，否则在 pastel 氛围上会像实心白卡片 */
+html {
+  --liquid-glass-border: rgba(255, 255, 255, 0.55);
+  --liquid-glass-bg:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.34) 0%,
+      rgba(255, 255, 255, 0.08) 40%,
+      rgba(255, 255, 255, 0.02) 72%
+    ),
+    rgba(255, 255, 255, 0.1);
+  --liquid-glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 8px 28px rgba(28, 28, 30, 0.08);
+  --liquid-glass-blur: blur(18px) saturate(1.55);
+  --liquid-glass-chip-bg: rgba(255, 255, 255, 0.12);
+  --liquid-glass-chip-bg-hover: rgba(255, 255, 255, 0.2);
+}
+
+html[data-appearance='dark'] {
+  --liquid-glass-border: rgba(255, 255, 255, 0.18);
+  --liquid-glass-bg:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.04) 45%,
+      transparent 72%
+    ),
+    rgba(28, 28, 30, 0.28);
+  --liquid-glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 40px rgba(0, 0, 0, 0.4);
+  --liquid-glass-chip-bg: rgba(255, 255, 255, 0.08);
+  --liquid-glass-chip-bg-hover: rgba(255, 255, 255, 0.14);
+}
+
+.liquid-glass-surface {
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
+  background-clip: padding-box;
+}
+
+.liquid-glass-chip {
+  background: var(--liquid-glass-chip-bg);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid color-mix(in srgb, var(--liquid-glass-border) 70%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.liquid-glass-chip:hover,
+.liquid-glass-chip[data-active='true'] {
+  background: var(--liquid-glass-chip-bg-hover);
+}
+
+/*
+ * 全站氛围玻璃策略已迁至 styles/liquid-glass-global.css
+ *（token 重映射 + 壳透明 + 表面模糊 + 收纳件材质）
+ */
+
+/* Discover 页脚 — 同款液态玻璃 */
+.site-footer-glass {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  width: calc(100% - 32px);
+  max-width: 72rem;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
+}
+
+.site-footer-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 33%;
+  height: 1px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--liquid-glass-border) 80%, transparent);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
 /* 强调文字：纯色替代渐变文字（渐变文字违反绝对禁令） */
 .text-accent {
   color: var(--accent-color);
@@ -693,15 +787,18 @@ html[data-appearance="dark"] {
   }
 }
 
-/* 侧栏品牌色带：蓝强调色带 + 暗底 */
+/* 侧栏品牌色带：与接单收纳同款液态玻璃 */
 .sidebar-ct-accent {
-  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
-  border: 1px solid var(--border-subtle);
-  box-shadow: 0 10px 28px rgba(28, 28, 30, 0.08);
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 [data-appearance="light"] .sidebar-ct-accent {
-  background: color-mix(in srgb, #ffffff 88%, transparent);
+  /* token 已随 appearance 切换，无需再叠一层实色 */
+  background: var(--liquid-glass-bg);
 }
 
 /* 侧栏展开：仅宽度向右过渡；图标槽固定，侧标绝对定位淡入，避免 flex 重排抖动 */
@@ -710,11 +807,15 @@ html[data-appearance="dark"] {
   transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: width;
   overflow-x: hidden;
+  isolation: isolate;
 }
+
 .app-sidebar__row {
   position: relative;
   text-align: left;
 }
+
+/* 侧栏行悬停/激活由 NavItem 用 --liquid-glass-chip-* 控制 */
 .app-sidebar__icon-slot {
   width: 3.5rem; /* 与 h-14 / size-14 一致，避免 72px 错位 */
   min-width: 3.5rem;
@@ -974,7 +1075,7 @@ html[data-appearance="dark"] {
   --primary-start: #3388FF;
   --accent-color: #3388FF;
 
-  background-color: var(--internal-bg);
+  background-color: transparent;
   color: var(--internal-text);
   font-size: 1.0625rem;
   min-height: 100%;
@@ -997,6 +1098,32 @@ html[data-appearance="light"] .internal-shell {
 
   --bg-secondary: #eeeeee;
   --bg-tertiary: #e0e0e0;
+}
+
+/* 氛围开启时覆盖 internal-shell 实色 token（须写在 appearance 赋值之后） */
+html[data-layout-ambient='on'] .internal-shell {
+  --internal-bg: transparent;
+  --internal-card: color-mix(in srgb, #ffffff 9%, transparent);
+  --internal-card-hover: color-mix(in srgb, #ffffff 14%, transparent);
+  --internal-surface: color-mix(in srgb, #ffffff 6%, transparent);
+  --internal-surface-hover: color-mix(in srgb, #ffffff 10%, transparent);
+  --internal-panel-bg: color-mix(in srgb, #ffffff 8%, transparent);
+  --bg-primary: transparent;
+  --bg-secondary: color-mix(in srgb, #ffffff 7%, transparent);
+  --bg-tertiary: color-mix(in srgb, #ffffff 5%, transparent);
+  --bg-card: color-mix(in srgb, #ffffff 9%, transparent);
+  background-color: transparent !important;
+}
+
+html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
+  --internal-card: color-mix(in srgb, #ffffff 18%, transparent);
+  --internal-card-hover: color-mix(in srgb, #ffffff 26%, transparent);
+  --internal-surface: color-mix(in srgb, #ffffff 12%, transparent);
+  --internal-surface-hover: color-mix(in srgb, #ffffff 18%, transparent);
+  --internal-panel-bg: color-mix(in srgb, #ffffff 14%, transparent);
+  --bg-secondary: color-mix(in srgb, #ffffff 12%, transparent);
+  --bg-tertiary: color-mix(in srgb, #ffffff 8%, transparent);
+  --bg-card: color-mix(in srgb, #ffffff 16%, transparent);
 }
 
 /* Portal 弹窗：始终深色 OLED，与 Stitch 稿一致（不随全局浅色切换） */
@@ -1369,32 +1496,55 @@ html[data-appearance="light"] .internal-shell {
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--internal-hairline);
-  background: var(--internal-surface);
+  background: transparent;
 }
 
-/* 液态金属按钮：深/浅色内填 token（光效由 shader 负责） */
+/* 液态金属按钮：外圈 shader 描边 + 中间液态玻璃（不再实心黑/白） */
 .liquid-metal-button {
-  --lm-inner-top: #202020;
-  --lm-inner-bottom: #000000;
-  --lm-inner-top-active: #2a2a2a;
-  --lm-inner-bottom-active: #101010;
-  --lm-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --lm-icon-drop: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  --lm-inner-bg: var(--liquid-glass-bg);
+  --lm-inner-bg-active: var(--liquid-glass-chip-bg-hover);
+  --lm-inner-blur: var(--liquid-glass-blur);
+  --lm-inner-border: color-mix(in srgb, var(--liquid-glass-border) 70%, transparent);
+  --lm-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --lm-icon-drop: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   --lm-ripple: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
 }
 
 html[data-appearance='light'] .liquid-metal-button {
-  --lm-inner-top: #ffffff;
-  --lm-inner-bottom: #ececec;
-  --lm-inner-top-active: #ffffff;
-  --lm-inner-bottom-active: #f5f5f5;
-  --lm-text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
-  --lm-icon-drop: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
+  --lm-text-shadow: 0 1px 1px rgba(255, 255, 255, 0.55);
+  --lm-icon-drop: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.55));
   --lm-ripple: radial-gradient(circle, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
 }
 
 .liquid-metal-button--flat {
   opacity: 1;
+}
+
+/* 中间玻璃芯：inset 定位避免宽高+margin 在圆角端点裁出小方块 */
+.liquid-metal-button__glass-core {
+  position: absolute;
+  inset: 2px;
+  border: 1px solid var(--lm-inner-border);
+  background: var(--lm-inner-bg);
+  backdrop-filter: var(--lm-inner-blur);
+  -webkit-backdrop-filter: var(--lm-inner-blur);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-metal-button__glass-core--active {
+  background: var(--lm-inner-bg-active);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px color-mix(in srgb, var(--liquid-glass-border) 40%, transparent);
+}
+
+.liquid-metal-button__glass-core--pressed {
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.22),
+    inset 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 /* ── A 类设置页 Stitch PRO Settings ── */
@@ -1949,7 +2099,7 @@ html[data-appearance='light'] .liquid-metal-button {
     rgba(255, 255, 255, 0.03) 42%,
     rgba(255, 255, 255, 0) 70%
   );
-  --profile-rail-bg: rgba(38, 32, 42, 0.9);
+  --profile-rail-bg: rgba(36, 36, 38, 0.55);
   --profile-glass-progress-track: rgba(255, 255, 255, 0.14);
   display: flex;
   flex-direction: row;
@@ -1980,7 +2130,7 @@ html[data-appearance='light'] .internal-profile-shell {
     rgba(255, 255, 255, 0.06) 42%,
     rgba(255, 255, 255, 0) 70%
   );
-  --profile-rail-bg: rgba(245, 242, 247, 0.92);
+  --profile-rail-bg: rgba(255, 255, 255, 0.48);
   --profile-glass-progress-track: rgba(255, 255, 255, 0.42);
 }
 
@@ -1990,7 +2140,7 @@ html[data-appearance='light'] .internal-profile-shell {
   box-shadow: var(--profile-glass-highlight), var(--profile-glass-shadow);
   backdrop-filter: var(--profile-glass-blur);
   -webkit-backdrop-filter: var(--profile-glass-blur);
-  isolation: isolate;
+  isolation: auto;
 }
 
 .internal-profile-shell .internal-display-title {
@@ -2010,9 +2160,11 @@ html[data-appearance='light'] .internal-profile-shell {
   gap: 6px;
   padding: 12px 8px;
   border-radius: 22px;
-  border: 0;
+  border: 1px solid var(--profile-glass-border);
   background: var(--profile-rail-bg);
-  box-shadow: var(--profile-glass-shadow);
+  box-shadow: var(--profile-glass-highlight), var(--profile-glass-shadow);
+  backdrop-filter: var(--profile-glass-blur);
+  -webkit-backdrop-filter: var(--profile-glass-blur);
   align-self: flex-start;
   position: sticky;
   top: 12px;
@@ -2075,7 +2227,8 @@ html[data-appearance='light'] .internal-profile-shell {
   box-shadow: var(--profile-glass-highlight), var(--profile-glass-shadow);
   backdrop-filter: var(--profile-glass-blur);
   -webkit-backdrop-filter: var(--profile-glass-blur);
-  isolation: isolate;
+  /* 避免 isolate 把 backdrop 收成实色片 */
+  isolation: auto;
   overflow: hidden;
 }
 
@@ -3123,17 +3276,25 @@ html[data-appearance='light'] .demand-detail-page {
 }
 
 html[data-appearance='light'] .demand-detail-action-dock {
-  background: linear-gradient(to top, #f5f5f5 82%, transparent);
+  background: linear-gradient(
+    to top,
+    rgba(245, 245, 245, 0.28) 55%,
+    rgba(245, 245, 245, 0) 100%
+  );
 }
 
 .demand-detail-action-dock {
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 30;
   width: 100%;
   flex-shrink: 0;
   padding: 8px 12px 16px;
-  background: linear-gradient(to top, var(--bg-primary) 78%, transparent);
+  pointer-events: auto;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg-primary) 32%, transparent) 55%,
+    transparent 100%
+  );
   transition: padding 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -3156,14 +3317,16 @@ html[data-appearance='light'] .demand-detail-action-dock {
   gap: 12px;
   margin-bottom: 8px;
   padding: 10px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 999px;
-  background: #ffffff;
   color: #111111;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
   transition:
     transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.2s ease,
@@ -3171,19 +3334,16 @@ html[data-appearance='light'] .demand-detail-action-dock {
 }
 
 html[data-appearance='dark'] .demand-detail-action-dock__toggle {
-  border-color: rgba(255, 255, 255, 0.12);
-  background: #141414;
   color: #f2f2f2;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .demand-detail-action-dock__toggle:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  background: var(--liquid-glass-chip-bg-hover);
 }
 
 html[data-appearance='dark'] .demand-detail-action-dock__toggle:hover {
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  background: var(--liquid-glass-chip-bg-hover);
 }
 
 .demand-detail-action-dock__toggle:active {
@@ -3219,27 +3379,22 @@ html[data-appearance='dark'] .demand-detail-action-dock__toggle:hover {
 }
 
 .demand-detail-action-dock__body-inner {
-  padding-top: 2px;
+  padding-top: 8px;
 }
 
 .demand-detail-action-panel {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 16px;
   color: #111111;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.16),
-    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-bg);
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  box-shadow: var(--liquid-glass-shadow);
 }
 
 html[data-appearance='dark'] .demand-detail-action-panel {
-  background: #141414;
-  border-color: rgba(255, 255, 255, 0.14);
   color: #f2f2f2;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.55),
-    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
 
 .demand-detail-action-panel__title {
@@ -3254,20 +3409,22 @@ html[data-appearance='dark'] .demand-detail-action-panel {
   display: block;
   width: 100%;
   resize: none;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  background: #f3f4f6;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.42);
   color: #111111;
-  padding: 10px 12px;
+  padding: 12px 14px;
   font-size: 14px;
   line-height: 1.5;
   outline: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 html[data-appearance='dark'] .demand-detail-action-panel__input {
   border-color: rgba(255, 255, 255, 0.14);
-  background: #0a0a0a;
+  background: rgba(0, 0, 0, 0.28);
   color: #f2f2f2;
 }
 

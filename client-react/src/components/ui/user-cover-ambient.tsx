@@ -1,23 +1,28 @@
 import { useMemo } from 'react'
 import {
-  publisherUserCoverPreset,
   toCardCoverThumbUrl,
   toProfileCoverThumbUrl,
+  themeAmbientBgUrl,
 } from '@/utils/user-cover-presets'
 import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
 import { useThemeStore } from '@/stores/theme'
 
-/** 全栏模糊封面 + 遮罩，作页面氛围背景（主内容区内 absolute 铺满）。优先用用户上传封面（如 /uploads/covers/…），否则预设图。 */
+/**
+ * 全栏模糊氛围背景（Layout / 主栏后方）。
+ * 默认：浅/深主题固定图（不跟个人主页变）。
+ * 仅当传入已设置的 coverUrl 时覆盖（个人主页有封面）。
+ */
 export function UserCoverAmbientBg({
-  userId,
   coverUrl,
 }: {
+  /** 已废弃：氛围不再按用户 ID 抽预设 */
   userId?: string
+  /** 个人主页已设置的封面；空则用主题默认图 */
   coverUrl?: string | null
 }) {
   const isDark = useThemeStore((s) => s.current.dark)
   const trimmed = typeof coverUrl === 'string' ? coverUrl.trim() : ''
-  const rawUrl = trimmed || publisherUserCoverPreset(userId)
+  const rawUrl = trimmed || themeAmbientBgUrl(isDark)
   const ambientSrc = trimmed.startsWith('/uploads/covers/')
     ? toProfileCoverThumbUrl(trimmed)
     : rawUrl.startsWith('/uploads/card-covers/')
@@ -35,12 +40,13 @@ export function UserCoverAmbientBg({
       className="pointer-events-none absolute inset-0 z-0 min-h-[100%] overflow-hidden"
       aria-hidden
     >
-      {/* 亮暗模式分支：浅色避免被 bg-primary 叠层“洗白” */}
       <DisplayCoverPicture
         sources={ambientSrc}
         alt=""
         className={imageClass}
         pictureClassName="absolute inset-0 block h-full w-full"
+        loading="eager"
+        fetchPriority="low"
       />
       <div
         className={

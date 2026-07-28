@@ -219,7 +219,7 @@ export function DynamicIslandTOC({
           }}
           transition={islandTransition}
           style={{ cursor: isExpanded ? 'default' : 'pointer' }}
-          className="relative overflow-hidden border border-border bg-card text-foreground shadow-2xl"
+          className="relative overflow-hidden liquid-glass-surface text-foreground"
         >
           {/* Closed pill */}
           <motion.div

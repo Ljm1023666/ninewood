@@ -130,10 +130,15 @@ html[data-appearance='light'] .dlp-page {
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  min-height: var(--page-header-min-height, 108px);
+  min-height: 0;
   margin-bottom: var(--space-section, 32px);
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--wallet-divider);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .dlp-cmdbar__left {
@@ -1212,7 +1217,7 @@ html[data-appearance='light'] .dlp-page .dlp-textarea::placeholder {
 .dlp-page .internal-segmented--liquid-metal {
   border-radius: 999px;
   border-color: var(--wallet-glass-border);
-  background: var(--wallet-panel-bg);
+  background: transparent;
 }
 
 /* ── 等级身份展示卡 ── */

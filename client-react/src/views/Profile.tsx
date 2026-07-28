@@ -23,6 +23,7 @@ import { STITCH_PROFILE_ICONS } from '@/constants/stitch-icons'
 import { useProfileCoverBg } from '@/hooks/use-profile-cover-bg'
 import { useThemeStore } from '@/stores/theme'
 import { DisplayCoverPicture } from '@/components/ui/display-cover-picture'
+import { UserCoverAmbientBg } from '@/components/ui/user-cover-ambient'
 import {
   toPreferOriginalProfileCoverUrl,
   toDisplayCoverSources,
@@ -378,38 +379,26 @@ export default function Profile() {
           </>
         ) : null}
 
-        <div className="internal-shell relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-y-auto thin-scroll bg-background">
+        <div className="internal-shell relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-y-auto thin-scroll">
               {pageCoverUrl ? (
             <>
-              {pageCoverSources ? (
-                <DisplayCoverPicture
-                  sources={pageCoverSources}
-                  alt=""
-                  className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover transition-opacity"
-                  style={{
-                    opacity: showCoverBackground ? 1 : 0,
-                    transitionDuration: `${COVER_BG_FADE_MS}ms`,
-                    transitionTimingFunction: COVER_BG_EASE_CSS,
-                  }}
-                  loading="eager"
-                  fetchPriority="high"
-                  aria-hidden
-                />
-              ) : null}
+              {/* 与全站氛围同构：模糊底图 + 色罩 + 渐变，仅换个人封面 */}
+              <div
+                className="pointer-events-none absolute inset-0 z-0 transition-opacity"
+                style={{
+                  opacity: showCoverBackground ? 1 : 0,
+                  transitionDuration: `${COVER_BG_FADE_MS}ms`,
+                  transitionTimingFunction: COVER_BG_EASE_CSS,
+                }}
+                aria-hidden
+              >
+                <UserCoverAmbientBg coverUrl={pageCoverUrl} />
+              </div>
               <div
                 className="pointer-events-none absolute inset-0 z-0 transition-opacity"
                 style={{
                   opacity: showCoverBackground ? 0 : 1,
                   background: 'var(--internal-bg)',
-                  transitionDuration: `${COVER_BG_FADE_MS}ms`,
-                  transitionTimingFunction: COVER_BG_EASE_CSS,
-                }}
-                aria-hidden
-              />
-              <div
-                className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-transparent via-background/25 to-background/78 transition-opacity"
-                style={{
-                  opacity: showCoverBackground ? 1 : 0,
                   transitionDuration: `${COVER_BG_FADE_MS}ms`,
                   transitionTimingFunction: COVER_BG_EASE_CSS,
                 }}
@@ -431,15 +420,15 @@ export default function Profile() {
                 />
               ) : null}
             </>
-          ) : (
-            <div
-              className="pointer-events-none absolute inset-0 z-0 bg-[var(--internal-bg)]"
-              aria-hidden
-            />
-          )}
+          ) : null}
           <div className="internal-profile-shell relative z-10 box-border flex min-h-full w-full max-w-[1120px] shrink-0 self-center px-5 pb-14 pt-2">
             <div className="internal-profile-main min-w-0 flex-1">
-              <PageHeader title="主页" onBack="back" divider={false} />
+              <PageHeader
+                title="主页"
+                onBack="back"
+                divider={false}
+                className="!bg-transparent !shadow-none !backdrop-blur-none border-0"
+              />
 
               <div className="internal-profile-page">
                 <section className="internal-profile-hero">
@@ -795,7 +784,7 @@ export default function Profile() {
 
             {isMe ? (
               <nav className="internal-profile-rail" aria-label="个人中心导航">
-                {/* 对齐 macOS：认证/消息在主侧栏；订单钱包等嵌在「我的」 */}
+                {/* 消息在主侧栏；订单/认证/钱包等嵌在「我的」右侧轨 */}
                 {[
                   {
                     icon: STITCH_PROFILE_ICONS.orders,
@@ -821,6 +810,11 @@ export default function Profile() {
                     icon: 'layers',
                     label: '服务卡',
                     path: '/my-service-cards',
+                  },
+                  {
+                    icon: STITCH_PROFILE_ICONS.verified,
+                    label: '认证',
+                    path: '/cert-center',
                   },
                   {
                     icon: 'notifications',

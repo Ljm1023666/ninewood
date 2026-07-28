@@ -326,9 +326,9 @@ export default function MyLoopsPage() {
         </button>
       </header>
 
-      <section className="my-loops-summary" aria-label="回运行统计">
+      <section className="my-loops-summary" aria-label="我的回运行统计">
         <div className="my-loops-summary__all">
-          <span>全部运行</span>
+          <span>我的运行</span>
           <strong>{summary.total}</strong>
           <small>{summary.active} 条正在运行</small>
         </div>
@@ -362,25 +362,6 @@ export default function MyLoopsPage() {
       </section>
 
       <section className="my-loops-toolbar" aria-label="视图与排序">
-        <div className="my-loops-segment">
-          <button
-            type="button"
-            className={displayMode === 'single' ? 'is-active' : undefined}
-            onClick={() => setMode('single')}
-            aria-pressed={displayMode === 'single'}
-          >
-            <List size={16} /> 单区
-          </button>
-          <button
-            type="button"
-            className={displayMode === 'split' ? 'is-active' : undefined}
-            onClick={() => setMode('split')}
-            aria-pressed={displayMode === 'split'}
-          >
-            <Columns3 size={16} /> 并列
-          </button>
-        </div>
-
         <div className="my-loops-kind-picker" role="group" aria-label="选择回类型">
           {ALL_KINDS.map((kind) => {
             const checked = selectedKinds.includes(kind)
@@ -408,41 +389,6 @@ export default function MyLoopsPage() {
           })}
         </div>
 
-        {displayMode === 'split' && (
-          <div className="my-loops-segment">
-            <button
-              type="button"
-              className={direction === 'horizontal' ? 'is-active' : undefined}
-              onClick={() => setDirection('horizontal')}
-              aria-pressed={direction === 'horizontal'}
-            >
-              横向
-            </button>
-            <button
-              type="button"
-              className={direction === 'vertical' ? 'is-active' : undefined}
-              onClick={() => setDirection('vertical')}
-              aria-pressed={direction === 'vertical'}
-            >
-              纵向
-            </button>
-          </div>
-        )}
-
-        <label className="my-loops-total-size" title="调节页面整体的高度或宽度，与分区占比互不干扰">
-          <ArrowDownUp size={15} />
-          {direction === 'horizontal' ? '总宽度' : '总高度'}
-          <input
-            type="range"
-            min={60}
-            max={120}
-            value={totalSize}
-            onChange={(event) => setTotalSize(Number(event.target.value))}
-            aria-label="整体尺寸"
-          />
-          {totalSize}%
-        </label>
-
         <label className="my-loops-sort">
           <ArrowDownUp size={15} />
           排序
@@ -452,6 +398,65 @@ export default function MyLoopsPage() {
             <option value="success">成功优先</option>
           </select>
         </label>
+
+        <details className="my-loops-display-menu">
+          <summary>显示</summary>
+          <div className="my-loops-display-menu__body">
+            <div className="my-loops-segment">
+              <button
+                type="button"
+                className={displayMode === 'single' ? 'is-active' : undefined}
+                onClick={() => setMode('single')}
+                aria-pressed={displayMode === 'single'}
+              >
+                <List size={16} /> 单区
+              </button>
+              <button
+                type="button"
+                className={displayMode === 'split' ? 'is-active' : undefined}
+                onClick={() => setMode('split')}
+                aria-pressed={displayMode === 'split'}
+              >
+                <Columns3 size={16} /> 并列
+              </button>
+            </div>
+
+            {displayMode === 'split' && (
+              <div className="my-loops-segment">
+                <button
+                  type="button"
+                  className={direction === 'horizontal' ? 'is-active' : undefined}
+                  onClick={() => setDirection('horizontal')}
+                  aria-pressed={direction === 'horizontal'}
+                >
+                  横向
+                </button>
+                <button
+                  type="button"
+                  className={direction === 'vertical' ? 'is-active' : undefined}
+                  onClick={() => setDirection('vertical')}
+                  aria-pressed={direction === 'vertical'}
+                >
+                  纵向
+                </button>
+              </div>
+            )}
+
+            <label className="my-loops-total-size" title="调节页面整体的高度或宽度，与分区占比互不干扰">
+              <ArrowDownUp size={15} />
+              {direction === 'horizontal' ? '总宽度' : '总高度'}
+              <input
+                type="range"
+                min={60}
+                max={120}
+                value={totalSize}
+                onChange={(event) => setTotalSize(Number(event.target.value))}
+                aria-label="整体尺寸"
+              />
+              {totalSize}%
+            </label>
+          </div>
+        </details>
       </section>
       </div>
 
@@ -472,16 +477,16 @@ export default function MyLoopsPage() {
         </div>
       )}
 
-      {/* 天回·系统自动能力运行状态看板：仅在用户选中“天回”时显示 */}
+      {/* 平台天回能力：全站口径，勿与「我的运行」混读 */}
       {showHeaven && (
-        <section className="my-loops-heaven" aria-label="天回·系统自动能力">
+        <section className="my-loops-heaven" aria-label="平台自动能力（全站）">
           <div className="my-loops-heaven__head">
             <div>
-              <span className="my-loops-pane__eyebrow">HEAVEN · 系统自动运行</span>
-              <h2>天回能力</h2>
+              <span className="my-loops-pane__eyebrow">HEAVEN · 平台全站</span>
+              <h2>平台自动能力（全站）</h2>
               <p className="my-loops-subtitle">
-                平台内置的自动能力（监控、统计、检测、调度）按周期运行，以下为实时状态。
-                点击任意卡片进入详情，或手动触发一次运行。
+                以下为平台内置自动能力的运行状态，统计口径为全站，与上方「我的运行」无关。
+                点击卡片查看详情或手动触发一次。
               </p>
             </div>
             <label className="my-loops-sort">
@@ -679,8 +684,6 @@ function HeavenCapabilityCard({
             cap.status === 'WAITING_HUMAN'
           ? 'executing'
           : 'succeeded'
-  const sampleCount = cap.successCount + cap.failCount
-  const rateLabel = sampleCount ? `${Math.round((cap.successCount / sampleCount) * 100)}%` : '—'
   return (
     <button type="button" className="my-loops-card my-loops-heaven__card" onClick={onClick}>
       <div className="my-loops-card__top">
@@ -694,9 +697,7 @@ function HeavenCapabilityCard({
         <span className={`my-loops-status my-loops-status--${statusClass}`}>{cap.stage}</span>
       </div>
       <div className="my-loops-card__meta">
-        <span>成功 {cap.successCount}</span>
-        <span>失败 {cap.failCount}</span>
-        <span>成功率 {rateLabel}</span>
+        <span>状态 · {cap.stage}</span>
         <span>最近 {formatTime(cap.lastRunAt)}</span>
       </div>
       <div className="my-loops-card__stage">

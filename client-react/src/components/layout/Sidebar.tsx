@@ -10,7 +10,6 @@ import {
   isImmersivePath,
 } from '@/stores/shell'
 import {
-  Home,
   Layers,
   FileText,
   Users,
@@ -19,11 +18,11 @@ import {
   User,
   LogOut,
   HelpCircle,
-  ShieldCheck,
   Orbit,
   Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
+  type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useThemeCurtain } from '@/components/ui/theme-toggle'
@@ -33,27 +32,25 @@ import { AnimatedThemeToggle } from '@/components/ui/animated-theme-toggle'
 
 type NavTone =
   | 'assistant'
-  | 'discover'
   | 'publish'
   | 'loop'
   | 'message'
   | 'default'
 
-/** 对齐 macOS MainShellView：助手置顶 → 主区 → 协作 → 账户 */
+/** 对齐 macOS MainShellView：助手置顶 → 主区 → 协作 → 账户；已登录 Logo 进卡池 */
 const NAV_ASSISTANT: {
   path: string
-  icon: typeof Home
+  icon: LucideIcon
   label: string
   tone: NavTone
 }[] = [{ path: '/agent', icon: Sparkles, label: '助手', tone: 'assistant' }]
 
 const NAV_MAIN: {
   path: string
-  icon: typeof Home
+  icon: LucideIcon
   label: string
   tone: NavTone
 }[] = [
-  { path: '/', icon: Home, label: '发现', tone: 'discover' },
   { path: '/card-pool', icon: Layers, label: '卡池', tone: 'default' },
   { path: '/publish', icon: FileText, label: '发布', tone: 'publish' },
   { path: '/circles', icon: Users, label: '圈子', tone: 'default' },
@@ -62,18 +59,17 @@ const NAV_MAIN: {
 
 const NAV_COLLAB: {
   path: string
-  icon: typeof Home
+  icon: LucideIcon
   label: string
   tone: NavTone
 }[] = [
   { path: '/search', icon: Search, label: '找人', tone: 'default' },
   { path: '/messages', icon: MessageCircle, label: '消息', tone: 'message' },
-  { path: '/cert-center', icon: ShieldCheck, label: '认证', tone: 'default' },
 ]
 
 const NAV_ACCOUNT: {
   path: string
-  icon: typeof Home
+  icon: LucideIcon
   label: string
   tone: NavTone
 }[] = [
@@ -83,7 +79,6 @@ const NAV_ACCOUNT: {
 
 const TONE_VAR: Record<NavTone, string | undefined> = {
   assistant: 'var(--nav-tone-assistant)',
-  discover: 'var(--nav-tone-discover)',
   publish: 'var(--nav-tone-publish)',
   loop: 'var(--nav-tone-loop)',
   message: 'var(--nav-tone-message)',
@@ -92,6 +87,7 @@ const TONE_VAR: Record<NavTone, string | undefined> = {
 
 export default function Sidebar() {
   const logout = useUserStore((s) => s.logout)
+  const user = useUserStore((s) => s.user)
   const unreadCount = useChatStore((s) => s.unreadCount)
   const navigate = useNavigate()
   const location = useLocation()
@@ -166,7 +162,7 @@ export default function Sidebar() {
       {curtainElement}
       <aside
         className={cn(
-          'app-sidebar sidebar sidebar-ct-accent z-10 flex shrink-0 flex-col items-stretch border-r border-border py-5 backdrop-blur-xl',
+          'app-sidebar sidebar sidebar-ct-accent liquid-glass-surface relative z-10 flex shrink-0 flex-col items-stretch border-r-0 py-5',
           expanded && 'app-sidebar--expanded',
         )}
         onMouseEnter={expandSidebar}
@@ -175,9 +171,9 @@ export default function Sidebar() {
         {/* Logo：图标槽固定 72px，品牌名只在右侧淡入 */}
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate(user ? '/card-pool' : '/')}
           className="app-sidebar__row mb-6 flex h-14 w-full shrink-0 items-center rounded-xl bg-[var(--accent-ghost)] transition-colors hover:bg-[var(--accent-muted)]"
-          aria-label="九木首页"
+          aria-label={user ? '卡池工作台' : '九木首页'}
         >
           <span className="app-sidebar__icon-slot flex shrink-0 items-center justify-center">
             <span className="text-[28px] font-black tracking-tight text-[var(--accent-color)]">
@@ -192,7 +188,7 @@ export default function Sidebar() {
         <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden">
           <nav className="flex w-full flex-col gap-2" aria-label="助手">
             {NAV_ASSISTANT.map((item) => (
-              <NavItem key={item.path} {...item} />
+              <NavItem key={item.path} {...item} expanded={expanded} />
             ))}
           </nav>
 
@@ -200,7 +196,7 @@ export default function Sidebar() {
 
           <nav className="flex w-full flex-col gap-2" aria-label="主区">
             {NAV_MAIN.map((item) => (
-              <NavItem key={item.path} {...item} />
+              <NavItem key={item.path} {...item} expanded={expanded} />
             ))}
           </nav>
 
@@ -211,6 +207,7 @@ export default function Sidebar() {
               <NavItem
                 key={item.path}
                 {...item}
+                expanded={expanded}
                 unreadCount={
                   item.path === '/messages' ? unreadCount : undefined
                 }
@@ -222,7 +219,7 @@ export default function Sidebar() {
 
           <nav className="flex w-full flex-col gap-2" aria-label="账户">
             {NAV_ACCOUNT.map((item) => (
-              <NavItem key={item.path} {...item} />
+              <NavItem key={item.path} {...item} expanded={expanded} />
             ))}
           </nav>
         </div>
@@ -245,11 +242,17 @@ export default function Sidebar() {
               ) : (
                 <PanelLeftOpen className="size-6" />
               )}
-              <span className="app-sidebar__stack-label text-[13px] font-medium leading-none">
+              <span
+                className="app-sidebar__stack-label text-[13px] font-medium leading-none"
+                aria-hidden={expanded}
+              >
                 {pinActive ? '取消' : '固定'}
               </span>
             </span>
-            <span className="app-sidebar__side-label text-[13px] font-medium">
+            <span
+              className="app-sidebar__side-label text-[13px] font-medium"
+              aria-hidden={!expanded}
+            >
               {pinActive ? '取消固定' : '固定侧栏'}
             </span>
           </button>
@@ -261,11 +264,17 @@ export default function Sidebar() {
                 onToggle={handleThemeToggle}
                 className="size-6 shrink-0 p-0"
               />
-              <span className="app-sidebar__stack-label text-[13px] font-medium leading-none text-[var(--text-muted)]">
+              <span
+                className="app-sidebar__stack-label text-[13px] font-medium leading-none text-[var(--text-muted)]"
+                aria-hidden={expanded}
+              >
                 主题
               </span>
             </span>
-            <span className="app-sidebar__side-label text-[13px] font-medium text-[var(--text-muted)]">
+            <span
+              className="app-sidebar__side-label text-[13px] font-medium text-[var(--text-muted)]"
+              aria-hidden={!expanded}
+            >
               主题
             </span>
           </div>
@@ -278,11 +287,17 @@ export default function Sidebar() {
           >
             <span className="app-sidebar__icon-slot flex shrink-0 flex-col items-center justify-center gap-0.5">
               <LogOut className="size-6" />
-              <span className="app-sidebar__stack-label text-[13px] font-medium leading-none">
+              <span
+                className="app-sidebar__stack-label text-[13px] font-medium leading-none"
+                aria-hidden={expanded}
+              >
                 注销
               </span>
             </span>
-            <span className="app-sidebar__side-label text-[13px] font-medium">
+            <span
+              className="app-sidebar__side-label text-[13px] font-medium"
+              aria-hidden={!expanded}
+            >
               注销
             </span>
           </button>
@@ -307,12 +322,14 @@ function NavItem({
   label,
   tone = 'default',
   unreadCount,
+  expanded = false,
 }: {
   path: string
-  icon: typeof Home
+  icon: LucideIcon
   label: string
   tone?: NavTone
   unreadCount?: number
+  expanded?: boolean
 }) {
   const toneColor = TONE_VAR[tone]
 
@@ -324,10 +341,11 @@ function NavItem({
       className={({ isActive }) =>
         cn(
           'app-sidebar__row group relative flex h-14 w-full items-center rounded-xl',
-          'text-[var(--text-secondary)] transition-colors duration-200',
-          'hover:bg-[var(--accent-ghost)]',
+          'text-[var(--text-secondary)] transition-[color,background-color,box-shadow] duration-200',
+          'hover:bg-[var(--liquid-glass-chip-bg-hover)]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]',
-          isActive && 'bg-white/[0.08]',
+          isActive &&
+            'bg-[var(--liquid-glass-chip-bg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]',
         )
       }
       style={({ isActive }) =>
@@ -359,6 +377,7 @@ function NavItem({
                 'app-sidebar__stack-label text-[13px] font-medium leading-none',
                 isActive && 'font-semibold',
               )}
+              aria-hidden={expanded}
             >
               {label}
             </span>
@@ -374,6 +393,7 @@ function NavItem({
               'app-sidebar__side-label text-[13px] font-medium leading-none',
               isActive && 'font-semibold',
             )}
+            aria-hidden={!expanded}
           >
             {label}
           </span>
