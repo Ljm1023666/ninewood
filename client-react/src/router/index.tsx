@@ -4,12 +4,12 @@ import Layout from '@/components/layout/Layout'
 import { BentoAppShell } from '@/components/layout/BentoAppShell'
 import Profile from '@/views/Profile'
 import Settings from '@/views/Settings'
-import LoginPage from '@/views/Login'
 import { useUserStore } from '@/stores/user'
 import { migrateLegacyLoopUrl } from './loop-route-migration'
 import { CardPoolPageSkeleton } from '@/components/card-pool/CardPoolPageSkeleton'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
+const LoginPage = lazy(() => import('@/views/Login'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
 const MessagesIndexPlaceholder = lazy(
   () => import('@/views/MessagesIndexPlaceholder'),
@@ -135,7 +135,11 @@ function GuestGuard() {
     )
   }
   if (user) return <Navigate to={AUTH_HOME} replace />
-  return <LoginPage />
+  return (
+    <LazyLoad>
+      <LoginPage />
+    </LazyLoad>
+  )
 }
 
 /** 已登录访问营销首页时进入工作面；访客保留品牌星空 */

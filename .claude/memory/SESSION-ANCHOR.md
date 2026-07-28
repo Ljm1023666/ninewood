@@ -4,7 +4,16 @@ Use this file as the compact handoff state between sessions.
 
 ## Intent
 
-产品时间主权 **Phase 0 已完成**；等待确认是否进入 Phase 1（NotificationPolicy 等）。规格已 Accepted。不部署云端。
+前端入口包 P0 已完成：登录路由按需加载，登录依赖链中的废弃 Three.js / R3F 实现已移除；不部署云端、不提交。
+
+## Done（前端入口包 P0）
+
+- `Login` 从同步路由改为 `React.lazy`，复用现有 `LazyLoad` 加载态
+- 删除 `sign-in-flow-1.tsx` 中未被使用的 Canvas / Shader / DotMatrix 旧实现；当前登录背景与交互保持不变
+- 生产入口 JS：1813.48 kB → 904.67 kB（-50.1%）；gzip：533.33 kB → 289.76 kB（-45.7%）
+- `Login` 独立为 28.48 kB JS + 18.06 kB CSS；入口不再包含 `WebGLRenderer` / `three.js`
+- 验证通过：目标文件 ESLint、全仓 typecheck、Vite 生产构建
+- Three.js 仍为其他 3D 页面生成独立懒加载块，未删除依赖
 
 ## Done（产品时间主权 Phase 0）
 
