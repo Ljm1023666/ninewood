@@ -81,10 +81,25 @@ enum OrderStatus {
   PENDING
   IN_PROGRESS
   WAITING_REVIEW
+  PARTIAL_PENDING
   COMPLETED
   CANCELLED
   REFUNDED
   DISPUTED
+}
+
+enum PartialProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  SUPERSEDED
+}
+
+enum IdempotencyStatus {
+  IN_PROGRESS
+  SUCCEEDED
+  FAILED
 }
 
 enum CircleType {
@@ -453,13 +468,51 @@ model Order {
   completedAt DateTime?
   createdAt   DateTime    @default(now())
 
-  messages Message[]
-  reviews  Review[]
+  messages         Message[]
+  reviews          Review[]
+  partialProposals OrderPartialProposal[]
 
   @@index([demandId])
   @@index([providerId])
   @@index([requesterId])
   @@index([status])
+}
+
+model OrderPartialProposal {
+  id                String                @id @default(uuid())
+  orderId           String
+  order             Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  proposedPrice     Decimal               @db.Decimal(10, 2)
+  description       String
+  status            PartialProposalStatus @default(PENDING)
+  proposedBy        String
+  decidedBy         String?
+  decidedAt         DateTime?
+  remainingDemandId String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  @@index([orderId, status])
+}
+
+model IdempotencyRecord {
+  id           String            @id @default(uuid())
+  userId       String
+  scope        String
+  key          String
+  resourceId   String
+  requestHash  String?
+  status       IdempotencyStatus @default(IN_PROGRESS)
+  responseCode Int?
+  responseBody Json?
+  leaseUntil   DateTime
+  leaseOwner   String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([userId, scope, key])
+  @@index([resourceId, scope])
+  @@index([status, leaseUntil])
 }
 
 model Circle {
@@ -873,6 +926,7 @@ model WalletLedger {
   referenceType String?
   referenceId   String?
   memo          String?
+  operationKey  String?          @unique
   createdAt     DateTime         @default(now())
 
   @@index([userId, createdAt])

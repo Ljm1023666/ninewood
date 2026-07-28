@@ -41,8 +41,21 @@ async function writeLedger(
   type: WalletLedgerType,
   amount: number,
   balanceAfter: number,
-  reference?: { referenceType?: string; referenceId?: string; memo?: string },
+  reference?: {
+    referenceType?: string
+    referenceId?: string
+    memo?: string
+    operationKey?: string
+  },
 ) {
+  if (reference?.operationKey) {
+    const existing = await tx.walletLedger.findUnique({
+      where: { operationKey: reference.operationKey },
+      select: { id: true },
+    })
+    if (existing) return { skipped: true as const }
+  }
+
   await tx.walletLedger.create({
     data: {
       userId,
@@ -52,8 +65,10 @@ async function writeLedger(
       referenceType: reference?.referenceType ?? null,
       referenceId: reference?.referenceId ?? null,
       memo: reference?.memo ?? null,
+      operationKey: reference?.operationKey ?? null,
     },
   })
+  return { skipped: false as const }
 }
 
 async function readBalance(client: Tx, userId: string): Promise<number> {
@@ -70,10 +85,25 @@ async function creditAtomic(
   client: Tx,
   userId: string,
   amount: number,
-  meta?: { referenceType?: string; referenceId?: string; memo?: string },
+  meta?: {
+    referenceType?: string
+    referenceId?: string
+    memo?: string
+    operationKey?: string
+  },
 ) {
   const amt = roundPoints(amount)
   if (amt <= 0) throw Object.assign(new Error('入账金额必须大于 0'), { status: 400 })
+
+  if (meta?.operationKey) {
+    const existing = await client.walletLedger.findUnique({
+      where: { operationKey: meta.operationKey },
+      select: { id: true, balanceAfter: true },
+    })
+    if (existing) {
+      return { credited: amt, balanceAfter: roundPoints(Number(existing.balanceAfter)), skipped: true }
+    }
+  }
 
   try {
     const updated = await client.user.update({
@@ -83,7 +113,7 @@ async function creditAtomic(
     })
     const balanceAfter = roundPoints(Number(updated.points))
     await writeLedger(client, userId, 'CREDIT', amt, balanceAfter, meta)
-    return { credited: amt, balanceAfter }
+    return { credited: amt, balanceAfter, skipped: false }
   } catch (e: unknown) {
     if (
       e &&
@@ -93,6 +123,7 @@ async function creditAtomic(
     ) {
       throw Object.assign(new Error('用户不存在'), { status: 404 })
     }
+    // 唯一约束冲突：整事务应回滚；此处向上抛出供外层 rollback 后只读重放
     throw e
   }
 }
@@ -102,10 +133,25 @@ async function debitAtomic(
   client: Tx,
   userId: string,
   amount: number,
-  meta?: { referenceType?: string; referenceId?: string; memo?: string },
+  meta?: {
+    referenceType?: string
+    referenceId?: string
+    memo?: string
+    operationKey?: string
+  },
 ) {
   const amt = roundPoints(amount)
   if (amt <= 0) throw Object.assign(new Error('扣款金额必须大于 0'), { status: 400 })
+
+  if (meta?.operationKey) {
+    const existing = await client.walletLedger.findUnique({
+      where: { operationKey: meta.operationKey },
+      select: { id: true, balanceAfter: true },
+    })
+    if (existing) {
+      return { debited: amt, balanceAfter: roundPoints(Number(existing.balanceAfter)), skipped: true }
+    }
+  }
 
   const updated = await client.user.updateMany({
     where: { id: userId, points: { gte: amt } },
@@ -125,7 +171,7 @@ async function debitAtomic(
 
   const balanceAfter = await readBalance(client, userId)
   await writeLedger(client, userId, 'DEBIT', -amt, balanceAfter, meta)
-  return { debited: amt, balanceAfter }
+  return { debited: amt, balanceAfter, skipped: false }
 }
 
 export const walletService = {
@@ -213,6 +259,16 @@ export const walletService = {
         throw Object.assign(new Error('托管金额必须大于 0'), { status: 400 })
       }
 
+      const opKey = `demand:${demandId}:hold`
+      const existingLedger = await client.walletLedger.findUnique({
+        where: { operationKey: opKey },
+        select: { id: true },
+      })
+      if (existingLedger) {
+        const balanceAfter = await readBalance(client, userId)
+        return { held: amt, balanceAfter }
+      }
+
       const updated = await client.user.updateMany({
         where: { id: userId, points: { gte: amt } },
         data: { points: { decrement: amt } },
@@ -239,6 +295,7 @@ export const walletService = {
         referenceType: 'DEMAND',
         referenceId: demandId,
         memo: '发布需求托管最低报价',
+        operationKey: opKey,
       })
 
       return { held: amt, balanceAfter }
@@ -293,9 +350,14 @@ export const walletService = {
   async credit(
     userId: string,
     amount: number,
-    meta?: { referenceType?: string; referenceId?: string; memo?: string },
+    meta?: {
+      referenceType?: string
+      referenceId?: string
+      memo?: string
+      operationKey?: string
+    },
     tx?: Tx,
-  ): Promise<{ credited: number; balanceAfter: number }> {
+  ): Promise<{ credited: number; balanceAfter: number; skipped?: boolean }> {
     const run = async (client: Tx) => creditAtomic(client, userId, amount, meta)
 
     if (tx) return run(tx)
@@ -306,9 +368,14 @@ export const walletService = {
   async debit(
     userId: string,
     amount: number,
-    meta?: { referenceType?: string; referenceId?: string; memo?: string },
+    meta?: {
+      referenceType?: string
+      referenceId?: string
+      memo?: string
+      operationKey?: string
+    },
     tx?: Tx,
-  ): Promise<{ debited: number; balanceAfter: number }> {
+  ): Promise<{ debited: number; balanceAfter: number; skipped?: boolean }> {
     const run = async (client: Tx) => debitAtomic(client, userId, amount, meta)
 
     if (tx) return run(tx)
@@ -392,6 +459,7 @@ export const walletService = {
           referenceType: 'DEMAND',
           referenceId: demandId,
           memo: '服务结算入账',
+          operationKey: `demand:${demandId}:settle-provider`,
         },
         tx,
       )
@@ -404,6 +472,7 @@ export const walletService = {
             referenceType: 'DEMAND',
             referenceId: demandId,
             memo: '结算补差价',
+            operationKey: `demand:${demandId}:settle-extra`,
           },
           tx,
         )
@@ -417,6 +486,7 @@ export const walletService = {
             referenceType: 'DEMAND',
             referenceId: demandId,
             memo: isWelfare ? '激励服务费(10%,内测模拟)' : '平台服务费(5%)',
+            operationKey: `demand:${demandId}:settle-fee`,
           },
           tx,
         )
@@ -462,6 +532,174 @@ export const walletService = {
       })
 
       return { settlement, breakdown }
+    }
+
+    if (outerTx) return run(outerTx)
+    return prisma.$transaction(run)
+  },
+
+  /**
+   * 部分完成结算：拆分原 hold，禁止整笔吞托管后再对剩余需求二次 hold。
+   * 见 docs/specs/ORDER-TRANSACTION-TRUST-ADR.md §4.3
+   */
+  async settlePartialWithRemainder(
+    params: {
+      demandId: string
+      orderId: string
+      proposedPrice: number
+      agreedPriceBefore: number
+      requesterId: string
+      providerId: string
+      skipServiceFee: boolean
+      prepaidFeeOnAgreed?: number
+      isWelfare?: boolean
+    },
+    outerTx?: Tx,
+  ) {
+    const run = async (tx: Tx) => {
+      const {
+        demandId,
+        orderId,
+        proposedPrice,
+        agreedPriceBefore,
+        requesterId,
+        providerId,
+        skipServiceFee,
+        isWelfare = false,
+      } = params
+      const P = roundPoints(proposedPrice)
+      const A = roundPoints(agreedPriceBefore)
+      if (!(P > 0 && P < A)) {
+        throw Object.assign(new Error('部分完成报价必须低于原约定价且大于 0'), { status: 400 })
+      }
+
+      const hold = await tx.walletHold.findUnique({ where: { demandId } })
+      if (!hold || hold.status !== 'HELD') {
+        throw Object.assign(new Error('原需求托管不存在或已释放'), { status: 409 })
+      }
+      const H = roundPoints(Number(hold.amount))
+
+      const feeRate = isWelfare ? 0.1 : 0.05
+      const feeP = roundPoints(P * feeRate)
+      const feeA =
+        params.prepaidFeeOnAgreed != null
+          ? roundPoints(params.prepaidFeeOnAgreed)
+          : roundPoints(A * feeRate)
+
+      if (P > H) {
+        await walletService.debit(
+          requesterId,
+          roundPoints(P - H),
+          {
+            referenceType: 'DEMAND',
+            referenceId: demandId,
+            memo: '部分完成补差价',
+            operationKey: `demand:${demandId}:partial-extra`,
+          },
+          tx,
+        )
+      }
+
+      await tx.walletHold.update({
+        where: { id: hold.id },
+        data: { status: 'CONSUMED', releasedAt: new Date() },
+      })
+
+      await walletService.credit(
+        providerId,
+        P,
+        {
+          referenceType: 'DEMAND',
+          referenceId: demandId,
+          memo: '部分完成结算入账',
+          operationKey: `demand:${demandId}:settle-provider`,
+        },
+        tx,
+      )
+
+      const unused = roundPoints(Math.max(0, H - P))
+      if (unused > 0) {
+        await walletService.credit(
+          requesterId,
+          unused,
+          {
+            referenceType: 'DEMAND',
+            referenceId: demandId,
+            memo: '部分完成未用托管回吐',
+            operationKey: `demand:${demandId}:partial-unused-release`,
+          },
+          tx,
+        )
+      }
+
+      if (!skipServiceFee && feeP > 0) {
+        await walletService.debit(
+          requesterId,
+          feeP,
+          {
+            referenceType: 'DEMAND',
+            referenceId: demandId,
+            memo: isWelfare ? '部分完成激励服务费' : '部分完成平台服务费',
+            operationKey: `demand:${demandId}:settle-fee`,
+          },
+          tx,
+        )
+      } else if (skipServiceFee) {
+        const refundFee = roundPoints(Math.max(0, feeA - feeP))
+        if (refundFee > 0) {
+          await walletService.credit(
+            requesterId,
+            refundFee,
+            {
+              referenceType: 'ORDER',
+              referenceId: orderId,
+              memo: '部分完成服务费多退',
+              operationKey: `order:${orderId}:partial-fee-refund`,
+            },
+            tx,
+          )
+        }
+      }
+
+      const demanderPaid = roundPoints(P + (skipServiceFee ? 0 : feeP))
+      const settlement = await tx.settlement.upsert({
+        where: { demandId },
+        create: {
+          demandId,
+          minPrice: H,
+          finalPrice: P,
+          serviceFee: feeP,
+          demanderPaid,
+          providerReceived: P,
+          platformRevenue: feeP,
+          depositReturned: unused,
+          isWelfare,
+        },
+        update: {
+          finalPrice: P,
+          serviceFee: feeP,
+          demanderPaid,
+          providerReceived: P,
+          platformRevenue: feeP,
+          depositReturned: unused,
+        },
+      })
+
+      const remainingPrice = roundPoints(Math.max(1, A - P))
+      return {
+        settlement,
+        breakdown: {
+          minPrice: H,
+          finalPrice: P,
+          serviceFee: feeP,
+          demanderPaid,
+          providerReceived: P,
+          platformRevenue: feeP,
+          depositReturned: unused,
+        },
+        remainingPrice,
+        unusedReleased: unused,
+      }
     }
 
     if (outerTx) return run(outerTx)

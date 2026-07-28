@@ -127,3 +127,36 @@ orderRouter.post('/:id/partial', authMiddleware, async (req: Request, res: Respo
     fail(res, e.message || '服务器错误', e.status || 500);
   }
 });
+
+// POST /api/orders/:id/partial/accept
+orderRouter.post('/:id/partial/accept', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await orderService.acceptPartial(req.params.id as string, req.user!.userId);
+    emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/orders/:id/partial/reject
+orderRouter.post('/:id/partial/reject', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await orderService.rejectPartial(req.params.id as string, req.user!.userId);
+    emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});
+
+// POST /api/orders/:id/partial/withdraw
+orderRouter.post('/:id/partial/withdraw', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await orderService.withdrawPartial(req.params.id as string, req.user!.userId);
+    emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
+    success(res, result);
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500);
+  }
+});

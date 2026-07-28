@@ -28,4 +28,13 @@ export const orderApi = {
   partial(id: string, newPrice: number, description: string) {
     return api.post(`/orders/${id}/partial`, { newPrice, description })
   },
+  acceptPartial(id: string) {
+    return api.post(`/orders/${id}/partial/accept`)
+  },
+  rejectPartial(id: string) {
+    return api.post(`/orders/${id}/partial/reject`)
+  },
+  withdrawPartial(id: string) {
+    return api.post(`/orders/${id}/partial/withdraw`)
+  },
 }

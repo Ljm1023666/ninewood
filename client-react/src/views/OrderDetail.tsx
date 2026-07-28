@@ -277,12 +277,42 @@ export default function OrderDetail() {
               取消订单
             </AcetSecondaryButton>
           )}
+          {isRequester && s === 'PARTIAL_PENDING' && (
+            <>
+              <AcetPrimaryButton
+                onClick={() =>
+                  act(() => orderApi.acceptPartial(order.id), '已同意部分完成结算')
+                }
+                className="w-full"
+              >
+                同意部分完成结算
+              </AcetPrimaryButton>
+              <AcetSecondaryButton
+                onClick={() =>
+                  act(() => orderApi.rejectPartial(order.id), '已拒绝提议')
+                }
+                className="w-full"
+              >
+                拒绝部分完成
+              </AcetSecondaryButton>
+            </>
+          )}
+          {isProvider && s === 'PARTIAL_PENDING' && (
+            <AcetSecondaryButton
+              onClick={() =>
+                act(() => orderApi.withdrawPartial(order.id), '已撤回提议')
+              }
+              className="w-full"
+            >
+              撤回部分完成提议
+            </AcetSecondaryButton>
+          )}
           {isProvider && s === 'IN_PROGRESS' && (
             <AcetSecondaryButton
               onClick={() => setShowPartial(true)}
               className="w-full"
             >
-              部分完成
+              提出部分完成
             </AcetSecondaryButton>
           )}
         </div>
@@ -297,7 +327,7 @@ export default function OrderDetail() {
             className="w-[90%] max-w-sm rounded-2xl border border-border bg-bg-secondary p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-4 text-lg font-bold">部分完成</h3>
+            <h3 className="mb-4 text-lg font-bold">提出部分完成</h3>
             <div className="flex flex-col gap-3">
               <input
                 type="number"
@@ -326,7 +356,7 @@ export default function OrderDetail() {
                         partial.newPrice,
                         partial.description,
                       ),
-                    '部分完成已提交',
+                    '部分完成提议已提交',
                   )
                 }
                 className="w-full"
