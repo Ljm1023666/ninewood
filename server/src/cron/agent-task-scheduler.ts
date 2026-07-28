@@ -1,26 +1,23 @@
 /**
- * Task 10 · Agent 自动化任务调度器
+ * Task 10 · Agent 自动化任务调度器 + Phase 1B 通知主权
  *
  * 平台宪法（不可违反，spec §0.1）：
  *   - 只读 + 只推送：registry[type].run() 内禁止任何写工具
  *   - 调度器自己不调 LLM
  *
- * 行为（spec §4.2）：
- *   - 每 60s 扫描一次 AgentTask (enabled=true, nextRunAt <= now)
- *   - 对每个 task：调用 registry[type].run(userId, filters)
- *   - 写 AgentTaskRun（status/count/summary/payload）
- *   - 若 deliveryChannels 含 MESSAGE → 发 SYSTEM 消息（前缀 [AGENT_TASK]）
- *   - 更新 lastRunAt / nextRunAt = computeNextRunAt(task)
- *   - 错误：catch 单条，写 status=ERROR，不 disable
- *
- * 幂等（spec §4.2）：
- *   - 若 lastRunAt 与 nextRunAt 同槽（±30s）已处理则 skip
- *   - 重复触发同一槽（比如重启/重叠）由 AgentTaskRun 落地，作为兜底审计
+ * 通知（Phase 1B）：
+ *   - 任务执行与 AgentTaskRun 写入不受通知抑制影响
+ *   - NOTIFICATION_SOVEREIGNTY_ENABLED=1 时 MESSAGE 须经 AGENT_TASK_RESULT 决策
+ *   - 抑制不得把运行改成失败；重试不得重复 Delivery/Message
  */
 
 import { prisma } from '../lib/prisma.js'
+import { withSchedulerLease } from '../services/scheduler-lease.service.js'
 import { computeNextRunAt } from '../services/agent/task-schedule.js'
 import { getTaskType } from '../services/agent/task-types/index.js'
+import { canTakeOverNotificationTraffic } from '../config/notification-sovereignty.js'
+import { evaluateAndRecord } from '../services/notification-delivery.service.js'
+import { agentTaskSourceRef } from '../services/notification-legacy-migration.js'
 
 const BATCH_SIZE = 20
 const SAME_SLOT_THRESHOLD_MS = 30_000
@@ -51,7 +48,6 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
   let skipped = 0
 
   for (const task of tasks) {
-    // 幂等：同一槽位已处理过则跳过
     if (
       task.lastRunAt &&
       Math.abs(task.lastRunAt.getTime() - task.nextRunAt.getTime()) < SAME_SLOT_THRESHOLD_MS
@@ -62,7 +58,6 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
 
     const type = getTaskType(task.type)
     if (!type) {
-      // 注册表里找不到（不应发生，但保底）
       const unknownMsg = `未知任务类型: ${task.type}`
       await writeErrorRun(task, unknownMsg, now)
       errored += 1
@@ -76,7 +71,7 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
 
       const status = result.count > 0 ? 'SUCCESS' : 'EMPTY'
 
-      await prisma.agentTaskRun.create({
+      const run = await prisma.agentTaskRun.create({
         data: {
           taskId: task.id,
           runAt: now,
@@ -92,7 +87,13 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
 
       const channels = parseDeliveryChannels(task.deliveryChannels)
       if (channels.includes('MESSAGE') && status === 'SUCCESS') {
-        await sendSystemMessage(task.userId, task.name, result.summary)
+        await maybeDeliverAgentTaskMessage({
+          userId: task.userId,
+          taskId: task.id,
+          taskName: task.name,
+          summary: result.summary,
+          runId: run.id,
+        })
       }
 
       await advanceSchedule(task, now, result.summary)
@@ -114,6 +115,75 @@ export async function runAgentTaskScheduler(now: Date = new Date()): Promise<Sch
   return { scanned: tasks.length, succeeded, empty, errored, skipped }
 }
 
+async function alreadyDeliveredAgentRun(userId: string, runId: string): Promise<boolean> {
+  const n = await prisma.notificationDelivery.count({
+    where: {
+      userId,
+      eventType: 'AGENT_TASK_RESULT',
+      resourceType: 'AgentTaskRun',
+      resourceId: runId,
+      status: { in: ['SENT', 'QUEUED'] },
+    },
+  })
+  return n > 0
+}
+
+async function maybeDeliverAgentTaskMessage(input: {
+  userId: string
+  taskId: string
+  taskName: string
+  summary: string
+  runId: string
+}): Promise<void> {
+  if (!canTakeOverNotificationTraffic('AGENT_TASK_RESULT')) {
+    await prisma.message.create({
+      data: {
+        fromUserId: input.userId,
+        toUserId: input.userId,
+        type: 'SYSTEM',
+        content: `${AGENT_TASK_TAG} ${input.taskName}\n\n${input.summary}`,
+      },
+    })
+    return
+  }
+
+  if (await alreadyDeliveredAgentRun(input.userId, input.runId)) {
+    return
+  }
+
+  const { decision } = await evaluateAndRecord(prisma, {
+    userId: input.userId,
+    eventType: 'AGENT_TASK_RESULT',
+    sourceRef: agentTaskSourceRef(input.taskId),
+    resourceType: 'AgentTaskRun',
+    resourceId: input.runId,
+    filterContext: { taskId: input.taskId },
+  })
+
+  if (!decision.deliver || !decision.channels.includes('IN_APP')) {
+    // 抑制：不发 Message；运行已成功记录
+    return
+  }
+
+  await prisma.message.create({
+    data: {
+      fromUserId: input.userId,
+      toUserId: input.userId,
+      type: 'SYSTEM',
+      content: [
+        `${AGENT_TASK_TAG} ${input.taskName}`,
+        '',
+        input.summary,
+        '',
+        `原因：${decision.reasonText}`,
+        `reasonCode=${decision.reasonCode}`,
+        `sourceRef=${agentTaskSourceRef(input.taskId)}`,
+        '管理订阅：设置 → 推送设置',
+      ].join('\n'),
+    },
+  })
+}
+
 async function writeErrorRun(task: { id: string }, message: string, now: Date): Promise<void> {
   await prisma.agentTaskRun.create({
     data: {
@@ -128,7 +198,13 @@ async function writeErrorRun(task: { id: string }, message: string, now: Date): 
 }
 
 async function advanceSchedule(
-  task: { id: string; frequency: string; atHour: number | null; atMinute: number | null; weekday: number | null },
+  task: {
+    id: string
+    frequency: string
+    atHour: number | null
+    atMinute: number | null
+    weekday: number | null
+  },
   now: Date,
   lastSummary: string,
 ): Promise<void> {
@@ -147,17 +223,6 @@ async function advanceSchedule(
   })
 }
 
-async function sendSystemMessage(userId: string, taskName: string, summary: string): Promise<void> {
-  await prisma.message.create({
-    data: {
-      fromUserId: userId,
-      toUserId: userId,
-      type: 'SYSTEM',
-      content: `${AGENT_TASK_TAG} ${taskName}\n\n${summary}`,
-    },
-  })
-}
-
 function parseDeliveryChannels(raw: unknown): Array<'MESSAGE' | 'AGENT_INBOX'> {
   if (!Array.isArray(raw)) return ['MESSAGE', 'AGENT_INBOX']
   const allowed = new Set(['MESSAGE', 'AGENT_INBOX'])
@@ -169,7 +234,7 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 export function startAgentTaskScheduler(intervalMs = SCHEDULER_INTERVAL_MS): void {
   if (intervalId) return
   intervalId = setInterval(() => {
-    runAgentTaskScheduler().catch((err) =>
+    withSchedulerLease('agent-task-scheduler', Math.max(intervalMs, 60_000), runAgentTaskScheduler).catch((err) =>
       console.error('[agent-task-scheduler] cron error:', err),
     )
   }, intervalMs)
@@ -182,3 +247,6 @@ export function stopAgentTaskScheduler(): void {
     intervalId = null
   }
 }
+
+/** 供手动 run-now 复用 */
+export { maybeDeliverAgentTaskMessage }

@@ -20,7 +20,11 @@ import { prisma } from '../lib/prisma.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { computeNextRunAt, describeSchedule, ScheduleValidationError } from '../services/agent/task-schedule.js'
 import { getTaskType, DEMAND_DIGEST_ID } from '../services/agent/task-types/index.js'
-import { AGENT_TASK_TAG } from '../cron/agent-task-scheduler.js'
+import { maybeDeliverAgentTaskMessage } from '../cron/agent-task-scheduler.js'
+import {
+  deleteAgentTaskResultSubscription,
+  syncAgentTaskResultSubscription,
+} from '../services/notification-subscription-sync.js'
 import {
   buildAgentTaskFromDescription,
   TaskBuildError,
@@ -252,6 +256,8 @@ agentTasksRouter.post('/', authMiddleware, async (req, res) => {
     },
   })
 
+  await syncAgentTaskResultSubscription(task)
+
   res.status(201).json({ task })
 })
 
@@ -357,6 +363,21 @@ agentTasksRouter.patch('/:id', authMiddleware, async (req, res) => {
   }
 
   const task = await prisma.agentTask.update({ where: { id: existing.id }, data })
+  await syncAgentTaskResultSubscription(task)
+
+  // Phase 2：停用时 Quiet
+  if (data.enabled === false) {
+    const { quietTaskSafe } = await import('../services/task-quiet.service.js')
+    quietTaskSafe({
+      resourceType: 'AGENT_TASK',
+      resourceId: task.id,
+      outcomeStatus: 'CANCELLED',
+      outcomeSummary: 'Agent 任务已停用',
+      userId,
+      nextRequiredAction: null,
+    })
+  }
+
   res.json({ task })
 })
 
@@ -369,6 +390,18 @@ agentTasksRouter.delete('/:id', authMiddleware, async (req, res) => {
   if (!existing) {
     return res.status(404).json({ code: 404, message: '任务不存在', timestamp: Date.now() })
   }
+
+  await deleteAgentTaskResultSubscription(userId, existing.id)
+
+  const { quietTaskSafe } = await import('../services/task-quiet.service.js')
+  quietTaskSafe({
+    resourceType: 'AGENT_TASK',
+    resourceId: existing.id,
+    outcomeStatus: 'CANCELLED',
+    outcomeSummary: 'Agent 任务已删除',
+    userId,
+    nextRequiredAction: null,
+  })
 
   await prisma.agentTask.delete({ where: { id: existing.id } })
   res.status(204).end()
@@ -408,13 +441,12 @@ agentTasksRouter.post('/:id/run-now', authMiddleware, async (req, res) => {
 
     const channels = parseChannels(task.deliveryChannels)
     if (channels.includes('MESSAGE') && status === 'SUCCESS') {
-      await prisma.message.create({
-        data: {
-          fromUserId: task.userId,
-          toUserId: task.userId,
-          type: 'SYSTEM',
-          content: `${AGENT_TASK_TAG} ${task.name}\n\n${result.summary}`,
-        },
+      await maybeDeliverAgentTaskMessage({
+        userId: task.userId,
+        taskId: task.id,
+        taskName: task.name,
+        summary: result.summary,
+        runId: run.id,
       })
     }
 

@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import { z } from 'zod'
 import { success, fail } from '../utils/response.js'
 import { prisma } from '../lib/prisma.js'
+import { syncDemandMatchedSubscriptionForUserTag } from '../services/notification-subscription-sync.js'
 
 export const userTagRouter = Router()
 
@@ -177,6 +178,7 @@ userTagRouter.patch('/:tagName/auto-receive', authMiddleware, async (req: Reques
       where: { userId_tagName: { userId, tagName } },
       data: { autoReceive },
     })
+    await syncDemandMatchedSubscriptionForUserTag(updated)
     success(res, updated, autoReceive ? '已开启自动接收' : '已关闭自动接收')
   } catch (e: any) {
     if (e instanceof z.ZodError) return fail(res, '参数错误', 400, e.errors)

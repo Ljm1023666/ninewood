@@ -107,7 +107,7 @@ export default function MyDemands() {
   const [tab, setTab] = useState<'demands' | 'applications'>('demands')
   const [demands, setDemands] = useState<any[]>([])
   const [applications, setApplications] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
 

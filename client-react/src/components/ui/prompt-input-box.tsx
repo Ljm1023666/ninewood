@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 // Utility function for className merging
 const cn = (...classes: (string | undefined | null | false)[]) =>
@@ -861,22 +862,24 @@ export const PromptInputBox = React.forwardRef(
                     <FolderCode className="size-4" />
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className="ws-submit"
+                <LiquidMetalButton
+                  viewMode="icon"
+                  height={32}
                   aria-label={isLoading ? '停止生成' : '发送'}
                   onClick={() => {
                     if (isLoading) onAbort?.()
                     else if (hasContent) handleSubmit()
                   }}
                   disabled={!isLoading && !hasContent}
-                >
-                  {isLoading ? (
-                    <Square className="size-3.5" />
-                  ) : (
-                    <ArrowUp className="size-4" />
-                  )}
-                </button>
+                  active={hasContent}
+                  icon={
+                    isLoading ? (
+                      <Square className="size-3.5" />
+                    ) : (
+                      <ArrowUp className="size-4" />
+                    )
+                  }
+                />
               </div>
             ) : (
             <PromptInputActions className="flex items-center justify-between gap-2 p-0 pt-2">

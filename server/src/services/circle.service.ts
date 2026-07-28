@@ -86,8 +86,15 @@ export const circleService = {
       include: {
         circle: {
           include: {
-            _count: { select: { members: true } },
+            _count: { select: { members: true, demands: true } },
             owner: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true } },
+            members: {
+              take: 4,
+              orderBy: { joinedAt: 'asc' },
+              include: {
+                user: { select: { id: true, nickname: true, avatarUrl: true } },
+              },
+            },
           },
         },
       },
@@ -99,6 +106,13 @@ export const circleService = {
         ? {
             ...m.circle,
             coverUrl: m.circle.coverUrl || m.circle.owner?.coverUrl || null,
+            previewMembers: (m.circle.members || []).map((pm: any) => ({
+              userId: pm.userId,
+              role: pm.role,
+              nickname: pm.user?.nickname || '用户',
+              avatarUrl: pm.user?.avatarUrl || null,
+            })),
+            members: undefined,
           }
         : m.circle,
     }));
@@ -138,14 +152,29 @@ export const circleService = {
     const circles = await prisma.circle.findMany({
       where,
       include: {
-        _count: { select: { members: true } },
+        _count: { select: { members: true, demands: true } },
         owner: { select: { id: true, nickname: true, avatarUrl: true, coverUrl: true } },
+        members: {
+          take: 4,
+          orderBy: { joinedAt: 'asc' },
+          include: {
+            user: { select: { id: true, nickname: true, avatarUrl: true } },
+          },
+        },
       },
       orderBy: [{ memberCount: 'desc' }, { activeScore: 'desc' }],
     });
     return circles.map((c: any) => ({
       ...c,
       coverUrl: c.coverUrl || c.owner?.coverUrl || null,
+      previewMembers: (c.members || []).map((pm: any) => ({
+        userId: pm.userId,
+        role: pm.role,
+        nickname: pm.user?.nickname || '用户',
+        avatarUrl: pm.user?.avatarUrl || null,
+      })),
+      members: undefined,
+      joined: false,
     }));
   },
 

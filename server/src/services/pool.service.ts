@@ -301,6 +301,17 @@ export const poolService = {
       console.warn(`[Pool] auto-busy-recovery failed:`, err);
     }
 
+    // Phase 2：需求完成 → Quiet
+    const { quietTaskSafe } = await import('./task-quiet.service.js');
+    quietTaskSafe({
+      resourceType: 'DEMAND',
+      resourceId: demandId,
+      outcomeStatus: 'SUCCEEDED',
+      outcomeSummary: '需求已完成并移入死池',
+      userId,
+      nextRequiredAction: null,
+    });
+
     return { message: '已标记完成' };
   },
 

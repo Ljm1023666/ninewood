@@ -5,6 +5,7 @@
  */
 
 import { prisma } from '../lib/prisma'
+import { withSchedulerLease } from '../services/scheduler-lease.service.js'
 
 export async function processDemandWindows() {
   const now = new Date()
@@ -40,7 +41,7 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 export function startDemandWindowCron(intervalMs = 30000) {
   if (intervalId) return
   intervalId = setInterval(() => {
-    processDemandWindows().catch((err) => {
+    withSchedulerLease('demand-window', Math.max(intervalMs, 30_000), processDemandWindows).catch((err) => {
       console.error('[demand-window] tick failed:', err)
     })
   }, intervalMs)

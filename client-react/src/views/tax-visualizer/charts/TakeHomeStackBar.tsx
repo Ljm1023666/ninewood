@@ -42,7 +42,7 @@ export function TakeHomeStackBar({ data, height = 260 }: TakeHomeStackBarProps) 
 
   return (
     <div className="tax-viz-chart tax-viz-chart--stack" style={{ width: '100%', height }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer minWidth={0} initialDimension={{ width: 800, height }}>
         <BarChart
           data={colored}
           margin={{ top: 12, right: 16, left: 4, bottom: 4 }}

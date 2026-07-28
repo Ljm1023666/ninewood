@@ -154,17 +154,52 @@ html[data-layout-ambient='on']
   -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
 }
 
-/* 实色主按钮 / 强调色块：不要玻璃化 */
+/* ── 3b. 主 CTA 全局兜底：禁止实心 accent/primary 胶囊（destructive 除外） ── */
 html[data-layout-ambient='on']
-  :is(
+  :is(button, [role='button'], a.btn, a[class*='btn']):is(
     .bg-accent,
     .bg-primary,
+    .btn-primary,
+    .dlp-btn-primary,
+    .wallet-btn-primary,
+    .cdb-btn-primary,
+    .publish-primary-action,
+    .settings-action-btn--primary,
+    .ws-btn--primary,
+    .cert-workspace__btn--primary,
+    .agent-btn--primary,
+    .legal-dialog__primary
+  ):not(.bg-destructive):not(.bg-error):not([class*='destructive']):not([class*='danger']):not(
+    .settings-action-btn--danger
+  ) {
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1)) !important;
+  color: var(--text-primary, #e8e8e8) !important;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.16)) !important;
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.18)) !important;
+  backdrop-filter: var(--liquid-glass-blur, blur(18px)) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px)) !important;
+}
+
+/* Tailwind 实心主色工具类挂在按钮上时，同样收口为玻璃选择态 */
+html[data-layout-ambient='on']
+  :is(button, [role='button'], a):is(.bg-accent, .bg-primary):not(.bg-destructive):not(
+    .bg-error
+  ):not([class*='destructive']):not([class*='danger']) {
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1)) !important;
+  color: var(--text-primary, #e8e8e8) !important;
+  border-color: var(--liquid-glass-border, rgba(255, 255, 255, 0.16)) !important;
+  backdrop-filter: var(--liquid-glass-blur, blur(18px)) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px)) !important;
+}
+
+/* destructive / 错误态按钮：保持实色，勿玻璃化 */
+html[data-layout-ambient='on']
+  :is(
     .bg-destructive,
-    .bg-success,
     .bg-error,
-    .bg-warning,
-    [class*='bg-accent'],
-    [class*='bg-primary']
+    [class*='destructive'],
+    [class*='danger'],
+    .settings-action-btn--danger
   ):is(button, [role='button'], a) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -207,6 +242,14 @@ html[data-layout-ambient='on']
     .psa-state,
     .settings-pro-sidebar,
     .dlp-glass,
+    .circles-plaza__card,
+    .circles-plaza__mine-card,
+    .circles-plaza__tool-btn,
+    .orders-plaza__stat-card,
+    .orders-plaza__card,
+    .orders-plaza__status-tabs,
+    .discussions-plaza__hero,
+    .discussions-plaza__card,
     .cert-workspace__rail,
     .cert-stitch-intro-header,
     .publish-choice-card,

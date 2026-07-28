@@ -47,19 +47,24 @@ export default function Search() {
   const [keyword, setKeyword] = useState('')
   const [results, setResults] = useState<SearchUser[]>([])
   const [loading, setLoading] = useState(false)
+  const [cardRefreshing, setCardRefreshing] = useState(false)
   const [searched, setSearched] = useState(false)
   const [identity, setIdentity] = useState<'DEMANDER' | 'PROVIDER'>(
     () => (localStorage.getItem('ninewood-search-identity') as 'DEMANDER' | 'PROVIDER') || 'DEMANDER',
   )
   const [cardResults, setCardResults] = useState<UnifiedCardResult[]>([])
 
-  async function handleSearch() {
+  async function handleSearch(overrideIdentity?: 'DEMANDER' | 'PROVIDER') {
     const kw = keyword.trim()
     if (!kw) return
+    const activeIdentity = overrideIdentity ?? identity
     setLoading(true)
     setSearched(true)
     try {
-      const [res, cards] = await Promise.all([userApi.search(kw), cardSearchApi.search(kw, identity)])
+      const [res, cards] = await Promise.all([
+        userApi.search(kw),
+        cardSearchApi.search(kw, activeIdentity),
+      ])
       setResults(res.data.data)
       setCardResults(cards)
     } catch {
@@ -77,10 +82,21 @@ export default function Search() {
     setCardResults([])
   }
 
-  function changeIdentity(next: 'DEMANDER' | 'PROVIDER') {
+  async function changeIdentity(next: 'DEMANDER' | 'PROVIDER') {
+    if (next === identity) return
     setIdentity(next)
     localStorage.setItem('ninewood-search-identity', next)
-    if (keyword.trim()) void handleSearch()
+    const kw = keyword.trim()
+    if (!kw || !searched) return
+    // 身份只影响卡片排序：保留用户列表，避免整页 Loading 闪烁
+    setCardRefreshing(true)
+    try {
+      setCardResults(await cardSearchApi.search(kw, next))
+    } catch {
+      setCardResults([])
+    } finally {
+      setCardRefreshing(false)
+    }
   }
 
   return (
@@ -88,29 +104,40 @@ export default function Search() {
       <DlpSearchBar
         value={keyword}
         onChange={setKeyword}
-        onSearch={handleSearch}
+        onSearch={() => void handleSearch()}
         onClear={handleClear}
         loading={loading}
         placeholder="搜索用户、手机号、标签"
         autoFocus
       />
 
-      <div className="mb-6 flex items-center gap-2">
-        <span className="text-sm text-text-muted">当前优先找：</span>
-        {(['DEMANDER', 'PROVIDER'] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              identity === value
-                ? 'border-[var(--accent-color)] bg-[var(--accent-ghost)] text-[var(--accent-color)]'
-                : 'border-border text-text-muted'
-            }`}
-            onClick={() => changeIdentity(value)}
-          >
-            {value === 'DEMANDER' ? '我是需求者' : '我是服务者'}
-          </button>
-        ))}
+      <div className="mb-6 flex flex-col items-center gap-3">
+        <p className="text-[15px] font-medium text-text-secondary">当前优先找</p>
+        <div
+          className="inline-flex gap-1 rounded-xl bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)] p-1"
+          role="group"
+          aria-label="搜索身份"
+        >
+          {(['DEMANDER', 'PROVIDER'] as const).map((value) => {
+            const active = identity === value
+            return (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={active}
+                disabled={cardRefreshing}
+                className={`min-w-[7.5rem] rounded-lg px-5 py-2.5 text-[15px] font-semibold transition-colors ${
+                  active
+                    ? 'bg-[var(--bg-secondary)] text-[var(--accent-color)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-color)_28%,transparent)]'
+                    : 'text-text-muted hover:text-text-secondary'
+                }`}
+                onClick={() => void changeIdentity(value)}
+              >
+                {value === 'DEMANDER' ? '我是需求者' : '我是服务者'}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       <div className="dlp-split dlp-split--aside-rail">
@@ -175,11 +202,17 @@ export default function Search() {
           )}
 
           {searched && !loading && cardResults.length > 0 && (
-            <section className="mt-8">
+            <section
+              className={`mt-8 transition-opacity duration-150 ${cardRefreshing ? 'opacity-60' : 'opacity-100'}`}
+            >
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-text-primary">相关卡片</h2>
                 <span className="text-xs text-text-muted">
-                  {identity === 'DEMANDER' ? '优先展示服务卡' : '优先展示需求卡'}
+                  {cardRefreshing
+                    ? '正在按身份重排…'
+                    : identity === 'DEMANDER'
+                      ? '优先展示服务卡'
+                      : '优先展示需求卡'}
                 </span>
               </div>
               <div className="space-y-3">

@@ -18,6 +18,9 @@ const m = vi.hoisted(() => {
   const userTagUpdate = vi.fn();
   const userFindUnique = vi.fn();
   const pushPreferenceFindUnique = vi.fn();
+  const notificationSubscriptionFindMany = vi.fn();
+  const notificationSubscriptionUpsert = vi.fn();
+  const notificationSubscriptionDeleteMany = vi.fn();
   const calculateDeposit = vi.fn(() => 100);
   const circleMemberFindUnique = vi.fn();
   const emit = vi.fn();
@@ -26,7 +29,8 @@ const m = vi.hoisted(() => {
     demandCreate, $transaction, holdForDemand, demandFindUnique,
     userTagFindMany, userTagFindUnique, userTagUpdate,
     userFindUnique, pushPreferenceFindUnique, calculateDeposit,
-    circleMemberFindUnique, emit, toFn,
+    circleMemberFindUnique, notificationSubscriptionFindMany,
+    notificationSubscriptionUpsert, notificationSubscriptionDeleteMany, emit, toFn,
   };
 });
 
@@ -41,6 +45,11 @@ vi.mock("../lib/prisma.js", () => ({
     },
     user: { findUnique: m.userFindUnique },
     pushPreference: { findUnique: m.pushPreferenceFindUnique },
+    notificationSubscription: {
+      findMany: m.notificationSubscriptionFindMany,
+      upsert: m.notificationSubscriptionUpsert,
+      deleteMany: m.notificationSubscriptionDeleteMany,
+    },
     circleMember: { findUnique: m.circleMemberFindUnique },
   },
 }));
@@ -99,6 +108,7 @@ const baseCreateParams = {
 };
 
 beforeEach(() => {
+  process.env.NOTIFICATION_SOVEREIGNTY_ENABLED = '0';
   m.demandCreate.mockReset();
   m.$transaction.mockReset();
   m.holdForDemand.mockReset();
@@ -108,6 +118,9 @@ beforeEach(() => {
   m.userTagUpdate.mockReset();
   m.userFindUnique.mockReset();
   m.pushPreferenceFindUnique.mockReset();
+  m.notificationSubscriptionFindMany.mockReset();
+  m.notificationSubscriptionUpsert.mockReset();
+  m.notificationSubscriptionDeleteMany.mockReset();
   m.calculateDeposit.mockReset();
   m.circleMemberFindUnique.mockReset();
   m.emit.mockReset();
@@ -124,6 +137,9 @@ beforeEach(() => {
   m.demandFindUnique.mockResolvedValue(baseDemand);
   m.userTagFindMany.mockResolvedValue([{ userId: "u-prov-1" }]);
   m.pushPreferenceFindUnique.mockResolvedValue(null);
+  m.notificationSubscriptionFindMany.mockResolvedValue([]);
+  m.notificationSubscriptionUpsert.mockResolvedValue({});
+  m.notificationSubscriptionDeleteMany.mockResolvedValue({ count: 0 });
 });
 
 describe("triggerAutoReceivePush 集中触发 (阶段 1.1)", () => {

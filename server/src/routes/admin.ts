@@ -43,6 +43,28 @@ adminRouter.get('/health', (_req: Request, res: Response) => {
   success(res, { ok: true, service: 'ninewood', version: '1' });
 });
 
+// 仅返回群体聚合；样本不足 20 时不披露分组结果。
+adminRouter.get('/outcomes/summary', async (_req: Request, res: Response) => {
+  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const groups = await prisma.outcomeEvent.groupBy({
+    by: ['resourceType', 'eventType'],
+    where: { occurredAt: { gte: since } },
+    _count: { id: true },
+    _avg: { activeMs: true },
+  });
+  success(res, {
+    since: since.toISOString(),
+    groups: groups
+      .filter((group) => group._count.id >= 20)
+      .map((group) => ({
+        resourceType: group.resourceType,
+        eventType: group.eventType,
+        sampleSize: group._count.id,
+        averageActiveMs: group._avg.activeMs == null ? null : Math.round(group._avg.activeMs),
+      })),
+  });
+});
+
 // GET /api/admin/dashboard — 管理员聚合数据
 adminRouter.get('/dashboard', async (_req: Request, res: Response) => {
   const now = new Date();

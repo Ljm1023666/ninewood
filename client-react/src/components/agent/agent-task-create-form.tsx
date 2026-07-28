@@ -7,6 +7,7 @@ import {
   type AgentTaskBuildResult,
 } from '@/api/agent-tasks'
 import { AgentTaskBuildFlow } from '@/components/agent/agent-task-build-flow'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -137,24 +138,18 @@ export function AgentTaskCreateForm({ onCreated, onCancel, disabled, className }
       {error && <div className="agent-tasks-page__error">{error}</div>}
 
       <div className="agent-task-form__actions">
-        <button
-          type="button"
-          className="agent-btn agent-btn--primary"
+        <LiquidMetalButton
+          label={building ? '构建中…' : build ? '再次构建' : '构建任务'}
           onClick={handleBuild}
           disabled={disabled || building || saving || !description.trim()}
-        >
-          {building ? '构建中…' : build ? '再次构建' : '构建任务'}
-        </button>
+        />
 
         {build && (
-          <button
-            type="button"
-            className="agent-btn agent-btn--primary"
+          <LiquidMetalButton
+            label={saving ? '保存中…' : '保存并开始自动化'}
             onClick={handleSave}
             disabled={disabled || building || saving}
-          >
-            {saving ? '保存中…' : '保存并开始自动化'}
-          </button>
+          />
         )}
 
         {onCancel && (

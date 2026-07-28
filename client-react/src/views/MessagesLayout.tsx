@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import '@/styles/messages-chat.css'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SUBPAGE_NAV } from '@/utils/subpage-nav'
 import { messageApi } from '@/api/message'

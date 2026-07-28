@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
 import { LegalDialog } from '@/components/ui/terms-conditions'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { captchaApi } from '@/api/captcha'
 import {
   SignInFlowBackground,
@@ -299,7 +300,14 @@ function CodeInput({
   }, [])
 
   return (
-    <div className="sign-in-flow-sms-code relative px-4 py-3.5">
+    <div
+      className="sign-in-flow-sms-code relative px-4 py-3.5"
+      role="group"
+      aria-labelledby="verification-code-label"
+    >
+      <span id="verification-code-label" className="sr-only">
+        验证码
+      </span>
       <div className="flex items-center justify-center">
         {code.map((digit, i) => (
           <div key={i} className="flex items-center">
@@ -310,6 +318,10 @@ function CodeInput({
                 }}
                 data-sms-index={i}
                 type="text"
+                name={`verification-code-${i + 1}`}
+                autoComplete={i === 0 ? 'one-time-code' : 'off'}
+                aria-label={`验证码第 ${i + 1} 位`}
+                spellCheck={false}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={1}
@@ -379,6 +391,13 @@ export default function LoginPage() {
   >('phone-register')
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true)
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false)
+
+  // 表单提交按钮已换成 LiquidMetalButton（非 type="submit"），
+  // 用 ref + requestSubmit() 触发原有 onSubmit 校验流程，保留回车提交行为。
+  const idLoginFormRef = useRef<HTMLFormElement>(null)
+  const passwordLoginFormRef = useRef<HTMLFormElement>(null)
+  const emailLoginFormRef = useRef<HTMLFormElement>(null)
+  const registerPhoneFormRef = useRef<HTMLFormElement>(null)
 
   const playSuccessAnimation = useCallback(() => {
     setReverseCanvasVisible(true)
@@ -759,22 +778,36 @@ export default function LoginPage() {
 
                           {loginChannel === 'id' && (
                             <form
+                              ref={idLoginFormRef}
                               onSubmit={handleIdLogin}
                               className="sign-in-flow-register-stack"
                             >
+                              <label className="sr-only" htmlFor="login-account-id">
+                                账号 ID
+                              </label>
                               <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
                                 <input
+                                  id="login-account-id"
+                                  name="username"
                                   type="text"
+                                  autoComplete="username"
+                                  spellCheck={false}
                                   placeholder="账号 ID（如 0、1、2）"
                                   value={accountId}
                                   onChange={(e) => setAccountId(e.target.value)}
                                   required
                                 />
                               </div>
+                              <label className="sr-only" htmlFor="login-account-password">
+                                密码
+                              </label>
                               <div className="sign-in-flow-auth-field-wrap">
                                 <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
                                   <input
+                                    id="login-account-password"
+                                    name="password"
                                     type={showPassword ? 'text' : 'password'}
+                                    autoComplete="current-password"
                                     placeholder="密码"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -790,33 +823,52 @@ export default function LoginPage() {
                                 </button>
                               </div>
                               {error ? (
-                                <p className="sign-in-flow-register-error">
+                                <p
+                                  className="sign-in-flow-register-error"
+                                  role="alert"
+                                >
                                   {error}
                                 </p>
                               ) : null}
-                              <button
-                                type="submit"
+                              <LiquidMetalButton
+                                label={isLoading ? '登录中...' : '登录'}
+                                fullWidth
+                                height={52}
                                 disabled={
                                   !accountId.trim() || !password || isLoading
                                 }
-                                className="sign-in-flow-register-btn"
-                              >
-                                {isLoading ? '登录中...' : '登录'}
-                              </button>
+                                onClick={() =>
+                                  idLoginFormRef.current?.requestSubmit()
+                                }
+                              />
+                              {/* 隐藏兜底 submit，保留输入框回车提交行为 */}
+                              <button
+                                type="submit"
+                                className="sr-only"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                              />
                             </form>
                           )}
 
                           {loginChannel === 'phone' && (
                             <form
+                              ref={passwordLoginFormRef}
                               onSubmit={handlePasswordLogin}
                               className="sign-in-flow-register-stack"
                             >
+                              <label className="sr-only" htmlFor="login-phone">
+                                手机号
+                              </label>
                               <div className="sign-in-flow-phone-input">
                                 <span className="sign-in-flow-phone-prefix">
                                   +86
                                 </span>
                                 <input
+                                  id="login-phone"
+                                  name="tel"
                                   type="tel"
+                                  autoComplete="tel"
                                   inputMode="numeric"
                                   placeholder="输入手机号"
                                   value={phone}
@@ -827,10 +879,16 @@ export default function LoginPage() {
                                   required
                                 />
                               </div>
+                              <label className="sr-only" htmlFor="login-phone-password">
+                                密码
+                              </label>
                               <div className="sign-in-flow-auth-field-wrap">
                                 <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
                                   <input
+                                    id="login-phone-password"
+                                    name="password"
                                     type={showPassword ? 'text' : 'password'}
+                                    autoComplete="current-password"
                                     placeholder="密码"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -846,33 +904,52 @@ export default function LoginPage() {
                                 </button>
                               </div>
                               {error ? (
-                                <p className="sign-in-flow-register-error">
+                                <p
+                                  className="sign-in-flow-register-error"
+                                  role="alert"
+                                >
                                   {error}
                                 </p>
                               ) : null}
-                              <button
-                                type="submit"
+                              <LiquidMetalButton
+                                label={isLoading ? '登录中...' : '登录'}
+                                fullWidth
+                                height={52}
                                 disabled={
                                   !phone ||
                                   phone.length < 11 ||
                                   !password ||
                                   isLoading
                                 }
-                                className="sign-in-flow-register-btn"
-                              >
-                                {isLoading ? '登录中...' : '登录'}
-                              </button>
+                                onClick={() =>
+                                  passwordLoginFormRef.current?.requestSubmit()
+                                }
+                              />
+                              <button
+                                type="submit"
+                                className="sr-only"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                              />
                             </form>
                           )}
 
                           {loginChannel === 'email' && (
                             <form
+                              ref={emailLoginFormRef}
                               onSubmit={handleEmailLoginSubmit}
                               className="sign-in-flow-register-stack"
                             >
+                              <label className="sr-only" htmlFor="login-email">
+                                QQ 邮箱
+                              </label>
                               <div className="sign-in-flow-phone-input sign-in-flow-phone-input--solo">
                                 <input
+                                  id="login-email"
+                                  name="email"
                                   type="email"
+                                  autoComplete="email"
+                                  spellCheck={false}
                                   placeholder="name@qq.com"
                                   value={email}
                                   onChange={(e) => setEmail(e.target.value)}
@@ -880,17 +957,28 @@ export default function LoginPage() {
                                 />
                               </div>
                               {error ? (
-                                <p className="sign-in-flow-register-error">
+                                <p
+                                  className="sign-in-flow-register-error"
+                                  role="alert"
+                                >
                                   {error}
                                 </p>
                               ) : null}
+                              <LiquidMetalButton
+                                label={isLoading ? '发送中...' : '获取验证码'}
+                                fullWidth
+                                height={52}
+                                disabled={!email.trim() || isLoading}
+                                onClick={() =>
+                                  emailLoginFormRef.current?.requestSubmit()
+                                }
+                              />
                               <button
                                 type="submit"
-                                disabled={!email.trim() || isLoading}
-                                className="sign-in-flow-register-btn"
-                              >
-                                {isLoading ? '发送中...' : '获取验证码'}
-                              </button>
+                                className="sr-only"
+                                tabIndex={-1}
+                                aria-hidden="true"
+                              />
                               <p className="sign-in-flow-login-soon">
                                 验证码将发送至邮箱。登录后可在设置中绑定手机号。
                               </p>
@@ -924,15 +1012,22 @@ export default function LoginPage() {
                           </div>
 
                           <form
+                            ref={registerPhoneFormRef}
                             onSubmit={handlePhoneSubmit}
                             className="sign-in-flow-register-stack"
                           >
+                            <label className="sr-only" htmlFor="register-phone">
+                              手机号
+                            </label>
                             <div className="sign-in-flow-phone-input">
                               <span className="sign-in-flow-phone-prefix">
                                 +86
                               </span>
                               <input
+                                id="register-phone"
+                                name="tel"
                                 type="tel"
+                                autoComplete="tel"
                                 inputMode="numeric"
                                 placeholder="输入手机号"
                                 value={phone}
@@ -944,9 +1039,15 @@ export default function LoginPage() {
                               />
                             </div>
 
+                            <label className="sr-only" htmlFor="register-password">
+                              设置登录密码
+                            </label>
                             <div className="sign-in-flow-phone-input">
                               <input
+                                id="register-password"
+                                name="new-password"
                                 type={showPassword ? 'text' : 'password'}
+                                autoComplete="new-password"
                                 placeholder="设置登录密码（至少 6 位）"
                                 value={registerPassword}
                                 onChange={(e) => setRegisterPassword(e.target.value)}
@@ -958,6 +1059,7 @@ export default function LoginPage() {
 
                             <label className="sign-in-flow-register-legal">
                               <input
+                                name="legalAccepted"
                                 type="checkbox"
                                 checked={allLegalAccepted}
                                 onChange={(e) =>
@@ -1007,6 +1109,8 @@ export default function LoginPage() {
                               </label>
                               <select
                                 id="register-birth-year"
+                                name="birthYear"
+                                autoComplete="bday-year"
                                 value={birthYear}
                                 onChange={(e) => {
                                   const year = e.target.value
@@ -1041,6 +1145,7 @@ export default function LoginPage() {
                             {needsGuardianConsent ? (
                               <label className="sign-in-flow-register-guardian">
                                 <input
+                                  name="guardianConsent"
                                   type="checkbox"
                                   checked={guardianConsent}
                                   onChange={(e) =>
@@ -1057,18 +1162,27 @@ export default function LoginPage() {
                                 initial={{ opacity: 0, y: -4 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className="sign-in-flow-register-error"
+                                role="alert"
                               >
                                 {error}
                               </motion.p>
                             ) : null}
 
+                            <LiquidMetalButton
+                              label={isLoading ? '发送中...' : '下一步'}
+                              fullWidth
+                              height={52}
+                              disabled={!canSubmitRegister}
+                              onClick={() =>
+                                registerPhoneFormRef.current?.requestSubmit()
+                              }
+                            />
                             <button
                               type="submit"
-                              disabled={!canSubmitRegister}
-                              className="sign-in-flow-register-btn"
-                            >
-                              {isLoading ? '发送中...' : '下一步'}
-                            </button>
+                              className="sr-only"
+                              tabIndex={-1}
+                              aria-hidden="true"
+                            />
                           </form>
 
                           <p className="sign-in-flow-register-footer">
@@ -1116,7 +1230,9 @@ export default function LoginPage() {
                     )}
 
                     {isLoading && (
-                      <p className="text-base text-[#86868B]">验证中，请稍候...</p>
+                      <p className="text-base text-[#86868B]" role="status">
+                        验证中，请稍候…
+                      </p>
                     )}
 
                     {captchaError && (
@@ -1124,6 +1240,7 @@ export default function LoginPage() {
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-base text-red-400/80"
+                        role="alert"
                       >
                         {captchaError}
                       </motion.p>
@@ -1166,6 +1283,8 @@ export default function LoginPage() {
                         <label htmlFor="email-login-birth-year">出生年份（首次登录必填）</label>
                         <select
                           id="email-login-birth-year"
+                          name="birthYear"
+                          autoComplete="bday-year"
                           value={birthYear}
                           onChange={(e) => {
                             const year = e.target.value
@@ -1189,6 +1308,7 @@ export default function LoginPage() {
                         {needsGuardianConsent ? (
                           <label className="sign-in-flow-register-guardian mt-3 block">
                             <input
+                              name="guardianConsent"
                               type="checkbox"
                               checked={guardianConsent}
                               onChange={(e) =>
@@ -1217,6 +1337,7 @@ export default function LoginPage() {
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="sign-in-flow-error text-base"
+                        role="alert"
                       >
                         {error}
                       </motion.p>

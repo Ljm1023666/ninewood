@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ExternalLink, Pause, Play, Send } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ExternalLink, Pause, Play } from 'lucide-react'
 import { serviceCardApi, type ServiceCard } from '@/api/service-card'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toPreferDetailCoverUrl } from '@/utils/user-cover-presets'
 
 export default function ServiceCardDetail() {
@@ -121,9 +122,16 @@ export default function ServiceCardDetail() {
               </button>
             </>
           ) : (
-            <button type="button" onClick={() => card.publisher && navigate(`/messages/${card.publisher.id}?serviceCardId=${card.id}`)} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent-color)] px-4 py-3 text-sm font-semibold text-white">
-              <Send size={15} /> 用这张服务卡咨询
-            </button>
+            <div className="mt-6">
+              <LiquidMetalButton
+                label="用这张服务卡咨询"
+                fullWidth
+                onClick={() =>
+                  card.publisher &&
+                  navigate(`/messages/${card.publisher.id}?serviceCardId=${card.id}`)
+                }
+              />
+            </div>
           )}
           <Link to="/messages" className="mt-3 flex items-center justify-center gap-2 text-xs text-text-muted hover:text-text-primary">
             进入咨询会话 <ExternalLink size={13} />

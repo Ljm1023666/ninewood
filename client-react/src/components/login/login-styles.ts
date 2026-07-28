@@ -9,7 +9,8 @@ export const pillInputClass =
   'w-full bg-white/[0.05] border border-white/[0.08] focus:border-[#3388FF] focus:bg-white/[0.02] rounded-full py-3 text-sm text-white placeholder:text-white/25 outline-none transition-[border-color,background-color] duration-300'
 
 export const primaryButtonClass =
-  'w-full bg-[#3388FF] hover:bg-[#4d97ff] text-white text-sm font-medium rounded-full py-3.5 transition-[background-color,transform] duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#3388FF] disabled:active:scale-100'
+  // 兜底：未走 AuthPrimaryButton 时也勿用实心蓝胶囊
+  'w-full rounded-full border border-[var(--liquid-glass-border,rgba(255,255,255,0.16))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.1))] py-3.5 text-sm font-medium text-[var(--text-primary,#e8e8e8)] shadow-[var(--liquid-glass-shadow)] backdrop-blur-[18px] transition-[background-color,transform,border-color] duration-200 hover:border-[color-mix(in_srgb,var(--color-primary,#2fbbe0)_35%,transparent)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40'
 
 export const authCheckboxClass =
   'mt-0.5 w-4 h-4 shrink-0 rounded accent-[#3388FF] cursor-pointer border border-white/20 bg-white/10'

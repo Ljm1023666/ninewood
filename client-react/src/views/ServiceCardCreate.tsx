@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Plus, X } from 'lucide-react'
 import { serviceCardApi, type ServiceCardInput } from '@/api/service-card'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const initialForm: ServiceCardInput = {
   title: '',
@@ -134,9 +135,14 @@ export default function ServiceCardCreate() {
         {error && <div className="rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
         <div className="flex items-center justify-between border-t border-border pt-6">
           <p className="text-xs text-text-muted">发布后仍可编辑或下架；经验数字由平台自动计算。</p>
-          <button type="submit" className="rounded-lg bg-[var(--accent-color)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50" disabled={saving}>
-            {saving ? '保存中…' : id ? '保存修改' : '保存服务卡'}
-          </button>
+          <LiquidMetalButton
+            label={saving ? '保存中…' : id ? '保存修改' : '保存服务卡'}
+            disabled={saving}
+            onClick={() => {
+              // 绕过原生 submit 实心钮，走同一套保存逻辑
+              void submit({ preventDefault() {} } as FormEvent)
+            }}
+          />
         </div>
       </form>
     </div>

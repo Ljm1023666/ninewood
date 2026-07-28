@@ -1,4 +1,4 @@
-import { type ReactNode, type KeyboardEvent, type RefObject } from 'react'
+import { type ReactNode, type KeyboardEvent, type RefObject, type CSSProperties, isValidElement } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
@@ -179,66 +179,62 @@ export function SegmentedFilter<T extends string>({
   value,
   onChange,
   className,
-  variant = 'liquid-metal',
   size = 'default',
 }: {
   options: SegmentedOption<T>[]
   value: T
   onChange: (v: T) => void
   className?: string
-  variant?: 'liquid-metal' | 'classic'
-  /** default 36px；large 用于稀疏内容页 Tab */
+  /** default 40px；large 对齐金标准 48px */
   size?: 'default' | 'large'
 }) {
-  const segmentHeight = size === 'large' ? 44 : 36
-  if (variant === 'classic') {
-    return (
-      <div
-        className={cn('internal-segmented', className)}
-        role="tablist"
-      >
-        {options.map((opt) => {
-          const active = value === opt.value
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => onChange(opt.value)}
-              className={cn(
-                'internal-segmented__tab',
-                active && 'internal-segmented__tab--active',
-              )}
-            >
-              {opt.label}
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
+  const segmentHeight = size === 'large' ? 48 : 40
+  const activeIndex = Math.max(
+    0,
+    options.findIndex((opt) => opt.value === value),
+  )
+  const count = Math.max(1, options.length)
 
   return (
     <div
       className={cn('internal-segmented internal-segmented--liquid-metal', className)}
       role="tablist"
+      style={
+        {
+          '--seg-count': count,
+          '--seg-index': activeIndex,
+          '--seg-height': `${segmentHeight}px`,
+        } as CSSProperties
+      }
     >
+      {/* 单一金属框：只挂载一次 WebGL，靠 transform 滑动，避免三份描边切换闪烁 */}
+      <div className="internal-segmented__slider" aria-hidden>
+        <LiquidMetalButton
+          label=""
+          height={segmentHeight}
+          fullWidth
+          metalGlow
+          active
+          className="internal-segmented__metal-thumb"
+          tabIndex={-1}
+        />
+      </div>
       {options.map((opt) => {
         const active = value === opt.value
         return (
-          <LiquidMetalButton
+          <button
             key={opt.value}
-            label={opt.label}
-            height={segmentHeight}
-            fullWidth
-            active={active}
-            metalGlow={active}
-            className="flex-1"
+            type="button"
             role="tab"
             aria-selected={active}
+            className={cn(
+              'internal-segmented__label',
+              active && 'internal-segmented__label--active',
+            )}
             onClick={() => onChange(opt.value)}
-          />
+          >
+            {opt.label}
+          </button>
         )
       })}
     </div>
@@ -707,6 +703,22 @@ export function SettingsAccountCard({
 }
 
 /** A 类：mono 边框按钮 */
+function labelFromChildren(children: ReactNode): string {
+  if (children == null || typeof children === 'boolean') return ''
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children)
+  }
+  if (Array.isArray(children)) {
+    return children.map(labelFromChildren).join('')
+  }
+  if (isValidElement(children)) {
+    return labelFromChildren(
+      (children.props as { children?: ReactNode }).children,
+    )
+  }
+  return ''
+}
+
 export function SettingsActionButton({
   children,
   onClick,
@@ -720,6 +732,19 @@ export function SettingsActionButton({
   disabled?: boolean
   className?: string
 }) {
+  if (variant === 'primary') {
+    const label = labelFromChildren(children).replace(/\s+/g, ' ').trim() || '确定'
+    return (
+      <LiquidMetalButton
+        label={label}
+        onClick={onClick}
+        disabled={disabled}
+        className={className}
+        aria-label={label}
+      />
+    )
+  }
+
   return (
     <button
       type="button"
@@ -728,7 +753,6 @@ export function SettingsActionButton({
       className={cn(
         'settings-action-btn',
         variant === 'danger' && 'settings-action-btn--danger',
-        variant === 'primary' && 'settings-action-btn--primary',
         className,
       )}
     >

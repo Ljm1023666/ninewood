@@ -8,6 +8,7 @@
  */
 import { useState } from 'react'
 import { agentTasksApi, type DeliveryChannel } from '@/api/agent-tasks'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { cn } from '@/lib/utils'
 
 export interface AgentTaskDraftData {
@@ -104,14 +105,11 @@ export function AgentTaskDraftCard({ draft, onConfirmed, onCancelled, className 
 
       {done === null && (
         <div className="agent-task-draft-card__actions">
-          <button
-            type="button"
-            className="agent-btn agent-btn--primary"
+          <LiquidMetalButton
+            label={submitting ? '创建中…' : '确认创建'}
             onClick={handleConfirm}
             disabled={submitting}
-          >
-            {submitting ? '创建中…' : '确认创建'}
-          </button>
+          />
           <button
             type="button"
             className="agent-btn agent-btn--ghost"

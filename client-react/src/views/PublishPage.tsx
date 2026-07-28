@@ -9,6 +9,7 @@ import {
   Tags,
   Target,
 } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export default function PublishPage() {
   const navigate = useNavigate()
@@ -150,14 +151,16 @@ export default function PublishPage() {
             </div>
 
             <div className="publish-action-dock">
-              <button
-                type="button"
-                className="publish-primary-action"
-                onClick={() => navigate(isService ? '/demands/create?mode=service' : '/demands/create')}
-              >
-                开始用 AI 整理
-                <ArrowRight className="size-4" aria-hidden />
-              </button>
+              <LiquidMetalButton
+                label="开始用 AI 整理"
+                fullWidth
+                height={48}
+                onClick={() =>
+                  navigate(
+                    isService ? '/demands/create?mode=service' : '/demands/create',
+                  )
+                }
+              />
               <p className="publish-eta">预计 3 分钟完成初稿</p>
             </div>
           </aside>

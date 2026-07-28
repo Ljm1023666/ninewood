@@ -33,6 +33,8 @@ const m = vi.hoisted(() => ({
   agentTaskRunUpdate: vi.fn(),
   // Message
   messageCreate: vi.fn(),
+  notificationSubscriptionUpsert: vi.fn(),
+  notificationSubscriptionDeleteMany: vi.fn(),
 }))
 
 vi.mock('../lib/prisma.js', () => ({
@@ -53,6 +55,10 @@ vi.mock('../lib/prisma.js', () => ({
       update: m.agentTaskRunUpdate,
     },
     message: { create: m.messageCreate },
+    notificationSubscription: {
+      upsert: m.notificationSubscriptionUpsert,
+      deleteMany: m.notificationSubscriptionDeleteMany,
+    },
   },
 }))
 
@@ -87,8 +93,11 @@ function buildApp() {
 }
 
 beforeEach(() => {
+  process.env.NOTIFICATION_SOVEREIGNTY_ENABLED = '0'
   for (const fn of Object.values(m)) fn.mockReset()
   runSpy.mockReset()
+  m.notificationSubscriptionUpsert.mockResolvedValue({})
+  m.notificationSubscriptionDeleteMany.mockResolvedValue({ count: 0 })
 })
 
 // ─── GET / ────────────────────────────────────────────────────────────────

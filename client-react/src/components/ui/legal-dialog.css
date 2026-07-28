@@ -83,22 +83,24 @@
 }
 
 .legal-dialog__primary {
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  background: var(--legal-accent);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.28) inset,
-    0 5px 12px rgba(47, 130, 232, 0.2);
+  /* 主 CTA：液态玻璃选择态，禁止实心蓝 */
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.32));
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.14));
+  color: var(--legal-copy, #1d1d1f);
+  box-shadow: var(--liquid-glass-shadow, 0 5px 12px rgba(0, 0, 0, 0.12));
+  backdrop-filter: var(--liquid-glass-blur, blur(16px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(16px));
   transition:
     background-color 150ms ease-out,
+    border-color 150ms ease-out,
     box-shadow 150ms ease-out,
     transform 150ms ease-out;
 }
 
 .legal-dialog__primary:hover {
-  background: var(--legal-accent-hover);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.32) inset,
-    0 7px 16px rgba(47, 130, 232, 0.24);
+  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.18)) 70%, #fff 20%);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 35%, transparent);
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.14);
   transform: translateY(-1px);
 }
 

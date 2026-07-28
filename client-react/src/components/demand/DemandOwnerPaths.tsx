@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { pathSearchApi } from '@/api/path-search'
 import { PathEditorPanel } from '@/components/path/PathEditorPanel'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 
 /** 需求详情 · 发布者编辑匹配路径 */
@@ -55,14 +56,13 @@ export function DemandOwnerPaths({ demandId }: { demandId: string }) {
     <div className="rounded-xl border border-white/10 bg-bg-secondary/40 p-4">
       <h3 className="mb-3 text-sm font-semibold text-text-primary">匹配路径</h3>
       <PathEditorPanel paths={paths} onChange={setPaths} autoPaths={autoPaths} />
-      <button
-        type="button"
-        className="mt-4 rounded-lg bg-[var(--accent-color)] px-4 py-2 text-sm font-medium text-bg-primary disabled:opacity-50"
-        disabled={saving}
-        onClick={() => void save()}
-      >
-        {saving ? '保存中…' : '保存路径'}
-      </button>
+      <div className="mt-4">
+        <LiquidMetalButton
+          label={saving ? '保存中…' : '保存路径'}
+          disabled={saving}
+          onClick={() => void save()}
+        />
+      </div>
     </div>
   )
 }

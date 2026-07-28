@@ -5,8 +5,8 @@ const SIDEBAR_PIN_KEY = 'ninewood-sidebar-pinned'
 /** 沉浸页：进入后临时收起侧栏（仍可悬停展开 / 再固定） */
 export const IMMERSIVE_ROUTE_PREFIXES = ['/messages', '/agent'] as const
 
-export const SIDEBAR_WIDTH_COLLAPSED = 72
-export const SIDEBAR_WIDTH_EXPANDED = 208
+export const SIDEBAR_WIDTH_COLLAPSED = 56
+export const SIDEBAR_WIDTH_EXPANDED = 128
 
 export function isImmersivePath(pathname: string): boolean {
   return IMMERSIVE_ROUTE_PREFIXES.some(

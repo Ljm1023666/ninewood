@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user'
 import { userApi } from '@/api/user'
 import { messageApi } from '@/api/message'
 import { toast } from '@/components/ui/confirm-dialog'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface Contact {
   id: string
@@ -217,14 +218,13 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
             placeholder="输入群聊名称（选填）"
             className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-[var(--primary-start)]"
           />
-          <button
-            type="button"
+          <LiquidMetalButton
+            label={`创建群聊 (${selected.length}人)`}
             disabled={selected.length === 0 || creating}
             onClick={create}
-            className="mt-2 w-full rounded-lg bg-[var(--primary-start)] py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-          >
-            创建群聊 ({selected.length}人)
-          </button>
+            fullWidth
+            className="mt-2"
+          />
         </div>
       )}
     </div>

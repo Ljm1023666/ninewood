@@ -1049,18 +1049,15 @@ API 响应继续使用现有信封；机器码放在 `details.code`，不强制�
 
 ### Phase 1：用户主权通知（2–3 个迭代）
 
-交付：
+拆分为：
 
-- NotificationPolicy/Subscription/Delivery 迁移；
-- 决策服务和渠道适配器；
-- 新推送设置 UI；
-- 旧偏好兼容迁移；
-- AgentTask、Demand push 接入统一服务；
-- N1–N12 自动化测试。
-
-退出条件：所有非必要通知均可追溯到显式订阅。
+- **Phase 1A（2026-07-28 已完成）**：NotificationPolicy/Subscription/Delivery 迁移；决策与投递审计服务；`/api/notifications/*`；N1–N9 数据/决策 PG 测试；旧偏好映射设计（不执行正式迁移）。**不接管** push-engine / AgentTask / Demand / Order / Socket。
+- **Phase 1B（2026-07-28 已完成）**：`canTakeOverNotificationTraffic(eventType)`；Demand `DEMAND_MATCHED` 与 AgentTask `AGENT_TASK_RESULT` 接入决策；PushSettings 重构；兼容迁移脚本（默认 dry-run）；UserTag/AgentTask 订阅同步。**不接管** Order/私聊/Quiet/Fee/Outcome。
+- **Phase 1 整阶段退出**：所有非必要通知均可追溯到显式订阅（业务路径在 flag=1 时）。
 
 ### Phase 2：完成后淡出与注意力清理（2 个迭代）
+
+**状态（2026-07-28）**：本机已完成。未部署云端；未进入 Phase 3。
 
 交付：
 
@@ -1072,8 +1069,11 @@ API 响应继续使用现有信封；机器码放在 `details.code`，不强制�
 - A/Q 测试完成。
 
 退出条件：终态后 24 小时无关触达自动化测试通过。
+*本机：Q1–Q5/Q8 PG 测试与 A2 空查询测试已通过；Q6/Q7/Q9 依赖产品手工与更长窗口，未宣称生产退出。*
 
 ### Phase 3：透明费用（1–2 个迭代）
+
+**状态（2026-07-28）**：本机实现完成。费用 quote、服务端签名确认、四条资金路径和订单详情明细已接入；未部署云端。
 
 交付：
 
@@ -1086,6 +1086,8 @@ API 响应继续使用现有信封；机器码放在 `details.code`，不强制�
 
 ### Phase 4：三个真实生活地回（按场景独立排期）
 
+**状态（2026-07-28）**：未完成，不得以现有平台内部字段/附件地回替代真实生活试点。进入试点仍需真实 endpoint、受控用户样本与 L1–L10 证据。
+
 交付：
 
 - 三个完整场景；
@@ -1096,6 +1098,8 @@ API 响应继续使用现有信封；机器码放在 `details.code`，不强制�
 退出条件：每个场景至少积累产品确认的最小有效样本，未达标不得扩大分类。
 
 ### Phase 5：时间节省度量与治理（1–2 个迭代）
+
+**状态（2026-07-28）**：本机工程闭环完成。OutcomeEvent 白名单、任务主链 activeMs、90 天日聚合清理、小样本保护已实现；默认关闭，尚无真实样本，因此不展示“节省时间”估算。
 
 交付：
 
@@ -1333,7 +1337,29 @@ ATTENTION_AUDIT_STRICT=0
 - [x] `scripts/audit-attention-patterns.mjs` 以警告模式接入 CI（`ATTENTION_AUDIT_STRICT=1` 才失败）
 - [x] 生产禁用 legacy `/api/shorts`；开发仅 `ENABLE_LEGACY_SHORTS=1`；路由回归测试覆盖
 - [x] PushPreference / Short / Follow / CardPool / snatch 聚合基线已建立（见 `PRODUCT-TIME-SOVEREIGNTY-PHASE0-BASELINE.md`）
-- [x] 未删除 Short、Follow、PushPreference 表；未实施 NotificationPolicy；未改钱包/订单状态机；未部署云端
+- [x] 未删除 Short、Follow、PushPreference 表；Phase 0 未实施 NotificationPolicy；未改钱包/订单状态机；未部署云端
+
+### 21.6 Phase 1A 退出检查（数据层与决策）
+
+- [x] NotificationPolicy / Subscription / Delivery 只增迁移（`20260728140000_notification_sovereignty`）
+- [x] 本地 migrate deploy + down.sql 回滚演练后可干净重放
+- [x] DecisionService 返回 deliver/mode/channels/reasonCode/reasonText/suppressionCode
+- [x] `/api/notifications/*` 鉴权 + Zod；preview 无副作用；无 MARKETING
+- [x] N1–N9 相关 PG 集成测试通过；旧 PushPreference 读写未破坏
+- [x] `NOTIFICATION_SOVEREIGNTY_ENABLED=0` 默认；即使 =1 也不接管业务发送（`canTakeOverLegacyNotificationTraffic()===false`）
+- [x] 未改 push-engine、PushSettings、Message、钱包/订单；未上云；未删旧表
+
+### 21.7 Phase 1B 退出检查（业务接管）
+
+- [x] `canTakeOverNotificationTraffic(eventType)` 按事件白名单控制；Order/私聊不接管
+- [x] Demand 匹配经决策；无订阅不投递；投递/抑制写 Delivery；成功落站内 Message
+- [x] 手动 execute 所有权 + 限流 + 同 demand 幂等
+- [x] AgentTask MESSAGE 经决策；抑制不改运行成败；启停/删同步订阅
+- [x] 迁移脚本默认 dry-run；`--apply` 幂等；不改 PushPreference/UserTag/AgentTask 本体
+- [x] PushSettings 正向订阅 UI；旧偏好仅建议预填
+- [x] 默认 `NOTIFICATION_SOVEREIGNTY_ENABLED=0`；未上云
+
+
 
 ---
 

@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface SearchBarProps {
   placeholder?: string
@@ -25,11 +26,15 @@ const SearchBar = ({
     setSearchQuery(e.target.value)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const runSearch = () => {
     if (onSearch && searchQuery.trim()) {
       onSearch(searchQuery)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    runSearch()
   }
 
   useEffect(() => {
@@ -94,22 +99,22 @@ const SearchBar = ({
           />
 
           <AnimatePresence>
-            {searchQuery && (
-              <motion.button
-                type="submit"
+            {searchQuery ? (
+              <motion.div
                 initial={{ opacity: 0, scale: 0.8, x: -10 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.8, x: -10 }}
-                className={cn(
-                  'mr-1.5 shrink-0 rounded-full px-4 py-1.5 text-xs font-medium shadow-lg',
-                  isLight
-                    ? 'bg-[var(--accent-color)] text-white'
-                    : 'bg-white text-black',
-                )}
+                className="mr-1.5 shrink-0"
               >
-                搜索
-              </motion.button>
-            )}
+                {/* 有输入才显示；有字即金属描边态 */}
+                <LiquidMetalButton
+                  label="搜索"
+                  height={32}
+                  active
+                  onClick={runSearch}
+                />
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </div>
       </motion.form>

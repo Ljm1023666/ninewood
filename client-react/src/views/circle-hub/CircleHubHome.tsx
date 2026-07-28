@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { useUserStore } from '@/stores/user'
 import { useCircleHub } from './circle-hub-context'
@@ -199,14 +200,11 @@ export default function CircleHubHome() {
               >
                 取消
               </button>
-              <button
-                type="button"
-                className="cdb-btn-primary"
+              <LiquidMetalButton
+                label={publishBusy ? '发布中…' : '发布公告'}
                 disabled={publishBusy}
                 onClick={() => void handlePublishAnnouncement()}
-              >
-                {publishBusy ? '发布中…' : '发布公告'}
-              </button>
+              />
             </div>
           </div>
         </section>

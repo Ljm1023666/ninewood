@@ -51,7 +51,7 @@ export function CompareSideBySide({
 
   return (
     <div className="tax-viz-chart" style={{ width: '100%', height }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer minWidth={0} initialDimension={{ width: 800, height }}>
         <BarChart
           data={data}
           margin={{ top: 12, right: 12, left: 4, bottom: 4 }}

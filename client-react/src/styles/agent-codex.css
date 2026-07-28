@@ -699,13 +699,8 @@
   color: var(--codex-text);
 }
 
-.agent-codex-plan__btn--confirm {
-  border-color: rgba(51, 136, 255, 0.45);
-  background: rgba(51, 136, 255, 0.1);
-}
-
-.agent-codex-plan__btn--confirm:hover {
-  background: rgba(51, 136, 255, 0.18);
+.agent-codex-plan__btn--confirm-slot {
+  flex: 1;
 }
 
 .agent-codex-plan__btn--cancel:hover {

@@ -12,6 +12,7 @@
  */
 
 import { prisma } from '../lib/prisma.js'
+import { withSchedulerLease } from '../services/scheduler-lease.service.js'
 
 /** cron 单批最大处理订单数，避免长事务 */
 const BATCH_SIZE = 50
@@ -92,7 +93,7 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 export function startTimeLimitReminderCron(intervalMs = 60_000) {
   if (intervalId) return
   intervalId = setInterval(() => {
-    processTimeLimitReminders().catch((err) =>
+    withSchedulerLease('time-limit-reminder', Math.max(intervalMs, 60_000), processTimeLimitReminders).catch((err) =>
       console.error('[time-limit-reminder] cron error:', err),
     )
   }, intervalMs)

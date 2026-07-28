@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import '@/styles/cert-stitch.css'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { userApi } from '@/api/user'
 import { CertWorkspaceShell } from '@/components/cert/cert-workspace-shell'

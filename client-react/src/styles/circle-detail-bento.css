@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 
 /* Stitch variant-b-cinematic 风格 Bento App Shell
  * --cdb-* token; 复用 stage0 后的设计语言
@@ -227,11 +227,18 @@
 .circle-detail-bento .cdb-demand-item:hover { border-color: var(--cdb-glass-border-hover); background: rgba(255, 255, 255, 0.06); }
 
 .circle-detail-bento .cdb-btn-primary {
-  display: inline-flex; height: 48px; align-items: center; gap: 8px; padding: 0 32px; border-radius: 16px;
-  border: none; background: var(--cdb-primary); color: var(--cdb-on-primary); font-family: inherit;
-  font-size: 16px; font-weight: 700; box-shadow: 0 10px 15px -3px rgba(171, 199, 255, 0.2);
+  display: inline-flex; height: 48px; align-items: center; gap: 8px; padding: 0 32px; border-radius: 999px;
+  border: 1px solid var(--cdb-glass-border); background: var(--cdb-glass-bg); color: var(--cdb-on-surface);
+  font-family: inherit; font-size: 15px; font-weight: 600;
+  backdrop-filter: blur(var(--cdb-glass-blur)); -webkit-backdrop-filter: blur(var(--cdb-glass-blur));
+  box-shadow: var(--cdb-glass-inset), 0 8px 20px rgba(0, 0, 0, 0.25);
+  cursor: pointer; transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
 }
-.circle-detail-bento .cdb-btn-primary:disabled { opacity: 0.5; }
+.circle-detail-bento .cdb-btn-primary:hover:not(:disabled) {
+  border-color: var(--cdb-glass-border-hover); background: rgba(255, 255, 255, 0.1);
+}
+.circle-detail-bento .cdb-btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.circle-detail-bento .cdb-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .circle-detail-bento .cdb-activity-card { display: flex; flex-direction: column; gap: var(--cdb-pad); padding: var(--cdb-pad); overflow: hidden; }
 .circle-detail-bento .cdb-label-caps {

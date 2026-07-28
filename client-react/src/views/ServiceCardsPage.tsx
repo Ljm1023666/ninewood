@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { BriefcaseBusiness, Plus, RefreshCw } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { BriefcaseBusiness, RefreshCw } from 'lucide-react'
 import { serviceCardApi, type ServiceCard } from '@/api/service-card'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export default function ServiceCardsPage() {
+  const navigate = useNavigate()
   const [cards, setCards] = useState<ServiceCard[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -30,9 +32,10 @@ export default function ServiceCardsPage() {
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-text-primary">我的服务卡</h1>
           <p className="mt-3 text-sm text-text-secondary">你的主观服务声明，以及平台根据完成订单生成的客观经验。</p>
         </div>
-        <Link className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent-color)] px-4 py-3 text-sm font-semibold text-white" to="/service-cards/create">
-          <Plus size={16} /> 新建服务卡
-        </Link>
+        <LiquidMetalButton
+          label="新建服务卡"
+          onClick={() => navigate('/service-cards/create')}
+        />
       </div>
       {error && (
         <div className="mt-10 flex items-center justify-between rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">

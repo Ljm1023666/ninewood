@@ -427,9 +427,12 @@
 }
 
 .agent-btn--primary {
-  border-color: rgba(51, 136, 255, 0.45);
-  background: rgba(51, 136, 255, 0.12);
+  /* 主 CTA：玻璃选择态（无 LiquidMetal 时的 CSS 兜底） */
+  border-color: var(--liquid-glass-border, rgba(255, 255, 255, 0.16));
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1));
   color: var(--internal-text, #f0f0f0);
+  backdrop-filter: var(--liquid-glass-blur, blur(14px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(14px));
 }
 
 .agent-codex .agent-btn--primary {
@@ -437,7 +440,8 @@
 }
 
 .agent-btn--primary:hover:not(:disabled) {
-  background: rgba(51, 136, 255, 0.2);
+  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.12)) 70%, #fff 14%);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 35%, transparent);
 }
 
 .agent-btn--ghost {

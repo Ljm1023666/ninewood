@@ -529,6 +529,7 @@ html[data-appearance='light'] .tax-viz-page .internal-shell {
 /* 图表容器 */
 .tax-viz-chart {
   position: relative;
+  min-width: 0;
 }
 
 .tax-viz-chart__glow {

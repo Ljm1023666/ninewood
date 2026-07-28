@@ -1,0 +1,284 @@
+/* 热门讨论 — 对齐对接系统 DiscussionsView */
+
+.discussions-plaza {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.discussions-plaza__hero {
+  overflow: hidden;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 16px;
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.06));
+  box-shadow: var(--liquid-glass-shadow, 0 8px 28px rgba(0, 0, 0, 0.18));
+  padding: 28px 32px;
+}
+
+.discussions-plaza__hero-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.discussions-plaza__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-primary, #2fbbe0) 30%, transparent);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.discussions-plaza__hero-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.discussions-plaza__hero-desc {
+  margin: 8px 0 0;
+  max-width: 28rem;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.discussions-plaza__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.discussions-plaza__card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 16px;
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.06));
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.discussions-plaza__card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 30%, transparent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.discussions-plaza__card:focus-visible {
+  outline: 2px solid var(--color-primary, #2fbbe0);
+  outline-offset: 2px;
+}
+
+.discussions-plaza__bar {
+  height: 3px;
+  width: 100%;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    #67e8f9,
+    #a78bfa,
+    #f472b6,
+    #fbbf24,
+    #84cc16
+  );
+  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.discussions-plaza__card:hover .discussions-plaza__bar {
+  opacity: 1;
+}
+
+.discussions-plaza__row {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+}
+
+.discussions-plaza__avatar {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-primary, #2fbbe0) 25%, transparent);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.discussions-plaza__card:hover .discussions-plaza__avatar {
+  transform: scale(1.05);
+}
+
+.discussions-plaza__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.discussions-plaza__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.discussions-plaza__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.discussions-plaza__pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, #fb7185 40%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #fb7185 18%, transparent);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.discussions-plaza__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.discussions-plaza__card:hover .discussions-plaza__title {
+  color: var(--color-primary, #2fbbe0);
+}
+
+.discussions-plaza__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.discussions-plaza__meta strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.discussions-plaza__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.discussions-plaza__tag {
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.discussions-plaza__tag:nth-child(2) {
+  border-color: color-mix(in srgb, #fbbf24 40%, transparent);
+}
+
+.discussions-plaza__tag:nth-child(3) {
+  border-color: color-mix(in srgb, #f472b6 35%, transparent);
+}
+
+.discussions-plaza__content {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.discussions-plaza__chevron {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.discussions-plaza__card:hover .discussions-plaza__chevron {
+  opacity: 0.6;
+}
+
+.discussions-plaza__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.discussions-plaza__page-btn {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.12));
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.discussions-plaza__page-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.discussions-plaza__page-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.discussions-plaza__page-num {
+  padding: 0 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discussions-plaza__card,
+  .discussions-plaza__avatar,
+  .discussions-plaza__bar {
+    transition: none;
+  }
+
+  .discussions-plaza__card:hover {
+    transform: none;
+  }
+}

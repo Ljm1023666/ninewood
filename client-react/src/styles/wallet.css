@@ -180,24 +180,26 @@ html[data-appearance='light'] .wallet-page {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: none;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.16));
   border-radius: 999px;
-  background: var(--wallet-accent-gradient);
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1));
   padding: 14px 28px;
   font-size: var(--font-size-body);
-  font-weight: 700;
-  color: var(--wallet-on-accent);
-  box-shadow: 0 12px 28px color-mix(in srgb, var(--price-foreground) 22%, transparent);
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.18));
+  backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
   cursor: pointer;
   transition:
     transform 0.15s var(--ease-out-quart),
-    box-shadow 0.2s var(--ease-out-quart),
-    filter 0.2s var(--ease-out-quart);
+    background-color 0.2s var(--ease-out-quart),
+    border-color 0.2s var(--ease-out-quart);
 }
 
 .wallet-btn-primary:hover {
-  filter: brightness(1.06);
-  box-shadow: 0 16px 32px color-mix(in srgb, var(--price-foreground) 28%, transparent);
+  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.12)) 70%, #fff 16%);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 35%, transparent);
 }
 
 .wallet-btn-primary:active {

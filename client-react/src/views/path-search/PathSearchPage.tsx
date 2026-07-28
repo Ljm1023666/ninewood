@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import '@/styles/path-search-aurora.css'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { pathSearchApi, type PathSearchItem, type PathSearchMeta, type PathResolveResult } from '@/api/path-search'
 import {
   PATH_QUERY_MAX,
@@ -518,15 +520,19 @@ export default function PathSearchPage() {
                   <MsIcon name="close" size={18} />
                 </button>
               ) : null}
-              <button
-                type="button"
+              <LiquidMetalButton
+                viewMode="icon"
                 className="psa-search__go"
-                onClick={() => void handleSearch()}
+                height={48}
                 disabled={busy || !query.trim()}
+                metalGlow={Boolean(query.trim())}
+                active={Boolean(query.trim())}
                 aria-label="搜索"
-              >
-                <MsIcon name={busy ? 'progress_activity' : 'arrow_forward'} size={22} />
-              </button>
+                onClick={() => void handleSearch()}
+                icon={
+                  <MsIcon name={busy ? 'progress_activity' : 'arrow_forward'} size={22} />
+                }
+              />
             </div>
           </div>
         </div>

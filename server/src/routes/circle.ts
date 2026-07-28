@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth.js';
 import { circleService } from '../services/circle.service.js';
 import { success, fail } from '../utils/response.js';
 import { q } from '../utils/query.js';
@@ -46,11 +46,10 @@ circleRouter.get('/my', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/circles/public
-circleRouter.get('/public', async (req: Request, res: Response) => {
+// GET /api/circles/public — 可选登录：已加入的圈子从「发现」列表排除
+circleRouter.get('/public', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
-    const circles = await circleService.listPublic(userId);
+    const circles = await circleService.listPublic(req.user?.userId);
     success(res, circles);
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);

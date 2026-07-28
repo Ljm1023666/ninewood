@@ -6,7 +6,7 @@ import { usePagination } from '@/hooks/usePagination'
 import { ListItemCard } from '@/components/ui/list-item-card'
 import { Timeline } from '@/components/ui/modern-timeline'
 import { Button } from '@/components/ui/button'
-import { AcetInvertButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
 import { useThemeStore } from '@/stores/theme'
@@ -340,13 +340,13 @@ export function DemandDiscoveryList({
               actionLabel="发布需求"
               onAction={() => navigate('/demands/create')}
               actionSlot={
-                <AcetInvertButton
-                  type="button"
-                  className="w-full max-w-xs"
-                  onClick={() => navigate('/demands/create')}
-                >
-                  发布需求
-                </AcetInvertButton>
+                <div className="w-full max-w-xs">
+                  <LiquidMetalButton
+                    label="发布需求"
+                    fullWidth
+                    onClick={() => navigate('/demands/create')}
+                  />
+                </div>
               }
             />
           ) : null}

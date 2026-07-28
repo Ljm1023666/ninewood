@@ -291,7 +291,7 @@ export function InteractiveProductCard({
       className={cn(
         /* 宽度用视口推算，避免父级 flex 压缩时 100% 变成极窄条 */
         /* 宽度：扣除全局侧栏，避免在 main 内仍按整屏 vw 计算导致视觉不居中 */
-        'relative box-border aspect-[9/16] w-[min(332px,calc(100vw-var(--sidebar-w,72px)-2.5rem))] max-w-full shrink-0 rounded-3xl [will-change:transform]',
+        'relative box-border aspect-[9/16] w-[min(332px,calc(100vw-var(--sidebar-w,56px)-2.5rem))] max-w-full shrink-0 rounded-3xl [will-change:transform]',
         isFlipLayout ? 'shadow-none' : 'shadow-lg',
         isFlipLayout ? 'overflow-visible' : 'overflow-hidden',
         'bg-transparent',

@@ -245,17 +245,20 @@ export const orderService = {
     const skipServiceFee = Boolean(order.paidAt);
 
     const { breakdown } = await prisma.$transaction(async (tx) => {
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, requesterId: userId, status: 'WAITING_REVIEW' },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      });
+      if (claimed.count === 0) {
+        throw { status: 409, message: '订单状态冲突', details: { code: 'ORDER_STATE_CONFLICT' } };
+      }
+
       const { breakdown } = await walletService.settleDemand(
         order.demandId,
         Number(order.agreedPrice),
         { skipServiceFee },
         tx,
       );
-
-      await tx.order.update({
-        where: { id: orderId },
-        data: { status: 'COMPLETED', completedAt: new Date() },
-      });
 
       await tx.user.update({
         where: { id: order.providerId },
@@ -299,6 +302,17 @@ export const orderService = {
         content: `订单已完成验收，¥${Number(order.agreedPrice)} 已结算。服务费 ¥${breakdown.serviceFee.toFixed(2)}。`,
         type: 'SYSTEM',
       },
+    });
+
+    // Phase 2：订单完成 → Quiet（失败隔离）
+    const { quietTaskSafe } = await import('./task-quiet.service.js');
+    quietTaskSafe({
+      resourceType: 'ORDER',
+      resourceId: orderId,
+      outcomeStatus: 'SUCCEEDED',
+      outcomeSummary: '订单已完成验收并结算',
+      userId: order.requesterId,
+      nextRequiredAction: null,
     });
 
     return { message: '订单已完成', breakdown };
@@ -396,6 +410,15 @@ export const orderService = {
     if (!result.alreadyCancelled && result.demandId) {
       shadowOnLoopCancelled(result.demandId, 'ORDER_CANCELLED').catch((err) => {
         console.error('[loop-shadow] order cancel hook failed', orderId, err);
+      });
+      const { quietTaskSafe } = await import('./task-quiet.service.js');
+      quietTaskSafe({
+        resourceType: 'ORDER',
+        resourceId: orderId,
+        outcomeStatus: 'CANCELLED',
+        outcomeSummary: '订单已取消',
+        userId,
+        nextRequiredAction: null,
       });
     }
 
@@ -581,6 +604,16 @@ export const orderService = {
       console.error('[service-card] evidence refresh failed', orderId, err);
     });
     triggerResourceHeaven('builtin.heaven.validate.order_wallet_consistency', { orderId });
+
+    const { quietTaskSafe } = await import('./task-quiet.service.js');
+    quietTaskSafe({
+      resourceType: 'ORDER',
+      resourceId: orderId,
+      outcomeStatus: 'SUCCEEDED',
+      outcomeSummary: '订单部分完成已确认并结算',
+      userId,
+      nextRequiredAction: null,
+    });
 
     return {
       message: '部分完成已确认，剩余需求已生成',

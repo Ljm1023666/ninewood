@@ -21,7 +21,34 @@ const SmsClient = tencentcloud.sms.v20210111.Client;
 
 const MIN_PASSWORD_LENGTH = 8;
 const smsStore = new Map<string, { code: string; expires: number }>();
-const emailStore = new Map<string, { code: string; expires: number }>();
+
+function emailCodeHash(email: string, code: string) {
+  const secret = process.env.EMAIL_CODE_SECRET || process.env.JWT_SECRET || 'ninewood-local-email-code';
+  return crypto.createHmac('sha256', secret).update(`${email}:${code}`).digest('hex');
+}
+
+async function deliverEmailCode(email: string, code: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  if (!apiKey || !from) {
+    if (process.env.NODE_ENV === 'production') {
+      throw { status: 503, message: '邮箱验证服务暂不可用' };
+    }
+    console.log(`[EMAIL] Code to ${email}: ${code} (development only)`);
+    return;
+  }
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from,
+      to: [email],
+      subject: '九木登录验证码',
+      text: `你的九木验证码是 ${code}，5 分钟内有效。请勿转发给任何人。`,
+    }),
+  });
+  if (!response.ok) throw { status: 503, message: '验证码邮件发送失败，请稍后重试' };
+}
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -353,8 +380,19 @@ export const authService = {
       throw { status: 400, message: '邮箱格式不正确' };
     }
 
+    const latest = await prisma.emailVerificationCode.findFirst({
+      where: { email: normalized },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
+    if (latest && Date.now() - latest.createdAt.getTime() < 60_000) {
+      throw { status: 429, message: '验证码发送过于频繁，请稍后再试' };
+    }
     const code = generateCode();
-    emailStore.set(normalized, { code, expires: Date.now() + 5 * 60 * 1000 });
+    await deliverEmailCode(normalized, code);
+    await prisma.emailVerificationCode.create({
+      data: { email: normalized, codeHash: emailCodeHash(normalized, code), expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
+    });
     // 开发环境仅服务端日志，绝不回传验证码
     console.log(`[EMAIL] Code to ${normalized} (valid 5 min, server log only)`);
 
@@ -373,14 +411,23 @@ export const authService = {
       throw { status: 400, message: '邮箱格式不正确' };
     }
 
-    const stored = emailStore.get(normalized);
-    if (!stored || stored.expires < Date.now()) {
+    const stored = await prisma.emailVerificationCode.findFirst({
+      where: { email: normalized, consumedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!stored || stored.expiresAt.getTime() < Date.now()) {
       throw { status: 400, message: '验证码已过期，请重新获取' };
     }
-    if (stored.code !== code) {
+    if (stored.attempts >= 5) throw { status: 429, message: '验证码尝试次数过多，请重新获取' };
+    if (stored.codeHash !== emailCodeHash(normalized, code)) {
+      await prisma.emailVerificationCode.update({ where: { id: stored.id }, data: { attempts: { increment: 1 } } });
       throw { status: 400, message: '验证码错误' };
     }
-    emailStore.delete(normalized);
+    const consumed = await prisma.emailVerificationCode.updateMany({
+      where: { id: stored.id, consumedAt: null },
+      data: { consumedAt: new Date() },
+    });
+    if (consumed.count !== 1) throw { status: 409, message: '验证码已使用，请重新获取' };
 
     let user =
       (await findLegacyUserByEmail(normalized)) ||

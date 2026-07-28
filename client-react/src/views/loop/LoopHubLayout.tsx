@@ -11,7 +11,8 @@ function prefetchLoopHubPages() {
 
 /**
  * 回中心持久壳：顶栏不重挂；子页经 Outlet 切换。
- * 承接页需要铺满滚动容器，由路径开关 scroll-fill。
+ * 根节点 class 保持稳定，避免切到「发现回」时整壳重排导致导航滑块错位。
+ * 承接页的铺满滚动改由 outlet 包裹层承担。
  */
 export default function LoopHubLayout() {
   const { pathname } = useLocation()
@@ -22,15 +23,17 @@ export default function LoopHubLayout() {
   }, [])
 
   return (
-    <div
-      className={
-        acceptMode
-          ? 'loop-hub-page loop-hub-page--scroll-fill'
-          : 'loop-hub-page loop-hub-page--hub'
-      }
-    >
+    <div className="loop-hub-page loop-hub-page--hub">
       <LoopHubNav />
-      <Outlet />
+      <div
+        className={
+          acceptMode
+            ? 'loop-hub-outlet loop-hub-outlet--accept'
+            : 'loop-hub-outlet'
+        }
+      >
+        <Outlet />
+      </div>
     </div>
   )
 }

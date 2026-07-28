@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { useUserStore } from '@/stores/user'
 import { useCircleHub } from './circle-hub-context'
 import { circleApi, type CircleResourceItem } from '@/api/circle'
-
-type FileKind = 'doc' | 'design' | 'code' | 'video' | 'zip' | 'sheet'
-
 
 // MOCK_FILES removed (replaced by API)
 
@@ -113,15 +111,11 @@ export default function CircleHubResources() {
               if (f) void handleFile(f)
             }}
           />
-          <button
-            type="button"
-            className="cdb-btn-primary cdb-hub-upload-btn"
+          <LiquidMetalButton
+            label={uploading ? '上传中...' : '上传资源'}
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-          >
-            <MsIcon name="upload" size={20} aria-hidden />
-            {uploading ? '上传中...' : '上传资源'}
-          </button>
+          />
         </div>
       </div>
 

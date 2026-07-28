@@ -15,6 +15,7 @@ import {
   HelpCircle,
   User,
   LogOut,
+  LogIn,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
@@ -67,7 +68,6 @@ const defaultMenuItems: MenuItem[] = [
     url: '/help',
     icon: <HelpCircle className="size-5" />,
   },
-  { id: 7, title: '我的', url: '/profile', icon: <User className="size-5" /> },
 ]
 
 export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
@@ -80,20 +80,37 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const accumulatedRef = React.useRef(0)
   const logout = useUserStore((s) => s.logout)
+  const user = useUserStore((s) => s.user)
   const navigate = useNavigate()
 
-  const allItems: MenuItem[] = [
-    ...menuItems,
-    {
-      id: 99,
-      title: '注销',
-      icon: <LogOut className="size-5" />,
-      onClick: () => {
-        logout()
-        navigate('/login')
-      },
-    },
-  ]
+  const accountItems: MenuItem[] = user
+    ? [
+        {
+          id: 7,
+          title: '我的',
+          url: '/profile',
+          icon: <User className="size-5" />,
+        },
+        {
+          id: 99,
+          title: '注销',
+          icon: <LogOut className="size-5" />,
+          onClick: () => {
+            logout()
+            navigate('/login')
+          },
+        },
+      ]
+    : [
+        {
+          id: 98,
+          title: '登录',
+          url: '/login',
+          icon: <LogIn className="size-5" />,
+        },
+      ]
+
+  const allItems: MenuItem[] = [...menuItems, ...accountItems]
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {

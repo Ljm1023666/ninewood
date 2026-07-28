@@ -151,14 +151,20 @@
 }
 
 .demand-workspace-codex .ws-btn--primary {
-  border: none;
-  background: var(--ws-accent);
-  color: var(--ws-accent-fg);
+  /* 主 CTA：液态玻璃选择态，禁止实心 accent */
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.16));
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, var(--ws-fg, #e8e8e8));
   font-weight: 600;
+  backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.18));
 }
 
 .demand-workspace-codex .ws-btn--primary:hover:not(:disabled) {
-  opacity: 0.92;
+  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.12)) 70%, #fff 16%);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 35%, transparent);
+  opacity: 1;
 }
 
 .demand-workspace-codex .ws-chip {

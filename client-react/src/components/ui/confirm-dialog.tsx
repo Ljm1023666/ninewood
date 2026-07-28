@@ -1,3 +1,5 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+
 interface ConfirmDialogProps {
   open: boolean
   title: string
@@ -36,12 +38,15 @@ export function ConfirmDialog({
           >
             取消
           </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-3 rounded-lg bg-[var(--primary-gradient)] text-white text-sm font-semibold"
-          >
-            {confirmLabel}
-          </button>
+          {/* 确认：全局选择按钮标准（非 destructive） */}
+          <div className="flex-1">
+            <LiquidMetalButton
+              label={confirmLabel}
+              onClick={onConfirm}
+              fullWidth
+              height={44}
+            />
+          </div>
         </div>
       </div>
     </div>

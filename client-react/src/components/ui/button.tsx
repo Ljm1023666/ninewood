@@ -11,7 +11,8 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground hover:bg-accent-hover shadow-sm',
+          // 全局选择态：液态玻璃，禁止实心 primary
+          'border border-[var(--liquid-glass-border,rgba(255,255,255,0.16))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.1))] text-[var(--text-primary)] shadow-[var(--liquid-glass-shadow)] backdrop-blur-[var(--liquid-glass-blur,18px)] hover:border-[color-mix(in_srgb,var(--color-primary,#2fbbe0)_35%,transparent)] hover:bg-[color-mix(in_srgb,var(--liquid-glass-bg,rgba(255,255,255,0.12))_70%,#fff_16%)]',
         destructive:
           'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:

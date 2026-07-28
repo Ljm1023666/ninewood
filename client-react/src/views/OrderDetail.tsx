@@ -1,8 +1,15 @@
 ﻿import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import { orderApi } from '@/api/order'
+import { orderApi, type FeeQuote, type FeeQuoteAction } from '@/api/order'
 import { reviewApi } from '@/api/review'
 import { complaintApi } from '@/api/complaint'
+import {
+  notificationPolicyApi,
+  type CompletionSummary,
+} from '@/api/notification-policy'
+import { CompletionSummaryView } from '@/components/outcome/CompletionSummary'
+import { FeeBreakdownDialog } from '@/components/fees/FeeBreakdown'
+import { useTaskActiveTime } from '@/utils/task-active-time'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
 import { Button } from '@/components/ui/button'
@@ -29,9 +36,14 @@ export default function OrderDetail() {
   const [reviewForm, setReviewForm] = useState({ rating: 5, content: '' })
   const [complaintReason, setComplaintReason] = useState('')
   const [existingReview, setExistingReview] = useState<any>(null)
+  const [completion, setCompletion] = useState<CompletionSummary | null>(null)
+  const [feeQuote, setFeeQuote] = useState<FeeQuote | null>(null)
+  const [feeAction, setFeeAction] = useState<(() => Promise<any>) | null>(null)
+  const [feeBusy, setFeeBusy] = useState(false)
 
   const isProvider = order?.providerId === user?.id
   const isRequester = order?.requesterId === user?.id
+  useTaskActiveTime('ORDER', id)
 
   const fetchOrder = useCallback(async () => {
     if (!id) return
@@ -59,6 +71,28 @@ export default function OrderDetail() {
       .catch(() => setExistingReview(null))
   }, [id, order?.status])
 
+  useEffect(() => {
+    if (!id || !order) return
+    if (order.status !== 'COMPLETED' && order.status !== 'CANCELLED') {
+      setCompletion(null)
+      return
+    }
+    notificationPolicyApi
+      .getCompletion('ORDER', id)
+      .then((r) => setCompletion(r.data?.data ?? null))
+      .catch(() =>
+        setCompletion({
+          resourceType: 'ORDER',
+          resourceId: id,
+          outcomeStatus: order.status === 'COMPLETED' ? 'SUCCEEDED' : 'CANCELLED',
+          outcomeSummary:
+            order.status === 'COMPLETED' ? '订单已完成' : '订单已取消',
+          nextRequiredAction: null,
+          notificationsStopped: [],
+        }),
+      )
+  }, [id, order?.status])
+
   async function act(fn: () => Promise<any>, msg: string) {
     try {
       await fn()
@@ -66,6 +100,36 @@ export default function OrderDetail() {
       fetchOrder()
     } catch (e: any) {
       toast(e.response?.data?.message || '操作失败', 'error')
+    }
+  }
+
+  async function quoteThenAct(action: FeeQuoteAction, run: (token: string) => Promise<any>) {
+    if (!order) return
+    try {
+      const response = await orderApi.feeQuote(order.id, action)
+      const quote = response.data.data as FeeQuote
+      setFeeQuote(quote)
+      setFeeAction(() => () => run(quote.quoteToken))
+    } catch (e: any) {
+      toast(e.response?.data?.message || '费用明细加载失败', 'error')
+    }
+  }
+
+  async function confirmQuotedAction() {
+    if (!feeAction) return
+    setFeeBusy(true)
+    try {
+      await feeAction()
+      toast('操作已完成')
+      setFeeQuote(null)
+      setFeeAction(null)
+      fetchOrder()
+    } catch (e: any) {
+      toast(e.response?.data?.message || '操作失败，请重新确认费用', 'error')
+      setFeeQuote(null)
+      setFeeAction(null)
+    } finally {
+      setFeeBusy(false)
     }
   }
 
@@ -142,6 +206,12 @@ export default function OrderDetail() {
           <StatusChip status={s} />
         </div>
 
+        {completion && (s === 'COMPLETED' || s === 'CANCELLED') && (
+          <div className="mb-5">
+            <CompletionSummaryView summary={completion} returnTo="/orders" />
+          </div>
+        )}
+
         <div className="mb-5 flex flex-col gap-2">
           <div className="flex justify-between">
             <span className="text-[13px] text-text-muted">金额</span>
@@ -212,12 +282,10 @@ export default function OrderDetail() {
         <div className="flex flex-col gap-2">
           {isRequester && s === 'IN_PROGRESS' && !order.paidAt && (
             <AcetPrimaryButton
-              onClick={() =>
-                act(() => orderApi.prepay(order.id), '服务费已扣除')
-              }
+              onClick={() => quoteThenAct('prepay', (token) => orderApi.prepay(order.id, token))}
               className="w-full"
             >
-              点数支付（5% 服务费）
+              查看明细并支付服务费
             </AcetPrimaryButton>
           )}
           {isProvider && s === 'IN_PROGRESS' && order.paidAt && (
@@ -232,9 +300,7 @@ export default function OrderDetail() {
           )}
           {isRequester && s === 'WAITING_REVIEW' && (
             <AcetPrimaryButton
-              onClick={() =>
-                act(() => orderApi.confirm(order.id), '订单已完成')
-              }
+              onClick={() => quoteThenAct('confirm', (token) => orderApi.confirm(order.id, token))}
               className="w-full"
             >
               确认验收
@@ -269,9 +335,7 @@ export default function OrderDetail() {
           )}
           {isRequester && s === 'IN_PROGRESS' && (
             <AcetSecondaryButton
-              onClick={() =>
-                act(() => orderApi.cancel(order.id), '订单已取消')
-              }
+              onClick={() => quoteThenAct('cancel', (token) => orderApi.cancel(order.id, token))}
               className="w-full"
             >
               取消订单
@@ -280,9 +344,7 @@ export default function OrderDetail() {
           {isRequester && s === 'PARTIAL_PENDING' && (
             <>
               <AcetPrimaryButton
-                onClick={() =>
-                  act(() => orderApi.acceptPartial(order.id), '已同意部分完成结算')
-                }
+                onClick={() => quoteThenAct('partial_accept', (token) => orderApi.acceptPartial(order.id, token))}
                 className="w-full"
               >
                 同意部分完成结算
@@ -317,6 +379,15 @@ export default function OrderDetail() {
           )}
         </div>
       </div>
+
+      {feeQuote && (
+        <FeeBreakdownDialog
+          quote={feeQuote}
+          busy={feeBusy}
+          onConfirm={confirmQuotedAction}
+          onClose={() => { if (!feeBusy) { setFeeQuote(null); setFeeAction(null) } }}
+        />
+      )}
 
       {showPartial && (
         <div

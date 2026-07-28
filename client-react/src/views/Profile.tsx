@@ -61,7 +61,7 @@ export default function Profile() {
     if (!trimmed) return null
     // 主页单张：covers 原图（带宽已够，全屏高清）
     return toPreferOriginalProfileCoverUrl(trimmed)
-  }, [displayUser?.coverUrl])
+  }, [displayUser])
   const pageCoverSources = useMemo(
     () => (pageCoverUrl ? toDisplayCoverSources(pageCoverUrl) : null),
     [pageCoverUrl],
@@ -95,7 +95,7 @@ export default function Profile() {
       setIntroPhase('reveal')
     }, INTRO_HOLD_MS)
     return () => window.clearTimeout(revealTimer)
-  }, [profileIntroKey, pageCoverUrl])
+  }, [coverBgEnabled, profileIntroKey, pageCoverUrl])
 
   useEffect(() => {
     if (!showCoverBackground) {
@@ -146,6 +146,18 @@ export default function Profile() {
   // 认证进度
   const promo = certStatus?.promotion
   const promoProgress = promo ? Math.round(promo.progress * 100) : 0
+  const creditScore =
+    user?.creditScore ?? certStatus?.creditScore ?? displayUser?.creditScore ?? 60
+  const completedOrders =
+    user?.completedOrders ??
+    certStatus?.completedOrders ??
+    displayUser?.completedOrders ??
+    0
+  const snatchCredits =
+    user?.snatchCredits ?? certStatus?.snatchCredits ?? displayUser?.snatchCredits ?? 0
+  const usedCredits = Math.max(0, 3 - snatchCredits)
+  const profileRegion =
+    displayUser?.ipRegion || displayUser?.cityCode || '暂未填写'
 
   const loadUser = useCallback(async () => {
     setLoading(true)
@@ -189,7 +201,7 @@ export default function Profile() {
     } finally {
       setLoading(false)
     }
-  }, [id, isMe, myUser?.id])
+  }, [id, isMe, myUser])
 
   const loadFavPage = useCallback(
     (page: number) => {
@@ -421,284 +433,418 @@ export default function Profile() {
               ) : null}
             </>
           ) : null}
-          <div className="internal-profile-shell relative z-10 box-border flex min-h-full w-full max-w-[1120px] shrink-0 self-center px-5 pb-14 pt-2">
+          <div className="internal-profile-shell relative z-10 box-border flex min-h-full w-full shrink-0 self-center px-5 pb-14">
             <div className="internal-profile-main min-w-0 flex-1">
               <PageHeader
-                title="主页"
+                title="个人中心"
                 onBack="back"
                 divider={false}
-                className="!bg-transparent !shadow-none !backdrop-blur-none border-0"
+                className="internal-profile-header"
               />
 
               <div className="internal-profile-page">
                 <section className="internal-profile-hero">
-                  <div className="internal-profile-hero__head">
-                    {isMe ? (
-                      <button
-                        type="button"
-                        onClick={() => avatarInputRef.current?.click()}
-                        disabled={uploadingKind !== null}
-                        className={cn(
-                          'internal-profile-hero__avatar',
-                          uploadingKind !== null &&
-                            'cursor-not-allowed opacity-70',
-                        )}
-                        aria-label="更换头像"
-                        title="更换头像"
-                      >
-                        {displayUser?.avatarUrl ? (
-                          <img src={displayUser.avatarUrl} alt="" />
-                        ) : (
-                          (displayUser?.nickname || '?')[0]
-                        )}
-                      </button>
-                    ) : (
-                      <div className="internal-profile-hero__avatar">
-                        {displayUser?.avatarUrl ? (
-                          <img src={displayUser.avatarUrl} alt="" />
-                        ) : (
-                          (displayUser?.nickname || '?')[0]
-                        )}
-                      </div>
-                    )}
-                    <div className="internal-profile-hero__copy min-w-0 flex-1">
-                      <div className="internal-profile-hero__title-row">
-                        <h2 className="internal-profile-hero__name">
-                          {displayUser?.nickname}
-                        </h2>
-                        {level !== 'NONE' ? (
-                          <span
-                            className="internal-profile-hero__verified"
-                            title={certLabel[level]}
-                            aria-label={certLabel[level]}
-                          >
-                            <MsIcon
-                              name={STITCH_PROFILE_ICONS.verified}
-                              size={14}
-                              filled
-                            />
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="internal-profile-hero__bio">
-                        {displayUser?.bio || '这个人很懒，什么都没写...'}
-                      </p>
-                      {(displayUser?.ipRegion || displayUser?.cityCode) && (
+                  {pageCoverSources ? (
+                    <DisplayCoverPicture
+                      sources={pageCoverSources}
+                      alt=""
+                      className="internal-profile-hero__cover"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <div className="internal-profile-hero__scrim" aria-hidden />
+                  <div className="internal-profile-hero__content">
+                    <div className="internal-profile-hero__head">
+                      {isMe ? (
+                        <button
+                          type="button"
+                          onClick={() => avatarInputRef.current?.click()}
+                          disabled={uploadingKind !== null}
+                          className={cn(
+                            'internal-profile-hero__avatar',
+                            uploadingKind !== null &&
+                              'cursor-not-allowed opacity-70',
+                          )}
+                          aria-label="更换头像"
+                          title="更换头像"
+                        >
+                          {displayUser?.avatarUrl ? (
+                            <img src={displayUser.avatarUrl} alt="" />
+                          ) : (
+                            (displayUser?.nickname || '?')[0]
+                          )}
+                        </button>
+                      ) : (
+                        <div className="internal-profile-hero__avatar">
+                          {displayUser?.avatarUrl ? (
+                            <img src={displayUser.avatarUrl} alt="" />
+                          ) : (
+                            (displayUser?.nickname || '?')[0]
+                          )}
+                        </div>
+                      )}
+                      <div className="internal-profile-hero__copy min-w-0 flex-1">
+                        <div className="internal-profile-hero__title-row">
+                          <h2 className="internal-profile-hero__name">
+                            {displayUser?.nickname}
+                          </h2>
+                          {level !== 'NONE' ? (
+                            <>
+                              <span
+                                className="internal-profile-hero__verified"
+                                title={certLabel[level]}
+                                aria-label={certLabel[level]}
+                              >
+                                <MsIcon
+                                  name={STITCH_PROFILE_ICONS.verified}
+                                  size={15}
+                                  filled
+                                />
+                              </span>
+                              <span className="internal-profile-hero__cert">
+                                <MsIcon name="workspace_premium" size={15} />
+                                {certLabel[level]}
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                        <p className="internal-profile-hero__role">
+                          {level === 'NONE' ? '服务者' : '认证服务者'}
+                        </p>
+                        <p className="internal-profile-hero__bio">
+                          {displayUser?.bio || '完善个人简介，让合作方更快了解你。'}
+                        </p>
                         <p className="internal-profile-hero__meta">
                           <MsIcon
                             name={STITCH_PROFILE_ICONS.location}
-                            size={15}
+                            size={17}
                             className="shrink-0"
                           />
-                          IP 属地：
-                          {displayUser.ipRegion || displayUser.cityCode}
+                          IP 属地：{profileRegion}
                         </p>
-                      )}
-                      {displayUser?.birthday ? (
-                        <p className="internal-profile-hero__meta">
-                          <MsIcon name="cake" size={15} className="shrink-0" />
-                          {new Date(displayUser.birthday).toLocaleDateString(
-                            'zh-CN',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            },
-                          )}
-                        </p>
-                      ) : null}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="internal-profile-hero__actions">
-                    {isMe ? (
-                      <>
-                        <SettingsActionButton
-                          onClick={() => setEditDialogOpen(true)}
-                        >
-                          <MsIcon
-                            name={STITCH_PROFILE_ICONS.edit}
-                            size={16}
-                            className="mr-1.5 inline"
-                          />
-                          编辑资料
-                        </SettingsActionButton>
-                        <SettingsActionButton
-                          onClick={() => coverInputRef.current?.click()}
-                          disabled={uploadingKind !== null}
-                        >
-                          {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
-                        </SettingsActionButton>
-                        {pageCoverUrl ? (
-                          <div
-                            className={cn(
-                              'internal-profile-hero__cover-switch',
-                              !coverBgEnabled &&
-                                'internal-profile-hero__cover-switch--off',
-                            )}
+                    <div className="internal-profile-hero__actions">
+                      {isMe ? (
+                        <>
+                          <SettingsActionButton
+                            onClick={() => setEditDialogOpen(true)}
                           >
-                            <MaterialSwitch
-                              checked={coverBgEnabled}
-                              onCheckedChange={handleCoverBgToggle}
-                              size="sm"
-                              showIcons
-                              checkedIcon={<SunIcon />}
-                              uncheckedIcon={<MoonIcon />}
-                              haptic="light"
-                              aria-label={
-                                coverBgEnabled
-                                  ? '关闭封面背景'
-                                  : '开启封面背景'
-                              }
+                            <MsIcon
+                              name={STITCH_PROFILE_ICONS.edit}
+                              size={18}
                             />
-                          </div>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <SettingsActionButton
-                          variant={isFollowing ? 'default' : 'primary'}
-                          onClick={handleFollow}
-                          disabled={isFollowLoading}
-                        >
-                          {isFollowing ? (
-                            <>
-                              <MsIcon
-                                name="how_to_reg"
-                                size={16}
-                                className="mr-1.5 inline"
+                            编辑资料
+                          </SettingsActionButton>
+                          <SettingsActionButton
+                            variant="primary"
+                            onClick={() => coverInputRef.current?.click()}
+                            disabled={uploadingKind !== null}
+                          >
+                            <MsIcon name="image" size={18} />
+                            {uploadingKind === 'cover' ? '上传中…' : '更换背景'}
+                          </SettingsActionButton>
+                          {pageCoverUrl ? (
+                            <div
+                              className={cn(
+                                'internal-profile-hero__cover-switch',
+                                !coverBgEnabled &&
+                                  'internal-profile-hero__cover-switch--off',
+                              )}
+                            >
+                              <MaterialSwitch
+                                checked={coverBgEnabled}
+                                onCheckedChange={handleCoverBgToggle}
+                                size="sm"
+                                showIcons
+                                checkedIcon={<SunIcon />}
+                                uncheckedIcon={<MoonIcon />}
+                                haptic="light"
+                                aria-label={
+                                  coverBgEnabled
+                                    ? '关闭页面封面氛围'
+                                    : '开启页面封面氛围'
+                                }
                               />
-                              已关注
-                            </>
-                          ) : (
-                            <>
-                              <MsIcon
-                                name="person_add"
-                                size={16}
-                                className="mr-1.5 inline"
-                              />
-                              关注
-                            </>
-                          )}
-                        </SettingsActionButton>
-                        <SettingsActionButton
-                          onClick={() =>
-                            navigate(`/messages/${displayUser?.id}`)
-                          }
-                          aria-label="发消息"
-                        >
-                          <MsIcon
-                            name={STITCH_PROFILE_ICONS.message}
-                            size={16}
-                          />
-                        </SettingsActionButton>
-                      </>
-                    )}
+                            </div>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          <SettingsActionButton
+                            variant={isFollowing ? 'default' : 'primary'}
+                            onClick={handleFollow}
+                            disabled={isFollowLoading}
+                          >
+                            <MsIcon
+                              name={isFollowing ? 'how_to_reg' : 'person_add'}
+                              size={18}
+                            />
+                            {isFollowing ? '已保存' : '保存联系人'}
+                          </SettingsActionButton>
+                          <SettingsActionButton
+                            onClick={() =>
+                              navigate(`/messages/${displayUser?.id}`)
+                            }
+                          >
+                            <MsIcon
+                              name={STITCH_PROFILE_ICONS.message}
+                              size={18}
+                            />
+                            发消息
+                          </SettingsActionButton>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </section>
 
                 {contentTab === 'profile' ? (
                   <>
-                    <section className="internal-profile-metrics-row">
+                    <section
+                      className="internal-profile-overview liquid-glass-surface"
+                      aria-label="个人概览"
+                    >
                       <button
                         type="button"
                         onClick={() => gotoFollowList('following')}
-                        className="internal-profile-metrics-row__cell"
+                        className="internal-profile-overview__item"
                       >
-                        <span className="internal-profile-metrics-row__value">
-                          {followCounts.following}
+                        <span className="internal-profile-overview__icon internal-profile-overview__icon--indigo">
+                          <MsIcon name="person" size={24} />
                         </span>
-                        <span className="internal-profile-metrics-row__label">
-                          关注
+                        <span>
+                          <small>我保存的人</small>
+                          <strong>{followCounts.following}</strong>
                         </span>
                       </button>
                       <button
                         type="button"
                         onClick={() => gotoFollowList('followers')}
-                        className="internal-profile-metrics-row__cell"
+                        className="internal-profile-overview__item"
                       >
-                        <span className="internal-profile-metrics-row__value">
-                          {followCounts.followers}
+                        <span className="internal-profile-overview__icon internal-profile-overview__icon--blue">
+                          <MsIcon name={STITCH_PROFILE_ICONS.group} size={24} />
                         </span>
-                        <span className="internal-profile-metrics-row__label">
-                          粉丝
+                        <span>
+                          <small>愿意协作的人</small>
+                          <strong>{followCounts.followers > 0 ? '有' : '无'}</strong>
                         </span>
                       </button>
-                      <div className="internal-profile-metrics-row__cell">
-                        <MsIcon
-                          name={STITCH_PROFILE_ICONS.verified}
-                          size={22}
-                          className="text-[var(--internal-accent)]"
-                        />
-                        <span className="internal-profile-metrics-row__label">
-                          {certLabel[level]}
+                      <button
+                        type="button"
+                        onClick={() => navigate('/cert-center')}
+                        className="internal-profile-overview__item"
+                      >
+                        <span className="internal-profile-overview__icon internal-profile-overview__icon--violet">
+                          <MsIcon name={STITCH_PROFILE_ICONS.verified} size={23} />
                         </span>
-                        {promo ? (
-                          <div className="internal-profile-metrics-row__progress">
+                        <span>
+                          <small>信誉</small>
+                          <strong>{creditScore}</strong>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/orders')}
+                        className="internal-profile-overview__item"
+                      >
+                        <span className="internal-profile-overview__icon internal-profile-overview__icon--green">
+                          <MsIcon name="task_alt" size={24} />
+                        </span>
+                        <span>
+                          <small>已完成</small>
+                          <strong>{completedOrders}</strong>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/my-bids')}
+                        className="internal-profile-overview__item internal-profile-overview__item--capacity"
+                      >
+                        <span className="internal-profile-overview__icon internal-profile-overview__icon--orange">
+                          <MsIcon name="calendar_month" size={23} />
+                        </span>
+                        <span>
+                          <small>本月承接容量</small>
+                          <strong>{snatchCredits}/3</strong>
+                          <span className="internal-profile-overview__progress">
                             <div
-                              className="internal-profile-metrics-row__progress-bar"
-                              style={{ width: `${promoProgress}%` }}
+                              style={{
+                                width: `${Math.min(100, (snatchCredits / 3) * 100)}%`,
+                              }}
                             />
-                          </div>
-                        ) : null}
-                      </div>
+                          </span>
+                        </span>
+                      </button>
                     </section>
 
-                    <section className="internal-profile-grid">
-                      {[
-                        {
-                          icon: STITCH_PROFILE_ICONS.star,
-                          label: '信誉积分',
-                          value:
-                            user?.creditScore ||
-                            certStatus?.creditScore ||
-                            60,
-                        },
-                        {
-                          icon: STITCH_PROFILE_ICONS.bolt,
-                          label: '本月抢单',
-                          value: `${user?.snatchCredits || certStatus?.snatchCredits || 0}/3`,
-                        },
-                        {
-                          icon: STITCH_PROFILE_ICONS.trending,
-                          label: '完成订单',
-                          value:
-                            user?.completedOrders ||
-                            certStatus?.completedOrders ||
-                            0,
-                        },
-                        {
-                          icon: STITCH_PROFILE_ICONS.group,
-                          label: '关注/粉丝比',
-                          value:
-                            followCounts.followers > 0
-                              ? `${Math.round((followCounts.following / Math.max(followCounts.followers, 1)) * 100)}%`
-                              : '0%',
-                        },
-                      ].map((item) => (
-                        <div
-                          key={item.label}
-                          className="internal-profile-grid__cell"
-                        >
-                          <div className="internal-profile-grid__icon">
-                            <MsIcon name={item.icon} size={18} />
+                    <section className="internal-profile-dashboard">
+                      <div className="internal-profile-dashboard__column">
+                        <article className="internal-profile-panel internal-profile-panel--archive liquid-glass-surface">
+                          <header className="internal-profile-panel__header">
+                            <span className="internal-profile-panel__heading-icon">
+                              <MsIcon name="description" size={20} />
+                            </span>
+                            <h3>服务档案</h3>
+                          </header>
+                          <div className="internal-profile-records">
+                            <button type="button" onClick={() => isMe && setEditDialogOpen(true)}>
+                              <MsIcon name="link" size={17} />
+                              <span>个人简介</span>
+                              <strong>{displayUser?.bio || '暂未填写'}</strong>
+                              {isMe ? <MsIcon name="chevron_right" size={18} /> : null}
+                            </button>
+                            <button type="button" onClick={() => isMe && setEditDialogOpen(true)}>
+                              <MsIcon name="location_on" size={17} />
+                              <span>服务区域</span>
+                              <strong>{profileRegion}</strong>
+                              {isMe ? <MsIcon name="chevron_right" size={18} /> : null}
+                            </button>
+                            <button type="button" onClick={() => navigate('/orders')}>
+                              <MsIcon name="history" size={17} />
+                              <span>服务经验</span>
+                              <strong>已完成 {completedOrders} 次协作</strong>
+                              <MsIcon name="chevron_right" size={18} />
+                            </button>
+                            <button type="button" onClick={() => navigate('/cert-center')}>
+                              <MsIcon name="verified_user" size={17} />
+                              <span>服务特色</span>
+                              <strong>{certLabel[level]} · 信誉 {creditScore}</strong>
+                              <MsIcon name="chevron_right" size={18} />
+                            </button>
                           </div>
-                          <div className="min-w-0">
-                            <p className="internal-profile-grid__label">
-                              {item.label}
-                            </p>
-                            <p className="internal-profile-grid__value">
-                              {item.value}
-                            </p>
+                        </article>
+
+                        <article className="internal-profile-panel internal-profile-panel--certification liquid-glass-surface">
+                          <header className="internal-profile-panel__header">
+                            <span className="internal-profile-panel__heading-icon">
+                              <MsIcon name="workspace_premium" size={20} />
+                            </span>
+                            <h3>能力与认证</h3>
+                          </header>
+                          <button
+                            type="button"
+                            className="internal-profile-certificate"
+                            onClick={() => navigate('/cert-center')}
+                          >
+                            <span className="internal-profile-certificate__icon">
+                              <MsIcon name="electric_bolt" size={28} />
+                            </span>
+                            <span>
+                              <strong>{certLabel[level]}</strong>
+                              <small>
+                                {promo
+                                  ? `升级进度 ${promoProgress}%`
+                                  : level === 'NONE'
+                                    ? '完成认证后展示能力凭证'
+                                    : '认证长期有效'}
+                              </small>
+                            </span>
+                            <b>{level === 'NONE' ? '去认证' : '已认证'}</b>
+                            <MsIcon name="chevron_right" size={19} />
+                          </button>
+                        </article>
+                      </div>
+
+                      <div className="internal-profile-dashboard__column">
+                        <article className="internal-profile-panel internal-profile-panel--monthly liquid-glass-surface">
+                          <header className="internal-profile-panel__header">
+                            <span className="internal-profile-panel__heading-icon">
+                              <MsIcon name="bar_chart" size={20} />
+                            </span>
+                            <h3>本月状态</h3>
+                          </header>
+                          <div className="internal-profile-monthly">
+                            <div>
+                              <span>可承接额度</span>
+                              <strong>{snatchCredits}/3 单</strong>
+                            </div>
+                            <span className="internal-profile-monthly__track">
+                              <i
+                                style={{
+                                  width: `${Math.min(100, (snatchCredits / 3) * 100)}%`,
+                                }}
+                              />
+                            </span>
+                            <div>
+                              <span>本月配额</span>
+                              <strong>3 单</strong>
+                            </div>
+                            <div>
+                              <span>已使用额度</span>
+                              <strong>{usedCredits} 单</strong>
+                            </div>
                           </div>
+                        </article>
+
+                        <div className="internal-profile-dashboard__split">
+                          <article className="internal-profile-panel liquid-glass-surface">
+                            <header className="internal-profile-panel__header">
+                              <span className="internal-profile-panel__heading-icon">
+                                <MsIcon name="settings_suggest" size={20} />
+                              </span>
+                              <h3>服务管理</h3>
+                            </header>
+                            <div className="internal-profile-links">
+                              <button type="button" onClick={() => navigate('/my-service-cards')}>
+                                <span><MsIcon name="assignment" size={19} /></span>
+                                <b>服务项目管理</b>
+                                <small>管理服务项目、价格与说明</small>
+                                <MsIcon name="chevron_right" size={18} />
+                              </button>
+                              <button type="button" onClick={() => navigate('/orders')}>
+                                <span><MsIcon name="receipt_long" size={19} /></span>
+                                <b>订单管理</b>
+                                <small>查看与管理我的服务订单</small>
+                                <MsIcon name="chevron_right" size={18} />
+                              </button>
+                              <button type="button" onClick={() => navigate('/settings')}>
+                                <span><MsIcon name="schedule" size={19} /></span>
+                                <b>可服务时间设置</b>
+                                <small>设置服务时间与休息安排</small>
+                                <MsIcon name="chevron_right" size={18} />
+                              </button>
+                            </div>
+                          </article>
+
+                          <article className="internal-profile-panel liquid-glass-surface">
+                            <header className="internal-profile-panel__header internal-profile-panel__header--orange">
+                              <span className="internal-profile-panel__heading-icon">
+                                <MsIcon name="star" size={20} filled />
+                              </span>
+                              <h3>评价与信誉</h3>
+                            </header>
+                            <div className="internal-profile-links internal-profile-links--orange">
+                              <button type="button" onClick={() => navigate('/orders')}>
+                                <span><MsIcon name="star_outline" size={19} /></span>
+                                <b>客户评价</b>
+                                <small>从已完成订单查看评价</small>
+                                <MsIcon name="chevron_right" size={18} />
+                              </button>
+                              <button type="button" onClick={() => navigate('/cert-center')}>
+                                <span><MsIcon name="verified_user" size={19} /></span>
+                                <b>信誉记录</b>
+                                <small>信誉 {creditScore}，查看规则说明</small>
+                                <MsIcon name="chevron_right" size={18} />
+                              </button>
+                              <button type="button" onClick={() => navigate('/help')}>
+                                <span><MsIcon name="history" size={19} /></span>
+                                <b>平台规则</b>
+                                <small>查看服务与申诉规则</small>
+                                <MsIcon name="chevron_right" size={18} />
+                              </button>
+                            </div>
+                          </article>
                         </div>
-                      ))}
+                      </div>
                     </section>
                   </>
                 ) : null}
 
                 {contentTab === 'favorites' && isMe ? (
-                  <section className="internal-profile-favorites">
+                  <section className="internal-profile-favorites liquid-glass-surface">
                     <div className="internal-profile-favorites__bar">
                       <SettingsActionButton
                         onClick={() => setContentTab('profile')}
@@ -783,86 +929,12 @@ export default function Profile() {
             </div>
 
             {isMe ? (
-              <nav className="internal-profile-rail" aria-label="个人中心导航">
-                {/* 消息在主侧栏；订单/认证/钱包等嵌在「我的」右侧轨 */}
-                {[
-                  {
-                    icon: STITCH_PROFILE_ICONS.orders,
-                    label: '订单',
-                    path: '/orders',
-                  },
-                  {
-                    icon: STITCH_PROFILE_ICONS.demands,
-                    label: '需求',
-                    path: '/my-demands',
-                  },
-                  {
-                    icon: 'gavel',
-                    label: '应标',
-                    path: '/my-bids',
-                  },
-                  {
-                    icon: 'receipt_long',
-                    label: '钱包',
-                    path: '/transactions',
-                  },
-                  {
-                    icon: 'layers',
-                    label: '服务卡',
-                    path: '/my-service-cards',
-                  },
-                  {
-                    icon: STITCH_PROFILE_ICONS.verified,
-                    label: '认证',
-                    path: '/cert-center',
-                  },
-                  {
-                    icon: 'notifications',
-                    label: '通知',
-                    path: '/push-settings',
-                  },
-                  {
-                    icon: 'card_giftcard',
-                    label: '福利',
-                    path: '/welfare',
-                  },
-                  {
-                    icon: STITCH_PROFILE_ICONS.favorites,
-                    label: '收藏',
-                    tab: 'favorites' as const,
-                  },
-                  {
-                    icon: STITCH_PROFILE_ICONS.group,
-                    label: '关注',
-                    path: myUser?.id ? `/follows/${myUser.id}` : '/profile',
-                  },
-                  {
-                    icon: STITCH_PROFILE_ICONS.settings,
-                    label: '设置',
-                    path: '/settings',
-                  },
-                ].map((item) => {
-                  const active = item.tab ? contentTab === item.tab : false
-                  return (
-                    <button
-                      key={item.tab || item.path}
-                      type="button"
-                      onClick={() =>
-                        item.tab
-                          ? setContentTab(item.tab)
-                          : navigate(item.path!)
-                      }
-                      className={cn(
-                        'internal-profile-rail__btn',
-                        active && 'internal-profile-rail__btn--active',
-                      )}
-                    >
-                      <MsIcon name={item.icon} size={22} aria-hidden />
-                      <span>{item.label}</span>
-                    </button>
-                  )
-                })}
-              </nav>
+              <ProfileSideRail
+                contentTab={contentTab}
+                setContentTab={setContentTab}
+                navigate={navigate}
+                myUserId={myUser?.id}
+              />
             ) : null}
           </div>
         </div>
@@ -879,5 +951,99 @@ export default function Profile() {
         uploadingKind={uploadingKind}
       />
     </>
+  )
+}
+
+type ProfileRailItem = {
+  icon: string
+  label: string
+  path?: string
+  tab?: 'favorites'
+}
+
+const PROFILE_RAIL_ITEMS: ProfileRailItem[] = [
+  { icon: STITCH_PROFILE_ICONS.orders, label: '订单', path: '/orders' },
+  { icon: 'forum', label: '讨论', path: '/discussions' },
+  { icon: STITCH_PROFILE_ICONS.demands, label: '需求', path: '/my-demands' },
+  { icon: 'gavel', label: '应标', path: '/my-bids' },
+  { icon: 'receipt_long', label: '钱包', path: '/transactions' },
+  { icon: 'layers', label: '服务卡', path: '/my-service-cards' },
+  { icon: STITCH_PROFILE_ICONS.verified, label: '认证', path: '/cert-center' },
+  { icon: 'notifications', label: '通知', path: '/push-settings' },
+  { icon: 'card_giftcard', label: '福利', path: '/welfare' },
+  { icon: STITCH_PROFILE_ICONS.favorites, label: '收藏', tab: 'favorites' },
+  { icon: STITCH_PROFILE_ICONS.group, label: '联系人' },
+  { icon: STITCH_PROFILE_ICONS.settings, label: '设置', path: '/settings' },
+]
+
+/** 个人中心右侧轨：默认向上收纳；展开用 CSS grid，避免 height+backdrop 卡顿/灰条 */
+function ProfileSideRail({
+  contentTab,
+  setContentTab,
+  navigate,
+  myUserId,
+}: {
+  contentTab: 'profile' | 'favorites'
+  setContentTab: (tab: 'profile' | 'favorites') => void
+  navigate: ReturnType<typeof useNavigate>
+  myUserId?: string
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <nav
+      className={cn(
+        'internal-profile-rail',
+        open ? 'internal-profile-rail--open' : 'internal-profile-rail--collapsed',
+      )}
+      aria-label="个人中心导航"
+    >
+      <div className="internal-profile-rail__body">
+        <div className="internal-profile-rail__body-inner liquid-glass-surface">
+          {PROFILE_RAIL_ITEMS.map((item) => {
+            const path =
+              item.label === '联系人'
+                ? myUserId
+                  ? `/follows/${myUserId}`
+                  : '/profile'
+                : item.path
+            const active = item.tab ? contentTab === item.tab : false
+            return (
+              <button
+                key={item.tab || path}
+                type="button"
+                onClick={() => {
+                  if (item.tab) setContentTab(item.tab)
+                  else if (path) navigate(path)
+                  setOpen(false)
+                }}
+                className={cn(
+                  'internal-profile-rail__btn',
+                  active && 'internal-profile-rail__btn--active',
+                )}
+              >
+                <MsIcon name={item.icon} size={22} aria-hidden />
+                <span>{item.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        className="internal-profile-rail__toggle liquid-glass-surface"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={open ? '向上收纳导航' : '展开导航'}
+      >
+        <MsIcon
+          name={open ? 'keyboard_arrow_up' : 'expand_less'}
+          size={20}
+          aria-hidden
+        />
+        <span>{open ? '收纳' : '菜单'}</span>
+      </button>
+    </nav>
   )
 }

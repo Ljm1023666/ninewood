@@ -3,6 +3,7 @@
  * 方案 B: 左 1/3 控件 + 右 2/3 数据分析
  */
 import { useEffect, useState } from 'react'
+import '@/styles/tax-visualizer.css'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { InternalPageShell } from '@/components/layout/internal-ui'

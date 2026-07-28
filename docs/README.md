@@ -23,8 +23,8 @@
 |------|------|
 | [DEMAND-SERVICE-CARD-ADR.md](./specs/DEMAND-SERVICE-CARD-ADR.md) | 需求卡 vs 服务卡边界、附件快照、经验聚合 |
 | [NATURAL-LOOP-V2-ADR.md](./specs/NATURAL-LOOP-V2-ADR.md) | 自然回 V2：统一回中心与可验证运行（**现行**） |
-| [ORDER-TRANSACTION-TRUST-ADR.md](./specs/ORDER-TRANSACTION-TRUST-ADR.md) | 交易可信度：部分完成双方确认、资金幂等与并发（**Proposed**） |
-| [PRODUCT-TIME-SOVEREIGNTY-ENGINEERING-SPEC.md](./specs/PRODUCT-TIME-SOVEREIGNTY-ENGINEERING-SPEC.md) | 产品时间主权：反注意力、用户主权推送、结果优先与完成后淡出工程规格（**Accepted**；Phase 0 已完成） |
+| [ORDER-TRANSACTION-TRUST-ADR.md](./specs/ORDER-TRANSACTION-TRUST-ADR.md) | 交易可信度：部分完成双方确认、资金幂等与并发（**Accepted**） |
+| [PRODUCT-TIME-SOVEREIGNTY-ENGINEERING-SPEC.md](./specs/PRODUCT-TIME-SOVEREIGNTY-ENGINEERING-SPEC.md) | 产品时间主权（**Accepted**；Phase 0–1B 已落地；Quiet/费用/度量仍待后续 Phase） |
 | [PRODUCT-TIME-SOVEREIGNTY-REVIEW-CHECKLIST.md](./specs/PRODUCT-TIME-SOVEREIGNTY-REVIEW-CHECKLIST.md) | 时间主权 PR/设计评审勾选模板 |
 | [PRODUCT-TIME-SOVEREIGNTY-PHASE0-BASELINE.md](./specs/PRODUCT-TIME-SOVEREIGNTY-PHASE0-BASELINE.md) | Phase 0 只读聚合基线（PushPreference/Short/Follow/CardPool/snatch） |
 | [AGENT-COGNITIVE-MODEL.md](./specs/AGENT-COGNITIVE-MODEL.md) | Agent 四层认知与 Plan/Report |

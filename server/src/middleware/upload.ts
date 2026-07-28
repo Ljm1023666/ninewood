@@ -7,6 +7,7 @@ import { config } from '../config.js';
 import fs from 'fs';
 
 import { Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'crypto';
 
 
 
@@ -54,7 +55,7 @@ const storage = multer.diskStorage({
 
     const ext = path.extname(file.originalname);
 
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
+    const name = `${Date.now()}-${randomUUID()}${ext.toLowerCase()}`;
 
     cb(null, name);
 
@@ -92,7 +93,7 @@ export const upload = multer({
 
   fileFilter,
 
-  limits: { fileSize: 500 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024, files: 10, fields: 30 },
 
 });
 

@@ -8,6 +8,7 @@ import { startTimeLimitReminderCron } from './time-limit-reminder.js';
 import { startAgentTaskScheduler } from './agent-task-scheduler.js';
 import { runLifecycleCron } from '../services/card-lifecycle.js';
 import { startHeavenScheduler } from '../services/loop/heaven-runner.service.js';
+import { startOutcomeRetentionCron } from './outcome-retention.js';
 
 export function startAllCronJobs() {
   startFreezeDemandsCron();
@@ -22,6 +23,7 @@ export function startAllCronJobs() {
   startAgentTaskScheduler();
   // 自然回·天回：平台内置自动能力按周期自动运行并写入 /loops（NATURAL-LOOP-NAVIGATION-DOWNGRADE）
   startHeavenScheduler();
+  startOutcomeRetentionCron();
   // AI 2.8: 卡池生命周期 — 每 6 小时
   setInterval(() => {
     runLifecycleCron().catch(err => console.error('[Cron] Lifecycle failed:', err));

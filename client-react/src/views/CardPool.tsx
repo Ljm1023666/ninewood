@@ -1,5 +1,13 @@
 import { MapPin } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { useNavigate } from 'react-router-dom'
@@ -37,8 +45,6 @@ import {
   ChildBlackCardGrid,
   AnimatedScopeCount,
 } from '@/components/card-pool/browse-black-cards'
-import { PackOpeningAnimation } from '@/components/card-pool/PackOpeningAnimation'
-import { PackGalleryProvider } from '@/components/card-pool/pack-gallery-runtime'
 import {
   dragSurfaceSelectNoneClass,
   preventCopyOnDragSurface,
@@ -55,6 +61,9 @@ import {
 } from '@/components/card-pool/useCardPoolShared'
 
 const PAGE = 24
+const PackOpeningExperience = lazy(
+  () => import('@/components/card-pool/PackOpeningExperience'),
+)
 
 export default function CardPool() {
   const navigate = useNavigate()
@@ -479,7 +488,7 @@ export default function CardPool() {
   }
 
   return (
-    <PackGalleryProvider packOpening={!!packOpening}>
+    <>
     {!packOpening ? (
     <div className="card-pool-stitch relative z-[1] flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden">
       <header className="card-pool-stitch__header flex shrink-0 items-center gap-3">
@@ -616,13 +625,21 @@ export default function CardPool() {
     ) : null}
 
     {packOpening ? (
-      <PackOpeningAnimation
-        cards={packOpening.cards}
-        galleryCacheKey={packOpening.cacheKey}
-        galleryScope={packOpening.scope}
-        onClose={() => setPackOpening(null)}
-      />
+      <Suspense
+        fallback={
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="loader" />
+          </div>
+        }
+      >
+        <PackOpeningExperience
+          cards={packOpening.cards}
+          galleryCacheKey={packOpening.cacheKey}
+          galleryScope={packOpening.scope}
+          onClose={() => setPackOpening(null)}
+        />
+      </Suspense>
     ) : null}
-    </PackGalleryProvider>
+    </>
   )
 }

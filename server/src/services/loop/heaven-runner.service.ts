@@ -9,6 +9,7 @@
 // - 不改变原有业务表（订单/认证/福利/圈子）的任何状态：天回只“检测并上报”，
 //   真正的事务性变更仍由各 cron / 影子钩子负责（宪法 #5：影子优先、不改主流程）。
 import { prisma } from '../../lib/prisma.js';
+import { withSchedulerLease } from '../scheduler-lease.service.js';
 import type { Prisma } from '@prisma/client';
 import {
   LoopKind,
@@ -548,7 +549,7 @@ export function startHeavenScheduler(): void {
 
   for (const cap of HEAVEN_CAPABILITIES) {
     const tick = () => {
-      runHeavenCapability(cap.code).catch((err) =>
+      withSchedulerLease(`heaven:${cap.code}`, Math.max(cap.intervalMs, 60_000), () => runHeavenCapability(cap.code)).catch((err) =>
         console.error(`[Heaven] ${cap.code} 运行失败:`, err?.message || err),
       );
     };

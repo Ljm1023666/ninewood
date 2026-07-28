@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
+import '@/styles/wallet.css'
 import { useNavigate } from 'react-router-dom'
 import { BackButton } from '@/components/ui/back-button'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
@@ -145,14 +147,11 @@ export default function Wallet() {
               <span className="wallet-hero__unit">点</span>
             </div>
             <div className="wallet-hero__actions">
-              <button
-                type="button"
-                className="wallet-btn-primary"
+              {/* 主 CTA：全局选择按钮标准（液态金属） */}
+              <LiquidMetalButton
+                label="充值点数（开发）"
                 onClick={() => toast('开发期暂不支持充值', 'info')}
-              >
-                <MsIcon name="add_circle" size={20} aria-hidden />
-                充值点数（开发）
-              </button>
+              />
               <button
                 type="button"
                 className="wallet-btn-secondary"

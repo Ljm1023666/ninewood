@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DateWheelPicker } from '@/components/ui/date-wheel-picker'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { cn } from '@/lib/utils'
 import { Cake, Camera } from 'lucide-react'
 
@@ -243,14 +244,13 @@ export function ProfileEditDialog({
         </div>
 
         <footer className="profile-edit-dialog__footer">
-          <button
-            type="submit"
-            form={`profile-edit-form-${id}`}
-            className="profile-edit-dialog__save"
+          <LiquidMetalButton
+            label={saving ? '保存中...' : '保存'}
+            fullWidth
+            active={Boolean(nickname.trim())}
             disabled={!nickname.trim() || saving}
-          >
-            {saving ? '保存中...' : '保存'}
-          </button>
+            onClick={() => void handleSave()}
+          />
         </footer>
       </DialogContent>
     </Dialog>

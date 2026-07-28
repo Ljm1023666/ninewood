@@ -19,6 +19,7 @@ import {
   resolveDemandCardCoverDetailUrl,
 } from '@/utils/user-cover-presets'
 import { AcetUnapologeticButton } from '@/components/ui/tailwindcss-buttons-variants'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { useUserStore } from '@/stores/user'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { usePersistedGlobalHand } from '@/components/card-pool/usePersistedGlobalHand'
@@ -655,14 +656,12 @@ function RequestPanel({ demandId }: { demandId: string }) {
       />
       {error ? <p className="demand-detail-action-panel__error">{error}</p> : null}
       <div className="demand-detail-action-panel__actions">
-        <button
-          type="button"
+        <LiquidMetalButton
+          label={loading ? '提交中...' : '提交申请'}
+          height={40}
           disabled={loading || !message.trim()}
           onClick={submit}
-          className="demand-detail-action-panel__submit"
-        >
-          {loading ? '提交中...' : '提交申请'}
-        </button>
+        />
       </div>
     </DemandActionPanel>
   )
@@ -716,14 +715,12 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
               </p>
               <p className="demand-detail-action-panel__list-msg">{a.message}</p>
             </div>
-            <div className="flex shrink-0 gap-2">
-              <button
-                type="button"
+            <div className="flex shrink-0 items-center gap-2">
+              <LiquidMetalButton
+                label="接受"
+                height={30}
                 onClick={() => accept(a.id)}
-                className="demand-detail-action-panel__accept"
-              >
-                接受
-              </button>
+              />
               <button
                 type="button"
                 onClick={() => reject(a.id)}
@@ -779,13 +776,12 @@ function InProgressPanel({ demand, userId }: { demand: any; userId?: string }) {
       {isReady ? (
         <div className="demand-detail-action-panel__stack">
           {isOwner && status === 'IN_PROGRESS' && !order.paidAt && (
-            <button
-              type="button"
+            <LiquidMetalButton
+              label="去支付"
+              fullWidth
+              height={44}
               onClick={() => navigate(`/payment/${order.id}`)}
-              className="demand-detail-action-panel__submit demand-detail-action-panel__submit--block"
-            >
-              去支付
-            </button>
+            />
           )}
           <button
             type="button"

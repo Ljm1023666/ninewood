@@ -22,6 +22,7 @@ import {
   Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
+  MessagesSquare,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -54,6 +55,7 @@ const NAV_MAIN: {
   { path: '/card-pool', icon: Layers, label: '卡池', tone: 'default' },
   { path: '/publish', icon: FileText, label: '发布', tone: 'publish' },
   { path: '/circles', icon: Users, label: '圈子', tone: 'default' },
+  { path: '/discussions', icon: MessagesSquare, label: '讨论', tone: 'default' },
   { path: '/loops', icon: Orbit, label: '回', tone: 'loop' },
 ]
 
@@ -162,47 +164,47 @@ export default function Sidebar() {
       {curtainElement}
       <aside
         className={cn(
-          'app-sidebar sidebar sidebar-ct-accent liquid-glass-surface relative z-10 flex shrink-0 flex-col items-stretch border-r-0 py-5',
+          'app-sidebar sidebar sidebar-ct-accent liquid-glass-surface relative z-10 flex shrink-0 flex-col items-stretch border-r-0 py-3',
           expanded && 'app-sidebar--expanded',
         )}
         onMouseEnter={expandSidebar}
         onMouseLeave={scheduleCollapse}
       >
-        {/* Logo：图标槽固定 72px，品牌名只在右侧淡入 */}
+        {/* Logo：图标槽固定，品牌名只在右侧淡入 */}
         <button
           type="button"
           onClick={() => navigate(user ? '/card-pool' : '/')}
-          className="app-sidebar__row mb-6 flex h-14 w-full shrink-0 items-center rounded-xl bg-[var(--accent-ghost)] transition-colors hover:bg-[var(--accent-muted)]"
+          className="app-sidebar__row mb-3 flex h-11 w-full shrink-0 items-center rounded-lg bg-[var(--accent-ghost)] transition-colors hover:bg-[var(--accent-muted)]"
           aria-label={user ? '卡池工作台' : '九木首页'}
         >
           <span className="app-sidebar__icon-slot flex shrink-0 items-center justify-center">
-            <span className="text-[28px] font-black tracking-tight text-[var(--accent-color)]">
+            <span className="text-[22px] font-black tracking-tight text-[var(--accent-color)]">
               N
             </span>
           </span>
-          <span className="app-sidebar__side-label text-[15px] font-semibold text-[var(--text-primary)]">
+          <span className="app-sidebar__side-label text-[13px] font-semibold text-[var(--text-primary)]">
             九木
           </span>
         </button>
 
         <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden">
-          <nav className="flex w-full flex-col gap-2" aria-label="助手">
+          <nav className="flex w-full flex-col gap-0.5" aria-label="助手">
             {NAV_ASSISTANT.map((item) => (
               <NavItem key={item.path} {...item} expanded={expanded} />
             ))}
           </nav>
 
-          <div className="app-sidebar__divider my-3 h-px bg-[var(--bg-tertiary)]" />
+          <div className="app-sidebar__divider my-2 h-px bg-[var(--bg-tertiary)]" />
 
-          <nav className="flex w-full flex-col gap-2" aria-label="主区">
+          <nav className="flex w-full flex-col gap-0.5" aria-label="主区">
             {NAV_MAIN.map((item) => (
               <NavItem key={item.path} {...item} expanded={expanded} />
             ))}
           </nav>
 
-          <div className="app-sidebar__divider my-3 h-px bg-[var(--bg-tertiary)]" />
+          <div className="app-sidebar__divider my-2 h-px bg-[var(--bg-tertiary)]" />
 
-          <nav className="flex w-full flex-col gap-2" aria-label="协作">
+          <nav className="flex w-full flex-col gap-0.5" aria-label="协作">
             {NAV_COLLAB.map((item) => (
               <NavItem
                 key={item.path}
@@ -215,21 +217,21 @@ export default function Sidebar() {
             ))}
           </nav>
 
-          <div className="app-sidebar__divider my-3 h-px bg-[var(--bg-tertiary)]" />
+          <div className="app-sidebar__divider my-2 h-px bg-[var(--bg-tertiary)]" />
 
-          <nav className="flex w-full flex-col gap-2" aria-label="账户">
+          <nav className="flex w-full flex-col gap-0.5" aria-label="账户">
             {NAV_ACCOUNT.map((item) => (
               <NavItem key={item.path} {...item} expanded={expanded} />
             ))}
           </nav>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-2 pt-2">
+        <div className="flex shrink-0 flex-col gap-0.5 pt-1">
           <button
             type="button"
             onClick={toggleSidebarPin}
             className={cn(
-              'app-sidebar__row group relative flex h-14 w-full items-center rounded-xl text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--accent-ghost)] hover:text-[var(--text-secondary)]',
+              'app-sidebar__row group relative flex h-11 w-full items-center rounded-lg text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--accent-ghost)] hover:text-[var(--text-secondary)]',
               pinActive && 'bg-[var(--accent-ghost)] text-[var(--accent-color)]',
             )}
             title={pinActive ? '取消固定侧栏' : '固定侧栏'}
@@ -238,41 +240,41 @@ export default function Sidebar() {
           >
             <span className="app-sidebar__icon-slot relative flex shrink-0 flex-col items-center justify-center gap-0.5">
               {pinActive ? (
-                <PanelLeftClose className="size-6" />
+                <PanelLeftClose className="size-5" />
               ) : (
-                <PanelLeftOpen className="size-6" />
+                <PanelLeftOpen className="size-5" />
               )}
               <span
-                className="app-sidebar__stack-label text-[13px] font-medium leading-none"
+                className="app-sidebar__stack-label text-[11px] font-medium leading-none"
                 aria-hidden={expanded}
               >
                 {pinActive ? '取消' : '固定'}
               </span>
             </span>
             <span
-              className="app-sidebar__side-label text-[13px] font-medium"
+              className="app-sidebar__side-label text-[12px] font-medium"
               aria-hidden={!expanded}
             >
               {pinActive ? '取消固定' : '固定侧栏'}
             </span>
           </button>
 
-          <div className="app-sidebar__row flex h-14 w-full items-center text-left">
+          <div className="app-sidebar__row flex h-11 w-full items-center text-left">
             <span className="app-sidebar__icon-slot flex shrink-0 flex-col items-center justify-center gap-0.5">
               <AnimatedThemeToggle
                 isDark={isDark}
                 onToggle={handleThemeToggle}
-                className="size-6 shrink-0 p-0"
+                className="size-5 shrink-0 p-0"
               />
               <span
-                className="app-sidebar__stack-label text-[13px] font-medium leading-none text-[var(--text-muted)]"
+                className="app-sidebar__stack-label text-[11px] font-medium leading-none text-[var(--text-muted)]"
                 aria-hidden={expanded}
               >
                 主题
               </span>
             </span>
             <span
-              className="app-sidebar__side-label text-[13px] font-medium text-[var(--text-muted)]"
+              className="app-sidebar__side-label text-[12px] font-medium text-[var(--text-muted)]"
               aria-hidden={!expanded}
             >
               主题
@@ -282,20 +284,20 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={() => setConfirmLogout(true)}
-            className="app-sidebar__row flex h-14 w-full cursor-pointer items-center rounded-xl text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--error-color)]/10 hover:text-[var(--error-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
+            className="app-sidebar__row flex h-11 w-full cursor-pointer items-center rounded-lg text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--error-color)]/10 hover:text-[var(--error-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
             aria-label="注销"
           >
             <span className="app-sidebar__icon-slot flex shrink-0 flex-col items-center justify-center gap-0.5">
-              <LogOut className="size-6" />
+              <LogOut className="size-5" />
               <span
-                className="app-sidebar__stack-label text-[13px] font-medium leading-none"
+                className="app-sidebar__stack-label text-[11px] font-medium leading-none"
                 aria-hidden={expanded}
               >
                 注销
               </span>
             </span>
             <span
-              className="app-sidebar__side-label text-[13px] font-medium"
+              className="app-sidebar__side-label text-[12px] font-medium"
               aria-hidden={!expanded}
             >
               注销
@@ -340,7 +342,7 @@ function NavItem({
       title={label}
       className={({ isActive }) =>
         cn(
-          'app-sidebar__row group relative flex h-14 w-full items-center rounded-xl',
+          'app-sidebar__row group relative flex h-11 w-full items-center rounded-lg',
           'text-[var(--text-secondary)] transition-[color,background-color,box-shadow] duration-200',
           'hover:bg-[var(--liquid-glass-chip-bg-hover)]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]',
@@ -362,19 +364,19 @@ function NavItem({
             <span className="relative">
               <Icon
                 className={cn(
-                  'size-6 transition-transform duration-200 ease-out group-hover:scale-110',
+                  'size-5 transition-transform duration-200 ease-out group-hover:scale-110',
                   isActive ? 'opacity-100' : 'opacity-70',
                 )}
               />
               {unreadCount !== undefined && unreadCount > 0 && (
-                <span className="absolute -right-2.5 -top-2 flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[var(--error-color)] px-1 text-sm font-bold leading-none text-white shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
+                <span className="absolute -right-2 -top-1.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[var(--error-color)] px-0.5 text-[10px] font-bold leading-none text-white shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </span>
             <span
               className={cn(
-                'app-sidebar__stack-label text-[13px] font-medium leading-none',
+                'app-sidebar__stack-label text-[11px] font-medium leading-none',
                 isActive && 'font-semibold',
               )}
               aria-hidden={expanded}
@@ -383,14 +385,14 @@ function NavItem({
             </span>
             {isActive && (
               <span
-                className="absolute bottom-0.5 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full"
+                className="absolute bottom-0 left-1/2 h-[2px] w-5 -translate-x-1/2 rounded-full"
                 style={{ background: toneColor || 'var(--accent-color)' }}
               />
             )}
           </span>
           <span
             className={cn(
-              'app-sidebar__side-label text-[13px] font-medium leading-none',
+              'app-sidebar__side-label text-[12px] font-medium leading-none',
               isActive && 'font-semibold',
             )}
             aria-hidden={!expanded}

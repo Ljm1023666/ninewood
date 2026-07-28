@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import type { CircleDetailBentoProps } from './circle-detail-types'
 
@@ -262,22 +263,11 @@ export function CircleDetailBentoView({
                   这里还没有开发者发布需求。发布您的第一个需求，通过 3D
                   展示吸引合作搭子。
                 </p>
-                <button
-                  type="button"
+                <LiquidMetalButton
+                  label="立即发布"
                   disabled={joinBusy}
                   onClick={handlePublish}
-                  className="cdb-btn-primary"
-                >
-                  {joinBusy ? (
-                    <MsIcon
-                      name="progress_activity"
-                      size={16}
-                      className="animate-spin"
-                      aria-hidden
-                    />
-                  ) : null}
-                  立即发布
-                </button>
+                />
               </div>
             )}
           </div>

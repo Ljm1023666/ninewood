@@ -460,15 +460,11 @@ export function BoltChatInput({
                 onClick={handleSubmit}
                 disabled={!message.trim()}
                 className={cn(
-                  'flex items-center justify-center text-white transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
+                  'flex items-center justify-center transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40',
                   isCodex
-                    ? 'size-9 rounded-xl bg-[#1a1a1a] hover:bg-black'
-                    : cn(
-                        'gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium',
-                        isLight
-                          ? 'bg-[#3388FF] shadow-[0_2px_12px_rgba(51,136,255,0.25)] hover:bg-[#2a7ae8]'
-                          : 'bg-[#1488fc] shadow-[0_0_20px_rgba(20,136,252,0.3)] hover:bg-[#1a94ff]',
-                      ),
+                    ? 'size-9 rounded-xl bg-[#1a1a1a] text-white hover:bg-black'
+                    : // 发送确认：玻璃选择态，禁止实心蓝
+                      'gap-1.5 rounded-full border border-[var(--liquid-glass-border,rgba(255,255,255,0.2))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.12))] px-3 py-1.5 text-xs font-medium text-text-primary backdrop-blur-md hover:border-[color-mix(in_srgb,var(--color-primary,#2fbbe0)_35%,transparent)]',
                 )}
                 aria-label="发送"
               >

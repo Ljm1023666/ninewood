@@ -1014,6 +1014,17 @@ export const demandService = {
       console.error('[loop-shadow] withdraw hook failed', demandId, err);
     });
 
+    // Phase 2：需求撤回 → Quiet
+    const { quietTaskSafe } = await import('./task-quiet.service.js');
+    quietTaskSafe({
+      resourceType: 'DEMAND',
+      resourceId: demandId,
+      outcomeStatus: 'WITHDRAWN',
+      outcomeSummary: '需求已撤回',
+      userId,
+      nextRequiredAction: null,
+    });
+
     return { ok: true, refund };
   },
 };

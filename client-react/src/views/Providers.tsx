@@ -20,7 +20,7 @@ export default function Providers() {
   const [tag, setTag] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState<'normal' | 'special'>('normal')
   const [tagHistory] = useState<string[]>([
     '出租车司机',
@@ -116,7 +116,12 @@ export default function Providers() {
                   </button>
                 ))}
               </div>
-              <DlpBtnPrimary onClick={() => search(tag)} disabled={!tag.trim() || loading} className="w-full">
+              <DlpBtnPrimary
+                onClick={() => search(tag)}
+                disabled={!tag.trim() || loading}
+                active={Boolean(tag.trim())}
+                className="w-full"
+              >
                 搜索
               </DlpBtnPrimary>
             </div>

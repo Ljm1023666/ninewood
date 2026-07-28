@@ -1195,7 +1195,7 @@ export function PackOpeningAnimation({
               className="absolute bottom-16 left-1/2 z-10 -translate-x-1/2 pointer-events-none text-center"
             >
               <p className="pack-stage-hint font-mono text-xs tracking-widest">
-                滚轮展开底弧 · 点击聚拢卡牌
+                滚轮展开分类 · 点击聚拢卡牌
               </p>
             </PackOpeningMorphHint>
 

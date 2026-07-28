@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Bot, Clock3, Compass, ShieldCheck, Users } from 'lucide-react'
+import { Bot, Clock3, Compass, ShieldCheck, Users } from 'lucide-react'
 import { loopApi, type LoopRecommendationResult } from '@/api/loop'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import {
   createEmptyDemandSession,
   upsertDemandSession,
@@ -79,9 +80,17 @@ export default function LoopDiscoverPage() {
               placeholder="例如：把这段口语化需求整理成结构化字段，并检查路径是否有效"
               rows={4}
             />
-            <button type="submit" disabled={loading || !query.trim()}>
-              {loading ? '正在寻找…' : '寻找合适的回'} <ArrowRight size={17} />
-            </button>
+            {/* 有输入才进入金属描边态；空闲无金属边 */}
+            <LiquidMetalButton
+              label={loading ? '正在寻找…' : '寻找合适的回 →'}
+              disabled={loading || !query.trim()}
+              active={Boolean(query.trim())}
+              fullWidth
+              height={46}
+              onClick={() => {
+                void submit({ preventDefault() {} } as FormEvent)
+              }}
+            />
           </form>
         </header>
 
@@ -117,9 +126,11 @@ export default function LoopDiscoverPage() {
                     <div className="loop-match-reasons">
                       {item.match.reasons.map((reason) => <span key={reason}>{reason}</span>)}
                     </div>
-                    <button type="button" onClick={() => navigate(`/loops/offerings/${item.id}`)}>
-                      查看输入与结果契约 <ArrowRight size={16} />
-                    </button>
+                    <LiquidMetalButton
+                      label="查看输入与结果契约 →"
+                      height={40}
+                      onClick={() => navigate(`/loops/offerings/${item.id}`)}
+                    />
                   </article>
                 ))}
               </div>
@@ -130,7 +141,11 @@ export default function LoopDiscoverPage() {
                 <span><Users size={20} /> 没有可直接执行的地回</span>
                 <h2>把它转为一个待确认的人回</h2>
                 <p>我们已经整理好草稿。下一步仍由你检查和确认，不会自动发布。</p>
-                <button type="button" onClick={continueAsHuman}>检查人回草稿 <ArrowRight size={16} /></button>
+                <LiquidMetalButton
+                  label="检查人回草稿 →"
+                  height={40}
+                  onClick={continueAsHuman}
+                />
               </article>
             )}
           </section>

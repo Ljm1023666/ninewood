@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import '@/styles/agent-codex.css'
 import { cn } from '@/lib/utils'
 
 interface AgentMarkdownProps {

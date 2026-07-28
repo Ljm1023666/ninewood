@@ -258,26 +258,8 @@
   background: rgba(255, 255, 255, 0.08);
 }
 .psa-search__go {
+  /* LiquidMetalButton 自带圆形与描边，勿再套外框/实心底 */
   flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(135deg, var(--violet), var(--cyan));
-  color: #fff;
-  display: grid;
-  place-items: center;
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-  transition: transform 0.2s, opacity 0.2s;
-}
-.psa-search__go:hover {
-  transform: scale(1.06);
-}
-.psa-search__go:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
 }
 
 /* Stat line */

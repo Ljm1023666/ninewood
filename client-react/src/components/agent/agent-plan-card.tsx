@@ -1,4 +1,5 @@
 import { MsIcon } from "@/components/ui/ms-icon"
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button"
 
 export interface AgentPlanStep {
   key: string
@@ -63,13 +64,14 @@ export function AgentPlanCard({
             </button>
           ) : null}
           {onConfirm ? (
-            <button
-              type="button"
-              onClick={onConfirm}
-              className="agent-codex-plan__btn agent-codex-plan__btn--confirm"
-            >
-              确认执行
-            </button>
+            <div className="agent-codex-plan__btn--confirm-slot">
+              <LiquidMetalButton
+                label="确认执行"
+                fullWidth
+                height={32}
+                onClick={onConfirm}
+              />
+            </div>
           ) : null}
         </div>
       ) : null}

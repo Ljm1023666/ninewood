@@ -725,15 +725,17 @@
   width: 100%;
   margin: auto 0 24px;
   padding: 12px;
-  border: none;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.18));
   border-radius: 999px;
-  background: var(--wallet-accent-gradient);
-  color: var(--cs-on-primary-fixed);
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.12));
+  color: var(--text-primary, var(--cs-on-surface));
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 0 20px var(--cs-active-glow);
-  transition: transform 0.2s ease;
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.2));
+  backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .cert-stitch-center-aside__cta:hover {
@@ -919,15 +921,17 @@
 
 .cert-stitch-hero__cta {
   padding: 20px 40px;
-  border: none;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.18));
   border-radius: 999px;
-  background: var(--wallet-accent-gradient);
-  color: var(--cs-on-primary-fixed);
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.12));
+  color: var(--text-primary, var(--cs-on-surface));
   font-size: 18px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 0 20px var(--cs-active-glow);
-  transition: transform 0.2s ease;
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.2));
+  backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .cert-stitch-hero__cta:hover {
@@ -2661,13 +2665,18 @@
 }
 
 .cert-workspace__btn--primary {
-  border-color: transparent;
-  background: var(--accent-color);
-  color: var(--wallet-on-accent, #fff);
+  /* 主 CTA：液态玻璃选择态 */
+  border-color: var(--liquid-glass-border, rgba(255, 255, 255, 0.16));
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary);
+  backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.18));
 }
 
 .cert-workspace__btn--primary:hover:not(:disabled) {
-  background: var(--accent-hover, var(--accent-color));
+  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.12)) 70%, #fff 16%);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 35%, transparent);
 }
 
 .cert-workspace__section-nav {

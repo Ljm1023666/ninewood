@@ -45,7 +45,9 @@ export const reviewService = {
       throw { status: 400, message: '评价内容不能超过 2000 字' };
     }
 
-    const existing = await prisma.review.findUnique({ where: { orderId: params.orderId } });
+    const existing = await prisma.review.findUnique({
+      where: { orderId_reviewerId: { orderId: params.orderId, reviewerId } },
+    });
     if (existing) throw { status: 409, message: '该订单已评价' };
 
     const review = await prisma.review.create({
@@ -70,7 +72,7 @@ export const reviewService = {
       throw { status: 403, message: '无权查看' };
     }
     return prisma.review.findUnique({
-      where: { orderId },
+      where: { orderId_reviewerId: { orderId, reviewerId: userId } },
       include: {
         reviewer: { select: { id: true, nickname: true, avatarUrl: true } },
       },

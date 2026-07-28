@@ -1,27 +1,46 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement>
 
+function labelFromChildren(children: ReactNode): string {
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children)
+  }
+  if (Array.isArray(children)) {
+    return children.map(labelFromChildren).join('')
+  }
+  if (children && typeof children === 'object' && 'props' in children) {
+    return labelFromChildren(
+      (children.props as { children?: ReactNode }).children,
+    )
+  }
+  return ''
+}
+
 // ═══ 标准按钮层级（项目使用这 4 种） ═══
 
-/** 主要操作 — 渐变填充 */
+/** 主要操作 — 全局选择按钮标准（LiquidMetal），禁止实心渐变 */
 export const AcetPrimaryButton = forwardRef<HTMLButtonElement, BtnProps>(
-  ({ className, children, ...rest }, ref) => (
-    <button
-      ref={ref}
-      type="button"
-      className={cn(
-        'h-11 rounded-xl bg-[var(--primary-gradient)] px-6 text-sm font-semibold text-white',
-        'transition-all duration-200 hover:opacity-90 hover:shadow-lg',
-        'active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed',
-        className,
-      )}
-      {...rest}
-    >
-      {children}
-    </button>
-  ),
+  ({ className, children, onClick, disabled }, ref) => {
+    void ref // LiquidMetal 内部自管 button ref；保持 forwardRef 签名兼容
+    const label = labelFromChildren(children).replace(/\s+/g, ' ').trim() || '确定'
+    const fullWidth = /\bw-full\b|\bflex-1\b/.test(className ?? '')
+    return (
+      <LiquidMetalButton
+        label={label}
+        disabled={disabled}
+        fullWidth={fullWidth}
+        height={44}
+        className={cn(className)}
+        onClick={() =>
+          onClick?.({} as React.MouseEvent<HTMLButtonElement>)
+        }
+        aria-label={label}
+      />
+    )
+  },
 )
 AcetPrimaryButton.displayName = 'AcetPrimaryButton'
 

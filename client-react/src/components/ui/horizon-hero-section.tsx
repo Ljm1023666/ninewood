@@ -45,8 +45,8 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     {
       title: '发现',
       subtitle: {
-        line1: '探索创意的边界，',
-        line2: '发现无限可能',
+        line1: '按意图寻找方案，',
+        line2: '发现可执行的路径',
       },
     },
     {

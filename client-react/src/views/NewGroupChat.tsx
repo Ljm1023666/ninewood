@@ -95,7 +95,11 @@ export default function NewGroupChat() {
       subtitle="选择联系人创建合并会话"
       flush
       actions={
-        <DlpBtnPrimary onClick={handleDone} disabled={selected.length === 0}>
+        <DlpBtnPrimary
+          onClick={handleDone}
+          disabled={selected.length === 0}
+          active={selected.length > 0}
+        >
           {selected.length <= 1 ? '完成' : `下一步 (${selected.length})`}
         </DlpBtnPrimary>
       }

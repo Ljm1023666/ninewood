@@ -2,19 +2,20 @@ import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router
 import { lazy, Suspense, type ReactNode } from 'react'
 import Layout from '@/components/layout/Layout'
 import { BentoAppShell } from '@/components/layout/BentoAppShell'
-import Profile from '@/views/Profile'
-import Settings from '@/views/Settings'
 import { useUserStore } from '@/stores/user'
 import { migrateLegacyLoopUrl } from './loop-route-migration'
 import { CardPoolPageSkeleton } from '@/components/card-pool/CardPoolPageSkeleton'
 
 const MessagesLayout = lazy(() => import('@/views/MessagesLayout'))
 const LoginPage = lazy(() => import('@/views/Login'))
+const Profile = lazy(() => import('@/views/Profile'))
+const Settings = lazy(() => import('@/views/Settings'))
 const ChatDetail = lazy(() => import('@/views/ChatDetail'))
 const MessagesIndexPlaceholder = lazy(
   () => import('@/views/MessagesIndexPlaceholder'),
 )
 const Circles = lazy(() => import('@/views/Circles'))
+const Discussions = lazy(() => import('@/views/Discussions'))
 const CircleHubLayout = lazy(() => import('@/views/circle-hub/CircleHubLayout'))
 const CircleHubHome = lazy(() => import('@/views/circle-hub/CircleHubHome'))
 const CircleHubCommunity = lazy(() => import('@/views/circle-hub/CircleHubCommunity'))
@@ -316,6 +317,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: 'discussions',
+            element: (
+              <LazyLoad>
+                <Discussions />
+              </LazyLoad>
+            ),
+          },
+          {
             path: 'help/docs',
             element: (
               <LazyLoad>
@@ -331,7 +340,14 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
-          { path: 'profile/:id?', element: <Profile /> },
+          {
+            path: 'profile/:id?',
+            element: (
+              <LazyLoad>
+                <Profile />
+              </LazyLoad>
+            ),
+          },
           {
             path: 'follows/:userId',
             element: (
@@ -340,7 +356,14 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
           },
-          { path: 'settings', element: <Settings /> },
+          {
+            path: 'settings',
+            element: (
+              <LazyLoad>
+                <Settings />
+              </LazyLoad>
+            ),
+          },
           {
             path: 'providers',
             element: (

@@ -85,8 +85,15 @@ export interface LiquidMetalButtonProps {
   radius?: number
   icon?: React.ReactNode
   disabled?: boolean
+  /**
+   * 选中/按下强调态：加粗文字、提高描边亮度/动效强度。
+   * 不控制描边是否出现——描边由 metalGlow 决定，默认空闲也常驻。
+   */
   active?: boolean
-  /** 为 false 时不渲染金属 shader（用于分段 Tab 未选中项） */
+  /**
+   * 是否渲染金属 shader 描边。默认 true：空闲态即常驻铬/金属折射描边
+   * （金标准：`PublishPage`「开始用 AI 整理」）。传 false 才隐藏。
+   */
   metalGlow?: boolean
   fullWidth?: boolean
   height?: number
@@ -94,6 +101,7 @@ export interface LiquidMetalButtonProps {
   role?: React.AriaRole
   'aria-label'?: string
   'aria-selected'?: boolean
+  tabIndex?: number
 }
 
 export function LiquidMetalButton({
@@ -112,17 +120,17 @@ export function LiquidMetalButton({
   role,
   'aria-label': ariaLabel,
   'aria-selected': ariaSelected,
+  tabIndex,
 }: LiquidMetalButtonProps) {
   const isLight = useThemeStore((s) => !s.current.dark)
   const resolvedShape = shape ?? 'pill'
-  // 参考 preset：窄胶囊用 circle；全宽分段 Tab 用 none + 100px 圆角
-  const shaderShape =
-    resolvedShape === 'pill'
-      ? fullWidth
-        ? LiquidMetalShapes.none
-        : LiquidMetalShapes.circle
-      : LiquidMetalShapes.none
-  const borderRadius = resolveBorderRadius(resolvedShape, height, radius)
+  // 一律用 none + CSS 圆角裁切（金标准同款），icon 圆钮也走这条路径；
+  // 旧 LiquidMetalShapes.circle 在小尺寸上描边发虚，看起来像「白边旧按钮」。
+  const shaderShape = LiquidMetalShapes.none
+  const borderRadius =
+    viewMode === 'icon'
+      ? height / 2
+      : resolveBorderRadius(resolvedShape, height, radius)
 
   const [isHovered, setIsHovered] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
@@ -167,7 +175,10 @@ export function LiquidMetalButton({
   )
 
   const roundedStyle = `${dimensions.borderRadius}px`
-  const showMetalGlow = metalGlow
+  // metalGlow=true（默认）即常驻描边；active/isPressed 只提升强调程度，不再决定是否出现
+  const allowMetal = Boolean(metalGlow)
+  const showMetalGlow = allowMetal
+  const emphasize = active || isPressed
   const shaderUniforms = useMemo(
     () => buildShaderUniforms(isLight, shaderShape),
     [isLight, shaderShape],
@@ -204,6 +215,7 @@ export function LiquidMetalButton({
   }, [])
 
   useEffect(() => {
+    // metalGlow=false 时释放 Shader，避免隐藏 canvas 空转 rAF
     if (!showMetalGlow || !shaderRef.current || dimensions.width <= 0) {
       shaderMount.current?.dispose()
       shaderMount.current = null
@@ -216,14 +228,14 @@ export function LiquidMetalButton({
       liquidMetalFragmentShader,
       shaderUniforms,
       undefined,
-      active ? 1 : 0.6,
+      1,
     )
 
     return () => {
       shaderMount.current?.dispose()
       shaderMount.current = null
     }
-  }, [dimensions.width, dimensions.height, shaderShape, showMetalGlow, active, shaderUniforms])
+  }, [dimensions.width, dimensions.height, shaderShape, showMetalGlow, shaderUniforms])
 
   useEffect(() => {
     if (!showMetalGlow) return
@@ -231,18 +243,15 @@ export function LiquidMetalButton({
   }, [shaderUniforms, showMetalGlow])
 
   useEffect(() => {
+    // 空闲态也保持低速常驻流光，不再冻结；hover/按下时提速强调
     if (!showMetalGlow) return
-    if (active) {
-      shaderMount.current?.setSpeed(1)
-    } else if (!isHovered) {
-      shaderMount.current?.setSpeed(0.6)
-    }
-  }, [active, isHovered, showMetalGlow])
+    shaderMount.current?.setSpeed(isHovered || emphasize ? 1 : 0.6)
+  }, [emphasize, isHovered, showMetalGlow])
 
   const handleMouseEnter = () => {
     if (disabled) return
     setIsHovered(true)
-    if (showMetalGlow) {
+    if (allowMetal) {
       shaderMount.current?.setSpeed(1)
     }
   }
@@ -250,7 +259,7 @@ export function LiquidMetalButton({
   const handleMouseLeave = () => {
     setIsHovered(false)
     setIsPressed(false)
-    if (showMetalGlow) {
+    if (allowMetal) {
       shaderMount.current?.setSpeed(active ? 1 : 0.6)
     }
   }
@@ -258,7 +267,7 @@ export function LiquidMetalButton({
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled) return
 
-    if (showMetalGlow) {
+    if (allowMetal) {
       shaderMount.current?.setSpeed(2.4)
       setTimeout(() => {
         if (isHovered || active) {
@@ -284,9 +293,11 @@ export function LiquidMetalButton({
     onClick?.()
   }
 
-  const contentColor = active
-    ? 'var(--internal-text, var(--text-primary, #e8e8e8))'
-    : 'var(--internal-text-secondary, var(--text-secondary, #888888))'
+  // 分段未选中用次要色；主 CTA / 选中 / 按下用主文字色
+  const contentColor =
+    emphasize || role !== 'tab'
+      ? 'var(--internal-text, var(--text-primary, #e8e8e8))'
+      : 'var(--internal-text-secondary, var(--text-secondary, #888888))'
   const iconNode = icon ?? <Sparkles size={16} />
   const pressTransform = isPressed
     ? 'translateY(1px) scale(0.98)'
@@ -353,30 +364,21 @@ export function LiquidMetalButton({
           />
         </div>
 
-        {/* 中间液态玻璃芯（不用 translateZ，否则 backdrop-filter 失效并易在圆角端断裂） */}
+        {/* 中间液态玻璃芯 */}
         <div
           className={cn(
-            showMetalGlow
-              ? cn(
-                  'liquid-metal-button__glass-core',
-                  active && 'liquid-metal-button__glass-core--active',
-                  isPressed && 'liquid-metal-button__glass-core--pressed',
-                )
-              : undefined,
+            'liquid-metal-button__glass-core',
+            emphasize && 'liquid-metal-button__glass-core--active',
+            isPressed && 'liquid-metal-button__glass-core--pressed',
           )}
           style={{
             position: 'absolute',
-            inset: showMetalGlow ? undefined : 0,
+            inset: 2,
             zIndex: 20,
             pointerEvents: 'none',
             borderRadius: roundedStyle,
             transform: pressTransform,
             transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-            background: showMetalGlow
-              ? undefined
-              : isHovered
-                ? 'var(--internal-hover, rgba(255, 255, 255, 0.03))'
-                : 'transparent',
           }}
         />
 
@@ -413,7 +415,7 @@ export function LiquidMetalButton({
               style={{
                 fontSize: 'var(--lm-label-size, 14px)',
                 color: contentColor,
-                fontWeight: active ? 600 : 500,
+                fontWeight: emphasize ? 600 : 500,
                 textShadow: 'var(--lm-text-shadow)',
                 whiteSpace: 'nowrap',
               }}
@@ -449,6 +451,7 @@ export function LiquidMetalButton({
           aria-pressed={active || undefined}
           aria-selected={ariaSelected}
           role={role}
+          tabIndex={tabIndex}
         >
           {ripples.map((ripple) => (
             <span

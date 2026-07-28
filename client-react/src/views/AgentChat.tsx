@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import '@/styles/agent-codex.css'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { CodexComposer } from '@/components/ui/codex-composer'
 import { useNavigate } from 'react-router-dom'

@@ -246,18 +246,25 @@
 .sign-in-flow-auth-panel .sign-in-flow-register-btn,
 .sign-in-flow-auth-panel .sign-in-flow-primary-button {
   border-radius: 10px;
-  background: #2fbbe0;
-  color: #fff;
+  /* 登录主 CTA：玻璃选择态，禁止 #2fbbe0 实心 */
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.42);
+  color: #1d1d1f;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-register-btn:hover:not(:disabled),
 .sign-in-flow-auth-panel .sign-in-flow-primary-button:hover:not(:disabled) {
-  background: #1fa9cf;
+  background: rgba(255, 255, 255, 0.58);
+  border-color: color-mix(in srgb, #2fbbe0 40%, transparent);
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-register-btn:disabled {
-  background: rgba(0, 122, 255, 0.28);
-  color: rgba(255, 255, 255, 0.88);
+  background: rgba(0, 122, 255, 0.12);
+  color: rgba(29, 29, 31, 0.45);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-register-legal-text,

@@ -303,7 +303,7 @@ export default function ClaudeChatInput({
                 <button
                   onClick={go}
                   disabled={!has}
-                  className={`h-8 w-8 rounded-xl active:scale-95 cursor-pointer ${has ? 'bg-accent text-bg-0 hover:bg-accent-hover shadow-md' : 'bg-accent/30 text-bg-0/60 cursor-default'}`}
+                  className={`h-8 w-8 rounded-xl active:scale-95 cursor-pointer ${has ? 'border border-[var(--liquid-glass-border,rgba(255,255,255,0.2))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.14))] text-text-primary shadow-sm backdrop-blur-md' : 'bg-accent/30 text-bg-0/60 cursor-default'}`}
                 >
                   <Icons.ArrowUp className="w-4 h-4" />
                 </button>

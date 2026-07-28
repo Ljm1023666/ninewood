@@ -87,7 +87,7 @@ export function LegalDialog({ trigger, title, sections }: LegalDialogProps) {
           <DialogClose asChild>
             <Button
               type="button"
-              className="legal-dialog__primary h-11 w-full rounded-full text-white cursor-pointer"
+              className="legal-dialog__primary h-11 w-full rounded-full cursor-pointer"
             >
               我知道了
             </Button>

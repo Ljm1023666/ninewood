@@ -46,11 +46,13 @@ vi.mock('../services/agent/task-types/index.js', async (importOriginal) => {
 import { runAgentTaskScheduler, AGENT_TASK_TAG } from '../cron/agent-task-scheduler.js'
 
 beforeEach(() => {
+  process.env.NOTIFICATION_SOVEREIGNTY_ENABLED = '0'
   m.agentTaskFindMany.mockReset()
   m.agentTaskRunCreate.mockReset()
   m.agentTaskUpdate.mockReset()
   m.messageCreate.mockReset()
   runSpy.mockReset()
+  m.agentTaskRunCreate.mockImplementation(async (args) => ({ id: `run-${args.data.taskId}` }))
 })
 
 const now = new Date('2026-06-22T10:30:00.000Z')

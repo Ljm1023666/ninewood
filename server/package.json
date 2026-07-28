@@ -20,6 +20,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:trust": "vitest run src/__tests__/pg-trust.integration.test.ts",
+    "test:notification": "vitest run src/services/notification-legacy-migration.test.ts src/__tests__/pg-notification-sovereignty.integration.test.ts src/__tests__/pg-notification-phase1b.integration.test.ts src/__tests__/pg-task-quiet.integration.test.ts src/__tests__/a2-discover-empty.test.ts",
+    "test:task-quiet": "vitest run src/__tests__/pg-task-quiet.integration.test.ts src/__tests__/a2-discover-empty.test.ts",
+    "migrate:notification-sovereignty": "tsx scripts/migrate-notification-sovereignty.ts",
+    "migrate:notification-sovereignty:apply": "tsx scripts/migrate-notification-sovereignty.ts --apply",
+    "e2e:notification-sovereignty": "tsx scripts/e2e-notification-sovereignty-acceptance.ts",
+    "release:check": "node scripts/release-readiness.mjs",
+    "release:check:production": "node scripts/release-readiness.mjs --production",
     "test:path-coverage": "tsx scripts/check-path-coverage.ts",
     "audit:demand-paths": "tsx scripts/audit-demand-paths.ts",
     "seed:coverage-gaps": "tsx scripts/seed-coverage-gaps.ts"

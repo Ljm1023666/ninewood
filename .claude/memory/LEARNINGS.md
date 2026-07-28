@@ -2,8 +2,54 @@
 
 Append-only operational lessons to reduce repeated mistakes.
 
+## 2026-07-28（前端性能）
+
+- 懒加载路由的专属 CSS 必须由对应页面入口导入；仅拆 JS、不拆全局 `index.css`，冷启动仍会下载并解析无关页面样式。
+- `visibility: hidden` 不会停止 WebGL Shader 或 `requestAnimationFrame`；不可见且不需要运行时应直接卸载/释放，或把动画速度严格设为 0。
+- JSX 条件渲染不会自动拆包；Three.js 等重依赖必须放进动态 `import()` 的组件边界，才能做到真正按需加载。
+- Recharts `ResponsiveContainer` 默认初始尺寸为 `-1 × -1`；已知桌面布局可提供合理的 `initialDimension`，避免首帧告警和无效渲染，再由 ResizeObserver 校正实际尺寸。
+
+## 2026-07-28（金属描边时机）
+
+- 金属描边 ≠ 常显品牌框：空闲只留玻璃细边；`active`/按下才出金属 rim。`metalGlow` 是能力开关，不是「永远发光」。
+- 「有输入才激活主 CTA」：`active={Boolean(query.trim())}` 挂在搜索/寻找回等确认钮；分段 Tab 仍只给选中项 `active`。
+
+## 2026-07-28（全局选择按钮）
+
+- 主 CTA / 搜索确认 / 提交：优先 `LiquidMetalButton`；封装入口（`DlpBtnPrimary` / `SettingsActionButton primary` / `AcetPrimaryButton`）一并改，避免业务页各写一套实心蓝。
+- 复杂 children 或表单内小钮可先 CSS 玻璃化（`ws-btn--primary`、`psa-search__go`）；`liquid-glass-global.css` 对 `.bg-accent`/`.bg-primary` 按钮做兜底，但 **destructive/danger 必须排除**。
+- `AcetPrimaryButton` 曾用 `--primary-gradient` 实心渐变，是订单/费用确认漏网之鱼；改封装比逐页替换更稳。
+
+## 2026-07-28（加载灰条）
+
+- `LoadingState variant="internal"` 禁止再用 `internal-list-card`（氛围玻璃会渲成刷新时左侧灰条）；默认延迟 200ms 再显示，快请求不闪。
+- 列表页首屏 `loading` 应初始为 `true`，否则会先闪空态再闪骨架。
+
+## 2026-07-28（订单/讨论吸纳）
+
+- 对接系统「讨论」可先用圈子公告聚合出 `/discussions`，不要一上来新建 Topic 全栈；发布入口落到圈主 Home 发公告即可。
+- 订单广场统计与角色筛选可先客户端过滤；列表 API 已按 role 分页时，统计另拉一份「全部角色」以免口径漂移。
+
+## 2026-07-28（圈子广场对齐）
+
+- 对接系统圈子广场可借鉴布局（推荐大卡 + 三列网格 + 筛选排序），但九木 `Circle` 无 `category` 字段时勿硬造后端；用名称启发式主题标签即可，真分类再加 migration。
+- `GET /circles/public` 要排除「已加入」必须挂 `optionalAuthMiddleware`，否则 `req.user` 永远为空、排除逻辑失效。
+
+## 2026-07-28（发布候选收口）
+
+- 订单“prepay”只预扣服务费，服务本金在发布需求时已托管；FeeQuote/UI 必须分开显示 `heldAmount` 与 `totalDue`，否则会让用户误以为重复扣款。
+- 资金 quote 必须由服务端签名并覆盖状态、价格、公益口径、paidAt 与部分完成提议；执行前重算，不匹配返回 `FEE_QUOTE_CHANGED`。
+- 单进程 Map 不可承载生产验证码或调度互斥；验证码需持久化、哈希、限频、限次、单次消费，轮询调度需数据库租约。
+- `Review.orderId @unique` 只允许单向评价；双向评价唯一键应为 `(orderId, reviewerId)`。
+- “真实生活地回”必须有真实 endpoint、验证、回退和有效用户样本；平台内部字段处理不能改名冒充 Phase 4。
+
 ## 2026-07-28
 
+- 产品时间主权 Phase 2：Quiet 必须幂等（`resourceType+resourceId` 唯一）；`quietTaskSafe` 失败不得阻断订单/回/需求主路径；决策层除 `intent.taskQuiet` 外还要查 `TaskQuietRecord`。
+- Phase 2 注意力清理只改语义文案与展示权重，不删 Follow 表/API；粉丝数对外弱化为「有/无」，禁止「关注/粉丝比」类炫耀指标。
+- 产品时间主权 Phase 1B：`canTakeOverNotificationTraffic(eventType)` 白名单接管；Demand/AgentTask 成功投递必须落站内 Message；迁移脚本默认 dry-run；`receivePushes=true` 只作排除建议。
+- 产品时间主权 Phase 1A：通知表只增迁移；决策服务默认非必要 OFF；preview 必须零副作用；`NOTIFICATION_SOVEREIGNTY_ENABLED=1` 仍禁止接管 legacy 发送（Phase 1B）。
+- `receivePushes=true` / 无 PushPreference **不得**映射为正向订阅；仅 `UserTag.autoReceive` 与启用且含 MESSAGE 的 AgentTask 可作为明确意图（本轮只写映射函数，不执行迁移）。
 - 产品时间主权 Phase 0：`NODE_ENV=production` 时强制不挂 `/api/shorts`，开发仅 `ENABLE_LEGACY_SHORTS=1`；Accepted 规格不自动授权云端部署。
 - `PushPreference.receivePushes` 默认 true / 无记录全接受，**不得**映射为 NotificationSubscription 的永久开启；Phase 1 须正向订阅重建。
 - 注意力审计默认 WARN（CI）；`ATTENTION_AUDIT_STRICT=1` 才因明确机制词失败。基线脚本只输出聚合，不读排除词/媒体/正文。

@@ -1,8 +1,25 @@
-import { type ReactNode, type KeyboardEvent } from 'react'
+import { type ReactNode, type KeyboardEvent, isValidElement } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackButton } from '@/components/ui/back-button'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { cn } from '@/lib/utils'
+
+function childrenToLabel(children: ReactNode): string {
+  if (children == null || typeof children === 'boolean') return ''
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children)
+  }
+  if (Array.isArray(children)) {
+    return children.map(childrenToLabel).join('')
+  }
+  if (isValidElement(children)) {
+    return childrenToLabel(
+      (children.props as { children?: ReactNode }).children,
+    )
+  }
+  return ''
+}
 
 /** Stitch 奢华桌面页壳层：深色固定暗金 palette，浅色跟随全局 theme 变量 */
 export function DesktopPageShell({
@@ -101,24 +118,31 @@ export function DlpBtnPrimary({
   children,
   onClick,
   disabled,
+  active = false,
   className,
-  type = 'button',
+  type: _type = 'button',
 }: {
   children: ReactNode
   onClick?: () => void
   disabled?: boolean
+  /** 有输入等内容时传 true，进入金属描边态 */
+  active?: boolean
   className?: string
   type?: 'button' | 'submit'
 }) {
+  void _type // LiquidMetal 固定 type=button；保留 prop 以免破坏调用方
+  const label = childrenToLabel(children).trim() || '确定'
+  const fullWidth = /\bw-full\b|\bflex-1\b/.test(className ?? '')
   return (
-    <button
-      type={type}
-      disabled={disabled}
+    <LiquidMetalButton
+      label={label}
       onClick={onClick}
-      className={cn('dlp-btn-primary', className)}
-    >
-      {children}
-    </button>
+      disabled={disabled}
+      active={active}
+      fullWidth={fullWidth}
+      className={className}
+      aria-label={label}
+    />
   )
 }
 
@@ -231,6 +255,8 @@ export function DlpSearchBar({
     if (e.key === 'Enter') onSearch()
   }
 
+  const hasValue = Boolean(value.trim())
+
   return (
     <div className="dlp-search-bar">
       <MsIcon name="search" size={20} className="dlp-search-bar__icon" />
@@ -247,14 +273,15 @@ export function DlpSearchBar({
           <MsIcon name="close" size={16} />
         </button>
       ) : null}
-      <button
-        type="button"
-        className="dlp-search-bar__submit"
+      {/* 有输入才金属描边；空闲普通玻璃细边 */}
+      <LiquidMetalButton
+        label={loading ? '搜索中…' : '搜索'}
         onClick={onSearch}
-        disabled={loading || !value.trim()}
-      >
-        {loading ? '搜索中…' : '搜索'}
-      </button>
+        disabled={loading || !hasValue}
+        active={hasValue}
+        height={38}
+        className="dlp-search-bar__submit"
+      />
     </div>
   )
 }

@@ -1,23 +1,23 @@
 # ADR · 交易可信度：部分完成双方确认与资金幂等
 
-> **状态**：Proposed（实现已对齐推荐默认；§11 仍未勾选，**不得**改为 Accepted）  
-> **日期**：2026-07-28（修订：同日，回应 5 项设计阻断；实现进度：本地迁移 + 幂等中间件 + PG trust 测试）  
+> **状态**：Accepted
+> **日期**：2026-07-28（接受：2026-07-28；实现证据：`b922fba`，及前序 `9003b8b`）
 > **范围**：订单资金相关状态机与并发一致性；**不含**真实支付网关、双向评价、Socket 消息持久化  
 > **前置**：P0 安全止血包已完成（匿名运维写口已封）  
-> **实现门槛**：第 11 节检查表全部勾选、本文件改为 **Accepted** 后方可改业务代码与迁移
+> **实现门槛**：已满足；第 11 节产品与工程检查表已于 2026-07-28 完成签字
 
 ---
 
-## 0. 未解决阻断（本轮修订目标）
+## 0. 已解决阻断
 
-上一版草案被指出 5 个设计阻断；本节列出修订结论。第 11 节仍全部未勾选，**暂不 Accepted**。
+上一版草案被指出 5 个设计阻断；以下修订结论已落实并完成产品确认。
 
 | # | 阻断 | 修订结论（见正文对应节） |
 |---|------|--------------------------|
 | B1 | 部分完成资金守恒未定义 | §4.3：禁止直接套用「整笔 consumeHold + 只付提议价」；定义 hold 拆分、剩余价公式、服务费多退少补与守恒式 |
 | B2 | `operationKey` 冲突不可事务内“跳过” | §5.4：唯一冲突 ⇒ **整事务回滚**，再只读重放；禁止在已改余额后 catch-and-continue |
 | B3 | 幂等 `IN_PROGRESS` 无崩溃恢复 | §5.3：`leaseUntil`、超时接管、4xx 在业务回滚后的独立短事务落库 |
-| B4 | 状态规则自相矛盾 | §3.4 / §5.5：prepay 允许 `PARTIAL_PENDING`；`WAITING_REVIEW` 下 cancel **推荐禁止**，待产品勾选 |
+| B4 | 状态规则自相矛盾 | §3.4 / §5.5：prepay 允许 `PARTIAL_PENDING`；`WAITING_REVIEW` 下 cancel **禁止** |
 | B5 | 前端幂等契约缺失 | §4.5：key 生成、重试复用、用户重发换新；生产强制 header 的前置条件 |
 
 ---
@@ -75,7 +75,7 @@ PARTIAL_PENDING   // 服务方已提出部分完成，等待需求方确认或�
   ├─[requester prepay]→ 同状态 + paidAt（可幂等）
   ├─[provider complete]→ WAITING_REVIEW
   │    └─[requester confirm]→ COMPLETED + settleDemand（全额）
-  ├─[requester cancel]→ CANCELLED（规则见 §3.4，待产品确认 WAITING_REVIEW）
+  ├─[requester cancel]→ CANCELLED（仅 `IN_PROGRESS` / `PARTIAL_PENDING`，规则见 §3.4）
   └─[either dispute]→ DISPUTED
        ├─[admin refund]→ REFUNDED
        └─[admin complete]→ COMPLETED + settle
@@ -104,7 +104,7 @@ IN_PROGRESS
 | 服务方 `complete` | ✗ | 409 `PARTIAL_PROPOSAL_ACTIVE` |
 | 需求方 `confirm` | ✗ | 仅 `WAITING_REVIEW` |
 | 需求方 `cancel`（自 `IN_PROGRESS` / `PARTIAL_PENDING`） | ✓ | 作废 PENDING 提议；已付服务费按 cancel 退还 |
-| 需求方 `cancel`（自 `WAITING_REVIEW`） | **待产品确认** | **推荐冻结为禁止**（见下） |
+| 需求方 `cancel`（自 `WAITING_REVIEW`） | ✗ | 409；必须验收确认或发起争议 |
 | 任一方 `dispute` | ✓ | 含自 `PARTIAL_PENDING` / `WAITING_REVIEW` |
 | 管理员裁决 | ✓ | 仅 `DISPUTED`（现行若仍允许自 `WAITING_REVIEW` 裁决，实现阶段收敛为仅 `DISPUTED`，另开兼容说明） |
 
@@ -112,12 +112,10 @@ IN_PROGRESS
 
 现行代码允许在 `WAITING_REVIEW` 取消（只要不是 COMPLETED/CANCELLED/DISPUTED）。这意味着服务方已声明交付后，需求方仍可单方取消并可能取回服务费，而不走争议。
 
-**本 ADR 推荐冻结（待产品勾选）：**
+**本 ADR 冻结规则：**
 
 - `WAITING_REVIEW` **禁止** `cancel` → 返回 409 `ORDER_STATE_CONFLICT` / 明确文案「请验收确认或发起争议」。  
 - 需求方选项仅：`confirm` 或 `dispute`。  
-
-若产品坚持保留「待验收可取消」，须在第 11 节显式勾选替代方案，并补：取消时是否通知服务方、是否扣除违约比例、托管如何释放——否则不得 Accepted。
 
 ### 3.5 与全额完成的关系
 
@@ -396,11 +394,10 @@ BEGIN
   独立短事务写 SUCCEEDED + body
 ```
 
-**cancel**（推荐集；`WAITING_REVIEW` 取决于产品勾选）：
+**cancel**：
 
 ```text
-允许集合_推荐 = ('IN_PROGRESS','PARTIAL_PENDING')
-允许集合_兼容旧行为 = 推荐 ∪ ('WAITING_REVIEW')   -- 仅当第 11 节勾选保留时
+允许集合 = ('IN_PROGRESS','PARTIAL_PENDING')
 
 n = UPDATE orders SET status='CANCELLED'
     WHERE id=? AND requesterId=? AND status IN 允许集合
@@ -504,38 +501,39 @@ n = UPDATE orders SET status='CANCELLED'
 
 ---
 
-## 11. 评审检查表（全部未勾选；勾完前禁止 Accepted）
+## 11. 评审检查表（已签字）
 
-> **工程证据（实现侧已具备签字条件，仍待产品勾选）**  
+> **工程证据与产品签字**
 > - 实现提交：`b922fba`（及前序 `9003b8b` 交易核心）  
 > - 本地迁移已验证（含 `down.sql` 回滚重放）；**云端未 migrate**  
 > - 真实 PG：同 key 重放、异 key 并发单流水、租约接管、C1/C2/C4 守恒已过  
-> - 勾选完成后：文首改为 **Accepted**，记录接受日期与 `b922fba`，再按 §8 / 发布清单上云
+> - 产品确认日期：2026-07-28；文首已改为 **Accepted**
+> - Accepted 不等于授权上云；仍须按 §8 / 发布清单单独确认
 
 ### 11.1 产品签字五项（本轮评审主清单）
 
-- [ ] 剩余需求**仅**在 partial accept 后创建（propose 零资金、零建单）  
-- [ ] `PARTIAL_PENDING` 允许 cancel / dispute  
-- [ ] 生产资金接口强制 `Idempotency-Key`  
-- [ ] `operationKey` 命名表无跨操作冲突（见 §5.4）  
-- [ ] 前后端必须**同一发布窗口**上线（破坏性 `/partial` 行为）
+- [x] 剩余需求**仅**在 partial accept 后创建（propose 零资金、零建单）
+- [x] `PARTIAL_PENDING` 允许 cancel / dispute
+- [x] 生产资金接口强制 `Idempotency-Key`
+- [x] `operationKey` 命名表无跨操作冲突（见 §5.4）
+- [x] 前后端必须**同一发布窗口**上线（破坏性 `/partial` 行为）
 
 ### 11.2 评审补看（前端幂等契约）
 
-- [ ] 前端网络重试 / 超时自动重试必须**复用原 key**，不得重新生成  
-- [ ] 仅当用户**明确重新发起**操作（上一意图已终态）才换新 key  
-- [ ] 覆盖：`prepay` / `cancel` / `confirm` / `partial/accept`（实现见 `client-react/src/api/idempotency.ts`）
+- [x] 前端网络重试 / 超时自动重试必须**复用原 key**，不得重新生成
+- [x] 仅当用户**明确重新发起**操作（上一意图已终态）才换新 key
+- [x] 覆盖：`prepay` / `cancel` / `confirm` / `partial/accept`（实现见 `client-react/src/api/idempotency.ts`）
 
 ### 11.3 仍需显式确认的设计项
 
-- [ ] 剩余价口径 `R = max(1, A - P)` 与 `settlePartialWithRemainder`（§4.3）  
-- [ ] `WAITING_REVIEW` **禁止 cancel**（当前实现已按推荐落地）——或显式改为「可取消」并附规则  
-- [ ] 幂等租约 / 超时接管 / 终态独立落库（§5.3，已实现）  
-- [ ] §9.4 守恒用例已入 CI（已实现；C3/C5 可后续补强）
+- [x] 剩余价口径 `R = max(1, A - P)` 与 `settlePartialWithRemainder`（§4.3）
+- [x] `WAITING_REVIEW` **禁止 cancel**（当前实现已按推荐落地）
+- [x] 幂等租约 / 超时接管 / 终态独立落库（§5.3，已实现）
+- [x] §9.4 守恒用例已入 CI（已实现；C3/C5 可后续补强）
 
 ### 11.4 Accepted 之后的发布顺序（禁止提前）
 
-1. 勾选本节 → 文首 `Proposed` 改为 `Accepted`，写明接受日期与 `b922fba`  
+1. [x] 本节已勾选，文首已改为 `Accepted`，接受日期与 `b922fba` 已记录
 2. 云端：备份 → `prisma migrate status` → 确认当前服务版本  
 3. 先部署增量迁移，再同窗口发布匹配的后端 + 前端  
 4. 发布后：测试账号小额 `prepay` / `cancel` / `partial accept` + 账本守恒冒烟  

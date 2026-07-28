@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { useCircleHub } from './circle-hub-context'
 import { circleApi, type CircleMemberItem, type CircleInviteItem } from '@/api/circle'
@@ -208,24 +209,19 @@ export default function CircleHubTeams() {
               onChange={(e) => setInviteEmail(e.target.value)}
               type="email"
             />
-            <button
-              type="button"
-              className="cdb-btn-primary"
+            <LiquidMetalButton
+              label={inviteBusy ? '发送中...' : '发送'}
               onClick={() => void sendInvite()}
               disabled={inviteBusy || !inviteEmail.trim()}
-            >
-              {inviteBusy ? '发送中...' : '发送'}
-            </button>
+              height={40}
+            />
           </div>
-          <button
-            type="button"
-            className="cdb-btn-primary cdb-hub-invite-btn"
-            onClick={() => void copyInviteLink()}
-            style={{ marginTop: 12 }}
-          >
-            <MsIcon name="link" size={20} aria-hidden />
-            复制邀请链接
-          </button>
+          <div style={{ marginTop: 12 }}>
+            <LiquidMetalButton
+              label="复制邀请链接"
+              onClick={() => void copyInviteLink()}
+            />
+          </div>
         </section>
 
         <section className="cdb-glass-card cdb-hub-team-stats">

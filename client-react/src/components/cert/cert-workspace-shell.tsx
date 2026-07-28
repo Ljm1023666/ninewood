@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { useUserStore } from '@/stores/user'
 import { cn } from '@/lib/utils'
 import {
@@ -112,9 +113,7 @@ export function CertWorkspaceShell({
                 {upgrading ? '提交中…' : '提升等级'}
               </button>
             ) : null}
-            <button type="button" className="cert-workspace__btn cert-workspace__btn--primary" onClick={handleCertify}>
-              立即认证
-            </button>
+            <LiquidMetalButton label="立即认证" onClick={handleCertify} />
           </div>
         </header>
 

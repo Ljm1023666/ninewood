@@ -242,10 +242,11 @@ export function QuickPublishCanvas({
             onClick={handlePublish}
             disabled={!canPublish || isPublishing}
             className={cn(
-              'flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold transition-all',
+              'flex items-center gap-2 rounded-lg border px-4 py-1.5 text-sm font-semibold transition-all',
               canPublish && !isPublishing
-                ? 'bg-[#3388FF] text-white hover:opacity-90 active:scale-95'
-                : 'cursor-not-allowed bg-bg-tertiary text-text-muted',
+                ? // 主 CTA：玻璃选择态
+                  'border-[var(--liquid-glass-border,rgba(255,255,255,0.16))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.1))] text-text-primary backdrop-blur-md hover:border-[color-mix(in_srgb,var(--color-primary,#2fbbe0)_35%,transparent)] active:scale-95'
+                : 'cursor-not-allowed border-transparent bg-bg-tertiary text-text-muted',
             )}
           >
             {isPublishing ? (
@@ -320,10 +321,11 @@ export function QuickPublishCanvas({
                           setForm((p) => ({ ...p, serviceType: t }))
                         }
                         className={cn(
-                          'rounded-lg px-4 py-1.5 text-sm font-medium transition-all',
+                          'rounded-lg border px-4 py-1.5 text-sm font-medium transition-all',
                           form.serviceType === t
-                            ? 'bg-[#3388FF] text-white'
-                            : 'bg-bg-secondary text-text-muted hover:text-text-primary',
+                            ? // 分段选中：玻璃选择态
+                              'border-[var(--liquid-glass-border,rgba(255,255,255,0.2))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.14))] text-text-primary backdrop-blur-md'
+                            : 'border-transparent bg-bg-secondary text-text-muted hover:text-text-primary',
                         )}
                       >
                         {t === 'ONLINE' ? '线上' : '线下'}

@@ -1,10 +1,8 @@
-﻿import * as Sentry from '@sentry/react'
+import { Component, useEffect, useState, type ReactNode } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { useEffect, useState } from 'react'
 import { router } from '@/router/index.tsx'
 import { useUserStore } from '@/stores/user'
-import { ElectronTitleBar } from '@/components/layout/TitleBar'
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
@@ -27,9 +25,39 @@ function ErrorFallback({ error }: { error: Error }) {
   )
 }
 
-export default Sentry.withErrorBoundary(AppInner, {
-  fallback: (props) => <ErrorFallback error={props.error} />,
-})
+class AppErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null }
+
+  static getDerivedStateFromError(error: unknown) {
+    return {
+      error: error instanceof Error ? error : new Error('发生了意外错误'),
+    }
+  }
+
+  componentDidCatch(error: Error) {
+    if (import.meta.env.VITE_SENTRY_DSN) {
+      void import('@sentry/react').then((Sentry) => {
+        Sentry.captureException(error)
+      })
+    }
+  }
+
+  render() {
+    if (this.state.error) return <ErrorFallback error={this.state.error} />
+    return this.props.children
+  }
+}
+
+export default function App() {
+  return (
+    <AppErrorBoundary>
+      <AppInner />
+    </AppErrorBoundary>
+  )
+}
 
 function AppInner() {
   const [ready, setReady] = useState(false)

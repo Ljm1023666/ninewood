@@ -1,6 +1,4 @@
 /* Ninewood Design System · SaaS / 社区产品统一 Token */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
   /* ── 品牌色：对齐 macOS AppTheme `#2FBBE0` ── */
   --primary-color: #2fbbe0;

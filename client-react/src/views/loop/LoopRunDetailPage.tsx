@@ -2,12 +2,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, GitBranch, RefreshCw, RotateCcw, ShieldCheck } from 'lucide-react'
 import { loopApi, type LoopRunDetail } from '@/api/loop'
+import {
+  notificationPolicyApi,
+  type CompletionSummary,
+} from '@/api/notification-policy'
+import { CompletionSummaryView } from '@/components/outcome/CompletionSummary'
+import { useTaskActiveTime } from '@/utils/task-active-time'
 import LoopHubNav from './LoopHubNav'
 
 const STATUS: Record<string, string> = {
   TRIGGERED: '已触发', EXECUTING: '执行中', VERIFYING: '验证中',
-  SUCCEEDED: '已成功', FAILED: '失败', INCONCLUSIVE: '无法判断',
+  SUCCEEDED: '已成功', FAILED: '失败', INCONCLUSIVE: '无法判断', CLOSED: '已关闭',
 }
+
+const TERMINAL = new Set(['SUCCEEDED', 'FAILED', 'INCONCLUSIVE', 'CLOSED'])
 
 function JsonBlock({ value }: { value: unknown }) {
   return <pre className="loop-json">{JSON.stringify(value ?? null, null, 2)}</pre>
@@ -20,6 +28,8 @@ export default function LoopRunDetailPage() {
   const [loading, setLoading] = useState(true)
   const [retrying, setRetrying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [completion, setCompletion] = useState<CompletionSummary | null>(null)
+  useTaskActiveTime('LOOP_RUN', id)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -31,6 +41,34 @@ export default function LoopRunDetailPage() {
   }, [id])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    if (!id || !run || !TERMINAL.has(run.status)) {
+      setCompletion(null)
+      return
+    }
+    notificationPolicyApi
+      .getCompletion('LOOP_RUN', id)
+      .then((r) => setCompletion(r.data?.data ?? null))
+      .catch(() =>
+        setCompletion({
+          resourceType: 'LOOP_RUN',
+          resourceId: id,
+          outcomeStatus:
+            run.status === 'FAILED'
+              ? 'FAILED'
+              : run.status === 'INCONCLUSIVE'
+                ? 'INCONCLUSIVE'
+                : 'SUCCEEDED',
+          outcomeSummary: `回运行状态：${STATUS[run.status] || run.status}`,
+          nextRequiredAction:
+            run.status === 'FAILED' || run.status === 'INCONCLUSIVE'
+              ? { label: '查看详情或重试', action: 'VIEW_DETAIL' }
+              : null,
+          notificationsStopped: [],
+        }),
+      )
+  }, [id, run?.status])
 
   async function retry() {
     if (!id) return
@@ -64,6 +102,22 @@ export default function LoopRunDetailPage() {
                 )}
               </div>
             </header>
+
+            {completion && (
+              <div className="mb-6">
+                <CompletionSummaryView
+                  summary={completion}
+                  returnTo="/loops/mine"
+                  onViewDetail={
+                    completion.nextRequiredAction
+                      ? () => {
+                          document.querySelector('.loop-detail-section')?.scrollIntoView({ behavior: 'smooth' })
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            )}
 
             <section className="loop-contract-grid">
               <article><h2>输入</h2><JsonBlock value={run.inputJson} /></article>

@@ -6,6 +6,7 @@
  * - 结果箱：未读标记 + 标记已读
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import '@/styles/agent-tasks.css'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   agentTasksApi,
@@ -15,6 +16,7 @@ import {
 import { AgentTaskCreateForm } from '@/components/agent/agent-task-create-form'
 import { AgentMarkdown } from '@/components/agent/agent-markdown'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import {
   InternalContentBlock,
   InternalPageShell,
@@ -170,15 +172,12 @@ export default function AgentTasksPage() {
           onBack={() => navigate('/agent')}
           actions={
             tab === 'tasks' ? (
-              <button
-                type="button"
-                className="agent-btn agent-btn--primary"
+              <LiquidMetalButton
+                label={formOpen ? '收起表单' : '+ 新建任务'}
                 onClick={() => setFormOpen(v => !v)}
                 disabled={atTaskQuota && !formOpen}
-                title={atTaskQuota ? `最多 ${MAX_ACTIVE_TASKS} 个任务` : undefined}
-              >
-                {formOpen ? '收起表单' : '+ 新建任务'}
-              </button>
+                aria-label={atTaskQuota ? `最多 ${MAX_ACTIVE_TASKS} 个任务` : undefined}
+              />
             ) : undefined
           }
         />
@@ -189,7 +188,7 @@ export default function AgentTasksPage() {
               options={tabOptions}
               value={tab}
               onChange={setTab}
-              variant="classic"
+              size="large"
             />
           </div>
 

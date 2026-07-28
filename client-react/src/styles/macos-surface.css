@@ -226,10 +226,8 @@ html[data-appearance='light'] .psa-root .psa-search:focus-within {
 }
 
 html[data-appearance='light'] .psa-root .psa-search__go {
+  /* 仅保留间距；矩形圆角/玻璃底已随 LiquidMetal 移除 */
   margin-right: 6px;
-  border-radius: 10px;
-  background: #007aff;
-  color: #fff;
 }
 
 html[data-appearance='light'] .psa-root .psa-grid {
@@ -313,9 +311,13 @@ html[data-appearance='light'] .psa-root .psa-timeline__avatar {
 .loop-accept-recovery p { margin: 0; }
 .loop-accept-recovery button {
   margin-top: 8px;
-  border-radius: 10px;
-  background: #007aff;
+  border: 1px solid var(--liquid-glass-border, rgba(0, 0, 0, 0.12));
+  border-radius: 999px;
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.72));
   padding: 10px 16px;
-  color: #fff;
+  color: #1d1d1f;
   font-weight: 600;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }

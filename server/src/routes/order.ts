@@ -3,6 +3,7 @@ import type { Server as SocketServer } from 'socket.io';
 import { authMiddleware } from '../middleware/auth.js';
 import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { orderService } from '../services/order.service.js';
+import { feeQuoteService, type FeeQuoteAction } from '../services/fee-quote.service.js';
 import { success, fail } from '../utils/response.js';
 import { q } from '../utils/query.js';
 
@@ -47,6 +48,24 @@ orderRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/orders/:id/fee-quote（必须在 /:id 前注册）
+orderRouter.get('/:id/fee-quote', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const action = q(req.query.action) as FeeQuoteAction;
+    if (!['prepay', 'confirm', 'partial_accept', 'cancel'].includes(action)) {
+      return fail(res, '无效的费用操作类型', 400);
+    }
+    success(res, await feeQuoteService.get(req.params.id as string, req.user!.userId, action));
+  } catch (e: any) {
+    fail(res, e.message || '服务器错误', e.status || 500, e.details);
+  }
+});
+
+function feeQuoteToken(req: Request) {
+  const value = req.headers['fee-quote-token'];
+  return typeof value === 'string' ? value : undefined;
+}
+
 // GET /api/orders/:id
 orderRouter.get('/:id', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -64,10 +83,11 @@ orderRouter.post(
   idempotencyMiddleware('ORDER_PREPAY', orderIdParam),
   async (req: Request, res: Response) => {
   try {
+    await feeQuoteService.assertCurrent(req.params.id as string, req.user!.userId, 'prepay', feeQuoteToken(req));
     const result = await orderService.prepay(req.params.id as string, req.user!.userId);
     success(res, result);
   } catch (e: any) {
-    fail(res, e.message || '服务器错误', e.status || 500);
+    fail(res, e.message || '服务器错误', e.status || 500, e.details);
   }
 });
 
@@ -89,11 +109,12 @@ orderRouter.post(
   idempotencyMiddleware('ORDER_CONFIRM', orderIdParam),
   async (req: Request, res: Response) => {
   try {
+    await feeQuoteService.assertCurrent(req.params.id as string, req.user!.userId, 'confirm', feeQuoteToken(req));
     const result = await orderService.confirm(req.params.id as string, req.user!.userId);
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
     success(res, result);
   } catch (e: any) {
-    fail(res, e.message || '服务器错误', e.status || 500);
+    fail(res, e.message || '服务器错误', e.status || 500, e.details);
   }
 });
 
@@ -115,11 +136,12 @@ orderRouter.post(
   idempotencyMiddleware('ORDER_CANCEL', orderIdParam),
   async (req: Request, res: Response) => {
   try {
+    await feeQuoteService.assertCurrent(req.params.id as string, req.user!.userId, 'cancel', feeQuoteToken(req));
     const result = await orderService.cancel(req.params.id as string, req.user!.userId);
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
     success(res, result);
   } catch (e: any) {
-    fail(res, e.message || '服务器错误', e.status || 500);
+    fail(res, e.message || '服务器错误', e.status || 500, e.details);
   }
 });
 
@@ -152,11 +174,12 @@ orderRouter.post(
   idempotencyMiddleware('ORDER_PARTIAL_ACCEPT', orderIdParam),
   async (req: Request, res: Response) => {
   try {
+    await feeQuoteService.assertCurrent(req.params.id as string, req.user!.userId, 'partial_accept', feeQuoteToken(req));
     const result = await orderService.acceptPartial(req.params.id as string, req.user!.userId);
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
     success(res, result);
   } catch (e: any) {
-    fail(res, e.message || '服务器错误', e.status || 500);
+    fail(res, e.message || '服务器错误', e.status || 500, e.details);
   }
 });
 

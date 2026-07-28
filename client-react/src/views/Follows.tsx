@@ -10,7 +10,6 @@ import {
   DlpBtnGhost,
   DlpBadge,
   DlpEmpty,
-  DlpStat,
 } from '@/components/layout/desktop-page'
 import { userApi } from '@/api/user'
 import { useUserStore } from '@/stores/user'
@@ -78,7 +77,7 @@ export default function Follows() {
   }
 
   return (
-    <DesktopPageShell title="我的社交" subtitle="管理粉丝与关注列表">
+    <DesktopPageShell title="合作联系人" subtitle="管理愿意协作的人与我保存的联系人">
       <div className="dlp-tabs">
         {(['followers', 'following'] as const).map((v) => (
           <button
@@ -87,7 +86,7 @@ export default function Follows() {
             className={cn('dlp-tab', mode === v && 'dlp-tab--active')}
             onClick={() => navigate(`/follows/${userId}?mode=${v}`, { replace: true })}
           >
-            {v === 'followers' ? '粉丝' : '关注'}
+            {v === 'followers' ? '保存了我的人' : '我保存的人'}
           </button>
         ))}
       </div>
@@ -105,9 +104,11 @@ export default function Follows() {
             <DlpGlass>
               <DlpEmpty
                 icon={<MsIcon name={mode === 'followers' ? 'group' : 'how_to_reg'} size={48} />}
-                title={mode === 'followers' ? '暂无粉丝' : '暂未关注'}
+                title={mode === 'followers' ? '暂无合作联系人' : '暂未保存联系人'}
                 description={
-                  mode === 'followers' ? '还没有人关注这位用户' : '还没有关注任何人'
+                  mode === 'followers'
+                    ? '还没有人将你保存为合作联系人'
+                    : '还没有保存任何合作联系人'
                 }
               />
             </DlpGlass>
@@ -174,9 +175,9 @@ export default function Follows() {
                           <td onClick={(e) => e.stopPropagation()}>
                             {u.id !== myId ? (
                               u.isFollowing ? (
-                                <DlpBtnGhost onClick={() => toggleFollow(u)}>已关注</DlpBtnGhost>
+                                <DlpBtnGhost onClick={() => toggleFollow(u)}>已保存</DlpBtnGhost>
                               ) : (
-                                <DlpBtnPrimary onClick={() => toggleFollow(u)}>关注</DlpBtnPrimary>
+                                <DlpBtnPrimary onClick={() => toggleFollow(u)}>保存联系人</DlpBtnPrimary>
                               )
                             ) : (
                               <span className="text-sm text-text-muted">本人</span>
@@ -202,11 +203,17 @@ export default function Follows() {
 
         <aside>
           <DlpGlass>
-            <DlpGlassHead title="社交统计" />
+            <DlpGlassHead title="联系概览" />
             <DlpGlassBody>
-              <DlpStat label={mode === 'followers' ? '粉丝' : '关注'} value={total || items.length} gold />
+              <p className="text-sm text-text-secondary">
+                {mode === 'followers'
+                  ? total > 0
+                    ? `有 ${total} 位愿意协作的人（不公开排名）`
+                    : '暂无愿意协作的人'
+                  : `已保存 ${total || items.length} 位合作联系人`}
+              </p>
               <p className="mt-4 text-sm text-text-secondary">
-                点击行进入用户主页；操作列可快速关注或取消关注。
+                点击行进入用户主页；操作列可保存或移除联系人。
               </p>
             </DlpGlassBody>
           </DlpGlass>

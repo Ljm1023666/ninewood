@@ -96,7 +96,7 @@ export function ProgressiveBracketsChart({
 
   return (
     <div className="tax-viz-chart" style={{ width: '100%', height }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer minWidth={0} initialDimension={{ width: 800, height }}>
         <ComposedChart
           data={data}
           margin={{ top: 20, right: 20, left: 4, bottom: 8 }}

@@ -7,6 +7,7 @@ import {
   DesktopPageShell,
   DlpGlass,
   DlpBtnGhost,
+  DlpBtnPrimary,
   DlpBadge,
   DlpEmpty,
 } from '@/components/layout/desktop-page'
@@ -46,7 +47,7 @@ function bidLabel(status: BidItem['status']) {
 export default function MyBids() {
   const navigate = useNavigate()
   const [bids, setBids] = useState<BidItem[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const fetchBids = useCallback(async () => {
@@ -93,9 +94,7 @@ export default function MyBids() {
             title="还没有应标记录"
             description="去发现页寻找合适的需求吧"
             action={
-              <button type="button" className="dlp-btn-primary" onClick={() => navigate('/')}>
-                去发现
-              </button>
+              <DlpBtnPrimary onClick={() => navigate('/card-pool')}>去发现</DlpBtnPrimary>
             }
           />
         </DlpGlass>

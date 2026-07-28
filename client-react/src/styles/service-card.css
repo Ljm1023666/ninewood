@@ -404,29 +404,25 @@
   justify-content: center;
   gap: 8px;
   padding: 14px 20px;
-  border: 0.5px solid rgba(255, 255, 255, 0.28);
-  border-radius: 12px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 18%, var(--accent-color)) 0%, var(--accent-color) 100%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.28) inset,
-    0 6px 18px color-mix(in srgb, var(--accent-color) 32%, transparent);
-  color: #ffffff;
+  border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.16));
+  border-radius: 999px;
+  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1));
+  box-shadow: var(--liquid-glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.18));
+  backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 0.9375rem;
   font-weight: 600;
   transition:
     background-color 180ms ease,
-    transform 120ms ease,
-    box-shadow 180ms ease;
+    border-color 180ms ease,
+    transform 120ms ease;
 }
 
 .publish-primary-action:hover {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 22%, var(--accent-hover)) 0%, var(--accent-hover) 100%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.32) inset,
-    0 8px 22px color-mix(in srgb, var(--accent-color) 38%, transparent);
+  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.12)) 70%, #fff 16%);
+  border-color: color-mix(in srgb, var(--color-primary, #2fbbe0) 35%, transparent);
 }
 
 .publish-primary-action:active {
@@ -435,7 +431,7 @@
 
 .publish-primary-action:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 30%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #2fbbe0) 28%, transparent);
 }
 
 .publish-eta {
@@ -641,15 +637,13 @@ html[data-appearance='dark'] .publish-step.is-active {
 }
 
 html[data-appearance='dark'] .publish-primary-action {
-  border-color: rgba(255, 255, 255, 0.18);
-  background: linear-gradient(180deg, #409cff 0%, #0a84ff 100%);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.22) inset,
-    0 8px 22px rgba(10, 132, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 html[data-appearance='dark'] .publish-primary-action:hover {
-  background: linear-gradient(180deg, #64b5ff 0%, #409cff 100%);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 @media (prefers-reduced-motion: reduce) {

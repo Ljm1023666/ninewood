@@ -76,7 +76,7 @@ export function EffectiveRateCurve({
 
   return (
     <div className="tax-viz-chart" style={{ width: '100%', height }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer minWidth={0} initialDimension={{ width: 800, height }}>
         <ComposedChart data={data} margin={{ top: 12, right: 16, left: 4, bottom: 8 }}>
           <defs>
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">

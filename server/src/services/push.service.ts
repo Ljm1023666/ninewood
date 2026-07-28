@@ -1,40 +1,69 @@
 import { prisma } from '../lib/prisma.js';
 import type { Server as SocketIOServer } from 'socket.io';
-import { shouldReceivePush } from './push-engine.js';
+import { matchAndPush, shouldReceivePush } from './push-engine.js';
+import { canTakeOverNotificationTraffic } from '../config/notification-sovereignty.js';
 
 export const pushService = {
   /**
    * 执行推送：匹配服务者并发送通知
-   * @returns 匹配到的用户数量
+   * 主权开启时委托 matchAndPush（DEMAND_MATCHED 决策链）
    */
   async executePush(demandId: string, io: SocketIOServer) {
-    // 1. 读取需求（含 pushConfig）
     const demand = await prisma.demand.findUnique({ where: { id: demandId } });
     if (!demand) {
       throw Object.assign(new Error('需求不存在'), { status: 404 });
     }
-    // 2. 如果没有 pushConfig，抛错
     if (!demand.pushConfig) {
       throw Object.assign(new Error('请先配置推送条件'), { status: 400 });
     }
 
-    const config = demand.pushConfig as { tagName?: string; keywords?: string[]; ageRanges?: string[] };
+    const config = demand.pushConfig as {
+      tagName?: string;
+      keywords?: string[];
+      ageRanges?: string[];
+      tags?: string[];
+    };
 
-    // 3. 构建匹配条件：使用 pushConfig 或 demand 的 tagName
+    if (canTakeOverNotificationTraffic('DEMAND_MATCHED')) {
+      const tags =
+        config.tags?.length
+          ? config.tags
+          : config.tagName
+            ? [config.tagName]
+            : demand.tagName
+              ? [demand.tagName]
+              : demand.tags || [];
+      const result = await matchAndPush(
+        demandId,
+        {
+          tags,
+          regions: demand.regionId ? [demand.regionId] : undefined,
+          excludeKeywords: config.keywords || [],
+        },
+        io,
+      );
+      return {
+        matched: result.totalMatched,
+        unblocked: result.totalMatched,
+        sent: result.totalSent,
+        rejected: result.rejectReasons,
+        sovereignty: true,
+      };
+    }
+
+    // ── Legacy ──
     const matchTag = config.tagName || demand.tagName;
     const where = pushService.buildMatchConditions(config);
     if (!where.serviceTags && matchTag) {
       where.serviceTags = { hasSome: [matchTag] };
     }
 
-    // 4. 查找匹配的用户（服务者），上限防止内存尖峰
     const candidates = await prisma.user.findMany({
       where,
       select: { id: true, serviceTags: true, pushBlocklist: true },
       take: 500,
     });
 
-    // 5. 过滤：排除被屏蔽的用户
     const unblocked = candidates.filter((u) => {
       const blocklist = (u.pushBlocklist || {}) as { keywords?: string[]; ageRanges?: string[] };
       return !pushService.isBlocked(blocklist, {
@@ -43,7 +72,6 @@ export const pushService = {
       });
     });
 
-    // 6. 过滤：检查推送偏好（排除关键词/标签/区域 + 全局开关）
     const rejectReasons: Record<string, number> = {};
     const accepted: typeof unblocked = [];
     for (const user of unblocked) {
@@ -59,7 +87,6 @@ export const pushService = {
       }
     }
 
-    // 7. 通过 Socket.IO 发送通知给通过所有规则的用户
     for (const user of accepted) {
       try {
         io.to(`user:${user.id}`).emit('push:new_demand', {
@@ -74,19 +101,15 @@ export const pushService = {
       }
     }
 
-    // 8. 返回匹配统计
     return {
       matched: candidates.length,
       unblocked: unblocked.length,
       sent: accepted.length,
       rejected: rejectReasons,
+      sovereignty: false,
     };
   },
 
-  /**
-   * 构建服务者搜索条件
-   * 纯函数，不访问数据库
-   */
   buildMatchConditions(pushConfig: { tags?: string[]; keywords?: string[]; ageRanges?: string[] }) {
     const where: any = { isBusy: false };
     if (pushConfig.tags?.length) {
@@ -95,21 +118,15 @@ export const pushService = {
     return where;
   },
 
-  /**
-   * 检查用户是否屏蔽了此推送
-   * 纯函数
-   */
   isBlocked(
     blocklist: { tags?: string[]; keywords?: string[]; ageRanges?: string[] },
     demand: { tags?: string[]; title?: string; description?: string },
   ) {
-    // 检查 demand 的 tags 是否匹配 blocklist 中的任何 tag
     if (blocklist.tags?.length && demand.tags?.length) {
       const isTagBlocked = blocklist.tags.some((t) => demand.tags!.includes(t));
       if (isTagBlocked) return true;
     }
 
-    // 检查 demand 的 title/description 是否包含 blocklist 中的任何关键词
     if (blocklist.keywords?.length) {
       const text = `${demand.title || ''} ${demand.description || ''}`.toLowerCase();
       const isKeywordBlocked = blocklist.keywords.some((kw) =>

@@ -72,7 +72,7 @@ export const loopRunService = {
     status: LoopRunStatus,
     patch?: { receiverRef?: string; orderId?: string; actualOutcome?: Prisma.InputJsonValue },
   ): Promise<void> {
-    await prisma.loopRun.update({
+    const updated = await prisma.loopRun.update({
       where: { id: loopRunId },
       data: {
         status,
@@ -81,7 +81,29 @@ export const loopRunService = {
         ...(patch?.orderId !== undefined ? { orderId: patch.orderId } : {}),
         ...(patch?.actualOutcome !== undefined ? { actualOutcome: patch.actualOutcome } : {}),
       },
+      select: { id: true, status: true, initiatorRef: true },
     });
+
+    // Phase 2：终态进入 Quiet（失败隔离，不阻断状态机）
+    if (TERMINAL.includes(status)) {
+      const { quietTaskSafe } = await import('../task-quiet.service.js');
+      const { mapLoopStatusToOutcome } = await import('../task-quiet.types.js');
+      const userId = updated.initiatorRef?.startsWith('user:')
+        ? updated.initiatorRef.slice(5)
+        : null;
+      const outcomeStatus = mapLoopStatusToOutcome(status);
+      quietTaskSafe({
+        resourceType: 'LOOP_RUN',
+        resourceId: loopRunId,
+        outcomeStatus,
+        outcomeSummary: `回运行已${status}`,
+        userId,
+        nextRequiredAction:
+          outcomeStatus === 'FAILED' || outcomeStatus === 'INCONCLUSIVE'
+            ? { label: '查看详情或重试', action: 'VIEW_DETAIL' }
+            : null,
+      });
+    }
   },
 
   /** 找到某需求下未关闭的回运行（补建/推进用） */

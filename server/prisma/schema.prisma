@@ -254,6 +254,13 @@ model User {
   applicantsV2   DemandApplicantV2[]
   pushPreference PushPreference?
 
+  // ── 产品时间主权 Phase 1A ──
+  notificationPolicy        NotificationPolicy?
+  notificationSubscriptions NotificationSubscription[]
+  notificationDeliveries    NotificationDelivery[]
+  // ── 产品时间主权 Phase 2 ──
+  taskQuietRecords          TaskQuietRecord[]
+
   @@index([cityCode])
   @@index([certificationLevel])
 }
@@ -634,7 +641,7 @@ model ContentReport {
 
 model Review {
   id         String   @id @default(uuid())
-  orderId    String   @unique
+  orderId    String
   order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   reviewerId String
   reviewer   User     @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
@@ -646,6 +653,58 @@ model Review {
 
   @@index([reviewerId])
   @@index([revieweeId])
+  @@unique([orderId, reviewerId])
+}
+
+model EmailVerificationCode {
+  id         String    @id @default(uuid())
+  email      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
+}
+
+model SchedulerLease {
+  name       String   @id
+  owner      String
+  leaseUntil DateTime
+  updatedAt  DateTime @updatedAt
+
+  @@index([leaseUntil])
+}
+
+model OutcomeEvent {
+  id            String   @id @default(uuid())
+  userId        String?
+  correlationId String
+  resourceType  String
+  resourceId    String
+  eventType     String
+  occurredAt    DateTime @default(now())
+  activeMs      Int?
+  metadata      Json     @default("{}")
+
+  @@index([correlationId, occurredAt])
+  @@index([resourceType, resourceId])
+  @@index([eventType, occurredAt])
+}
+
+model OutcomeDailyAggregate {
+  day          DateTime
+  resourceType String
+  eventType    String
+  eventCount   Int
+  activeMsSum  BigInt    @default(0)
+  sampleCount  Int       @default(0)
+  updatedAt    DateTime  @updatedAt
+
+  @@id([day, resourceType, eventType])
+  @@index([day])
 }
 
 model Message {
@@ -1352,4 +1411,116 @@ model VerificationRun {
 
   @@index([loopRunId])
   @@index([contractId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 产品时间主权 Phase 1A · 用户主权通知（只增；保留 PushPreference）
+// 权威：docs/specs/PRODUCT-TIME-SOVEREIGNTY-ENGINEERING-SPEC.md §5.2
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum NotificationCategory {
+  TRANSACTIONAL_REQUIRED
+  USER_REQUESTED
+  DIGEST
+  RELATIONSHIP
+}
+
+enum NotificationChannel {
+  IN_APP
+  WINDOWS
+  EMAIL
+}
+
+enum NotificationDeliveryMode {
+  IMMEDIATE
+  DIGEST
+  OFF
+}
+
+enum NotificationDeliveryStatus {
+  QUEUED
+  SENT
+  SUPPRESSED
+  FAILED
+  READ
+}
+
+model NotificationPolicy {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timezone            String   @default("Asia/Shanghai")
+  quietHoursStart     String? // HH:mm
+  quietHoursEnd       String? // HH:mm
+  dailyInterruptCap   Int      @default(3)
+  /// 一键暂停全部非必要通知（不影响 TRANSACTIONAL_REQUIRED）
+  nonEssentialPaused  Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model NotificationSubscription {
+  id        String                   @id @default(uuid())
+  userId    String
+  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  NotificationCategory
+  eventType String
+  mode      NotificationDeliveryMode @default(OFF)
+  channels  NotificationChannel[]
+  filters   Json                     @default("{}")
+  /// 空串表示无具体资源绑定；参与唯一约束（避免 PG NULL 唯一语义）
+  sourceRef String                   @default("")
+  expiresAt DateTime?
+  createdAt DateTime                 @default(now())
+  updatedAt DateTime                 @updatedAt
+
+  deliveries NotificationDelivery[]
+
+  @@unique([userId, eventType, sourceRef])
+  @@index([userId, category, mode])
+  @@index([expiresAt])
+  @@index([userId, createdAt])
+}
+
+model NotificationDelivery {
+  id               String                     @id @default(uuid())
+  userId           String
+  user             User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventType        String
+  category         NotificationCategory
+  subscriptionId   String?
+  subscription     NotificationSubscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  reasonCode       String
+  reasonText       String
+  channel          NotificationChannel
+  status           NotificationDeliveryStatus
+  suppressionCode  String?
+  resourceType     String?
+  resourceId       String?
+  createdAt        DateTime                   @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@index([userId, category, createdAt])
+  @@index([userId, status, createdAt])
+}
+
+/// Phase 2：任务 Quiet 记录（终态后停止非必要触达；幂等）
+model TaskQuietRecord {
+  id                   String   @id @default(uuid())
+  resourceType         String
+  resourceId           String
+  outcomeStatus        String
+  outcomeSummary       String
+  evidenceSummary      Json     @default("[]")
+  nextRequiredAction   Json?
+  sourceRefsStopped    String[] @default([])
+  notificationsStopped String[] @default([])
+  userId               String?
+  user                 User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt            DateTime @default(now())
+
+  @@unique([resourceType, resourceId])
+  @@index([userId, createdAt])
+  @@index([resourceId])
 }

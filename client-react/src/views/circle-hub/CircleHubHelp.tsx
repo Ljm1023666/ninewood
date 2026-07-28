@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { useCircleHub } from './circle-hub-context'
 
@@ -76,9 +77,12 @@ export default function CircleHubHelp() {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
-          <button type="button" className="cdb-btn-primary cdb-hub-help-search-btn" onClick={handleSearch}>
-            搜索
-          </button>
+          <LiquidMetalButton
+            label="搜索"
+            onClick={handleSearch}
+            height={48}
+            active={Boolean(query.trim())}
+          />
         </section>
 
         <section className="cdb-glass-card cdb-hub-faq">
@@ -159,10 +163,7 @@ export default function CircleHubHelp() {
               <MsIcon name="mail" size={20} aria-hidden />
               发送私信
             </button>
-            <button type="button" className="cdb-btn-primary" onClick={() => stubLink('在线咨询')}>
-              <MsIcon name="forum" size={20} aria-hidden />
-              在线咨询
-            </button>
+            <LiquidMetalButton label="在线咨询" onClick={() => stubLink('在线咨询')} />
           </div>
         </section>
       </div>

@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { TemplateChatRightShell } from '@/components/ui/chat-template'
 import type { TemplateContact } from '@/components/ui/chat-template'
 import { BackButton } from '@/components/ui/back-button'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { MsgChatDepthPane, MsgComposerRebound } from '@/components/ui/msg-chat-depth-pane'
 import { toPreferThumbCoverUrl } from '@/utils/user-cover-presets'
 import { getChatThreadContentState } from './chat-thread-state'
@@ -705,18 +706,15 @@ export default function ChatDetail() {
                 className="msg-composer__input thin-scroll"
               />
 
-              <button
-                type="button"
-                title="发送"
+              <LiquidMetalButton
+                viewMode="icon"
+                height={36}
+                aria-label="发送"
                 onClick={() => void send()}
                 disabled={!input.trim()}
-                className={cn(
-                  'msg-composer__send',
-                  input.trim() && 'msg-composer__send--active',
-                )}
-              >
-                <MsIcon name="send" size={20} />
-              </button>
+                active={Boolean(input.trim())}
+                icon={<MsIcon name="send" size={18} />}
+              />
             </div>
           </MsgComposerRebound>
         </div>
@@ -762,14 +760,13 @@ export default function ChatDetail() {
               >
                 取消
               </button>
-              <button
-                type="button"
+              <LiquidMetalButton
+                label="提交举报"
                 disabled={!reportReason.trim()}
-                className="rounded-lg bg-primary px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                active={Boolean(reportReason.trim())}
+                height={36}
                 onClick={() => void submitReport()}
-              >
-                提交举报
-              </button>
+              />
             </div>
           </div>
         </div>
