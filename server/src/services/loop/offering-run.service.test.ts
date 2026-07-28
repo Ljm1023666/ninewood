@@ -21,6 +21,9 @@ vi.mock('../../lib/prisma.js', () => ({
     loopRun: { create: m.loopRunCreate, update: m.loopRunUpdate },
     loopEvent: { create: m.loopEventCreate },
     demand: { findUnique: m.demandFindUnique },
+    verificationContract: {
+      findFirst: vi.fn().mockResolvedValue({ claimSchema: {} }),
+    },
   },
 }));
 
@@ -28,10 +31,21 @@ vi.mock('./executors/index.js', () => ({
   getLoopExecutor: m.getLoopExecutor,
 }));
 
-vi.mock('./builtin-loops.js', () => ({ seedBuiltinLoops: vi.fn() }));
+vi.mock('./builtin-loops.js', () => ({
+  seedBuiltinLoops: vi.fn(),
+  seedComposeRecipes: vi.fn().mockResolvedValue({ recipes: 0, offerings: 0 }),
+}));
 vi.mock('./verification.service.js', () => ({
   ensureVerificationContracts: vi.fn().mockResolvedValue({ contracts: 0 }),
   runForLoopRun: vi.fn().mockResolvedValue('PASSED'),
+}));
+vi.mock('./composition.service.js', () => ({
+  getRecipe: vi.fn().mockReturnValue(undefined),
+  runRecipe: vi.fn(),
+}));
+vi.mock('./loop-economy.service.js', () => ({
+  recordSettlementEligibility: vi.fn().mockResolvedValue(undefined),
+  quoteLoopFee: vi.fn(),
 }));
 
 import { runOffering } from './offering.service.js';

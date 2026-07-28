@@ -110,7 +110,7 @@ ninewood/
 
 - 天地人分区按 `LoopRun.loopKind` 展示；**查看/排序/调布局不改变** loop 类型。
 - 用户运行能力必须写入 `LoopRun` 及开始/结果/失败事件，否则回中心无轨迹。
-- 权威说明：`docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md`（旧 V1 ADR 已归档）
+- 权威说明：`docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md` + `docs/specs/NATURAL-LOOP-V3-ADR.md`（旧 V1 ADR 已归档）
 
 ### 5.3 其他高频路由
 
@@ -143,7 +143,7 @@ ninewood/
 | 开发主线 / 需求原文 | `docs/DEVELOPMENT-GUIDE.md` |
 | 工程现状 | `docs/ENGINEERING_OVERVIEW.md` |
 | 需求卡+服务卡 | `docs/specs/DEMAND-SERVICE-CARD-ADR.md` |
-| Natural Loop | `docs/回的理念.md`、`docs/specs/NATURAL-LOOP-V2-ADR.md` |
+| Natural Loop | `docs/回的理念.md`、`docs/specs/NATURAL-LOOP-V2-ADR.md`、`docs/specs/NATURAL-LOOP-V3-ADR.md` |
 
 **禁止默认阅读**：`archive/**`、`docs/archive/**`（历史代码、Roadmap / 旧 handoff / 已完成 Stage·Task / 一次性报告），以及 `.workbuddy/memory/**`、`.agents/**`、`.reasonix/**` 等非现行上下文。仅用户明确要求考古时再打开。
 

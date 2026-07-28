@@ -3,11 +3,14 @@
 import { prisma } from '../../lib/prisma.js';
 import type { Prisma } from '@prisma/client';
 import { LoopKind, LoopEventVisibility, LoopRunStatus } from '@prisma/client';
-import { seedBuiltinLoops } from './builtin-loops.js';
+import { seedBuiltinLoops, seedComposeRecipes } from './builtin-loops.js';
 import { ensureVerificationContracts, runForLoopRun } from './verification.service.js';
 import { getLoopExecutor } from './executors/index.js';
 import { loopRunService } from './loop-run.service.js';
 import { assertLoopSchema } from './schema-validator.js';
+import { getRecipe } from './composition.service.js';
+import { recordSettlementEligibility, quoteLoopFee } from './loop-economy.service.js';
+import { runRecipe } from './composition.service.js';
 
 export interface ListOfferingsParams {
   q?: string;
@@ -19,6 +22,10 @@ export interface ListOfferingsParams {
 export function toPublicOffering(o: any, isAdmin = false) {
   const successRatePublic = Boolean(o.endpoint?.successRatePublic);
   const requiredVerifiers = (o.verificationContracts ?? []).filter((c: any) => c.isRequired);
+  const recipe = getRecipe(o.definition?.code);
+  const description = String(o.definition?.description ?? '');
+  const ioDocMatch = description.split('—— IO 文档 ——');
+  const ioDoc = recipe?.ioDoc ?? (ioDocMatch.length > 1 ? ioDocMatch.slice(1).join('—— IO 文档 ——').trim() : description || null);
   const base = {
     id: o.id,
     title: o.title,
@@ -27,6 +34,18 @@ export function toPublicOffering(o: any, isAdmin = false) {
     definitionCode: o.definition.code,
     definitionName: o.definition.name,
     definitionDescription: o.definition.description,
+    ioDoc,
+    composition: recipe
+      ? {
+          code: recipe.code,
+          stepCount: recipe.steps.length,
+          steps: recipe.steps.map((s) => ({
+            key: s.key,
+            definitionCode: s.definitionCode,
+            relation: s.relation,
+          })),
+        }
+      : null,
     paths: o.paths,
     inputSchema: o.definition.inputSchema ?? {},
     outcomeSchema: o.definition.outcomeSchema ?? {},
@@ -110,9 +129,10 @@ export async function retrieveOffering(id: string, isAdmin: boolean) {
  */
 export async function ensureSystemOfferings() {
   const summary = await seedBuiltinLoops();
+  const compose = await seedComposeRecipes();
   // Wave E：把 validate.demand_fields 契约绑到至少一个 EARTH offering
   const contracts = await ensureVerificationContracts();
-  return { ...summary, contracts: contracts.contracts };
+  return { ...summary, composeRecipes: compose.recipes, composeOfferings: compose.offerings, contracts: contracts.contracts };
 }
 
 /**
@@ -132,12 +152,21 @@ export async function runOffering(
   code: string;
   status: string;
   outcome: unknown;
+  steps?: Array<{ key: string; runId: string; status: string; code: string }>;
 }> {
   const o = await prisma.loopOffering.findUnique({
     where: { id: offeringId },
     include: {
       definition: { select: { code: true, loopKind: true, name: true, inputSchema: true, outcomeSchema: true } },
-      endpoint: { select: { id: true, hostMode: true, healthStatus: true } },
+      endpoint: {
+        select: {
+          id: true,
+          hostMode: true,
+          healthStatus: true,
+          ownerType: true,
+          capacityJson: true,
+        },
+      },
       verificationContracts: { where: { isRequired: true }, select: { id: true } },
     },
   });
@@ -151,7 +180,12 @@ export async function runOffering(
   }
 
   const exec = getLoopExecutor(o.definition.code);
-  if (!exec) {
+  const recipe = getRecipe(o.definition.code);
+  const externalUrl =
+    o.endpoint?.hostMode === 'EXTERNAL_API'
+      ? String((o.endpoint.capacityJson as { url?: string } | null)?.url ?? '')
+      : '';
+  if (!exec && !recipe && !externalUrl) {
     throw Object.assign(
       new Error(`能力执行器未注册：${o.definition.code}`),
       { status: 500 },
@@ -159,6 +193,27 @@ export async function runOffering(
   }
 
   const demandId = opts.demandId;
+
+  // 组合路径：交由编排器
+  if (recipe) {
+    const composed = await runRecipe({
+      recipeCode: recipe.code,
+      userId,
+      demandId,
+      input: opts.input,
+      offeringId: o.id,
+    });
+    return {
+      runId: composed.runId,
+      ran: true,
+      preview: !demandId,
+      code: o.definition.code,
+      status: composed.status,
+      outcome: composed.outcome,
+      steps: composed.steps,
+    };
+  }
+
   if (demandId) {
     const demand = await prisma.demand.findUnique({
       where: { id: demandId },
@@ -174,6 +229,16 @@ export async function runOffering(
   const execInput: Record<string, unknown> = { endpointId: o.endpoint?.id };
   if (demandId) execInput.demandId = demandId;
   else execInput.fields = opts.input;
+  // 把首个 required 契约的 claimSchema 注入执行器，供地回对齐上架宣称
+  if (o.verificationContracts.length > 0) {
+    const firstContract = await prisma.verificationContract.findFirst({
+      where: { offeringId: o.id, isRequired: true },
+      select: { claimSchema: true },
+    });
+    if (firstContract?.claimSchema) {
+      execInput.claimSchema = firstContract.claimSchema;
+    }
+  }
 
   const runId = await loopRunService.create({
     definitionCode: o.definition.code,
@@ -192,9 +257,39 @@ export async function runOffering(
   });
   await loopRunService.transition(runId, LoopRunStatus.EXECUTING);
 
-  let r;
+  let r: { status: 'SUCCEEDED' | 'FAILED' | 'INCONCLUSIVE'; outcome: Prisma.InputJsonValue };
   try {
-    r = await exec.execute(execInput, { userId, loopRunId: runId });
+    if (exec) {
+      r = await exec.execute(execInput, { userId, loopRunId: runId });
+    } else {
+      // 用户 EXTERNAL_API：POST JSON，响应体即 outcome
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15_000);
+      const resp = await fetch(externalUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({
+          offeringId: o.id,
+          definitionCode: o.definition.code,
+          demandId: demandId ?? null,
+          input: opts.input ?? { demandId },
+        }),
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
+      const body = (await resp.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!resp.ok) {
+        r = {
+          status: 'FAILED',
+          outcome: { error: `外部接口 HTTP ${resp.status}`, body } as Prisma.InputJsonValue,
+        };
+      } else {
+        r = {
+          status: 'SUCCEEDED',
+          outcome: (body.outcome ?? body) as Prisma.InputJsonValue,
+        };
+      }
+    }
   } catch (error) {
     await loopRunService.appendEvent(runId, {
       type: 'RUN_FAILED',
@@ -234,6 +329,7 @@ export async function runOffering(
       : verification === 'FAILED'
         ? LoopRunStatus.FAILED
         : LoopRunStatus.INCONCLUSIVE;
+    await recordSettlementEligibility(runId, o.id, verification === 'PASSED');
   }
   await loopRunService.transition(runId, finalStatus, {
     actualOutcome: r.outcome as Prisma.InputJsonValue,
@@ -246,6 +342,10 @@ export async function runOffering(
     status: finalStatus,
     outcome: r.outcome,
   };
+}
+
+export async function quoteOfferingFee(offeringId: string, serviceAmount: number) {
+  return quoteLoopFee(offeringId, serviceAmount);
 }
 
 export async function retryOfferingVerification(runId: string, userId: string) {

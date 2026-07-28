@@ -13,6 +13,12 @@ import {
   Users,
 } from 'lucide-react'
 import { loopApi, type LoopKind, type MyLoopItem, type MyLoopSummary, type HeavenCapabilityItem } from '@/api/loop'
+import { LiquidMetalButton, type LiquidMetalButtonProps } from '@/components/ui/liquid-metal-button'
+
+/** 运行中心统一硬朗直角，不用默认胶囊圆角 */
+function LoopRectButton(props: LiquidMetalButtonProps) {
+  return <LiquidMetalButton shape="rect" radius={0} {...props} />
+}
 
 type DisplayMode = 'single' | 'split'
 type SplitDirection = 'horizontal' | 'vertical'
@@ -309,14 +315,11 @@ export default function MyLoopsPage() {
       <div className="my-loops-top">
       <header className="my-loops-head">
         <div>
-          <p className="my-loops-kicker">MY LOOPS / 运行中心</p>
+          <p className="my-loops-kicker">运行中心</p>
           <h1>回</h1>
-          <p className="my-loops-subtitle">
-            这里看与你有关的回正在做什么、走到哪里，以及过去完成得怎么样。
-            天回、地回、人回可以分区查看，也可以放在同一个运行台里。
-          </p>
+          <p className="my-loops-subtitle">人回 · 地回 · 天回</p>
         </div>
-        <button
+        <LoopRectButton
           type="button"
           className="my-loops-refresh"
           onClick={() => void load(true)}
@@ -324,7 +327,7 @@ export default function MyLoopsPage() {
         >
           <RefreshCw size={16} className={refreshing ? 'my-loops-spin' : undefined} />
           {refreshing ? '刷新中' : '刷新状态'}
-        </button>
+        </LoopRectButton>
       </header>
 
       <section className="my-loops-summary" aria-label="我的回运行统计">
@@ -339,7 +342,7 @@ export default function MyLoopsPage() {
           const bucket = summary.byKind[kind]
           const active = selectedKinds.includes(kind)
           return (
-            <button
+            <LoopRectButton
               type="button"
               key={kind}
               className={`my-loops-summary__kind my-loops-summary__kind--${kind.toLowerCase()} ${
@@ -348,11 +351,13 @@ export default function MyLoopsPage() {
               onClick={() => pickKind(kind)}
               aria-pressed={active}
             >
-              <Icon size={18} />
-              <span>{meta.label}</span>
+              <span className="my-loops-summary__kind-head">
+                <Icon size={18} aria-hidden />
+                <span className="my-loops-summary__kind-label">{meta.label}</span>
+              </span>
               <strong>{bucket.total}</strong>
               <small>{formatRate(bucket.successRate)} 成功率</small>
-            </button>
+            </LoopRectButton>
           )
         })}
         <div className="my-loops-summary__success">
@@ -404,42 +409,42 @@ export default function MyLoopsPage() {
           <summary>显示</summary>
           <div className="my-loops-display-menu__body">
             <div className="my-loops-segment">
-              <button
+              <LoopRectButton
                 type="button"
                 className={displayMode === 'single' ? 'is-active' : undefined}
                 onClick={() => setMode('single')}
                 aria-pressed={displayMode === 'single'}
               >
                 <List size={16} /> 单区
-              </button>
-              <button
+              </LoopRectButton>
+              <LoopRectButton
                 type="button"
                 className={displayMode === 'split' ? 'is-active' : undefined}
                 onClick={() => setMode('split')}
                 aria-pressed={displayMode === 'split'}
               >
                 <Columns3 size={16} /> 并列
-              </button>
+              </LoopRectButton>
             </div>
 
             {displayMode === 'split' && (
               <div className="my-loops-segment">
-                <button
+                <LoopRectButton
                   type="button"
                   className={direction === 'horizontal' ? 'is-active' : undefined}
                   onClick={() => setDirection('horizontal')}
                   aria-pressed={direction === 'horizontal'}
                 >
                   横向
-                </button>
-                <button
+                </LoopRectButton>
+                <LoopRectButton
                   type="button"
                   className={direction === 'vertical' ? 'is-active' : undefined}
                   onClick={() => setDirection('vertical')}
                   aria-pressed={direction === 'vertical'}
                 >
                   纵向
-                </button>
+                </LoopRectButton>
               </div>
             )}
 
@@ -464,9 +469,9 @@ export default function MyLoopsPage() {
       {error && (
         <div className="my-loops-state my-loops-state--error">
           <p>{error}</p>
-          <button type="button" onClick={() => void load()}>
+          <LoopRectButton type="button" onClick={() => void load()}>
             重新加载
-          </button>
+          </LoopRectButton>
         </div>
       )}
 
@@ -480,24 +485,20 @@ export default function MyLoopsPage() {
 
       {/* 平台天回能力：全站口径，勿与「我的运行」混读 */}
       {showHeaven && (
-        <section className="my-loops-heaven" aria-label="平台自动能力（全站）">
+        <section className="my-loops-heaven" aria-label="平台自动能力">
           <div className="my-loops-heaven__head">
             <div>
-              <span className="my-loops-pane__eyebrow">HEAVEN · 平台全站</span>
-              <h2>平台自动能力（全站）</h2>
-              <p className="my-loops-subtitle">
-                以下为平台内置自动能力的运行状态，统计口径为全站，与上方「我的运行」无关。
-                点击卡片查看详情或手动触发一次。
-              </p>
+              <h2>平台自动能力</h2>
+              <p className="my-loops-subtitle">全站内置任务 · 点击查看详情</p>
             </div>
             <label className="my-loops-sort">
               <ArrowDownUp size={15} />
-              排序
               <select
                 value={heavenSort}
                 onChange={(event) =>
                   setHeavenSort(event.target.value as 'recent' | 'success' | 'status')
                 }
+                aria-label="排序"
               >
                 <option value="recent">最近运行</option>
                 <option value="success">成功率优先</option>
@@ -509,17 +510,17 @@ export default function MyLoopsPage() {
           {heavenError && (
             <div className="my-loops-state my-loops-state--error">
               <p>{heavenError}</p>
-              <button type="button" onClick={() => void loadHeaven()}>
+              <LoopRectButton type="button" onClick={() => void loadHeaven()}>
                 重新加载
-              </button>
+              </LoopRectButton>
             </div>
           )}
-          {heavenLoading && !heavenError && <div className="my-loops-state">正在读取天回能力…</div>}
+          {heavenLoading && !heavenError && <div className="my-loops-state">正在读取…</div>}
           {!heavenLoading && !heavenError && heavenCaps.length === 0 && (
             <div className="my-loops-state my-loops-state--empty">
               <Bot size={28} />
-              <h2>还没有天回能力</h2>
-              <p>运行种子接口（POST /loops/admin/seed-builtins）后，系统自动能力会出现在这里。</p>
+              <h2>暂无自动能力</h2>
+              <p>种子写入后会出现在这里。</p>
             </div>
           )}
           {!heavenLoading && !heavenError && heavenCaps.length > 0 && (
@@ -626,7 +627,6 @@ function LoopRunCard({ item, onClick }: { item: MyLoopItem; onClick: () => void 
   const meta = KIND_META[item.kind]
   const Icon = meta.icon
   const status = STATUS_LABEL[item.status] ?? item.status
-  const latest = item.latestEvent?.type?.replaceAll('_', ' ').toLowerCase()
   return (
     <article
       className="my-loops-card"
@@ -637,32 +637,22 @@ function LoopRunCard({ item, onClick }: { item: MyLoopItem; onClick: () => void 
     >
       <div className="my-loops-card__top">
         <span className="my-loops-card__icon">
-          <Icon size={16} />
+          <Icon size={16} aria-hidden />
         </span>
         <div className="my-loops-card__title">
           <strong>{item.offering?.title || item.definition.name}</strong>
-          <span>{item.definition.executionMode === 'AUTOMATED' ? '自动运行' : '需要参与'}</span>
         </div>
-        <span className={`my-loops-status my-loops-status--${item.status.toLowerCase()}`}>{status}</span>
+        <span className={`my-loops-status my-loops-status--${item.status.toLowerCase()}`}>
+          {status}
+        </span>
       </div>
       <div className="my-loops-card__progress" aria-label={`完成度 ${item.progress}%`}>
         <span style={{ width: `${item.progress}%` }} />
       </div>
       <div className="my-loops-card__meta">
-        <span>完成度 {item.progress}%</span>
-        <span>{item.eventCount} 个阶段事件</span>
-        <span>最近 {formatTime(item.latestEvent?.createdAt ?? item.createdAt)}</span>
+        <span>{item.progress}%</span>
+        <span>{formatTime(item.latestEvent?.createdAt ?? item.createdAt)}</span>
       </div>
-      <div className="my-loops-card__stage">
-        <span>当前阶段</span>
-        <strong>{latest || status}</strong>
-      </div>
-      {(item.demandId || item.orderId) && (
-        <div className="my-loops-card__refs">
-          {item.demandId && <span>需求 {item.demandId.slice(0, 8)}</span>}
-          {item.orderId && <span>订单 {item.orderId.slice(0, 8)}</span>}
-        </div>
-      )}
     </article>
   )
 }
@@ -686,24 +676,22 @@ function HeavenCapabilityCard({
           ? 'executing'
           : 'succeeded'
   return (
-    <button type="button" className="my-loops-card my-loops-heaven__card" onClick={onClick}>
+    <button
+      type="button"
+      className="my-loops-card my-loops-heaven__card"
+      onClick={onClick}
+    >
       <div className="my-loops-card__top">
         <span className="my-loops-card__icon">
-          <Bot size={16} />
+          <Bot size={16} aria-hidden />
         </span>
         <div className="my-loops-card__title">
           <strong>{cap.title}</strong>
-          <span>{cap.trigger}</span>
         </div>
         <span className={`my-loops-status my-loops-status--${statusClass}`}>{cap.stage}</span>
       </div>
       <div className="my-loops-card__meta">
-        <span>状态 · {cap.stage}</span>
-        <span>最近 {formatTime(cap.lastRunAt)}</span>
-      </div>
-      <div className="my-loops-card__stage">
-        <span>最近结果</span>
-        <strong>{cap.lastResult || '—'}</strong>
+        <span>{formatTime(cap.lastRunAt)}</span>
       </div>
     </button>
   )

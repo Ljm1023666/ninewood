@@ -497,6 +497,116 @@ registerLoopExecutor({
   },
 });
 
+// builtin.earth.text.condense：文本精简地回样板（宣称压缩比 + 实际产出）
+// 只做诚实去冗（空白规范化 + 去重句），禁止为凑宣称而把正文砍到只剩一字。
+// 达不到宣称时仍提交 outcome，由天回判定 FAILED——地回不得自证成功。
+function condenseText(raw: string): { text: string; ratio: number } {
+  const original = raw.replace(/\s+/g, ' ').trim();
+  if (!original) return { text: '', ratio: 0 };
+  const sentences = original
+    .split(/(?<=[。！？.!?；;])\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const deduped: string[] = [];
+  const seen = new Set<string>();
+  for (const s of sentences) {
+    const key = s.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(s);
+  }
+  // 轻度收束：去掉句末多余语气词，不做破坏语义的硬截断
+  const joined = deduped
+    .map((s) => s.replace(/[啊呢吧嘛]+([。！？.!?])?$/u, '$1').trim())
+    .filter(Boolean)
+    .join('');
+  const ratio = original.length === 0 ? 0 : Math.max(0, 1 - joined.length / original.length);
+  return { text: joined || original, ratio: Math.round(ratio * 1000) / 1000 };
+}
+
+registerLoopExecutor({
+  definitionCode: 'builtin.earth.text.condense',
+  async execute(input) {
+    const fields = (input.fields as Record<string, unknown> | undefined) ?? {};
+    const text =
+      (fields.text as string) ||
+      (fields.description as string) ||
+      (fields.content as string) ||
+      '';
+    if (!text.trim()) {
+      throw Object.assign(new Error('请提供 text / description'), { status: 400 });
+    }
+    const claimedRaw =
+      fields.claimedCompressionRatio != null
+        ? Number(fields.claimedCompressionRatio)
+        : 0.3;
+    if (!Number.isFinite(claimedRaw) || claimedRaw < 0 || claimedRaw >= 1) {
+      throw Object.assign(new Error('claimedCompressionRatio 须在 [0,1)'), { status: 400 });
+    }
+    // 契约下限（来自 VerificationContract.claimSchema）优先：地回不得按低于上架宣称的目标偷懒
+    const claimFloor =
+      typeof (input.claimSchema as { minCompressionRatio?: number } | undefined)?.minCompressionRatio ===
+      'number'
+        ? Number((input.claimSchema as { minCompressionRatio: number }).minCompressionRatio)
+        : 0;
+    const claimed = Math.max(claimedRaw, claimFloor);
+    const { text: condensedText, ratio } = condenseText(text);
+    return {
+      status: 'SUCCEEDED',
+      outcome: {
+        condensedText,
+        originalLength: text.trim().length,
+        condensedLength: condensedText.length,
+        claimedCompressionRatio: claimed,
+        actualCompressionRatio: ratio,
+        metClaim: ratio + 1e-9 >= claimed,
+      },
+    };
+  },
+});
+// builtin.heaven.validate.text_claim：按宣称压缩比核验地回产出（双重剥夺判断权样板）
+registerLoopExecutor({
+  definitionCode: 'builtin.heaven.validate.text_claim',
+  async execute(input) {
+    const parentOutcome =
+      (input.parentOutcome as Record<string, unknown> | undefined) ??
+      (input.fields as Record<string, unknown> | undefined) ??
+      {};
+    const claimSchema = (input.claimSchema as Record<string, unknown> | undefined) ?? {};
+    // 优先核验本轮地回宣称（已含上架契约下限）；否则退回契约宣称
+    const minRatio =
+      typeof parentOutcome.claimedCompressionRatio === 'number'
+        ? (parentOutcome.claimedCompressionRatio as number)
+        : typeof claimSchema.minCompressionRatio === 'number'
+          ? (claimSchema.minCompressionRatio as number)
+          : 0.15;
+    const actual =
+      typeof parentOutcome.actualCompressionRatio === 'number'
+        ? (parentOutcome.actualCompressionRatio as number)
+        : null;
+    const condensed = String(parentOutcome.condensedText ?? '');
+    const originalLen =
+      typeof parentOutcome.originalLength === 'number'
+        ? (parentOutcome.originalLength as number)
+        : null;
+
+    const errors: string[] = [];
+    if (!condensed.trim()) errors.push('缺少 condensedText');
+    if (actual == null) errors.push('缺少 actualCompressionRatio');
+    if (originalLen != null && condensed.length > originalLen) {
+      errors.push('精简结果长于原文');
+    }
+    if (actual != null && actual + 1e-9 < minRatio) {
+      errors.push(`实际压缩比 ${actual} 低于宣称下限 ${minRatio}`);
+    }
+    const ok = errors.length === 0;
+    return {
+      status: ok ? 'SUCCEEDED' : 'FAILED',
+      outcome: { ok, errors, minCompressionRatio: minRatio, actualCompressionRatio: actual },
+    };
+  },
+});
+
 // builtin.heaven.validate.order_wallet_consistency：订单金额与钱包流水一致性（只读，不改账）
 registerLoopExecutor({
   definitionCode: 'builtin.heaven.validate.order_wallet_consistency',

@@ -22,6 +22,20 @@ function renderPage() {
 beforeEach(() => {
   mocks.recommend.mockReset()
   localStorage.clear()
+  if (!(globalThis as any).ResizeObserver) {
+    ;(globalThis as any).ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  }
+  if (!(globalThis as any).IntersectionObserver) {
+    ;(globalThis as any).IntersectionObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  }
 })
 
 describe('LoopDiscoverPage', () => {
@@ -62,5 +76,37 @@ describe('LoopDiscoverPage', () => {
     await user.click(await screen.findByRole('button', { name: /检查人回草稿/ }))
     expect(await screen.findByText('需求草稿确认页')).toBeInTheDocument()
     expect(localStorage.getItem('ninewood_demand_sessions_v1')).toContain('修木桌')
+  })
+
+  it('组合路径展示步骤徽标', async () => {
+    mocks.recommend.mockResolvedValue({
+      query: '需求就绪',
+      resolved: { paths: ['tag:需求结构化'], facets: [], suggestions: [], status: 'hit' },
+      humanFallback: null,
+      items: [{
+        id: 'compose-1', title: '需求就绪大回', summary: '结构化再生成路径', loopKind: 'EARTH',
+        definitionCode: 'builtin.compose.demand_ready', definitionName: '需求就绪大回', definitionDescription: null,
+        executionMode: 'HYBRID', paths: ['tag:需求结构化'], inputSchema: {}, outcomeSchema: {},
+        composition: {
+          code: 'builtin.compose.demand_ready',
+          stepCount: 2,
+          steps: [
+            { key: 'structure', definitionCode: 'builtin.earth.demand.structure', relation: 'DELEGATE' },
+            { key: 'paths', definitionCode: 'builtin.earth.demand.paths', relation: 'DELEGATE' },
+          ],
+        },
+        metrics: { dealRate: null, avgDurationMs: null, publicSuccessRate: null, sampleSize: null, successRateStatus: 'ADAPTING' },
+        requiresVerification: true, verification: { status: 'VERIFIED', verifierCount: 1, verifiers: [] },
+        endpoint: { healthStatus: 'ONLINE', hostMode: 'PLATFORM_HOSTED' },
+        match: { matchedPaths: ['tag:需求结构化'], textMatched: true, reasons: ['匹配路径 tag:需求结构化'] },
+      }],
+    })
+    const user = userEvent.setup()
+    renderPage()
+    await user.type(screen.getByLabelText('你的需求'), '需求就绪')
+    await user.click(screen.getByRole('button', { name: /寻找合适的回/ }))
+    expect(await screen.findByText('需求就绪大回')).toBeInTheDocument()
+    expect(screen.getByText(/组合 · 2 步/)).toBeInTheDocument()
+    expect(screen.getByText(/structure · DELEGATE/)).toBeInTheDocument()
   })
 })

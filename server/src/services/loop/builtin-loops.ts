@@ -157,6 +157,52 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     outcomeSchema: { type: 'object', additionalProperties: true },
     verifierCode: 'builtin.heaven.validate.demand_fields',
   },
+  {
+    code: 'builtin.earth.text.condense',
+    name: '文本精简',
+    description:
+      '长文本精简地回样板。输入 text + claimedCompressionRatio；输出 condensedText 与实际压缩比。\n' +
+      '—— IO 文档 ——\n' +
+      '输入：text（必填）、claimedCompressionRatio（0–1）。\n' +
+      '输出：condensedText、actualCompressionRatio、originalLength、condensedLength。\n' +
+      '验证：必须绑定 text_claim 天回；不可自证成功。',
+    loopKind: LoopKind.EARTH,
+    initiatorKind: ParticipantKind.HUMAN,
+    receiverKind: ParticipantKind.INTERFACE,
+    executionMode: LoopExecutionMode.AUTOMATED,
+    hasEndpoint: true,
+    offeringTitle: '文本精简（可核验）',
+    offeringSummary: '按宣称压缩比精简文本，结果由天回核验——双重剥夺判断权样板。',
+    capabilityPaths: ['intent:文本精简', 'tag:写作', 'tag:降重预备', 'cat:内容工具'],
+    inputSchema: {
+      type: 'object',
+      properties: {
+        text: { type: 'string', minLength: 8, description: '待精简原文' },
+        claimedCompressionRatio: {
+          type: 'number',
+          minimum: 0,
+          exclusiveMaximum: 1,
+          description: '宣称至少压掉的比例，如 0.3 表示压掉 30%',
+        },
+      },
+      required: ['text'],
+      additionalProperties: true,
+    },
+    outcomeSchema: {
+      type: 'object',
+      required: ['condensedText', 'actualCompressionRatio', 'claimedCompressionRatio'],
+      properties: {
+        condensedText: { type: 'string' },
+        actualCompressionRatio: { type: 'number' },
+        claimedCompressionRatio: { type: 'number' },
+        originalLength: { type: 'integer' },
+        condensedLength: { type: 'integer' },
+        metClaim: { type: 'boolean' },
+      },
+      additionalProperties: true,
+    },
+    verifierCode: 'builtin.heaven.validate.text_claim',
+  },
 
   // ── 天回（接口 ↔ 接口，验证/监管桩） ──────────────────────────────────
   {
@@ -170,6 +216,22 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     hasEndpoint: true,
     offeringTitle: '需求字段合规校验',
     offeringSummary: '系统自动校验需求的标题/描述/最低价是否合规。',
+  },
+  {
+    code: 'builtin.heaven.validate.text_claim',
+    name: '文本宣称核验',
+    description:
+      '按 claimSchema.minCompressionRatio 或地回宣称压缩比核验 actualCompressionRatio。\n' +
+      '—— IO 文档 ——\n' +
+      '输入：父地回 outcome（condensedText / actualCompressionRatio / claimedCompressionRatio）。\n' +
+      '输出：ok、errors。不合格 → FAILED，父地回不得 SUCCEEDED。',
+    loopKind: LoopKind.HEAVEN,
+    initiatorKind: ParticipantKind.INTERFACE,
+    receiverKind: ParticipantKind.INTERFACE,
+    executionMode: LoopExecutionMode.AUTOMATED,
+    hasEndpoint: true,
+    offeringTitle: '文本宣称核验',
+    offeringSummary: '系统核验文本精简是否达到宣称压缩比，防止自证成功。',
   },
   {
     code: 'builtin.heaven.validate.paths',
@@ -335,4 +397,95 @@ export async function seedBuiltinLoops(): Promise<{
   }
 
   return { definitions: defCount, endpoints: epCount, offerings: offCount };
+}
+
+/**
+ * 种子组合路径（大回）上架物：definition + endpoint + offering。
+ * 运行时由 composition.service 编排，不注册传统单步执行器。
+ */
+export async function seedComposeRecipes(): Promise<{ recipes: number; offerings: number }> {
+  const { BUILTIN_RECIPES } = await import('./composition.service.js');
+  let recipes = 0;
+  let offerings = 0;
+
+  for (const recipe of BUILTIN_RECIPES) {
+    const def = await prisma.loopDefinition.upsert({
+      where: { code: recipe.code },
+      create: {
+        code: recipe.code,
+        name: recipe.title,
+        description: `${recipe.summary}\n—— IO 文档 ——\n${recipe.ioDoc}`,
+        loopKind: LoopKind.EARTH,
+        initiatorKind: ParticipantKind.HUMAN,
+        receiverKind: ParticipantKind.INTERFACE,
+        executionMode: LoopExecutionMode.HYBRID,
+        inputSchema: {},
+        outcomeSchema: { type: 'object', additionalProperties: true },
+        isBuiltin: true,
+        isPublic: true,
+      },
+      update: {
+        name: recipe.title,
+        description: `${recipe.summary}\n—— IO 文档 ——\n${recipe.ioDoc}`,
+        loopKind: LoopKind.EARTH,
+      },
+    });
+    recipes++;
+
+    const endpoint = await prisma.capabilityEndpoint.upsert({
+      where: { code: recipe.code },
+      create: {
+        code: recipe.code,
+        name: recipe.title,
+        ownerType: 'SYSTEM',
+        ownerId: null,
+        hostMode: CapabilityHostMode.PLATFORM_HOSTED,
+        executionMode: LoopExecutionMode.HYBRID,
+        paths: recipe.paths,
+        healthStatus: CapabilityHealth.ONLINE,
+        successRatePublic: false,
+        pricePolicyJson: {
+          platformFeeRate: 0.05,
+          monitorFeeCapRate: 0.01,
+          verificationFee: 0,
+          currency: 'POINT',
+        },
+      },
+      update: {
+        name: recipe.title,
+        paths: recipe.paths,
+        healthStatus: CapabilityHealth.ONLINE,
+      },
+    });
+
+    const existing = await prisma.loopOffering.findFirst({
+      where: { definitionId: def.id, title: recipe.title },
+    });
+    if (!existing) {
+      await prisma.loopOffering.create({
+        data: {
+          definitionId: def.id,
+          endpointId: endpoint.id,
+          title: recipe.title,
+          summary: recipe.summary,
+          paths: recipe.paths,
+          status: 'ACTIVE',
+          requiresVerification: true,
+        },
+      });
+      offerings++;
+    } else {
+      await prisma.loopOffering.update({
+        where: { id: existing.id },
+        data: {
+          summary: recipe.summary,
+          paths: recipe.paths,
+          requiresVerification: true,
+          endpointId: endpoint.id,
+        },
+      });
+    }
+  }
+
+  return { recipes, offerings };
 }

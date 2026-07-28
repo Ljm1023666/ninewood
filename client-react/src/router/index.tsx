@@ -73,6 +73,7 @@ const LoopOfferingDetailPage = lazy(() => import('@/views/loop/LoopOfferingRoute
 const MyLoopsPage = lazy(() => import('@/views/loop/MyLoopsPage'))
 const LoopDiscoverPage = lazy(() => import('@/views/loop/LoopDiscoverPage'))
 const LoopAcceptPage = lazy(() => import('@/views/loop/LoopAcceptPage'))
+const LoopSupplyPage = lazy(() => import('@/views/loop/LoopSupplyPage'))
 const LoopRunDetailPage = lazy(() => import('@/views/loop/LoopRunDetailPage'))
 const LoopHubLayout = lazy(() => import('@/views/loop/LoopHubLayout'))
 
@@ -620,6 +621,14 @@ export const router = createBrowserRouter([
                 element: (
                   <HubLazy>
                     <LoopAcceptPage />
+                  </HubLazy>
+                ),
+              },
+              {
+                path: 'supply',
+                element: (
+                  <HubLazy>
+                    <LoopSupplyPage />
                   </HubLazy>
                 ),
               },

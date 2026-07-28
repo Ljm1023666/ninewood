@@ -21,6 +21,7 @@ import {
   CapabilityHostMode,
 } from '@prisma/client';
 import { getLoopExecutor, registerLoopExecutor } from './executors/index.js';
+import { getRecipe } from './composition.service.js';
 import { loopRunService } from './loop-run.service.js';
 
 export type HeavenRunStatus = 'SUCCEEDED' | 'FAILED' | 'INCONCLUSIVE';
@@ -85,11 +86,14 @@ export const HEAVEN_CAPABILITIES: HeavenCapability[] = [
       });
       const now = new Date();
       const platformHosted = endpoints.filter((e) => e.hostMode === 'PLATFORM_HOSTED');
+      const isRunnablePlatformCapability = (code: string) =>
+        Boolean(getLoopExecutor(code) || getRecipe(code));
       for (const endpoint of platformHosted) {
         await prisma.capabilityEndpoint.update({
           where: { id: endpoint.id },
           data: {
-            healthStatus: getLoopExecutor(endpoint.code)
+            // 组合大回无 recipe 编排、无单步 executor；不得标成 UNKNOWN 挤出推荐池
+            healthStatus: isRunnablePlatformCapability(endpoint.code)
               ? CapabilityHealth.ONLINE
               : CapabilityHealth.UNKNOWN,
             healthCheckedAt: now,
@@ -97,7 +101,7 @@ export const HEAVEN_CAPABILITIES: HeavenCapability[] = [
         });
       }
       const external = endpoints.filter((e) => e.hostMode === 'EXTERNAL_API');
-      const unknown = platformHosted.filter((e) => !getLoopExecutor(e.code)).length;
+      const unknown = platformHosted.filter((e) => !isRunnablePlatformCapability(e.code)).length;
       const offline = external.filter(
         (e) => e.healthStatus === 'OFFLINE' || e.healthStatus === 'UNKNOWN',
       ).length;

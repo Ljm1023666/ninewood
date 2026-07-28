@@ -7,6 +7,7 @@ function prefetchLoopHubPages() {
   void import('./LoopDiscoverPage')
   void import('./MyLoopsPage')
   void import('./LoopAcceptPage')
+  void import('./LoopSupplyPage')
 }
 
 /**

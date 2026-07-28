@@ -9,6 +9,7 @@ import {
 import { CompletionSummaryView } from '@/components/outcome/CompletionSummary'
 import { useTaskActiveTime } from '@/utils/task-active-time'
 import LoopHubNav from './LoopHubNav'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const STATUS: Record<string, string> = {
   TRIGGERED: '已触发', EXECUTING: '执行中', VERIFYING: '验证中',
@@ -83,7 +84,7 @@ export default function LoopRunDetailPage() {
     <div className="loop-hub-page">
       <LoopHubNav />
       <main className="loop-run-detail">
-        <button type="button" className="loop-back" onClick={() => navigate('/loops/mine')}><ArrowLeft size={16} /> 返回我的回</button>
+        <LiquidMetalButton type="button" className="loop-back" onClick={() => navigate('/loops/mine')}><ArrowLeft size={16} /> 返回我的回</LiquidMetalButton>
         {loading && <div className="loop-notice">正在读取运行详情…</div>}
         {error && <div className="loop-notice loop-notice--error">{error}</div>}
         {run && (
@@ -96,9 +97,9 @@ export default function LoopRunDetailPage() {
               </div>
               <div className="loop-run-actions">
                 <span className={`loop-run-status loop-run-status--${run.status.toLowerCase()}`}>{STATUS[run.status] || run.status}</span>
-                <button type="button" onClick={() => void load()}><RefreshCw size={15} />刷新</button>
+                <LiquidMetalButton type="button" onClick={() => void load()}><RefreshCw size={15} />刷新</LiquidMetalButton>
                 {run.loopKind === 'EARTH' && run.status === 'INCONCLUSIVE' && (
-                  <button type="button" onClick={retry} disabled={retrying}><RotateCcw size={15} />{retrying ? '重试中…' : '重试验证'}</button>
+                  <LiquidMetalButton type="button" onClick={retry} disabled={retrying}><RotateCcw size={15} />{retrying ? '重试中…' : '重试验证'}</LiquidMetalButton>
                 )}
               </div>
             </header>
@@ -137,14 +138,33 @@ export default function LoopRunDetailPage() {
               )}
             </section>
 
+            {(() => {
+              const settlement = [...run.events].reverse().find(
+                (e) => e.type === 'SETTLEMENT_ELIGIBLE' || e.type === 'SETTLEMENT_BLOCKED',
+              )
+              if (!settlement) return null
+              const ok = settlement.type === 'SETTLEMENT_ELIGIBLE'
+              return (
+                <section className="loop-detail-section" aria-label="结算资格">
+                  <h2>{ok ? '允许进入结算' : '禁止结算'}</h2>
+                  <p>
+                    {ok
+                      ? '全部必要天回已通过。实际扣款由后续结算链路接管；地回不得自证成功。'
+                      : '天回核验未通过或无法判断，本轮不可结算。'}
+                  </p>
+                  <JsonBlock value={settlement.payload} />
+                </section>
+              )
+            })()}
+
             <section className="loop-detail-section">
               <h2><GitBranch size={18} />父子回与关系</h2>
               {[...run.linksIn, ...run.linksOut].length === 0 ? <p>没有关联回。</p> : (
                 <div className="loop-link-list">{[...run.linksIn, ...run.linksOut].map((link) => {
                   const target = link.targetRun || link.sourceRun
-                  return target && <button type="button" key={link.id} onClick={() => navigate(`/loops/runs/${target.id}`)}>
+                  return target && <LiquidMetalButton type="button" key={link.id} onClick={() => navigate(`/loops/runs/${target.id}`)}>
                     <span>{link.relation}</span><strong>{target.definition.name}</strong><em>{STATUS[target.status] || target.status}</em>
-                  </button>
+                  </LiquidMetalButton>
                 })}</div>
               )}
             </section>

@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
   loopOfferingFindMany: vi.fn(),
   loopOfferingFindUnique: vi.fn(),
   seedBuiltinLoops: vi.fn(),
+  seedComposeRecipes: vi.fn(),
 }));
 
 vi.mock('../../lib/prisma.js', () => ({
@@ -26,6 +27,7 @@ vi.mock('../../lib/prisma.js', () => ({
 
 vi.mock('./builtin-loops.js', () => ({
   seedBuiltinLoops: m.seedBuiltinLoops,
+  seedComposeRecipes: m.seedComposeRecipes,
 }));
 
 import { listOfferings, retrieveOffering, ensureSystemOfferings } from './offering.service.js';
@@ -33,6 +35,7 @@ import { listOfferings, retrieveOffering, ensureSystemOfferings } from './offeri
 beforeEach(() => {
   Object.values(m).forEach((f: any) => f.mockReset());
   m.seedBuiltinLoops.mockResolvedValue({ definitions: 10, endpoints: 9, offerings: 9 });
+  m.seedComposeRecipes.mockResolvedValue({ recipes: 2, offerings: 2 });
   m.loopOfferingFindMany.mockResolvedValue([]);
 });
 
@@ -115,6 +118,14 @@ describe('ensureSystemOfferings', () => {
   it('复用 seed 并保证每条 SYSTEM builtin 有 ACTIVE offering', async () => {
     const r = await ensureSystemOfferings();
     expect(m.seedBuiltinLoops).toHaveBeenCalled();
-    expect(r).toEqual({ definitions: 10, endpoints: 9, offerings: 9, contracts: 0 });
+    expect(m.seedComposeRecipes).toHaveBeenCalled();
+    expect(r).toEqual({
+      definitions: 10,
+      endpoints: 9,
+      offerings: 9,
+      composeRecipes: 2,
+      composeOfferings: 2,
+      contracts: 0,
+    });
   });
 });

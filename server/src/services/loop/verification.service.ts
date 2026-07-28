@@ -10,6 +10,11 @@ export type VerificationOutcome = 'PASSED' | 'FAILED' | 'ERROR' | 'INCONCLUSIVE'
 const VERIFIER_BY_EARTH_CODE: Record<string, string> = {
   'builtin.earth.demand.structure': 'builtin.heaven.validate.demand_fields',
   'builtin.earth.demand.paths': 'builtin.heaven.validate.paths',
+  'builtin.earth.media.normalize': 'builtin.heaven.validate.attachment_safety',
+  'builtin.earth.demand.card_cover': 'builtin.heaven.validate.demand_fields',
+  'builtin.earth.text.condense': 'builtin.heaven.validate.text_claim',
+  'builtin.compose.demand_ready': 'builtin.heaven.validate.paths',
+  'builtin.compose.text_ready': 'builtin.heaven.validate.text_claim',
 };
 
 /**
@@ -39,10 +44,20 @@ export async function ensureVerificationContracts(): Promise<{ contracts: number
       create: {
         offeringId: offering.id,
         verifierEndpointId: verifier.id,
-        claimSchema: {},
+        claimSchema:
+          offering.definition.code === 'builtin.earth.text.condense' ||
+          offering.definition.code === 'builtin.compose.text_ready'
+            ? { minCompressionRatio: 0.15 }
+            : {},
         isRequired: true,
       },
-      update: { isRequired: true },
+      update: {
+        isRequired: true,
+        ...(offering.definition.code === 'builtin.earth.text.condense' ||
+        offering.definition.code === 'builtin.compose.text_ready'
+          ? { claimSchema: { minCompressionRatio: 0.15 } }
+          : {}),
+      },
     });
     contracts++;
   }
@@ -109,7 +124,14 @@ export async function runForLoopRun(loopRunId: string): Promise<VerificationOutc
             ? run.actualOutcome
             : run.inputJson;
         const r = await exec.execute(
-          { demandId: run.demandId ?? undefined, fields, loopRunId },
+          {
+            demandId: run.demandId ?? undefined,
+            fields,
+            loopRunId,
+            claimSchema: contract.claimSchema,
+            parentOutcome: run.actualOutcome,
+            parentInput: run.inputJson,
+          },
           { loopRunId: verifierRunId },
         );
         status =

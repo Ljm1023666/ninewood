@@ -113,11 +113,20 @@ export default function LoopDiscoverPage() {
                 {result.items.map((item) => (
                   <article className="loop-result-card" key={item.id}>
                     <div className="loop-result-card__head">
-                      <span className="loop-kind-badge">地回</span>
+                      <span className="loop-kind-badge">
+                        {item.composition ? `组合 · ${item.composition.stepCount} 步` : '地回'}
+                      </span>
                       <span className="loop-verification"><ShieldCheck size={14} /> {item.verification.verifierCount} 个必要验证</span>
                     </div>
                     <h2>{item.title}</h2>
                     <p>{item.summary || item.definitionDescription || '平台内置的可执行回。'}</p>
+                    {item.composition && (
+                      <div className="loop-match-reasons">
+                        {item.composition.steps.map((step) => (
+                          <span key={step.key}>{step.key} · {step.relation}</span>
+                        ))}
+                      </div>
+                    )}
                     <ul>
                       <li><Clock3 size={15} />预计 {formatDuration(item.metrics.avgDurationMs)}</li>
                       <li><Bot size={15} />自动执行，结果由天回验证</li>

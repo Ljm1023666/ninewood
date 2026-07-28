@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { loopApi, type LoopKind, type LoopOfferingItem } from '@/api/loop'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+import { SegmentedFilter } from '@/components/layout/internal-ui'
 
 /** 大众分区文案；禁止暴露 EARTH/HEAVEN/HUMAN */
 const KIND_SECTION: Record<LoopKind, { key: LoopKind; label: string; order: number }> = {
@@ -80,7 +82,7 @@ function ServiceRow({
         : `${(item.metrics.avgDurationMs / 1000).toFixed(1)}s`
 
   return (
-    <button type="button" className="loop-svc-row" onClick={onOpen}>
+    <LiquidMetalButton type="button" className="loop-svc-row" onClick={onOpen}>
       <span className="loop-svc-row__icon" aria-hidden>
         <MsIcon name={iconFor(item.definitionCode)} />
       </span>
@@ -111,7 +113,7 @@ function ServiceRow({
         {healthText}
       </span>
       <span className="loop-svc-row__go">进入 →</span>
-    </button>
+    </LiquidMetalButton>
   )
 }
 
@@ -182,20 +184,12 @@ export default function LoopOfferingsPage() {
               aria-label="搜索能力"
             />
           </div>
-          <div className="loop-svc-segs" role="tablist" aria-label="类型筛选">
-            {FILTERS.map((f) => (
-              <button
-                key={f.value || 'all'}
-                type="button"
-                role="tab"
-                aria-selected={loopKind === f.value}
-                className={cn('loop-svc-seg', loopKind === f.value && 'is-active')}
-                onClick={() => setLoopKind(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedFilter
+            options={FILTERS}
+            value={loopKind}
+            onChange={setLoopKind}
+            className="loop-svc-segs"
+          />
         </div>
 
         {loading ? (
@@ -212,12 +206,12 @@ export default function LoopOfferingsPage() {
             </p>
             {emptyHint && (
               <div className="loop-svc-empty-panel__actions">
-                <button type="button" onClick={() => navigate('/path-search')}>
+                <LiquidMetalButton type="button" onClick={() => navigate('/path-search')}>
                   路径检索
-                </button>
-                <button type="button" onClick={() => navigate('/demands/create')}>
+                </LiquidMetalButton>
+                <LiquidMetalButton type="button" onClick={() => navigate('/demands/create')}>
                   发布需求
-                </button>
+                </LiquidMetalButton>
               </div>
             )}
           </div>

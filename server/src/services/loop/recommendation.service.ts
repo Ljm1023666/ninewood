@@ -4,6 +4,7 @@ import { dedupeStable, splitQueryInputs, validateFacets, validateScoringPaths } 
 import { resolveQueryToPaths } from '../path-search.js'
 import { getLoopExecutor } from './executors/index.js'
 import { toPublicOffering } from './offering.service.js'
+import { getRecipe } from './composition.service.js'
 
 export interface RecommendLoopsParams {
   q?: string
@@ -49,7 +50,7 @@ export async function recommendLoops(params: RecommendLoopsParams) {
     where,
     include: {
       endpoint: {
-        select: { healthStatus: true, hostMode: true, successRatePublic: true },
+        select: { healthStatus: true, hostMode: true, successRatePublic: true, capacityJson: true },
       },
       definition: {
         select: {
@@ -78,7 +79,12 @@ export async function recommendLoops(params: RecommendLoopsParams) {
   }
   const queryGrams = ngrams(queryLower)
   const ranked = rows
-    .filter((row) => Boolean(getLoopExecutor(row.definition.code)))
+    .filter((row) => {
+      if (getLoopExecutor(row.definition.code) || getRecipe(row.definition.code)) return true
+      // 用户 EXTERNAL_API：有 URL 即可进入候选
+      const url = (row.endpoint as { capacityJson?: { url?: string } } | null)?.capacityJson?.url
+      return Boolean(url)
+    })
     .map((row) => {
       const matchedPaths = row.paths.filter((path) => allPaths.includes(path))
       const haystack = `${row.title} ${row.summary ?? ''}`.toLocaleLowerCase('zh-CN')

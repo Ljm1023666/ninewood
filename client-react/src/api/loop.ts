@@ -20,6 +20,12 @@ export type LoopOfferingItem = {
   definitionCode: string
   definitionName: string
   definitionDescription: string | null
+  ioDoc?: string | null
+  composition?: null | {
+    code: string
+    stepCount: number
+    steps: Array<{ key: string; definitionCode: string; relation: string }>
+  }
   paths: string[]
   inputSchema: LoopContract
   outcomeSchema: LoopContract
@@ -254,5 +260,56 @@ export const loopApi = {
     const res = await api.get<ApiEnvelope<HeavenCapabilityItem[]>>('/loops/capabilities')
     const rows = res.data?.data
     return Array.isArray(rows) ? rows : []
+  },
+
+  async listRecipes(): Promise<
+    Array<{
+      code: string
+      title: string
+      summary: string
+      paths: string[]
+      ioDoc: string
+      steps: Array<{ key: string; definitionCode: string; relation: string }>
+    }>
+  > {
+    const res = await api.get<ApiEnvelope<any[]>>('/loops/recipes')
+    return Array.isArray(res.data?.data) ? res.data.data : []
+  },
+
+  async quoteFee(id: string, serviceAmount: number) {
+    const res = await api.get<ApiEnvelope<any>>(`/loops/offerings/${id}/fee-quote`, {
+      params: { serviceAmount },
+    })
+    return res.data?.data
+  },
+
+  async listMyOfferings(): Promise<LoopOfferingItem[]> {
+    const res = await api.get<ApiEnvelope<LoopOfferingItem[]>>('/loops/my-offerings')
+    return Array.isArray(res.data?.data) ? res.data.data : []
+  },
+
+  async createMyOffering(body: {
+    title: string
+    summary?: string
+    paths?: string[]
+    endpointUrl?: string
+    ioDoc?: string
+    verifierCodes?: string[]
+    claimedServiceAmount?: number
+  }): Promise<LoopOfferingItem> {
+    const res = await api.post<ApiEnvelope<LoopOfferingItem>>('/loops/my-offerings', body)
+    return res.data.data
+  },
+
+  async healthCheckMyOffering(id: string) {
+    const res = await api.post<ApiEnvelope<{ offeringId: string; healthStatus: string; recommendable: boolean }>>(
+      `/loops/my-offerings/${id}/health-check`,
+    )
+    return res.data.data
+  },
+
+  async setMyOfferingStatus(id: string, status: 'ACTIVE' | 'PAUSED' | 'DELISTED') {
+    const res = await api.patch<ApiEnvelope<LoopOfferingItem>>(`/loops/my-offerings/${id}/status`, { status })
+    return res.data.data
   },
 }

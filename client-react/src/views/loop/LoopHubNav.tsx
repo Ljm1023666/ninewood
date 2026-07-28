@@ -5,12 +5,14 @@ const TABS = [
   { key: 'discover', to: '/loops/discover', label: '发现回' },
   { key: 'mine', to: '/loops/mine', label: '我的回' },
   { key: 'accept', to: '/loops/accept', label: '承接人回' },
+  { key: 'supply', to: '/loops/supply', label: '上架' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
 
 function resolveTab(pathname: string): TabKey {
   if (pathname.startsWith('/loops/accept')) return 'accept'
+  if (pathname.startsWith('/loops/supply')) return 'supply'
   if (pathname.startsWith('/loops/mine') || pathname.startsWith('/loops/runs')) return 'mine'
   return 'discover'
 }
@@ -28,10 +30,10 @@ export default function LoopHubNav() {
         onChange={(key) => {
           const tab = TABS.find((t) => t.key === key)
           if (!tab) return
-          // 预取目标页 chunk
           if (key === 'discover') void import('./LoopDiscoverPage')
           if (key === 'mine') void import('./MyLoopsPage')
           if (key === 'accept') void import('./LoopAcceptPage')
+          if (key === 'supply') void import('./LoopSupplyPage')
           navigate(tab.to)
         }}
       />

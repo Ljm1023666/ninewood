@@ -22,6 +22,7 @@ const m = vi.hoisted(() => ({
   userCount: vi.fn(),
   circleCount: vi.fn(),
   capabilityEndpointUpdate: vi.fn(),
+  capabilityEndpointFindMany: vi.fn(),
 }));
 
 vi.mock('../../lib/prisma.js', () => ({
@@ -31,7 +32,10 @@ vi.mock('../../lib/prisma.js', () => ({
     order: { count: m.orderCount },
     user: { count: m.userCount },
     circle: { count: m.circleCount },
-    capabilityEndpoint: { update: m.capabilityEndpointUpdate },
+    capabilityEndpoint: {
+      update: m.capabilityEndpointUpdate,
+      findMany: m.capabilityEndpointFindMany,
+    },
     loopDefinition: { findUnique: m.loopDefinitionFindUnique },
     loopOffering: {
       findFirst: m.loopOfferingFindFirst,
@@ -70,6 +74,7 @@ beforeEach(() => {
   m.userCount.mockResolvedValue(0);
   m.circleCount.mockResolvedValue(0);
   m.capabilityEndpointUpdate.mockResolvedValue({});
+  m.capabilityEndpointFindMany.mockResolvedValue([]);
 });
 
 describe('runHeavenCapability (天回核心)', () => {
@@ -124,6 +129,38 @@ describe('runHeavenCapability (天回核心)', () => {
     );
     const updateData = m.loopOfferingUpdate.mock.calls[0][0].data as Record<string, unknown>;
     expect(updateData.recentSuccessN).toBeUndefined();
+  });
+
+  it('可用性巡检：组合大回（有 recipe、无 executor）仍标 ONLINE', async () => {
+    m.capabilityEndpointFindMany.mockResolvedValue([
+      {
+        id: 'ep-compose',
+        code: 'builtin.compose.demand_ready',
+        hostMode: 'PLATFORM_HOSTED',
+        healthStatus: 'UNKNOWN',
+      },
+      {
+        id: 'ep-orphan',
+        code: 'builtin.platform.orphan.no_runner',
+        hostMode: 'PLATFORM_HOSTED',
+        healthStatus: 'ONLINE',
+      },
+    ]);
+
+    await runHeavenCapability('builtin.heaven.monitor.service_availability');
+
+    expect(m.capabilityEndpointUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'ep-compose' },
+        data: expect.objectContaining({ healthStatus: 'ONLINE' }),
+      }),
+    );
+    expect(m.capabilityEndpointUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'ep-orphan' },
+        data: expect.objectContaining({ healthStatus: 'UNKNOWN' }),
+      }),
+    );
   });
 });
 

@@ -7,10 +7,17 @@ import { adminGate } from '../middleware/admin-gate.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { success, fail } from '../utils/response.js';
 import { loopRunService } from '../services/loop/loop-run.service.js';
-import { ensureSystemOfferings, listOfferings, retrieveOffering, retryOfferingVerification, runOffering } from '../services/loop/offering.service.js';
+import { ensureSystemOfferings, listOfferings, retrieveOffering, retryOfferingVerification, runOffering, quoteOfferingFee } from '../services/loop/offering.service.js';
 import { recommendLoops } from '../services/loop/recommendation.service.js';
 import { listHeavenCapabilities } from '../services/loop/heaven-runner.service.js';
 import { getLoopExecutor } from '../services/loop/executors/index.js';
+import { listRecipes } from '../services/loop/composition.service.js';
+import {
+  createUserOffering,
+  listUserOfferings,
+  setUserOfferingStatus,
+  healthCheckUserOffering,
+} from '../services/loop/supply.service.js';
 // 副作用：注册内置回执行器（Executor 注册表）
 import '../services/loop/executors/index.js';
 
@@ -77,6 +84,25 @@ loopRouter.get('/recommend', async (req: Request, res: Response) => {
   }
 });
 
+// 公开：列出内置组合路径（大回）元数据
+loopRouter.get('/recipes', async (_req: Request, res: Response) => {
+  success(
+    res,
+    listRecipes().map((r) => ({
+      code: r.code,
+      title: r.title,
+      summary: r.summary,
+      paths: r.paths,
+      ioDoc: r.ioDoc,
+      steps: r.steps.map((s) => ({
+        key: s.key,
+        definitionCode: s.definitionCode,
+        relation: s.relation,
+      })),
+    })),
+  );
+});
+
 // 公开：需求者检索「可用方案」（offering）
 // 字段白名单：绝不返回 internalSuccessRate / verifier 机密配置（宪法：成功率仅内部）
 loopRouter.get('/offerings', async (req: Request, res: Response) => {
@@ -123,6 +149,75 @@ loopRouter.post('/offerings/:id/run', authMiddleware, async (req: Request, res: 
   } catch (err: any) {
     const status = typeof err?.status === 'number' ? err.status : 500;
     fail(res, err?.message || '运行失败', status);
+  }
+});
+
+// 回域费用预览（不落账）
+loopRouter.get('/offerings/:id/fee-quote', authMiddleware, async (req: Request, res: Response) => {
+  const amount = Number(req.query.serviceAmount ?? 0);
+  try {
+    const quote = await quoteOfferingFee(req.params.id, amount);
+    success(res, quote);
+  } catch (err: any) {
+    fail(res, err?.message || '报价失败', err?.status || 500);
+  }
+});
+
+// ── 开放供给：我的地回 ──────────────────────────────────────────────
+loopRouter.get('/my-offerings', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const items = await listUserOfferings(req.user!.userId);
+    success(res, items);
+  } catch (err: any) {
+    fail(res, err?.message || '加载失败', err?.status || 500);
+  }
+});
+
+loopRouter.post('/my-offerings', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const body = (req.body || {}) as Record<string, unknown>;
+    const item = await createUserOffering(req.user!.userId, {
+      title: String(body.title ?? ''),
+      summary: body.summary != null ? String(body.summary) : undefined,
+      paths: Array.isArray(body.paths) ? body.paths.map(String) : undefined,
+      endpointUrl: body.endpointUrl != null ? String(body.endpointUrl) : undefined,
+      inputSchema: (body.inputSchema as Record<string, unknown> | undefined) ?? undefined,
+      outcomeSchema: (body.outcomeSchema as Record<string, unknown> | undefined) ?? undefined,
+      ioDoc: body.ioDoc != null ? String(body.ioDoc) : undefined,
+      verifierCodes: Array.isArray(body.verifierCodes) ? body.verifierCodes.map(String) : undefined,
+      claimedServiceAmount:
+        body.claimedServiceAmount != null ? Number(body.claimedServiceAmount) : undefined,
+      verificationFee: body.verificationFee != null ? Number(body.verificationFee) : undefined,
+    });
+    success(res, item, '已上架（健康未知，请先做健康检查）');
+  } catch (err: any) {
+    fail(res, err?.message || '上架失败', err?.status || 500);
+  }
+});
+
+loopRouter.post('/my-offerings/:id/health-check', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const result = await healthCheckUserOffering(req.user!.userId, req.params.id);
+    success(res, result, result.recommendable ? '已上线，可进入推荐' : '健康未达标');
+  } catch (err: any) {
+    fail(res, err?.message || '健康检查失败', err?.status || 500);
+  }
+});
+
+loopRouter.patch('/my-offerings/:id/status', authMiddleware, async (req: Request, res: Response) => {
+  const status = String((req.body || {}).status ?? '');
+  if (!['ACTIVE', 'PAUSED', 'DELISTED'].includes(status)) {
+    return fail(res, 'status 须为 ACTIVE | PAUSED | DELISTED', 400);
+  }
+  try {
+    const item = await setUserOfferingStatus(
+      req.user!.userId,
+      req.params.id,
+      status as 'ACTIVE' | 'PAUSED' | 'DELISTED',
+    );
+    success(res, item, '状态已更新');
+  } catch (err: any) {
+    fail(res, err?.message || '更新失败', err?.status || 500);
   }
 });
 

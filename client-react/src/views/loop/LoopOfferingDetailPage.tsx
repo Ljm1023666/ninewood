@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { loopApi, type LoopKind, type LoopOfferingDetail } from '@/api/loop'
 import { demandApi } from '@/api/demand'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /** 大众文案：禁止暴露 EARTH / HEAVEN / HUMAN 枚举 */
 const KIND_LABEL: Record<LoopKind, string> = {
@@ -43,11 +44,14 @@ function freeFieldsFor(code: string): FreeField[] {
   if (code.includes('card_cover')) return ['title']
   if (code.includes('validate.paths')) return ['paths']
   if (code.includes('demand_fields')) return ['title', 'description', 'minPrice']
+  if (code.includes('compose.demand_ready') || code.includes('demand.structure') || code.includes('structure')) {
+    return ['description']
+  }
   if (code.includes('demand.paths') || (code.includes('.paths') && !code.includes('validate'))) {
     return ['title', 'description', 'minPrice']
   }
   if (code.includes('media') || code.includes('attachment')) return ['mediaUrls']
-  if (code.includes('structure')) return ['description']
+  if (code.includes('text.condense') || code.includes('text_ready')) return ['description']
   if (code.includes('order_wallet') || code.includes('health')) return []
   return ['title']
 }
@@ -112,6 +116,31 @@ function pipelineFor(code: string, title: string): PipelineSpec {
       },
     }
   }
+  if (code.includes('text.condense') || code.includes('text_ready')) {
+    return {
+      nodes: ['长文本', title, '精简文本', '天回核验', '闭环'],
+      activeIndex: 1,
+      exampleIn: '重复句子很多的长文……宣称压缩 30%',
+      exampleOut: {
+        condensedText: '保留关键句。',
+        claimedCompressionRatio: 0.3,
+        actualCompressionRatio: 0.42,
+        metClaim: true,
+      },
+    }
+  }
+  if (code.includes('compose.demand_ready')) {
+    return {
+      nodes: ['口语', '结构化', '路径', '天回核验', '可发布'],
+      activeIndex: 1,
+      exampleIn: '想找人写论文提纲，预算五百',
+      exampleOut: {
+        title: '论文提纲撰写',
+        paths: ['tag:论文', 'cat:写作'],
+        count: 2,
+      },
+    }
+  }
   return {
     nodes: ['触发', title, '执行', '结果', '闭环'],
     activeIndex: 1,
@@ -152,6 +181,14 @@ export default function LoopOfferingDetailPage() {
   const [result, setResult] = useState<RunResult>(null)
   const [runError, setRunError] = useState<string | null>(null)
 
+  const [feeQuote, setFeeQuote] = useState<{
+    serviceAmount: number
+    platformFee: number
+    monitorFeeCap: number
+    verificationFee: number
+    totalPreview: number
+  } | null>(null)
+
   useEffect(() => {
     if (!id) return
     let alive = true
@@ -159,10 +196,20 @@ export default function LoopOfferingDetailPage() {
     setError(null)
     setResult(null)
     setRunError(null)
+    setFeeQuote(null)
     loopApi
       .getOffering(id)
-      .then((row) => {
-        if (alive) setData(row)
+      .then(async (row) => {
+        if (!alive) return
+        setData(row)
+        if (row?.loopKind === 'EARTH') {
+          try {
+            const quote = await loopApi.quoteFee(row.id, 100)
+            if (alive) setFeeQuote(quote)
+          } catch {
+            /* 未登录或报价失败时静默 */
+          }
+        }
       })
       .catch(() => {
         if (alive) setError('方案不存在或加载失败')
@@ -243,6 +290,11 @@ export default function LoopOfferingDetailPage() {
         if (freeFields.includes('title') && form.title.trim()) input.title = form.title.trim()
         if (freeFields.includes('description') && form.description.trim()) {
           input.description = form.description.trim()
+          // 文本精简样板：description 同步为 text
+          if (data.definitionCode.includes('text.condense') || data.definitionCode.includes('text_ready')) {
+            input.text = form.description.trim()
+            if (input.claimedCompressionRatio == null) input.claimedCompressionRatio = 0.3
+          }
         }
         if (freeFields.includes('minPrice') && form.minPrice.trim()) {
           input.minPrice = Number(form.minPrice)
@@ -295,9 +347,9 @@ export default function LoopOfferingDetailPage() {
       <div className="loop-svc-root">
         <div className="loop-svc-empty">
           <p>{error || '方案不存在'}</p>
-          <button type="button" className="loop-svc-empty__btn" onClick={() => navigate('/loops/discover')}>
+          <LiquidMetalButton type="button" className="loop-svc-empty__btn" onClick={() => navigate('/loops/discover')}>
             返回发现回
-          </button>
+          </LiquidMetalButton>
         </div>
       </div>
     )
@@ -334,10 +386,10 @@ export default function LoopOfferingDetailPage() {
   return (
     <div className="loop-svc-root">
       <main className="loop-svc-shell">
-        <button type="button" className="loop-svc-back" onClick={() => navigate('/loops/discover')}>
+        <LiquidMetalButton type="button" className="loop-svc-back" onClick={() => navigate('/loops/discover')}>
           <MsIcon name="arrow_left_alt" className="text-[14px]" />
           返回发现回
-        </button>
+        </LiquidMetalButton>
 
         <header>
           <div className="loop-svc-title-row">
@@ -346,6 +398,22 @@ export default function LoopOfferingDetailPage() {
           </div>
           <p className="loop-svc-promise">{promise}</p>
         </header>
+
+        {data.composition && (
+          <div className="loop-svc-verify">
+            组合路径 · {data.composition.stepCount} 步：
+            {data.composition.steps.map((s) => s.key).join(' → ')}
+          </div>
+        )}
+
+        {data.ioDoc && (
+          <section aria-label="输入输出文档">
+            <p className="loop-svc-run__label">IO 文档</p>
+            <pre className="loop-svc-example__code" style={{ whiteSpace: 'pre-wrap' }}>
+              <code>{data.ioDoc}</code>
+            </pre>
+          </section>
+        )}
 
         {data.requiresVerification && (
           <div className="loop-svc-verify">该方案完成后需经过系统核验，才会视为成功。</div>
@@ -397,20 +465,20 @@ export default function LoopOfferingDetailPage() {
         <section className="loop-svc-run" aria-label="运行此能力">
           <p className="loop-svc-run__label">运行此能力</p>
           <div className="loop-svc-run__tabs">
-            <button
+            <LiquidMetalButton
               type="button"
               className={runMode === 'demand' ? 'is-active' : undefined}
               onClick={() => setRunMode('demand')}
             >
               选一条需求
-            </button>
-            <button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               className={runMode === 'free' ? 'is-active' : undefined}
               onClick={() => setRunMode('free')}
             >
               自由输入
-            </button>
+            </LiquidMetalButton>
           </div>
 
           {runMode === 'demand' ? (
@@ -431,14 +499,14 @@ export default function LoopOfferingDetailPage() {
               {demands.length === 0 && (
                 <p className="loop-svc-run__hint">暂无需求；可先去发布，或改用「自由输入」试跑。</p>
               )}
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="loop-svc-run__btn"
                 disabled={running || !selectedDemandId}
                 onClick={() => void run()}
               >
                 {running ? '运行中…' : '对需求运行'}
-              </button>
+              </LiquidMetalButton>
             </div>
           ) : (
             <div className="loop-svc-run__form">
@@ -520,7 +588,7 @@ export default function LoopOfferingDetailPage() {
               {schemaFields.length === 0 && freeFields.length === 0 && data.definitionCode.includes('health') && (
                 <p className="loop-svc-run__hint">无需填写；点击下方按钮探测接口健康。</p>
               )}
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="loop-svc-run__btn"
                 disabled={
@@ -530,7 +598,7 @@ export default function LoopOfferingDetailPage() {
                 onClick={() => void run()}
               >
                 {running ? '运行中…' : '自由输入运行'}
-              </button>
+              </LiquidMetalButton>
             </div>
           )}
 
@@ -569,25 +637,37 @@ export default function LoopOfferingDetailPage() {
           </span>
         </section>
 
+        {feeQuote && (
+          <section className="loop-svc-status" aria-label="费用预览">
+            <span>示意报价（服务额 100）</span>
+            <span className="loop-svc-status__sep">·</span>
+            <span>佣金 {feeQuote.platformFee}</span>
+            <span className="loop-svc-status__sep">·</span>
+            <span>监管额度上限 {feeQuote.monitorFeeCap}</span>
+            <span className="loop-svc-status__sep">·</span>
+            <span>验证费 {feeQuote.verificationFee}</span>
+          </section>
+        )}
+
         <footer className="loop-svc-next">
           <h3 className="loop-svc-next__label">接下来你可以</h3>
           <div className="loop-svc-next__links">
-            <button
+            <LiquidMetalButton
               type="button"
               className="loop-svc-next__link"
               onClick={() => navigate('/demands/create')}
             >
               去发布需求
               <MsIcon name="arrow_outward" className="text-[16px]" />
-            </button>
-            <button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               className="loop-svc-next__link"
               onClick={() => navigate('/loops/accept')}
             >
               去承接人回
               <MsIcon name="arrow_outward" className="text-[16px]" />
-            </button>
+            </LiquidMetalButton>
           </div>
         </footer>
       </main>

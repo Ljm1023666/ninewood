@@ -2,6 +2,22 @@
 
 Append-only operational lessons to reduce repeated mistakes.
 
+## 2026-07-28（组合大回健康巡检）
+
+- 平台托管能力「可运行」≠ 仅有 `getLoopExecutor`：组合 Recipe 无单步执行器，健康巡检若只认 executor 会把它们打成 `UNKNOWN`，推荐池 `health=ONLINE` 条件会永久过滤掉大回。
+- 巡检与推荐过滤应对齐：`getLoopExecutor(code) || getRecipe(code)`（以及 EXTERNAL_API 有 URL）才算可上架候选。
+
+## 2026-07-28（金属外圈状态契约）
+
+- 金属外圈是按下与锁定/选中反馈，不是普通按钮的常驻装饰；默认由 `active`、`aria-pressed`、`aria-selected` 和按下态驱动。
+- 未锁定按钮松开后必须卸载 Shader canvas；显式 `metalGlow=true` 只留给确实需要强制展示的特殊场景。
+
+## 2026-07-28（单一金属按钮组件）
+
+- 全站按钮统一前，金标准必须先成为原生 `<button>` 根组件并完整支持 children、form type、ref、ARIA、事件与语义状态；仅替换 JSX 标签会破坏表单和布局。
+- 旧按钮名称只保留薄别名，禁止继续维护第二套视觉实现。
+- 大量 shader 按钮必须用尺寸与 IntersectionObserver 做组件级门控；隐藏或视口外按钮不创建 canvas、不运行 rAF。
+
 ## 2026-07-28（前端性能）
 
 - 懒加载路由的专属 CSS 必须由对应页面入口导入；仅拆 JS、不拆全局 `index.css`，冷启动仍会下载并解析无关页面样式。
@@ -110,7 +126,7 @@ Append-only operational lessons to reduce repeated mistakes.
 ## 2026-07-14
 
 - 顶层文档会互相污染新会话（Roadmap / 冻结 Task handoff / 旧 ADR）。过期主线、已完成 Stage·Task、一次性报告应迁入 `docs/archive/`，并用 **全 AI 工具**忽略机制阻断：权威清单 `.llmignore` → `node scripts/sync-ai-ignores.mjs` 同步到各工具 ignore；Claude Code 加 `permissions.deny`；行为层靠 `AGENTS.md` / `CLAUDE.md` / `.github/copilot-instructions.md`。勿只配 `.cursorignore`。
-- 自然回现行权威是 `docs/回的理念.md` + `NATURAL-LOOP-V2-ADR.md`；勿再默认打开已归档的 `NATURAL-LOOP-ADR.md` 或 Task-12「找服务」终态叙事。
+- 自然回现行权威是 `docs/回的理念.md` + `NATURAL-LOOP-V2-ADR.md` + `NATURAL-LOOP-V3-ADR.md`；勿再默认打开已归档的 `NATURAL-LOOP-ADR.md` 或 Task-12「找服务」终态叙事。
 - `CLAUDE.md` / `MEMORY.md` 的包管理与仓库路径若与 `AGENTS.md` 冲突，以 `AGENTS.md` + `README.md`（pnpm）为准并应立即对齐，否则协作纪律名存实亡。
 
 
@@ -133,3 +149,7 @@ Append-only operational lessons to reduce repeated mistakes.
 
 - `MsIcon` 依赖 Material Symbols ligature：若 `ms-icons-ready` 在字体未就绪时超时强制加上，会持久显示 `edit_document` 等英文名。勿用「失败/超时也 ready」；图标字体应同源托管，且 `@font-face` 必须写在 head 里、早于 `document.fonts.load`。
 - Google Fonts 全量可变 Material Symbols 可达 ~4MB；桌面端优先用固定 opsz/wght 的 ~320KB woff2。
+- 自然回现行权威是 `docs/回的理念.md` + `NATURAL-LOOP-V2-ADR.md` + `NATURAL-LOOP-V3-ADR.md`。V3 用代码种子 Recipe + 现有 `LoopLink(DELEGATE/TRIGGER/VERIFY)` 做组合，**不新增 Prisma 核心表**；勿为「大回」先开新表。
+- 地回不可自证成功：执行器只交 outcome，`SUCCEEDED` 必须经 required 天回；验证失败写 `SETTLEMENT_BLOCKED` 事件，勿绕过进钱包主路径（影子优先）。
+- 开放供给首轮只做 EXTERNAL_API + 健康检查进推荐池；用户 offering 无注册执行器时用 HTTP POST 到 `capacityJson.url`，勿假装 PLATFORM_HOSTED 已上线。
+- 推荐池过滤条件：有执行器 **或** 有 Recipe **或** EXTERNAL_API 带 URL；只认 `getLoopExecutor` 会把组合路径与用户地回全部漏掉。
