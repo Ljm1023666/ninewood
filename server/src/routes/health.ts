@@ -55,15 +55,29 @@ async function checkHttp(name: string, url: string, port: number, timeout = 3000
   }
 }
 
+/** 容器 / 编排用的轻量存活探针：不依赖外部服务 */
+router.get('/health/live', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'ninewood-server',
+    timestamp: new Date().toISOString(),
+  })
+})
+
 router.get('/health/services', async (_req, res) => {
   const overallStart = Date.now()
+  const isProd = process.env.NODE_ENV === 'production'
 
-  const results = await Promise.allSettled([
-    checkPostgres(),
-    checkRedis(),
-    checkHttp('语义分类器', 'http://127.0.0.1:8001/health', 8001),
-    checkHttp('Vite Dev Server', 'http://localhost:3080/', 3080, 2000),
-  ])
+  // 生产/容器：只查进程内依赖（PG/Redis）；开发机额外探查分类器与 Vite
+  const checks: Promise<ServiceHealth>[] = [checkPostgres(), checkRedis()]
+  if (!isProd) {
+    checks.push(
+      checkHttp('语义分类器', 'http://127.0.0.1:8001/health', 8001),
+      checkHttp('Vite Dev Server', 'http://localhost:3080/', 3080, 2000),
+    )
+  }
+
+  const results = await Promise.allSettled(checks)
 
   const expressCheck: ServiceHealth = {
     name: 'Express 服务器',

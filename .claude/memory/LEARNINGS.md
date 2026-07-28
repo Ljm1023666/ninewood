@@ -2,6 +2,19 @@
 
 Append-only operational lessons to reduce repeated mistakes.
 
+## 2026-07-28
+
+- 交易可信度 ADR 在 Accepted 前若存在资金守恒、operationKey 事务语义、幂等租约、状态自洽、前端 key 契约任一项未钉死，必须保持 Proposed 并改文档，禁止开工实现。
+- 部分完成不得直接 `settleDemand`（会整笔 consumeHold）；须拆分托管并满足「期末可用+HELD+对方入账+平台收入 = 期初可用+HELD」。
+- 交易可信度改代码前必须先冻结 ADR（`docs/specs/ORDER-TRANSACTION-TRUST-ADR.md`）：部分完成与全额完成一样走双方确认；确认前禁止 settle/建剩余需求/hold；资金写路径要 Idempotency-Key + ledger operationKey + 条件状态更新。
+- P0：匿名运维写口（`/api/health/restart|start-all`、`/api/tag-stats/refresh`）必须管理员鉴权；生产应彻底禁用 health-actions，容器健康检查只用 `/api/health/live`，勿在 Alpine 里跑 Windows `sc`。
+- Express 静态段路由（如 `/messages/unread-count`）必须注册在动态段 `/:userId` 之前，否则会被吞掉且难从业务日志发现。
+- pnpm monorepo 的 server Dockerfile 生产阶段不可用根 `package.json` 覆盖 `server/package.json`，否则会丢 Express/Prisma 等后端依赖；应保持 workspace 布局并对 `--filter server --prod` 安装。
+- Windows 上 Vite watch `public/fonts/*.woff2` 可能 `EBUSY` 直接崩掉 client-react；表现常是懒加载页 `Failed to fetch dynamically imported module`。应在 `vite.config.ts` 的 `server.watch.ignored` 排除 `**/public/fonts/**`，崩后需重启 `pnpm --filter client-react run dev`（端口常 3080）。
+- Material Symbols 外链全量字体 + 超时强制 `ms-icons-ready` 会露出 ligature 原文；应同源托管精简 woff2，且仅在 `fonts.load` 成功后显示图标。
+- 主题默认值若同时写在 `index.css`（如 `#007AFF`）与 `theme.ts` / `design-tokens`（九木青），hydrate 前会闪色；FOUC 脚本 + CSS 默认值必须与 runtime preset 同源。
+- 桌面侧栏「固定」与沉浸页收起冲突时，用临时 `immersiveStowed` 覆盖 pin，而不是改写 localStorage 里的 pin 偏好。
+
 ## 2026-05-14
 
 - Browser extension interference can make GitHub appear slow even when network/proxy settings are correct.
@@ -61,3 +74,8 @@ Append-only operational lessons to reduce repeated mistakes.
 - 香港 ECS 公网约 1 Mbps 时，封面原图 1.5–2MB 体感「十几秒」；同素材 `covers-detail`/`thumb` 约 100KB/25KB，免费侧应默认走 display 档 + nginx 直出缓存，勿擅自点阿里云「立即支付并更改」。
 - Profile 开屏若直接绑 `user.coverUrl`（`/uploads/covers/*` 原图），会成为首屏最大阻塞；须走 `toPreferDetailCoverUrl` + `DisplayCoverPicture`（AVIF/WebP）。
 - 3D 画廊 `upgradeCardCoverUrlForGallery` 拉原图在窄带上得不偿失；统一 detail 足够纹理清晰度。
+
+## 2026-07-28
+
+- `MsIcon` 依赖 Material Symbols ligature：若 `ms-icons-ready` 在字体未就绪时超时强制加上，会持久显示 `edit_document` 等英文名。勿用「失败/超时也 ready」；图标字体应同源托管，且 `@font-face` 必须写在 head 里、早于 `document.fonts.load`。
+- Google Fonts 全量可变 Material Symbols 可达 ~4MB；桌面端优先用固定 opsz/wght 的 ~320KB woff2。

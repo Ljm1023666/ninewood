@@ -143,9 +143,11 @@ app.use('/api/loops', loopRouter);
 // 注册 Ninewood 业务工具
 registerNinewoodTools();
 
-// Health
+// Health（只读探针始终可用；启停类动作仅非生产挂载）
 app.use('/api', healthRouter);
-app.use('/api', healthActionsRouter);
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api', healthActionsRouter);
+}
 
 // 独立监控页 — 前端挂了也能用
 const __public = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'public');

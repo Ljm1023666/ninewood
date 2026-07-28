@@ -1,12 +1,34 @@
-import { Router } from 'express'
+import { Router, type Request, type Response, type NextFunction } from 'express'
 import { execSync, spawn, type ChildProcess } from 'child_process'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { adminGate } from '../middleware/admin-gate.js'
 
 const router = Router()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Windows 服务名
+/** 生产环境彻底关闭；仅开发/测试机允许本地运维动作 */
+export function isHealthActionsEnabled(): boolean {
+  return process.env.NODE_ENV !== 'production'
+}
+
+/** Windows 服务启停仅在本机 Windows 开发环境有意义；容器/Linux 一律拒绝 */
+export function canManageWindowsServices(): boolean {
+  return process.platform === 'win32'
+}
+
+function denyIfProduction(_req: Request, res: Response, next: NextFunction) {
+  if (!isHealthActionsEnabled()) {
+    res.status(403).json({
+      ok: false,
+      message: '生产环境已禁用健康操作接口',
+    })
+    return
+  }
+  next()
+}
+
+// Windows 服务名（仅 win32 开发机）
 const SERVICE_NAMES: Record<string, string> = {
   PostgreSQL: 'postgresql-x64-18',
   Redis: 'Redis',
@@ -16,6 +38,12 @@ const SERVICE_NAMES: Record<string, string> = {
 let classifierProcess: ChildProcess | null = null
 
 function execSvc(serviceName: string, action: 'start' | 'stop'): { ok: boolean; message: string } {
+  if (!canManageWindowsServices()) {
+    return {
+      ok: false,
+      message: '当前环境不是 Windows，无法通过 sc 管理本地服务（请使用 docker-compose / 系统服务）',
+    }
+  }
   try {
     const result = execSync(`sc ${action} "${serviceName}"`, {
       encoding: 'utf-8',
@@ -42,7 +70,7 @@ function startClassifier(): { ok: boolean; message: string } {
       windowsHide: true,
     })
     classifierProcess.unref()
-    return { ok: true, message: '分类器启动命令已发送' }
+    return { ok: true, message: '分类器启动命令已发出' }
   } catch (e: any) {
     return { ok: false, message: e.message }
   }
@@ -50,12 +78,18 @@ function startClassifier(): { ok: boolean; message: string } {
 
 function stopClassifier(): { ok: boolean; message: string } {
   if (!classifierProcess || classifierProcess.exitCode !== null) {
-    // 进程未跟踪，尝试通过端口杀进程
+    // 进程未跟踪：仅 Windows 开发机尝试按端口杀进程
+    if (!canManageWindowsServices()) {
+      return { ok: false, message: '当前环境不是 Windows，无法按端口终止分类器' }
+    }
     try {
-      execSync('for /f "tokens=5" %a in (\'netstat -ano ^| findstr :8001 ^| findstr LISTENING\') do taskkill /PID %a /F 2>nul', {
-        timeout: 10000,
-        windowsHide: true,
-      })
+      execSync(
+        'for /f "tokens=5" %a in (\'netstat -ano ^| findstr :8001 ^| findstr LISTENING\') do taskkill /PID %a /F 2>nul',
+        {
+          timeout: 10000,
+          windowsHide: true,
+        },
+      )
       return { ok: true, message: '已尝试终止占用 8001 端口的进程' }
     } catch {
       return { ok: false, message: '未找到分类器进程' }
@@ -70,6 +104,10 @@ function stopClassifier(): { ok: boolean; message: string } {
     return { ok: false, message: e.message }
   }
 }
+
+// 生产禁用 → 管理员鉴权 → 业务处理
+router.use(denyIfProduction)
+router.use(adminGate)
 
 router.post('/health/restart/:name', async (req, res) => {
   const { name } = req.params

@@ -104,12 +104,11 @@ messageRouter.post('/card-attachment', authMiddleware, async (req: Request, res:
   }
 });
 
-// GET /api/messages/:userId
-messageRouter.get('/:userId', authMiddleware, async (req: Request, res: Response) => {
+// GET /api/messages/unread-count — 必须在 /:userId 之前，否则会被动态路由吞掉
+messageRouter.get('/unread-count', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const page = parseInt(q(req.query.page) || '1');
-    const messages = await messageService.getMessages(req.user!.userId, req.params.userId as string, page);
-    success(res, messages);
+    const count = await messageService.getUnreadCount(req.user!.userId);
+    success(res, { count });
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);
   }
@@ -149,11 +148,12 @@ messageRouter.post('/send', authMiddleware, upload.single('file'), verifyUpload,
   }
 });
 
-// GET /api/messages/unread-count
-messageRouter.get('/unread-count', authMiddleware, async (req: Request, res: Response) => {
+// GET /api/messages/:userId — 动态段放最后
+messageRouter.get('/:userId', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const count = await messageService.getUnreadCount(req.user!.userId);
-    success(res, { count });
+    const page = parseInt(q(req.query.page) || '1');
+    const messages = await messageService.getMessages(req.user!.userId, req.params.userId as string, page);
+    success(res, messages);
   } catch (e: any) {
     fail(res, e.message || '服务器错误', e.status || 500);
   }

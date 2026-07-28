@@ -4,25 +4,28 @@ Use this file as the compact handoff state between sessions.
 
 ## Intent
 
-提交并推送：生产客户端指向 `tothetomorrow.com`、资料封面原图、Windows 云端接入文档，以及 **macOS 发布页 AI 复刻说明**。
+交易可信度 ADR 已按 5 项设计阻断修订，**仍为 Proposed，第 11 节全部未勾选，禁止 Accepted / 禁止改业务代码**。
 
 ## Changes Made
 
-- 前端 `runtime-origin`：Electron/生产 API·Socket·静态资源走 `https://tothetomorrow.com`
-- Profile 封面优先原图 `/uploads/covers/…`
-- 文档：`docs/MACOS-PUBLISH-PAGE-AI.md`（发布页 AI 业务+实现）、`docs/WINDOWS-CURSOR-CLOUD-ACCESS.md`
-- 云端 LLM 已切公网 + 本机 Key 同步（仅服务器 `.env`，不进 Git）
+- 修订 `docs/specs/ORDER-TRANSACTION-TRUST-ADR.md`（回应 B1–B5）
+- 本轮**仅文档**；无 Prisma / 服务 / 前端实现
 
-## Decisions
+## Decisions（修订后要点）
 
-- 短信/LLM 密钥唯一源：`/opt/ninewood/server/.env`
-- LLM 不经 Mac Tailscale；pm2 需干净重启以免旧 env 覆盖 dotenv
+- B1：禁止 partial 直接 `settleDemand`；新增 `settlePartialWithRemainder`；剩余价 `R=max(1,A-P)`；未用托管回吐；预付服务费多退；守恒式 §4.3.5 + 用例 C1–C5
+- B2：`operationKey` 冲突 → 整事务回滚后只读重放，禁止同事务 catch-and-continue
+- B3：幂等 `leaseUntil` + 超时接管；FAILED/SUCCEEDED 独立短事务落库
+- B4：prepay 允许 `IN_PROGRESS|PARTIAL_PENDING`；`WAITING_REVIEW`+cancel **推荐禁止**，待产品勾选
+- B5：§4.5 前端 key 契约（生成/重试复用/重发换新）为生产强制 header 前置条件
 
 ## Active Issues
 
-- 无阻塞；用户验收发布页「分析」即可
+- 第 11 节（含 11.2 阻断补齐项）均未勾选
+- P0 / 发现页等改动分 commit、Docker 验收仍待办
 
 ## Next Steps
 
-1. macOS 侧按 `docs/MACOS-PUBLISH-PAGE-AI.md` 对齐
-2. 如需前端产物上云，另做 build/deploy（勿提交 `_frontend_dist.tgz`）
+1. 产品评审：剩余价口径、`WAITING_REVIEW` 是否禁止 cancel
+2. 工程/前端确认：§5.3 租约、§4.5 幂等助手、§9.4 CI
+3. 全部勾选后改 Accepted，再开实现 PR

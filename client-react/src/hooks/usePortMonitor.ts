@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getAuthToken } from '@/api/auth-session'
 
 export interface ServiceStatus {
   name: string
@@ -22,6 +23,13 @@ interface PortHistoryPoint {
 
 const MAX_HISTORY = 60
 
+function healthActionHeaders(): HeadersInit {
+  const headers: Record<string, string> = {}
+  const token = getAuthToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
 export function usePortMonitor(pollInterval = 5000) {
   const [data, setData] = useState<HealthData | null>(null)
   const [history, setHistory] = useState<PortHistoryPoint[]>([])
@@ -30,7 +38,7 @@ export function usePortMonitor(pollInterval = 5000) {
 
   const fetchHealth = useCallback(async () => {
     try {
-      const res = await fetch('/api/health/services')
+      const res = await fetch('/api/health/services', { credentials: 'include' })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json: HealthData = await res.json()
       if (!mountedRef.current) return
@@ -67,7 +75,11 @@ export function usePortMonitor(pollInterval = 5000) {
   const restartService = useCallback(async (name: string) => {
     setActionLoading(name)
     try {
-      const res = await fetch(`/api/health/restart/${encodeURIComponent(name)}`, { method: 'POST' })
+      const res = await fetch(`/api/health/restart/${encodeURIComponent(name)}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: healthActionHeaders(),
+      })
       const json = await res.json()
       await fetchHealth()
       return json
@@ -79,7 +91,11 @@ export function usePortMonitor(pollInterval = 5000) {
   const startAll = useCallback(async () => {
     setActionLoading('__all__')
     try {
-      const res = await fetch('/api/health/start-all', { method: 'POST' })
+      const res = await fetch('/api/health/start-all', {
+        method: 'POST',
+        credentials: 'include',
+        headers: healthActionHeaders(),
+      })
       const json = await res.json()
       await fetchHealth()
       return json

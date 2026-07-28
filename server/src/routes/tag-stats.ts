@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { success, fail } from '../utils/response.js'
 import { prisma } from '../lib/prisma.js'
 import { refreshTagStats, getPlatformTrends, getOverviewExtras } from '../services/tag-stats.js'
+import { adminGate } from '../middleware/admin-gate.js'
 
 export const tagStatsRouter = Router()
 
@@ -98,8 +99,8 @@ tagStatsRouter.get('/trends', async (req: Request, res: Response) => {
   }
 })
 
-// POST /api/tag-stats/refresh — 手动刷新统计
-tagStatsRouter.post('/refresh', async (_req: Request, res: Response) => {
+// POST /api/tag-stats/refresh — 手动刷新统计（仅管理员）
+tagStatsRouter.post('/refresh', adminGate, async (_req: Request, res: Response) => {
   try {
     const result = await refreshTagStats()
     success(res, result, '刷新完成')

@@ -23,6 +23,7 @@
 |------|------|
 | [DEMAND-SERVICE-CARD-ADR.md](./specs/DEMAND-SERVICE-CARD-ADR.md) | 需求卡 vs 服务卡边界、附件快照、经验聚合 |
 | [NATURAL-LOOP-V2-ADR.md](./specs/NATURAL-LOOP-V2-ADR.md) | 自然回 V2：统一回中心与可验证运行（**现行**） |
+| [ORDER-TRANSACTION-TRUST-ADR.md](./specs/ORDER-TRANSACTION-TRUST-ADR.md) | 交易可信度：部分完成双方确认、资金幂等与并发（**Proposed**） |
 | [AGENT-COGNITIVE-MODEL.md](./specs/AGENT-COGNITIVE-MODEL.md) | Agent 四层认知与 Plan/Report |
 | [AGENT-INTERACTION-RITUALS.md](./specs/AGENT-INTERACTION-RITUALS.md) | Agent 三仪式 UI |
 | [AGENT-CAPABILITIES-YAML.md](./specs/AGENT-CAPABILITIES-YAML.md) | 能力矩阵 YAML 规范 |
