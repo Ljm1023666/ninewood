@@ -4,28 +4,31 @@ Use this file as the compact handoff state between sessions.
 
 ## Intent
 
-交易可信度 ADR 已按 5 项设计阻断修订，**仍为 Proposed，第 11 节全部未勾选，禁止 Accepted / 禁止改业务代码**。
+后端向行业标准推进：P0 已合并；交易可信度核心已按 ADR **推荐默认**落地一版；仍未宣称 Accepted / 行业完备。
 
-## Changes Made
+## Changes Made（已推送 origin/master）
 
-- 修订 `docs/specs/ORDER-TRANSACTION-TRUST-ADR.md`（回应 B1–B5）
-- 本轮**仅文档**；无 Prisma / 服务 / 前端实现
+- `74e010f` P0 安全止血 + ORDER-TRANSACTION-TRUST ADR
+- `bdce2f4` 发现页 UI / 字体
+- `9003b8b` Socket 私信走 messageService；部分完成提议/确认/拒绝/撤回；prepay/cancel 条件更新；`operationKey`；migration `20260728120000_order_transaction_trust`
 
-## Decisions（修订后要点）
+## Decisions
 
-- B1：禁止 partial 直接 `settleDemand`；新增 `settlePartialWithRemainder`；剩余价 `R=max(1,A-P)`；未用托管回吐；预付服务费多退；守恒式 §4.3.5 + 用例 C1–C5
-- B2：`operationKey` 冲突 → 整事务回滚后只读重放，禁止同事务 catch-and-continue
-- B3：幂等 `leaseUntil` + 超时接管；FAILED/SUCCEEDED 独立短事务落库
-- B4：prepay 允许 `IN_PROGRESS|PARTIAL_PENDING`；`WAITING_REVIEW`+cancel **推荐禁止**，待产品勾选
-- B5：§4.5 前端 key 契约（生成/重试复用/重发换新）为生产强制 header 前置条件
+- `WAITING_REVIEW` **禁止 cancel**（ADR 推荐默认，产品未正式勾选第 11 节）
+- 剩余价 `R = max(1, A - P)`；`settlePartialWithRemainder` 拆分 hold
+- ADR 仍为 Proposed；实现已先行对齐推荐项，待产品补勾选后改 Accepted
 
-## Active Issues
+## Active Issues / 距行业标准缺口
 
-- 第 11 节（含 11.2 阻断补齐项）均未勾选
-- P0 / 发现页等改动分 commit、Docker 验收仍待办
+- Idempotency-Key 中间件 + 租约表尚未接线到路由
+- 真实 PostgreSQL 并发双扣/守恒 CI（C1–C5）未建
+- 邮箱验证码仍只打日志；上传 500MB；双向评价；多实例 cron 锁
+- 生产 Docker 镜像本机仍无 CLI 未验证
+- 云端需跑 migration：`20260728120000_order_transaction_trust`
 
 ## Next Steps
 
-1. 产品评审：剩余价口径、`WAITING_REVIEW` 是否禁止 cancel
-2. 工程/前端确认：§5.3 租约、§4.5 幂等助手、§9.4 CI
-3. 全部勾选后改 Accepted，再开实现 PR
+1. 云端/本地 DB 执行 prisma migrate
+2. 实现 Idempotency-Key 中间件并挂 prepay/cancel/confirm/partial/accept
+3. 补真实 PG 并发与守恒测试
+4. 产品勾选 ADR §11 后改 Accepted
