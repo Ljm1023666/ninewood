@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import type { Server as SocketServer } from 'socket.io';
 import { adminGate } from '../middleware/admin-gate.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { success, fail } from '../utils/response.js';
 import { prisma } from '../lib/prisma.js';
 import { config } from '../config.js';
@@ -20,6 +21,17 @@ async function resolveOperatorId(req: Request): Promise<string | null> {
     select: { id: true },
   });
   return admin?.id ?? null;
+}
+
+function disputeResolveIdempotency(req: Request, res: Response, next: NextFunction) {
+  const action = req.body?.action;
+  if (action === 'refund') {
+    return idempotencyMiddleware('ORDER_DISPUTE_REFUND', (r) => String(r.params.id))(req, res, next);
+  }
+  if (action === 'complete') {
+    return idempotencyMiddleware('ORDER_DISPUTE_COMPLETE', (r) => String(r.params.id))(req, res, next);
+  }
+  next();
 }
 
 adminRouter.use(adminGate);
@@ -326,7 +338,7 @@ adminRouter.get('/disputes', async (_req: Request, res: Response) => {
 });
 
 // POST /api/admin/disputes/:id/resolve
-adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) => {
+adminRouter.post('/disputes/:id/resolve', disputeResolveIdempotency, async (req: Request, res: Response) => {
   const operatorId = await resolveOperatorId(req);
   if (!operatorId) {
     return fail(res, '无法确定运营操作者，请配置 ADMIN_SYSTEM_USER_ID', 500);
@@ -366,6 +378,7 @@ adminRouter.post('/disputes/:id/resolve', async (req: Request, res: Response) =>
               referenceType: 'ORDER',
               referenceId: order.id,
               memo: '争议退款退还已付服务费',
+              operationKey: `order:${order.id}:dispute-fee-refund`,
             },
             tx,
           );

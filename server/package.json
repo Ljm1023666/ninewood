@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:trust": "vitest run src/__tests__/pg-trust.integration.test.ts",
     "test:path-coverage": "tsx scripts/check-path-coverage.ts",
     "audit:demand-paths": "tsx scripts/audit-demand-paths.ts",
     "seed:coverage-gaps": "tsx scripts/seed-coverage-gaps.ts"

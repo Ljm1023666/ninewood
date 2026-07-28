@@ -1,4 +1,4 @@
-﻿-- AlterEnum
+-- AlterEnum
 ALTER TYPE "OrderStatus" ADD VALUE IF NOT EXISTS 'PARTIAL_PENDING';
 
 -- CreateEnum
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS "OrderPartialProposal" (
     "decidedAt" TIMESTAMP(3),
     "remainingDemandId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "OrderPartialProposal_pkey" PRIMARY KEY ("id")
 );
 
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS "IdempotencyRecord" (
     "leaseUntil" TIMESTAMP(3) NOT NULL,
     "leaseOwner" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "IdempotencyRecord_pkey" PRIMARY KEY ("id")
 );
 

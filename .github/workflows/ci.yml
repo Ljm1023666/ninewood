@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   lint:
@@ -44,9 +44,16 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter server run test
+      - name: Apply Prisma migrations
+        run: pnpm --filter server exec prisma migrate deploy
         env:
           DATABASE_URL: postgresql://ninewood:ninewood_test@localhost:5432/ninewood_test
+      - name: Unit + trust integration tests
+        run: pnpm --filter server run test
+        env:
+          DATABASE_URL: postgresql://ninewood:ninewood_test@localhost:5432/ninewood_test
+          CI: 'true'
+          RUN_PG_TRUST_TESTS: '1'
       - run: pnpm --filter client-react run test
 
   path-pool-gate:

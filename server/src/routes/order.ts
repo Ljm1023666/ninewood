@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import type { Server as SocketServer } from 'socket.io';
 import { authMiddleware } from '../middleware/auth.js';
+import { idempotencyMiddleware } from '../middleware/idempotency.js';
 import { orderService } from '../services/order.service.js';
 import { success, fail } from '../utils/response.js';
 import { q } from '../utils/query.js';
@@ -18,6 +19,10 @@ function emitOrderUpdate(req: Request, order: any) {
       updatedAt: new Date().toISOString(),
     });
   }
+}
+
+function orderIdParam(req: Request) {
+  return String(req.params.id || '')
 }
 
 // POST /api/orders
@@ -53,7 +58,11 @@ orderRouter.get('/:id', authMiddleware, async (req: Request, res: Response) => {
 });
 
 // POST /api/orders/:id/prepay
-orderRouter.post('/:id/prepay', authMiddleware, async (req: Request, res: Response) => {
+orderRouter.post(
+  '/:id/prepay',
+  authMiddleware,
+  idempotencyMiddleware('ORDER_PREPAY', orderIdParam),
+  async (req: Request, res: Response) => {
   try {
     const result = await orderService.prepay(req.params.id as string, req.user!.userId);
     success(res, result);
@@ -74,7 +83,11 @@ orderRouter.post('/:id/complete', authMiddleware, async (req: Request, res: Resp
 });
 
 // POST /api/orders/:id/confirm
-orderRouter.post('/:id/confirm', authMiddleware, async (req: Request, res: Response) => {
+orderRouter.post(
+  '/:id/confirm',
+  authMiddleware,
+  idempotencyMiddleware('ORDER_CONFIRM', orderIdParam),
+  async (req: Request, res: Response) => {
   try {
     const result = await orderService.confirm(req.params.id as string, req.user!.userId);
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
@@ -96,7 +109,11 @@ orderRouter.post('/:id/dispute', authMiddleware, async (req: Request, res: Respo
 });
 
 // POST /api/orders/:id/cancel
-orderRouter.post('/:id/cancel', authMiddleware, async (req: Request, res: Response) => {
+orderRouter.post(
+  '/:id/cancel',
+  authMiddleware,
+  idempotencyMiddleware('ORDER_CANCEL', orderIdParam),
+  async (req: Request, res: Response) => {
   try {
     const result = await orderService.cancel(req.params.id as string, req.user!.userId);
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
@@ -129,7 +146,11 @@ orderRouter.post('/:id/partial', authMiddleware, async (req: Request, res: Respo
 });
 
 // POST /api/orders/:id/partial/accept
-orderRouter.post('/:id/partial/accept', authMiddleware, async (req: Request, res: Response) => {
+orderRouter.post(
+  '/:id/partial/accept',
+  authMiddleware,
+  idempotencyMiddleware('ORDER_PARTIAL_ACCEPT', orderIdParam),
+  async (req: Request, res: Response) => {
   try {
     const result = await orderService.acceptPartial(req.params.id as string, req.user!.userId);
     emitOrderUpdate(req, { id: req.params.id, providerId: '', requesterId: '' });
