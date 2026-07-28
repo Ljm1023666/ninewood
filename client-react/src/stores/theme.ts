@@ -19,8 +19,8 @@ export const presets: Record<string, ThemeConfig> = {
   'morning-mist': {
     name: 'morning-mist',
     dark: true,
-    primaryStart: '#0A84FF',
-    primaryEnd: '#5E5CE6',
+    primaryStart: '#47C8E6',
+    primaryEnd: '#2FBBE0',
     bgPrimary: '#1C1C1E',
     bgSecondary: '#2C2C2E',
     bgTertiary: '#3A3A3C',
@@ -33,8 +33,8 @@ export const presets: Record<string, ThemeConfig> = {
   light: {
     name: 'light',
     dark: false,
-    primaryStart: '#007AFF',
-    primaryEnd: '#0A84FF',
+    primaryStart: '#2FBBE0',
+    primaryEnd: '#1FA9CF',
     bgPrimary: '#F5F5F7',
     bgSecondary: '#FFFFFF',
     bgTertiary: '#E5E5EA',
@@ -54,15 +54,26 @@ function hexToRgb(hex: string) {
 function applyTheme(config: ThemeConfig) {
   const root = document.documentElement
   root.dataset.appearance = config.dark ? 'dark' : 'light'
+  root.style.colorScheme = config.dark ? 'dark' : 'light'
   root.style.setProperty('--primary-start', config.primaryStart)
   root.style.setProperty('--primary-end', config.primaryEnd)
   root.style.setProperty('--accent-color', config.primaryStart)
   root.style.setProperty('--accent-hover', config.primaryEnd)
+  root.style.setProperty('--primary-color', config.primaryStart)
+  root.style.setProperty('--primary-color-hover', config.primaryEnd)
 
   // Compute accent-muted (12%) and accent-ghost (6%) from accent color
   const { r, g, b } = hexToRgb(config.primaryStart)
   root.style.setProperty('--accent-muted', `rgba(${r}, ${g}, ${b}, 0.12)`)
   root.style.setProperty('--accent-ghost', `rgba(${r}, ${g}, ${b}, 0.06)`)
+  root.style.setProperty(
+    '--primary-color-muted',
+    `rgba(${r}, ${g}, ${b}, 0.12)`,
+  )
+  root.style.setProperty(
+    '--primary-color-subtle',
+    `rgba(${r}, ${g}, ${b}, 0.06)`,
+  )
 
   root.style.setProperty('--bg-primary', config.bgPrimary)
   root.style.setProperty('--bg-secondary', config.bgSecondary)

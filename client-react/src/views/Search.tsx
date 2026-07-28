@@ -92,6 +92,7 @@ export default function Search() {
         onClear={handleClear}
         loading={loading}
         placeholder="搜索用户、手机号、标签"
+        autoFocus
       />
 
       <div className="mb-6 flex items-center gap-2">

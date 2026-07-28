@@ -38,6 +38,7 @@ import {
 } from '@/utils/demand-publish'
 import { serviceCardApi } from '@/api/service-card'
 import { normalizeAnalyzePayload } from '@/types/demand-analyze'
+import { extractDemandAnalyzeResult } from '@/utils/demand-extract'
 import {
   Sparkles,
   Monitor,
@@ -384,10 +385,20 @@ export default function DemandCreate() {
         }
       } catch (e: any) {
         if (e?.name === 'AbortError') throw e
+        // AI 不可用：本地规则兜底，保证仍能出草稿
+        const local = extractDemandAnalyzeResult(text, {
+          mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
+        })
+        analyzeAndLog(local)
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: '分析异常，请重试', isStreaming: false }
+              ? {
+                  ...m,
+                  content:
+                    'AI 暂不可用，已用本地规则整理草稿，请在右侧核对后发布',
+                  isStreaming: false,
+                }
               : m,
           ),
         )
@@ -422,9 +433,18 @@ export default function DemandCreate() {
         signal,
       })
       if (!res.ok || !res.body) {
+        const local = extractDemandAnalyzeResult(text, {
+          mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
+        })
+        analyzeAndLog(local)
         setMessages((prev) => [
           ...prev,
-          { id: newMsgId(), role: 'assistant', content: '分析异常，请重试' },
+          {
+            id: newMsgId(),
+            role: 'assistant',
+            content:
+              'AI 暂不可用，已用本地规则整理草稿，请在右侧核对后发布',
+          },
         ])
         return
       }
@@ -532,9 +552,18 @@ export default function DemandCreate() {
       })
       if (!res.ok) {
         store.resolveAllAnswered() // 仍然清除 answeredQueue，避免卡住
+        const local = extractDemandAnalyzeResult(
+          `${qaPairs}\n${confirmed}`,
+          { mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND' },
+        )
+        analyzeAndLog(local)
         setMessages((prev) => [
           ...prev,
-          { id: newMsgId(), role: 'assistant', content: '分析异常，请重试' },
+          {
+            id: newMsgId(),
+            role: 'assistant',
+            content: 'AI 暂不可用，已用本地规则更新工作区，请核对右侧字段',
+          },
         ])
         return
       }
@@ -553,9 +582,17 @@ export default function DemandCreate() {
       ])
     } catch {
       store.resolveAllAnswered()
+      const local = extractDemandAnalyzeResult(prompt, {
+        mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
+      })
+      analyzeAndLog(local)
       setMessages((prev) => [
         ...prev,
-        { id: newMsgId(), role: 'assistant', content: '网络异常' },
+        {
+          id: newMsgId(),
+          role: 'assistant',
+          content: '网络异常，已用本地规则更新工作区，请核对右侧字段',
+        },
       ])
     }
   }, [analyzeAndLog, isServiceMode])
@@ -595,7 +632,14 @@ export default function DemandCreate() {
           }),
           signal,
         })
-        if (!res.ok || !res.body) return
+        if (!res.ok || !res.body) {
+          applyAnalyze(
+            extractDemandAnalyzeResult(userText, {
+              mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
+            }),
+          )
+          return
+        }
 
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
@@ -627,7 +671,12 @@ export default function DemandCreate() {
         }
       } catch (e: unknown) {
         if (e instanceof DOMException && e.name === 'AbortError') throw e
-        toast('工作区同步失败，右侧字段可能未更新', 'error')
+        applyAnalyze(
+          extractDemandAnalyzeResult(userText, {
+            mode: isServiceMode ? 'SERVICE_CARD' : 'DEMAND',
+          }),
+        )
+        toast('AI 同步失败，已用本地规则更新工作区', 'error')
       }
     },
     [applyAnalyze, isServiceMode],

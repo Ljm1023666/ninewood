@@ -84,7 +84,7 @@ export default function Layout() {
   }, [fetchUnreadCount, me])
 
   useKeyboard([
-    { key: 'k', ctrl: true, handler: () => navigate('/') },
+    { key: 'k', ctrl: true, handler: () => navigate('/search') },
     {
       key: 'Escape',
       handler: () => navigateSubpageExit(navigate, location.pathname),

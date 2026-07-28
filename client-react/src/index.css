@@ -17,7 +17,15 @@
 @import "./styles/macos-surface.css";
 @import "./styles/service-card.css";
 
-/* Stitch Material Symbols Outlined */
+/* Stitch Material Symbols Outlined（@font-face 主注册在 index.html，此处兜底） */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/material-symbols-outlined.woff2') format('woff2');
+}
+
 html:not(.ms-icons-ready) .ms-icon {
   visibility: hidden;
 }
@@ -36,24 +44,32 @@ html:not(.ms-icons-ready) .ms-icon {
   vertical-align: middle;
   user-select: none;
   font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
 
 
 /* ── 设计 Token · Ninewood v3.1 ──
-   色彩策略: 浅色 macOS 工作区 + #007AFF 蓝强调色
+   色彩策略: 浅色 macOS 工作区 + 九木青 #2FBBE0（与 theme.ts / design-tokens 对齐）
    遵循 DESIGN.md: 浅灰工作区、白色表面、清晰文字层级
    WCAG 2.1 AA 对比度 — 主体文字 #1D1D1F on #FFFFFF */
 :root {
-  /* ── macOS 系统色：浅灰工作区 + 单一蓝色强调 ── */
-  --accent-color: #007AFF;
-  --accent-hover: #0A84FF;
-  --accent-muted: rgba(0, 122, 255, 0.14);
-  --accent-ghost: rgba(0, 122, 255, 0.08);
-  --accent-gradient: linear-gradient(135deg, #007AFF, #0A84FF);
-  --primary-start: #007AFF;
-  --primary-end: #0A84FF;
+  /* ── 品牌强调：九木青 ── */
+  --accent-color: #2FBBE0;
+  --accent-hover: #1FA9CF;
+  --accent-muted: rgba(47, 187, 224, 0.12);
+  --accent-ghost: rgba(47, 187, 224, 0.06);
+  --accent-gradient: linear-gradient(135deg, #2FBBE0, #1FA9CF);
+  --primary-start: #2FBBE0;
+  --primary-end: #1FA9CF;
   --primary-gradient: var(--accent-gradient);
+
+  /* ── 导航点缀（侧栏扫读用，勿当第二主色） ── */
+  --nav-tone-assistant: #47C8E6;
+  --nav-tone-loop: #A78BFA;
+  --nav-tone-message: #F0A8B8;
+  --nav-tone-publish: #34C759;
+  --nav-tone-discover: #2FBBE0;
 
   /* ── 背景层级 ── */
   --bg-primary: #F5F5F7;
@@ -83,8 +99,10 @@ html:not(.ms-icons-ready) .ms-icon {
   --radius: 12px;
   --radius-sm: 8px;
 
-  /* 全局侧栏宽度（Layout Sidebar） */
+  /* 全局侧栏宽度（Layout Sidebar；展开态由 shell 写入） */
   --sidebar-w: 72px;
+  --sidebar-w-collapsed: 72px;
+  --sidebar-w-expanded: 208px;
 
   /* ── 阴影 ── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 14px rgba(0, 0, 0, 0.05);
@@ -684,6 +702,58 @@ html[data-appearance="dark"] {
 
 [data-appearance="light"] .sidebar-ct-accent {
   background: color-mix(in srgb, #ffffff 88%, transparent);
+}
+
+/* 侧栏展开：仅宽度向右过渡；图标槽固定，侧标绝对定位淡入，避免 flex 重排抖动 */
+.app-sidebar {
+  width: var(--sidebar-w);
+  transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+  overflow-x: hidden;
+}
+.app-sidebar__row {
+  position: relative;
+  text-align: left;
+}
+.app-sidebar__icon-slot {
+  width: 3.5rem; /* 与 h-14 / size-14 一致，避免 72px 错位 */
+  min-width: 3.5rem;
+  height: 3.5rem;
+}
+.app-sidebar__side-label {
+  position: absolute;
+  left: 3.5rem;
+  right: 10px;
+  top: 50%;
+  z-index: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+  opacity: 0;
+  transform: translate(-6px, -50%);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.app-sidebar__stack-label {
+  transition: opacity 160ms ease;
+}
+.app-sidebar--expanded .app-sidebar__side-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+.app-sidebar--expanded .app-sidebar__stack-label {
+  opacity: 0;
+}
+.app-sidebar__divider {
+  width: 40px;
+  margin-inline: auto;
+  transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.app-sidebar--expanded .app-sidebar__divider {
+  width: calc(100% - 24px);
 }
 
 /* ── UI 优化：间距系统 ── */

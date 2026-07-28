@@ -217,6 +217,7 @@ export function DlpSearchBar({
   onClear,
   loading,
   placeholder = '搜索用户、手机号、标签',
+  autoFocus = false,
 }: {
   value: string
   onChange: (v: string) => void
@@ -224,6 +225,7 @@ export function DlpSearchBar({
   onClear?: () => void
   loading?: boolean
   placeholder?: string
+  autoFocus?: boolean
 }) {
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') onSearch()
@@ -238,6 +240,7 @@ export function DlpSearchBar({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        autoFocus={autoFocus}
       />
       {value && onClear ? (
         <button type="button" className="dlp-search-bar__clear" onClick={onClear} aria-label="清空">

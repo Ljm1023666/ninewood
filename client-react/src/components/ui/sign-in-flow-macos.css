@@ -90,7 +90,7 @@
 
 .sign-in-flow-mode-switch button.is-active {
   background: #fff;
-  color: #007aff;
+  color: #2fbbe0;
   box-shadow: 0 1px 2px rgba(29, 29, 31, 0.08);
 }
 
@@ -148,7 +148,7 @@
   width: 22px;
   height: 22px;
   margin-top: 2px;
-  color: #007aff;
+  color: #2fbbe0;
 }
 
 .sign-in-flow-trust-list strong,
@@ -215,7 +215,7 @@
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-phone-input:focus-within {
-  border-color: #007aff;
+  border-color: #2fbbe0;
   background: #fff;
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.16);
 }
@@ -246,13 +246,13 @@
 .sign-in-flow-auth-panel .sign-in-flow-register-btn,
 .sign-in-flow-auth-panel .sign-in-flow-primary-button {
   border-radius: 10px;
-  background: #007aff;
+  background: #2fbbe0;
   color: #fff;
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-register-btn:hover:not(:disabled),
 .sign-in-flow-auth-panel .sign-in-flow-primary-button:hover:not(:disabled) {
-  background: #0a84ff;
+  background: #1fa9cf;
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-register-btn:disabled {
@@ -269,7 +269,7 @@
 
 .sign-in-flow-auth-panel .sign-in-flow-register-legal input[type='checkbox'],
 .sign-in-flow-auth-panel .sign-in-flow-register-guardian input[type='checkbox'] {
-  accent-color: #007aff;
+  accent-color: #2fbbe0;
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-register-legal-text button,
@@ -277,7 +277,7 @@
 .sign-in-flow-auth-panel .sign-in-flow-register-info-link,
 .sign-in-flow-auth-panel .sign-in-flow-register-footer button,
 .sign-in-flow-auth-panel .sign-in-flow-login-channels button {
-  color: #007aff;
+  color: #2fbbe0;
   text-decoration: none;
 }
 
@@ -312,7 +312,7 @@
 
 .sign-in-flow-auth-panel .sign-in-flow-method-button.is-active {
   border-color: transparent;
-  color: #007aff;
+  color: #2fbbe0;
 }
 
 .sign-in-flow-login-methods {

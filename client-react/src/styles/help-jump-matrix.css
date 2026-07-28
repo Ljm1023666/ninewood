@@ -152,6 +152,15 @@
   transition: color 0.2s;
 }
 
+/* MsIcon（font ligature）；兼容旧版 SVG 图标 */
+.nav-matrix__tile-icon .ms-icon {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .nav-matrix__tile-icon svg {
   width: 32px;
   height: 32px;

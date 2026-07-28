@@ -30,6 +30,8 @@ interface MenuItem {
 interface ScrollNavbarProps {
   menuItems?: MenuItem[]
   className?: string
+  /** dark：叠在星空上；light：浅色发现页 */
+  tone?: 'dark' | 'light'
 }
 
 const defaultMenuItems: MenuItem[] = [
@@ -71,7 +73,9 @@ const defaultMenuItems: MenuItem[] = [
 export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
   menuItems = defaultMenuItems,
   className = '',
+  tone = 'dark',
 }) => {
+  const isLight = tone === 'light'
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const accumulatedRef = React.useRef(0)
@@ -159,7 +163,11 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
           opacity: isScrolled ? 0 : 1,
         }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className={`fixed top-0 left-0 right-0 z-50 bg-black/99 backdrop-blur-xl border-b border-white/10 ${className}`}
+        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b ${
+          isLight
+            ? 'bg-[#f5f5f7]/95 border-black/8'
+            : 'bg-black/99 border-white/10'
+        } ${className}`}
       >
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-16 w-full">
@@ -172,7 +180,9 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
               >
                 <Link
                   to="/"
-                  className="font-serif text-2xl font-bold italic tracking-tighter text-white"
+                  className={`font-serif text-2xl font-bold italic tracking-tighter ${
+                    isLight ? 'text-[#1d1d1f]' : 'text-white'
+                  }`}
                 >
                   Ninewood
                 </Link>
@@ -188,14 +198,18 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                     {item.url ? (
                       <Link
                         to={item.url}
-                        className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-white transition-colors"
+                        className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          isLight ? 'text-[#1d1d1f]/80 hover:text-[#1d1d1f]' : 'text-white'
+                        }`}
                       >
                         <span>{item.title}</span>
                       </Link>
                     ) : (
                       <button
                         onClick={item.onClick}
-                        className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-white transition-colors cursor-pointer"
+                        className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                          isLight ? 'text-[#1d1d1f]/80 hover:text-[#1d1d1f]' : 'text-white'
+                        }`}
                       >
                         <span>{item.title}</span>
                       </button>
@@ -214,7 +228,9 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
               >
                 <Link
                   to="/"
-                  className="font-serif text-2xl font-bold italic tracking-tighter text-white"
+                  className={`font-serif text-2xl font-bold italic tracking-tighter ${
+                    isLight ? 'text-[#1d1d1f]' : 'text-white'
+                  }`}
                 >
                   Ninewood
                 </Link>
@@ -222,7 +238,9 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
 
               <motion.button
                 onClick={toggleMenu}
-                className="p-2 rounded-md text-white focus:outline-none"
+                className={`p-2 rounded-md focus:outline-none ${
+                  isLight ? 'text-[#1d1d1f]' : 'text-white'
+                }`}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -274,10 +292,20 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
               exit="closed"
               className="fixed top-20 right-6 z-50"
             >
-              <div className="relative bg-neutral-900 border border-white/10 rounded-3xl p-6 shadow-2xl shadow-black/50 ring-1 ring-white/5 w-[240px]">
+              <div
+                className={`relative rounded-3xl p-6 shadow-2xl w-[240px] ${
+                  isLight
+                    ? 'bg-white border border-black/8 shadow-black/10 ring-1 ring-black/5'
+                    : 'bg-neutral-900 border border-white/10 shadow-black/50 ring-1 ring-white/5'
+                }`}
+              >
                 <motion.button
                   onClick={toggleMenu}
-                  className="absolute top-4 right-4 p-2 text-white/60 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+                  className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
+                    isLight
+                      ? 'text-black/50 hover:text-black hover:bg-black/5'
+                      : 'text-white/60 hover:text-white hover:bg-white/10'
+                  }`}
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -296,16 +324,22 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                         <Link
                           to={item.url}
                           onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center space-x-4 p-4 rounded-xl hover:bg-white/5 transition-colors group"
+                          className={`flex items-center space-x-4 p-4 rounded-xl transition-colors group ${
+                            isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'
+                          }`}
                         >
                           <motion.div
-                            className="text-white"
+                            className={isLight ? 'text-[#1d1d1f]' : 'text-white'}
                             whileHover={{ rotate: 360 }}
                             transition={{ duration: 0.3 }}
                           >
                             {item.icon}
                           </motion.div>
-                          <span className="text-lg font-medium text-white">
+                          <span
+                            className={`text-lg font-medium ${
+                              isLight ? 'text-[#1d1d1f]' : 'text-white'
+                            }`}
+                          >
                             {item.title}
                           </span>
                         </Link>
@@ -315,16 +349,22 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                             item.onClick?.()
                             setIsMenuOpen(false)
                           }}
-                          className="flex items-center space-x-4 p-4 rounded-xl hover:bg-white/5 transition-colors group w-full text-left"
+                          className={`flex items-center space-x-4 p-4 rounded-xl transition-colors group w-full text-left ${
+                            isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'
+                          }`}
                         >
                           <motion.div
-                            className="text-white"
+                            className={isLight ? 'text-[#1d1d1f]' : 'text-white'}
                             whileHover={{ rotate: 360 }}
                             transition={{ duration: 0.3 }}
                           >
                             {item.icon}
                           </motion.div>
-                          <span className="text-lg font-medium text-white">
+                          <span
+                            className={`text-lg font-medium ${
+                              isLight ? 'text-[#1d1d1f]' : 'text-white'
+                            }`}
+                          >
                             {item.title}
                           </span>
                         </button>

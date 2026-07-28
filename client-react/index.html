@@ -4,27 +4,40 @@
     <meta charset="UTF-8" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
-      rel="stylesheet"
-    />
+    <!-- 同源图标字体须在 ready 脚本之前注册，否则 fonts.load 会空返回 -->
+    <style>
+      @font-face {
+        font-family: 'Material Symbols Outlined';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('/fonts/material-symbols-outlined.woff2') format('woff2');
+      }
+    </style>
     <script>
-      /* 字体就绪前隐藏 .ms-icon，避免 Material Symbols 未加载时露出英文 glyph 名 */
+      /* 字体就绪前隐藏 .ms-icon；仅在真正 load 成功后显示，避免超时露出英文 glyph 名 */
       ;(function () {
         var root = document.documentElement
         function ready() {
           root.classList.add('ms-icons-ready')
         }
-        if (!document.fonts || !document.fonts.load) {
-          ready()
-          return
+        function tryLoad() {
+          if (root.classList.contains('ms-icons-ready')) return
+          if (!document.fonts || !document.fonts.load) {
+            ready()
+            return
+          }
+          document.fonts
+            .load('400 24px "Material Symbols Outlined"')
+            .then(function (faces) {
+              if (faces && faces.length) ready()
+            })
+            .catch(function () {})
         }
-        if (document.fonts.check('400 24px "Material Symbols Outlined"')) {
-          ready()
-          return
+        tryLoad()
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(tryLoad)
         }
-        document.fonts.load('400 24px "Material Symbols Outlined"').then(ready).catch(ready)
-        setTimeout(ready, 3000)
       })()
     </script>
     <link
@@ -34,9 +47,57 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#3388FF" />
+    <meta name="theme-color" content="#2FBBE0" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>九木平台</title>
+    <script>
+      /* 主题 FOUC 防护：在 React hydrate 前写入 data-appearance 与关键色（对齐 theme.ts） */
+      ;(function () {
+        try {
+          var lightMode = localStorage.getItem('ninewood-light-mode') === 'true'
+          var theme = localStorage.getItem('ninewood-theme')
+          var isLight =
+            lightMode ||
+            theme === 'light' ||
+            (!theme && localStorage.getItem('ninewood-dark-preset') == null)
+          var root = document.documentElement
+          root.dataset.appearance = isLight ? 'light' : 'dark'
+          root.style.colorScheme = isLight ? 'light' : 'dark'
+          if (isLight) {
+            root.style.setProperty('--accent-color', '#2FBBE0')
+            root.style.setProperty('--accent-hover', '#1FA9CF')
+            root.style.setProperty('--accent-muted', 'rgba(47, 187, 224, 0.12)')
+            root.style.setProperty('--accent-ghost', 'rgba(47, 187, 224, 0.06)')
+            root.style.setProperty('--primary-start', '#2FBBE0')
+            root.style.setProperty('--primary-end', '#1FA9CF')
+            root.style.setProperty('--bg-primary', '#F5F5F7')
+            root.style.setProperty('--bg-secondary', '#FFFFFF')
+            root.style.setProperty('--bg-tertiary', '#E5E5EA')
+            root.style.setProperty('--bg-card', '#FFFFFF')
+            root.style.setProperty('--text-primary', '#1D1D1F')
+            root.style.setProperty('--text-secondary', '#515154')
+            root.style.setProperty('--text-muted', '#86868B')
+            root.style.setProperty('--border-color', 'rgba(60, 60, 67, 0.18)')
+          } else {
+            root.style.setProperty('--accent-color', '#47C8E6')
+            root.style.setProperty('--accent-hover', '#2FBBE0')
+            root.style.setProperty('--accent-muted', 'rgba(71, 200, 230, 0.18)')
+            root.style.setProperty('--accent-ghost', 'rgba(71, 200, 230, 0.1)')
+            root.style.setProperty('--primary-start', '#47C8E6')
+            root.style.setProperty('--primary-end', '#2FBBE0')
+            root.style.setProperty('--bg-primary', '#1C1C1E')
+            root.style.setProperty('--bg-secondary', '#2C2C2E')
+            root.style.setProperty('--bg-tertiary', '#3A3A3C')
+            root.style.setProperty('--bg-card', '#2C2C2E')
+            root.style.setProperty('--text-primary', '#F5F5F7')
+            root.style.setProperty('--text-secondary', '#AEAEB2')
+            root.style.setProperty('--text-muted', '#8E8E93')
+            root.style.setProperty('--border-color', 'rgba(255, 255, 255, 0.14)')
+          }
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

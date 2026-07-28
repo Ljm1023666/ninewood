@@ -6,6 +6,8 @@ import { Footer } from '@/components/ui/footer-section'
 import { SearchBar } from '@/components/ui/search-bar'
 import { Timeline } from '@/components/ui/modern-timeline'
 import { toast } from '@/components/ui/confirm-dialog'
+import { useThemeStore } from '@/stores/theme'
+import { cn } from '@/lib/utils'
 import {
   loopApi,
   type LoopRecommendation,
@@ -28,6 +30,8 @@ function formatRate(value: number | null) {
 
 export default function Discover() {
   const navigate = useNavigate()
+  const isDark = useThemeStore((s) => s.current.dark)
+  const tone = isDark ? 'dark' : 'light'
   const [loading, setLoading] = useState(false)
   const [searchMsg, setSearchMsg] = useState('')
   const [result, setResult] = useState<LoopRecommendationResult | null>(null)
@@ -128,44 +132,88 @@ export default function Discover() {
         render: () => (
           <>
             <SearchBar
+              tone={tone}
               placeholder="例如：整理需求字段并检查路径是否有效"
               onSearch={handleSearch}
             />
             {loading && (
-              <p className="text-sm text-white/60 text-center mt-3">正在寻找…</p>
+              <p
+                className={cn(
+                  'mt-3 text-center text-sm',
+                  tone === 'light' ? 'text-text-muted' : 'text-white/60',
+                )}
+              >
+                正在寻找…
+              </p>
             )}
             {!loading && searchMsg && (
-              <p className="text-sm text-white/60 text-center mt-3">{searchMsg}</p>
+              <p
+                className={cn(
+                  'mt-3 text-center text-sm',
+                  tone === 'light' ? 'text-text-muted' : 'text-white/60',
+                )}
+              >
+                {searchMsg}
+              </p>
             )}
           </>
         ),
       },
     ],
-    [handleSearch, loading, searchMsg],
+    [handleSearch, loading, searchMsg, tone],
   )
 
   const showResults = !!result
 
   return (
     <div className="flex min-h-full flex-col">
-      <ScrollNavbar />
-      <HorizonHeroSection sections={heroSections} footer={<Footer />}>
+      <ScrollNavbar tone={tone} />
+      <HorizonHeroSection
+        key={tone}
+        tone={tone}
+        sections={heroSections}
+        footer={<Footer />}
+      >
         {showResults && (
           <div className="w-full">
-            {timelineItems.length > 0 ? <Timeline items={timelineItems} /> : null}
+            {timelineItems.length > 0 ? (
+              <Timeline items={timelineItems} tone={tone} />
+            ) : null}
 
             {result.humanFallback ? (
               <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 pb-10">
                 <button
                   type="button"
                   onClick={continueAsHuman}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 p-6 text-left transition hover:bg-white/10 hover:border-white/20"
+                  className={cn(
+                    'w-full rounded-2xl border p-6 text-left transition',
+                    tone === 'light'
+                      ? 'border-border bg-bg-card hover:border-[var(--accent-color)]/35 hover:bg-bg-secondary'
+                      : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10',
+                  )}
                 >
-                  <p className="text-sm text-white/50">没有可直接执行的方案</p>
-                  <h3 className="mt-2 text-lg font-semibold text-white">
+                  <p
+                    className={cn(
+                      'text-sm',
+                      tone === 'light' ? 'text-text-muted' : 'text-white/50',
+                    )}
+                  >
+                    没有可直接执行的方案
+                  </p>
+                  <h3
+                    className={cn(
+                      'mt-2 text-lg font-semibold',
+                      tone === 'light' ? 'text-text-primary' : 'text-white',
+                    )}
+                  >
                     检查人工草稿后再发布
                   </h3>
-                  <p className="mt-2 text-sm text-white/60">
+                  <p
+                    className={cn(
+                      'mt-2 text-sm',
+                      tone === 'light' ? 'text-text-secondary' : 'text-white/60',
+                    )}
+                  >
                     已整理草稿，下一步由你确认，不会自动发布。
                   </p>
                 </button>
@@ -173,7 +221,14 @@ export default function Discover() {
             ) : null}
 
             {!result.items.length && !result.humanFallback ? (
-              <p className="py-12 text-center text-sm text-white/50">暂无匹配结果</p>
+              <p
+                className={cn(
+                  'py-12 text-center text-sm',
+                  tone === 'light' ? 'text-text-muted' : 'text-white/50',
+                )}
+              >
+                暂无匹配结果
+              </p>
             ) : null}
           </div>
         )}

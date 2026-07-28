@@ -22,6 +22,8 @@ export interface TimelineItem {
 export interface TimelineProps {
   items: TimelineItem[]
   className?: string
+  /** dark：叠在深色英雄上；light：浅色发现页 */
+  tone?: 'dark' | 'light'
 }
 
 const getStatusConfig = (status: TimelineItem['status']) => {
@@ -66,13 +68,22 @@ const getStatusIcon = (status: TimelineItem['status']) => {
   }
 }
 
-export function Timeline({ items, className }: TimelineProps) {
+export function Timeline({ items, className, tone = 'dark' }: TimelineProps) {
+  const isLight = tone === 'light'
+
   if (!items || items.length === 0) {
     return (
       <div
         className={cn('w-full max-w-4xl mx-auto px-4 sm:px-6 py-8', className)}
       >
-        <p className="text-center text-white/50">暂无内容</p>
+        <p
+          className={cn(
+            'text-center',
+            isLight ? 'text-text-muted' : 'text-white/50',
+          )}
+        >
+          暂无内容
+        </p>
       </div>
     )
   }
@@ -150,7 +161,10 @@ export function Timeline({ items, className }: TimelineProps) {
                         ) : (
                           <div className="w-full h-full bg-white/10 flex items-center justify-center">
                             <IconComponent
-                              className="w-5 h-5 sm:w-6 sm:h-6 text-white/40"
+                              className={cn(
+                                'w-5 h-5 sm:w-6 sm:h-6',
+                                isLight ? 'text-text-muted' : 'text-white/40',
+                              )}
                               aria-hidden="true"
                             />
                           </div>
@@ -167,8 +181,9 @@ export function Timeline({ items, className }: TimelineProps) {
                     <Card
                       className={cn(
                         'border transition-all duration-300 hover:shadow-md relative text-left',
-                        'bg-white/5 border-white/10 shadow-lg shadow-black/20',
-                        'hover:bg-white/10 hover:border-white/20',
+                        isLight
+                          ? 'bg-bg-card border-border shadow-sm hover:bg-bg-secondary hover:border-[var(--accent-color)]/30'
+                          : 'bg-white/5 border-white/10 shadow-lg shadow-black/20 hover:bg-white/10 hover:border-white/20',
                         config.borderColor,
                         'group-hover:border-primary/30',
                         item.onClick && 'cursor-pointer',
@@ -178,11 +193,21 @@ export function Timeline({ items, className }: TimelineProps) {
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3">
                           <div className="flex-1 min-w-0">
-                            <motion.h3 className="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-accent transition-colors duration-300">
+                            <motion.h3
+                              className={cn(
+                                'text-lg sm:text-xl font-semibold mb-1 group-hover:text-accent transition-colors duration-300',
+                                isLight ? 'text-text-primary' : 'text-white',
+                              )}
+                            >
                               {item.title}
                             </motion.h3>
 
-                            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-white/50">
+                            <div
+                              className={cn(
+                                'flex flex-wrap items-center justify-between gap-2 text-sm',
+                                isLight ? 'text-text-muted' : 'text-white/50',
+                              )}
+                            >
                               <div className="flex items-center gap-2">
                                 {item.category && (
                                   <span className="font-medium">
@@ -191,7 +216,10 @@ export function Timeline({ items, className }: TimelineProps) {
                                 )}
                                 {item.category && item.date && (
                                   <span
-                                    className="w-1 h-1 bg-white/30 rounded-full"
+                                    className={cn(
+                                      'w-1 h-1 rounded-full',
+                                      isLight ? 'bg-border' : 'bg-white/30',
+                                    )}
                                     aria-hidden="true"
                                   />
                                 )}
@@ -200,7 +228,14 @@ export function Timeline({ items, className }: TimelineProps) {
                                 )}
                               </div>
                               {item.tagName && (
-                                <span className="px-2 py-0.5 rounded-lg text-xs bg-white/10 text-white/60 border border-white/10">
+                                <span
+                                  className={cn(
+                                    'px-2 py-0.5 rounded-lg text-xs border',
+                                    isLight
+                                      ? 'bg-bg-tertiary text-text-secondary border-border'
+                                      : 'bg-white/10 text-white/60 border-white/10',
+                                  )}
+                                >
                                   {item.tagName}
                                 </span>
                               )}
@@ -221,7 +256,10 @@ export function Timeline({ items, className }: TimelineProps) {
                         </div>
 
                         <motion.p
-                          className="text-sm sm:text-base text-white/65 leading-relaxed mb-4"
+                          className={cn(
+                            'text-sm sm:text-base leading-relaxed mb-4',
+                            isLight ? 'text-text-secondary' : 'text-white/65',
+                          )}
                           initial={{ opacity: 0.8 }}
                           whileHover={{ opacity: 1 }}
                         >
@@ -229,7 +267,10 @@ export function Timeline({ items, className }: TimelineProps) {
                         </motion.p>
 
                         <div
-                          className="h-1 bg-white/10 rounded-full overflow-hidden"
+                          className={cn(
+                            'h-1 rounded-full overflow-hidden',
+                            isLight ? 'bg-border' : 'bg-white/10',
+                          )}
                           role="progressbar"
                           aria-valuenow={
                             item.status === 'completed'

@@ -17,13 +17,17 @@ interface HorizonHeroSectionProps {
   children?: React.ReactNode
   /** 在滚动内容最底部渲染的页脚 */
   footer?: React.ReactNode
+  /** dark / light：同一套星空穿梭，仅换配色 */
+  tone?: 'dark' | 'light'
 }
 
 export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   sections: externalSections,
   children,
   footer,
+  tone = 'dark',
 }) => {
+  const isLight = tone === 'light'
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
@@ -91,9 +95,10 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   useEffect(() => {
     const refs = threeRefs.current
 
-    // Scene setup
+    // Scene setup（仅背景/雾颜色不同；渲染链路与深色完全一致）
     refs.scene = new THREE.Scene()
-    refs.scene.fog = new THREE.FogExp2(0x000000, 0.00025)
+    refs.scene.background = new THREE.Color(isLight ? 0xffffff : 0x000000)
+    refs.scene.fog = new THREE.FogExp2(isLight ? 0xffffff : 0x000000, 0.00025)
 
     // Camera
     refs.camera = new THREE.PerspectiveCamera(
@@ -115,8 +120,9 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
     refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     refs.renderer.toneMapping = THREE.ACESFilmicToneMapping
     refs.renderer.toneMappingExposure = 0.5
+    refs.renderer.setClearColor(isLight ? 0xffffff : 0x000000, 1)
 
-    // Post-processing
+    // Post-processing（深浅色同一套）
     refs.composer = new EffectComposer(refs.renderer)
     const renderPass = new RenderPass(refs.scene, refs.camera)
     refs.composer.addPass(renderPass)
@@ -155,20 +161,32 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           positions[j * 3 + 2] = radius * Math.cos(phi)
 
           const color = new THREE.Color()
-          const colorChoice = Math.random()
-          if (colorChoice < 0.7) {
-            color.setHSL(0, 0, 0.8 + Math.random() * 0.2)
-          } else if (colorChoice < 0.9) {
-            color.setHSL(0.08, 0.5, 0.8)
+          if (isLight) {
+            // 白底：更深、更饱和，提高对比与可视度
+            color.setHSL(
+              Math.random(),
+              0.9 + Math.random() * 0.1,
+              0.22 + Math.random() * 0.18,
+            )
           } else {
-            color.setHSL(0.6, 0.5, 0.8)
+            const colorChoice = Math.random()
+            if (colorChoice < 0.7) {
+              color.setHSL(0, 0, 0.8 + Math.random() * 0.2)
+            } else if (colorChoice < 0.9) {
+              color.setHSL(0.08, 0.5, 0.8)
+            } else {
+              color.setHSL(0.6, 0.5, 0.8)
+            }
           }
 
           colors[j * 3] = color.r
           colors[j * 3 + 1] = color.g
           colors[j * 3 + 2] = color.b
 
-          sizes[j] = Math.random() * 2 + 0.5
+          // 浅色略放大星点，提高可视度
+          sizes[j] = isLight
+            ? Math.random() * 3.2 + 1.4
+            : Math.random() * 2 + 0.5
         }
 
         geometry.setAttribute(
@@ -182,6 +200,8 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           uniforms: {
             time: { value: 0 },
             depth: { value: i },
+            // 浅色提高不透明度，闪烁时仍保持可见
+            opacityGain: { value: isLight ? 1.65 : 1.0 },
           },
           vertexShader: /* glsl */ `
             attribute float size;
@@ -202,6 +222,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           fragmentShader: /* glsl */ `
             varying vec3 vColor;
             uniform float time;
+            uniform float opacityGain;
 
             void main() {
               float dist = length(gl_PointCoord - vec2(0.5));
@@ -212,13 +233,15 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
               float seed = fract(vColor.r * 31.7 + vColor.g * 17.3 + vColor.b * 53.9);
               float speed = 3.0 + seed * 7.0;
               float twinkle = 0.5 + 0.5 * sin(time * speed + seed * 6.28);
-              float opacity = base * (0.05 + 0.95 * twinkle);
+              float opacity = base * (0.05 + 0.95 * twinkle) * opacityGain;
+              opacity = clamp(opacity, 0.0, 1.0);
 
               gl_FragColor = vec4(vColor, opacity);
             }
           `,
           transparent: true,
-          blending: THREE.AdditiveBlending,
+          // 白底上 Additive 无法显色；混合随底色切换，其余与深色一致
+          blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
           depthWrite: false,
         })
 
@@ -233,8 +256,12 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       const material = new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0 },
-          color1: { value: new THREE.Color(0x001133) },
-          color2: { value: new THREE.Color(0x003366) },
+          color1: {
+            value: new THREE.Color(isLight ? 0xffe4ec : 0x001133),
+          },
+          color2: {
+            value: new THREE.Color(isLight ? 0xe3f2ff : 0x003366),
+          },
           opacity: { value: 0.3 },
         },
         vertexShader: /* glsl */ `
@@ -272,7 +299,7 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           }
         `,
         transparent: true,
-        blending: THREE.AdditiveBlending,
+        blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
         side: THREE.DoubleSide,
         depthWrite: false,
       })
@@ -546,8 +573,12 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
       if (refs.renderer) {
         refs.renderer.dispose()
       }
+      if (refs.composer) {
+        refs.composer.dispose()
+        refs.composer = null
+      }
     }
-  }, [])
+  }, [isLight])
 
   // Scroll handling
   const rafRef = useRef<number | null>(null)
@@ -635,7 +666,15 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
   )
 
   return (
-    <div ref={containerRef} className="hero-container cosmos-style">
+    <div
+      ref={containerRef}
+      className={[
+        'hero-container cosmos-style',
+        isLight ? 'hero-container--light' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <style>{`
         /* z-index 令牌系统: canvas(0) < sidebar(10) < scroll(2) < hero(3) < toast(9999) */
         .hero-container {
@@ -649,6 +688,11 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           color: #fff;
           scrollbar-width: thin;
           scrollbar-color: rgba(255,255,255,0.15) transparent;
+        }
+        .hero-container--light {
+          background: #ffffff;
+          color: #1d1d1f;
+          scrollbar-color: rgba(0,0,0,0.18) transparent;
         }
         .hero-canvas {
           position: fixed;
@@ -687,6 +731,9 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           color: rgba(255,255,255,0.6);
           line-height: 1.6;
         }
+        .hero-container--light .hero-subtitle {
+          color: rgba(29,29,31,0.55);
+        }
         .subtitle-line {
           margin: 0;
         }
@@ -706,6 +753,9 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           letter-spacing: 4px;
           color: rgba(255,255,255,0.4);
         }
+        .hero-container--light .scroll-text {
+          color: rgba(29,29,31,0.4);
+        }
         .progress-track {
           width: 2px;
           height: 120px;
@@ -713,16 +763,25 @@ export const HorizonHeroSection: React.FC<HorizonHeroSectionProps> = ({
           border-radius: 1px;
           overflow: hidden;
         }
+        .hero-container--light .progress-track {
+          background: rgba(0,0,0,0.08);
+        }
         .progress-fill {
           width: 100%;
           background: rgba(255,255,255,0.5);
           border-radius: 1px;
           transition: height 0.1s linear;
         }
+        .hero-container--light .progress-fill {
+          background: rgba(47,187,224,0.85);
+        }
         .section-counter {
           font-size: 11px;
           color: rgba(255,255,255,0.4);
           font-variant-numeric: tabular-nums;
+        }
+        .hero-container--light .section-counter {
+          color: rgba(29,29,31,0.4);
         }
         .scroll-sections {
           position: relative;

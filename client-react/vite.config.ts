@@ -24,6 +24,10 @@ export default defineConfig({
     port: 3080,
     strictPort: true,
     allowedHosts: ['ninewood.local', 'localhost'],
+    // Windows 上字体/静态资源易被占用导致 Vite watch EBUSY 崩掉
+    watch: {
+      ignored: ['**/public/fonts/**', '**/node_modules/**'],
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3002',

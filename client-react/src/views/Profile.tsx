@@ -795,11 +795,12 @@ export default function Profile() {
 
             {isMe ? (
               <nav className="internal-profile-rail" aria-label="个人中心导航">
+                {/* 对齐 macOS：认证/消息在主侧栏；订单钱包等嵌在「我的」 */}
                 {[
                   {
-                    icon: STITCH_PROFILE_ICONS.cert,
-                    label: '认证',
-                    path: '/cert-center',
+                    icon: STITCH_PROFILE_ICONS.orders,
+                    label: '订单',
+                    path: '/orders',
                   },
                   {
                     icon: STITCH_PROFILE_ICONS.demands,
@@ -807,19 +808,39 @@ export default function Profile() {
                     path: '/my-demands',
                   },
                   {
+                    icon: 'gavel',
+                    label: '应标',
+                    path: '/my-bids',
+                  },
+                  {
+                    icon: 'receipt_long',
+                    label: '钱包',
+                    path: '/transactions',
+                  },
+                  {
+                    icon: 'layers',
+                    label: '服务卡',
+                    path: '/my-service-cards',
+                  },
+                  {
+                    icon: 'notifications',
+                    label: '通知',
+                    path: '/push-settings',
+                  },
+                  {
+                    icon: 'card_giftcard',
+                    label: '福利',
+                    path: '/welfare',
+                  },
+                  {
                     icon: STITCH_PROFILE_ICONS.favorites,
                     label: '收藏',
                     tab: 'favorites' as const,
                   },
                   {
-                    icon: STITCH_PROFILE_ICONS.orders,
-                    label: '订单',
-                    path: '/orders',
-                  },
-                  {
-                    icon: STITCH_PROFILE_ICONS.chat,
-                    label: '消息',
-                    path: '/messages',
+                    icon: STITCH_PROFILE_ICONS.group,
+                    label: '关注',
+                    path: myUser?.id ? `/follows/${myUser.id}` : '/profile',
                   },
                   {
                     icon: STITCH_PROFILE_ICONS.settings,
