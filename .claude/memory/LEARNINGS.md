@@ -2,6 +2,11 @@
 
 Append-only operational lessons to reduce repeated mistakes.
 
+## 2026-07-29（回域结算与整数点）
+
+- `User.points` 是 Int：回域报价/预付必须 `Math.round` 成整数点，否则 Prisma decrement 会静默截断半点，资金断言会漂。
+- 地回真实结算用 `WalletLedger.operationKey`（`loopRun:{id}:prepay|pay-provider|refund`），禁止复用 `settleDemand` / `WalletHold(demandId)`。
+
 ## 2026-07-28（组合大回健康巡检）
 
 - 平台托管能力「可运行」≠ 仅有 `getLoopExecutor`：组合 Recipe 无单步执行器，健康巡检若只认 executor 会把它们打成 `UNKNOWN`，推荐池 `health=ONLINE` 条件会永久过滤掉大回。

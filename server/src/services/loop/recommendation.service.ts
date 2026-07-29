@@ -50,7 +50,13 @@ export async function recommendLoops(params: RecommendLoopsParams) {
     where,
     include: {
       endpoint: {
-        select: { healthStatus: true, hostMode: true, successRatePublic: true, capacityJson: true },
+        select: {
+          healthStatus: true,
+          hostMode: true,
+          successRatePublic: true,
+          capacityJson: true,
+          pricePolicyJson: true,
+        },
       },
       definition: {
         select: {

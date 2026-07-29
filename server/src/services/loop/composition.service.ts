@@ -12,7 +12,11 @@ import { getLoopExecutor } from './executors/index.js'
 import { loopRunService } from './loop-run.service.js'
 import { runForLoopRun } from './verification.service.js'
 import { assertLoopSchema } from './schema-validator.js'
-import { recordSettlementEligibility } from './loop-economy.service.js'
+import {
+  recordSettlementEligibility,
+  prepayLoopRun,
+  finalizeLoopSettlement,
+} from './loop-economy.service.js'
 
 export type RecipeFieldMap = Record<string, string>
 
@@ -175,10 +179,13 @@ export async function runRecipe(params: {
   demandId?: string
   input?: Record<string, unknown>
   offeringId?: string
+  billable?: boolean
+  serviceAmount?: number
 }): Promise<{
   runId: string
   status: LoopRunStatus
   outcome: Record<string, unknown>
+  settlement?: { action: string }
   steps: Array<{ key: string; runId: string; status: string; code: string }>
 }> {
   const recipe = getRecipe(params.recipeCode)
@@ -237,8 +244,22 @@ export async function runRecipe(params: {
     type: 'COMPOSE_STARTED',
     actorRef: `user:${params.userId}`,
     visibility: LoopEventVisibility.ACTOR,
-    payload: { recipe: recipe.code, stepCount: recipe.steps.length },
+    payload: {
+      recipe: recipe.code,
+      stepCount: recipe.steps.length,
+      billable: Boolean(params.billable),
+    },
   })
+
+  if (params.billable && params.offeringId && (params.serviceAmount ?? 0) > 0) {
+    await prepayLoopRun({
+      loopRunId: parentRunId,
+      offeringId: params.offeringId,
+      payerUserId: params.userId,
+      serviceAmount: params.serviceAmount!,
+    })
+  }
+
   await loopRunService.transition(parentRunId, LoopRunStatus.EXECUTING)
 
   const stepResults: Array<{ key: string; runId: string; status: string; code: string }> = []
@@ -474,5 +495,14 @@ export async function runRecipe(params: {
     )
   }
 
-  return { runId: parentRunId, status: parentStatus, outcome, steps: stepResults }
+  // 父跑已写 ELIGIBLE/BLOCKED：capture 或退服务额+佣金；无预付则 noop
+  const settled = await finalizeLoopSettlement(parentRunId)
+
+  return {
+    runId: parentRunId,
+    status: parentStatus,
+    outcome,
+    settlement: { action: settled.action },
+    steps: stepResults,
+  }
 }

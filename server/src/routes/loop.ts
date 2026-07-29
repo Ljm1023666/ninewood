@@ -139,12 +139,19 @@ loopRouter.get('/capabilities', async (_req: Request, res: Response) => {
 // 只读影子同源：paths 类可回写 demand.paths，校验类只读，预览能力诚实返回 skipped。
 loopRouter.post('/offerings/:id/run', authMiddleware, async (req: Request, res: Response) => {
   const userId = req.user!.userId;
-  const { demandId, input } = (req.body || {}) as {
+  const { demandId, input, billable, serviceAmount } = (req.body || {}) as {
     demandId?: string;
     input?: Record<string, unknown>;
+    billable?: boolean;
+    serviceAmount?: number;
   };
   try {
-    const result = await runOffering(req.params.id, userId, { demandId, input });
+    const result = await runOffering(req.params.id, userId, {
+      demandId,
+      input,
+      billable: billable === true,
+      serviceAmount: serviceAmount != null ? Number(serviceAmount) : undefined,
+    });
     success(res, result, '已运行');
   } catch (err: any) {
     const status = typeof err?.status === 'number' ? err.status : 500;

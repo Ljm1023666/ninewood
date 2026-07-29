@@ -204,7 +204,8 @@ export default function LoopOfferingDetailPage() {
         setData(row)
         if (row?.loopKind === 'EARTH') {
           try {
-            const quote = await loopApi.quoteFee(row.id, 100)
+            const priced = row.pricing?.claimedServiceAmount
+            const quote = await loopApi.quoteFee(row.id, priced && priced > 0 ? priced : 100)
             if (alive) setFeeQuote(quote)
           } catch {
             /* 未登录或报价失败时静默 */
@@ -260,7 +261,7 @@ export default function LoopOfferingDetailPage() {
     }))
   }, [data])
 
-  const run = async () => {
+  const run = async (billable = false) => {
     if (!data) return
     setRunning(true)
     setRunError(null)
@@ -271,7 +272,13 @@ export default function LoopOfferingDetailPage() {
           setRunError('请先选一条需求')
           return
         }
-        const r = await loopApi.runOffering(data.id, { demandId: selectedDemandId })
+        const r = await loopApi.runOffering(data.id, {
+          demandId: selectedDemandId,
+          billable,
+          serviceAmount: billable
+            ? (data.pricing?.claimedServiceAmount ?? undefined)
+            : undefined,
+        })
         setResult(r)
         if (r?.runId) navigate(`/loops/runs/${r.runId}`)
       } else {
@@ -323,7 +330,13 @@ export default function LoopOfferingDetailPage() {
           )
           return
         }
-        const r = await loopApi.runOffering(data.id, { input })
+        const r = await loopApi.runOffering(data.id, {
+          input,
+          billable,
+          serviceAmount: billable
+            ? (data.pricing?.claimedServiceAmount ?? undefined)
+            : undefined,
+        })
         setResult(r)
         if (r?.runId) navigate(`/loops/runs/${r.runId}`)
       }
@@ -333,6 +346,9 @@ export default function LoopOfferingDetailPage() {
       setRunning(false)
     }
   }
+
+  const canPay =
+    Boolean(data?.pricing?.claimedServiceAmount && data.pricing.claimedServiceAmount > 0)
 
   if (loading) {
     return (
@@ -499,14 +515,28 @@ export default function LoopOfferingDetailPage() {
               {demands.length === 0 && (
                 <p className="loop-svc-run__hint">暂无需求；可先去发布，或改用「自由输入」试跑。</p>
               )}
-              <LiquidMetalButton
-                type="button"
-                className="loop-svc-run__btn"
-                disabled={running || !selectedDemandId}
-                onClick={() => void run()}
-              >
-                {running ? '运行中…' : '对需求运行'}
-              </LiquidMetalButton>
+              <div className="loop-svc-run__actions">
+                <LiquidMetalButton
+                  type="button"
+                  className="loop-svc-run__btn"
+                  disabled={running || !selectedDemandId}
+                  onClick={() => void run(false)}
+                >
+                  {running ? '运行中…' : '对需求试跑'}
+                </LiquidMetalButton>
+                {canPay && (
+                  <LiquidMetalButton
+                    type="button"
+                    className="loop-svc-run__btn"
+                    disabled={running || !selectedDemandId}
+                    onClick={() => void run(true)}
+                  >
+                    {running
+                      ? '运行中…'
+                      : `付费对需求运行（${feeQuote?.totalPreview ?? data.pricing?.claimedServiceAmount} 点）`}
+                  </LiquidMetalButton>
+                )}
+              </div>
             </div>
           ) : (
             <div className="loop-svc-run__form">
@@ -588,17 +618,36 @@ export default function LoopOfferingDetailPage() {
               {schemaFields.length === 0 && freeFields.length === 0 && data.definitionCode.includes('health') && (
                 <p className="loop-svc-run__hint">无需填写；点击下方按钮探测接口健康。</p>
               )}
-              <LiquidMetalButton
-                type="button"
-                className="loop-svc-run__btn"
-                disabled={
-                  running ||
-                  (schemaFields.length === 0 && freeFields.length === 0 && !data.definitionCode.includes('health'))
-                }
-                onClick={() => void run()}
-              >
-                {running ? '运行中…' : '自由输入运行'}
-              </LiquidMetalButton>
+              <div className="loop-svc-run__actions">
+                <LiquidMetalButton
+                  type="button"
+                  className="loop-svc-run__btn"
+                  disabled={
+                    running ||
+                    (schemaFields.length === 0 && freeFields.length === 0 && !data.definitionCode.includes('health'))
+                  }
+                  onClick={() => void run(false)}
+                >
+                  {running ? '运行中…' : '免费试跑'}
+                </LiquidMetalButton>
+                {canPay && (
+                  <LiquidMetalButton
+                    type="button"
+                    className="loop-svc-run__btn"
+                    disabled={
+                      running ||
+                      (schemaFields.length === 0 &&
+                        freeFields.length === 0 &&
+                        !data.definitionCode.includes('health'))
+                    }
+                    onClick={() => void run(true)}
+                  >
+                    {running
+                      ? '运行中…'
+                      : `付费运行（预付 ${feeQuote?.totalPreview ?? data.pricing?.claimedServiceAmount} 点）`}
+                  </LiquidMetalButton>
+                )}
+              </div>
             </div>
           )}
 
@@ -639,13 +688,19 @@ export default function LoopOfferingDetailPage() {
 
         {feeQuote && (
           <section className="loop-svc-status" aria-label="费用预览">
-            <span>示意报价（服务额 100）</span>
+            <span>
+              {canPay
+                ? `标价报价（服务额 ${feeQuote.serviceAmount}）`
+                : `示意报价（服务额 ${feeQuote.serviceAmount}）`}
+            </span>
             <span className="loop-svc-status__sep">·</span>
             <span>佣金 {feeQuote.platformFee}</span>
             <span className="loop-svc-status__sep">·</span>
             <span>监管额度上限 {feeQuote.monitorFeeCap}</span>
             <span className="loop-svc-status__sep">·</span>
             <span>验证费 {feeQuote.verificationFee}</span>
+            <span className="loop-svc-status__sep">·</span>
+            <span>合计预付 {feeQuote.totalPreview}</span>
           </section>
         )}
 

@@ -39,6 +39,11 @@ export type LoopOfferingItem = {
   requiresVerification: boolean
   verification: LoopVerificationSummary
   endpoint: { healthStatus: string | null; hostMode: string | null }
+  pricing?: {
+    claimedServiceAmount: number | null
+    verificationFee: number
+    currency: 'POINT'
+  }
 }
 
 export type LoopOfferingDetail = LoopOfferingItem & {
@@ -194,14 +199,21 @@ export const loopApi = {
   /** 用户侧「运行此能力」：对指定需求运行，或用自由输入试跑。返回真实执行结果。 */
   async runOffering(
     id: string,
-    body: { demandId?: string; input?: Record<string, unknown> },
+    body: {
+      demandId?: string
+      input?: Record<string, unknown>
+      billable?: boolean
+      serviceAmount?: number
+    },
   ): Promise<{
     runId: string
     ran: boolean
     preview: boolean
+    billable?: boolean
     code: string
     status: string
     outcome: Record<string, unknown>
+    settlement?: { action: string }
   } | null> {
     const res = await api.post<ApiEnvelope<any>>(`/loops/offerings/${id}/run`, body)
     return res.data?.data ?? null

@@ -46,6 +46,9 @@ vi.mock('./composition.service.js', () => ({
 vi.mock('./loop-economy.service.js', () => ({
   recordSettlementEligibility: vi.fn().mockResolvedValue(undefined),
   quoteLoopFee: vi.fn(),
+  resolveBillableServiceAmount: vi.fn().mockResolvedValue(0),
+  prepayLoopRun: vi.fn().mockResolvedValue({ action: 'noop' }),
+  finalizeLoopSettlement: vi.fn().mockResolvedValue({ action: 'noop' }),
 }));
 
 import { runOffering } from './offering.service.js';

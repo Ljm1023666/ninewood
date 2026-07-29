@@ -30,6 +30,14 @@ export interface BuiltinDefinitionSpec {
   inputSchema?: Record<string, unknown>;
   outcomeSchema?: Record<string, unknown>;
   verifierCode?: string;
+  /** V4：演示/标价；null 表示仅免费试跑 */
+  pricePolicyJson?: {
+    platformFeeRate: number
+    monitorFeeCapRate: number
+    verificationFee: number
+    claimedServiceAmount: number | null
+    currency: 'POINT'
+  };
 }
 
 const TEXT_INPUT_SCHEMA = {
@@ -174,6 +182,14 @@ export const BUILTIN_DEFINITIONS: BuiltinDefinitionSpec[] = [
     offeringTitle: '文本精简（可核验）',
     offeringSummary: '按宣称压缩比精简文本，结果由天回核验——双重剥夺判断权样板。',
     capabilityPaths: ['intent:文本精简', 'tag:写作', 'tag:降重预备', 'cat:内容工具'],
+    // V4 演示标价：免费试跑仍可用；付费运行预付 20+1+1（整数点）
+    pricePolicyJson: {
+      platformFeeRate: 0.05,
+      monitorFeeCapRate: 0.01,
+      verificationFee: 1,
+      claimedServiceAmount: 20,
+      currency: 'POINT',
+    },
     inputSchema: {
       type: 'object',
       properties: {
@@ -342,6 +358,9 @@ export async function seedBuiltinLoops(): Promise<{
         outputSchema: (spec.outcomeSchema ?? {}) as Prisma.InputJsonValue,
         healthStatus: CapabilityHealth.ONLINE,
         successRatePublic: false,
+        ...(spec.pricePolicyJson
+          ? { pricePolicyJson: spec.pricePolicyJson as Prisma.InputJsonValue }
+          : {}),
       },
       update: {
         name: spec.name,
@@ -350,6 +369,9 @@ export async function seedBuiltinLoops(): Promise<{
         paths: spec.capabilityPaths ?? [],
         inputSchema: (spec.inputSchema ?? {}) as Prisma.InputJsonValue,
         outputSchema: (spec.outcomeSchema ?? {}) as Prisma.InputJsonValue,
+        ...(spec.pricePolicyJson
+          ? { pricePolicyJson: spec.pricePolicyJson as Prisma.InputJsonValue }
+          : {}),
       },
     });
     epCount++;

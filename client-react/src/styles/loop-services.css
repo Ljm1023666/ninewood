@@ -323,6 +323,13 @@
   resize: vertical;
 }
 
+.loop-svc-run__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
 .loop-svc-run__btn {
   align-self: flex-start;
   padding: 10px 20px;
@@ -598,40 +605,11 @@
   border-color: var(--ls-node-hover-border);
 }
 
+.loop-svc-segs.internal-segmented,
 .loop-svc-segs {
-  display: flex;
   flex-shrink: 0;
-  border: 1px solid var(--ls-line);
-  background: var(--ls-panel);
-}
-
-.loop-svc-seg {
-  height: 48px;
-  padding: 0 18px;
-  border: none;
-  border-right: 1px solid var(--ls-line);
-  background: transparent;
-  color: var(--ls-mute);
-  font-family: var(--ls-mono);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition:
-    color 150ms ease-out,
-    background 150ms ease-out;
-}
-
-.loop-svc-seg:last-child {
-  border-right: none;
-}
-
-.loop-svc-seg:hover {
-  color: var(--ls-fg);
-}
-
-.loop-svc-seg.is-active {
-  background: var(--ls-seg-active-bg);
-  color: var(--ls-fg);
+  width: min(520px, 100%);
+  min-width: 280px;
 }
 
 .loop-svc-group {

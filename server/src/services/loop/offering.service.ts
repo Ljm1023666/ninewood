@@ -9,7 +9,13 @@ import { getLoopExecutor } from './executors/index.js';
 import { loopRunService } from './loop-run.service.js';
 import { assertLoopSchema } from './schema-validator.js';
 import { getRecipe } from './composition.service.js';
-import { recordSettlementEligibility, quoteLoopFee } from './loop-economy.service.js';
+import {
+  recordSettlementEligibility,
+  quoteLoopFee,
+  resolveBillableServiceAmount,
+  prepayLoopRun,
+  finalizeLoopSettlement,
+} from './loop-economy.service.js';
 import { runRecipe } from './composition.service.js';
 
 export interface ListOfferingsParams {
@@ -70,8 +76,28 @@ export function toPublicOffering(o: any, isAdmin = false) {
       healthStatus: o.endpoint?.healthStatus ?? null,
       hostMode: o.endpoint?.hostMode ?? null,
     },
+    pricing: (() => {
+      const policy = parsePolicyLoose(o.endpoint?.pricePolicyJson)
+      return {
+        claimedServiceAmount: policy.claimedServiceAmount,
+        verificationFee: policy.verificationFee,
+        currency: 'POINT' as const,
+      }
+    })(),
   };
   return isAdmin ? { ...base, internalSuccessRate: o.internalSuccessRate } : base;
+}
+
+function parsePolicyLoose(raw: unknown): { claimedServiceAmount: number | null; verificationFee: number } {
+  if (!raw || typeof raw !== 'object') return { claimedServiceAmount: null, verificationFee: 0 }
+  const o = raw as Record<string, unknown>
+  return {
+    claimedServiceAmount:
+      typeof o.claimedServiceAmount === 'number' && o.claimedServiceAmount > 0
+        ? o.claimedServiceAmount
+        : null,
+    verificationFee: typeof o.verificationFee === 'number' ? o.verificationFee : 0,
+  }
 }
 
 /**
@@ -91,7 +117,9 @@ export async function listOfferings(params: ListOfferingsParams = {}) {
   const rows = await prisma.loopOffering.findMany({
     where,
     include: {
-      endpoint: { select: { healthStatus: true, hostMode: true, successRatePublic: true } },
+      endpoint: {
+        select: { healthStatus: true, hostMode: true, successRatePublic: true, pricePolicyJson: true },
+      },
       definition: { select: { loopKind: true, code: true, name: true, description: true, inputSchema: true, outcomeSchema: true } },
       verificationContracts: {
         include: { verifierEndpoint: { select: { id: true, code: true, name: true } } },
@@ -111,7 +139,9 @@ export async function retrieveOffering(id: string, isAdmin: boolean) {
   const o = await prisma.loopOffering.findUnique({
     where: { id },
     include: {
-      endpoint: { select: { healthStatus: true, hostMode: true, successRatePublic: true } },
+      endpoint: {
+        select: { healthStatus: true, hostMode: true, successRatePublic: true, pricePolicyJson: true },
+      },
       definition: { select: { loopKind: true, code: true, name: true, description: true, inputSchema: true, outcomeSchema: true } },
       verificationContracts: {
         include: { verifierEndpoint: { select: { id: true, code: true, name: true } } },
@@ -144,14 +174,22 @@ export async function ensureSystemOfferings() {
 export async function runOffering(
   offeringId: string,
   userId: string,
-  opts: { demandId?: string; input?: Record<string, unknown> },
+  opts: {
+    demandId?: string
+    input?: Record<string, unknown>
+    /** 为 true 时按标价/显式金额预付并在天回后捕获或退款 */
+    billable?: boolean
+    serviceAmount?: number
+  },
 ): Promise<{
   runId: string;
   ran: boolean;
   preview: boolean;
+  billable: boolean;
   code: string;
   status: string;
   outcome: unknown;
+  settlement?: { action: string };
   steps?: Array<{ key: string; runId: string; status: string; code: string }>;
 }> {
   const o = await prisma.loopOffering.findUnique({
@@ -165,6 +203,7 @@ export async function runOffering(
           healthStatus: true,
           ownerType: true,
           capacityJson: true,
+          pricePolicyJson: true,
         },
       },
       verificationContracts: { where: { isRequired: true }, select: { id: true } },
@@ -193,8 +232,15 @@ export async function runOffering(
   }
 
   const demandId = opts.demandId;
+  const billable = opts.billable === true;
+  const billableAmount = billable
+    ? await resolveBillableServiceAmount(o.id, opts.serviceAmount)
+    : 0;
+  if (billable && billableAmount <= 0) {
+    throw Object.assign(new Error('该方案尚未标价，无法付费运行'), { status: 400 });
+  }
 
-  // 组合路径：交由编排器
+  // 组合路径：交由编排器（仅父跑预付）
   if (recipe) {
     const composed = await runRecipe({
       recipeCode: recipe.code,
@@ -202,14 +248,18 @@ export async function runOffering(
       demandId,
       input: opts.input,
       offeringId: o.id,
+      billable,
+      serviceAmount: billableAmount > 0 ? billableAmount : undefined,
     });
     return {
       runId: composed.runId,
       ran: true,
-      preview: !demandId,
+      preview: !demandId && !billable,
+      billable,
       code: o.definition.code,
       status: composed.status,
       outcome: composed.outcome,
+      settlement: composed.settlement,
       steps: composed.steps,
     };
   }
@@ -253,8 +303,18 @@ export async function runOffering(
     type: 'RUN_STARTED',
     actorRef: `user:${userId}`,
     visibility: LoopEventVisibility.ACTOR,
-    payload: { code: o.definition.code, preview: !demandId },
+    payload: { code: o.definition.code, preview: !demandId && !billable, billable },
   });
+
+  if (billable) {
+    await prepayLoopRun({
+      loopRunId: runId,
+      offeringId: o.id,
+      payerUserId: userId,
+      serviceAmount: billableAmount,
+    });
+  }
+
   await loopRunService.transition(runId, LoopRunStatus.EXECUTING);
 
   let r: { status: 'SUCCEEDED' | 'FAILED' | 'INCONCLUSIVE'; outcome: Prisma.InputJsonValue };
@@ -298,7 +358,10 @@ export async function runOffering(
       payload: { message: error instanceof Error ? error.message : '执行失败' },
     });
     await loopRunService.transition(runId, LoopRunStatus.FAILED);
-    throw error;
+    const settlement = await finalizeLoopSettlement(runId, { fullRefund: true });
+    throw Object.assign(error instanceof Error ? error : new Error('执行失败'), {
+      settlement,
+    });
   }
   await loopRunService.appendEvent(runId, {
     type: 'RUN_RESULT',
@@ -309,12 +372,23 @@ export async function runOffering(
   if (r.status !== 'SUCCEEDED') {
     const failedStatus = r.status === 'INCONCLUSIVE' ? LoopRunStatus.INCONCLUSIVE : LoopRunStatus.FAILED;
     await loopRunService.transition(runId, failedStatus, { actualOutcome: r.outcome as Prisma.InputJsonValue });
-    return { runId, ran: true, preview: !demandId, code: o.definition.code, status: failedStatus, outcome: r.outcome };
+    const settlement = await finalizeLoopSettlement(runId, { fullRefund: true });
+    return {
+      runId,
+      ran: true,
+      preview: !demandId && !billable,
+      billable,
+      code: o.definition.code,
+      status: failedStatus,
+      outcome: r.outcome,
+      settlement: { action: settlement.action },
+    };
   }
   try {
     assertLoopSchema(o.definition.outcomeSchema, r.outcome, '输出');
   } catch (error) {
     await loopRunService.transition(runId, LoopRunStatus.FAILED, { actualOutcome: r.outcome as Prisma.InputJsonValue });
+    await finalizeLoopSettlement(runId, { fullRefund: true });
     throw error;
   }
 
@@ -334,13 +408,16 @@ export async function runOffering(
   await loopRunService.transition(runId, finalStatus, {
     actualOutcome: r.outcome as Prisma.InputJsonValue,
   });
+  const settlement = await finalizeLoopSettlement(runId);
   return {
     runId,
     ran: true,
-    preview: !demandId,
+    preview: !demandId && !billable,
+    billable,
     code: o.definition.code,
     status: finalStatus,
     outcome: r.outcome,
+    settlement: { action: settlement.action },
   };
 }
 
@@ -373,5 +450,9 @@ export async function retryOfferingVerification(runId: string, userId: string) {
       ? LoopRunStatus.FAILED
       : LoopRunStatus.INCONCLUSIVE;
   await loopRunService.transition(run.id, status);
+  if (run.offeringId) {
+    await recordSettlementEligibility(run.id, run.offeringId, outcome === 'PASSED');
+  }
+  await finalizeLoopSettlement(run.id);
   return { runId: run.id, status, verification: outcome };
 }

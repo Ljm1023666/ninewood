@@ -110,7 +110,8 @@ ninewood/
 
 - 天地人分区按 `LoopRun.loopKind` 展示；**查看/排序/调布局不改变** loop 类型。
 - 用户运行能力必须写入 `LoopRun` 及开始/结果/失败事件，否则回中心无轨迹。
-- 权威说明：`docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md` + `docs/specs/NATURAL-LOOP-V3-ADR.md`（旧 V1 ADR 已归档）
+- 权威说明：`docs/回的理念.md` + `docs/specs/NATURAL-LOOP-V2-ADR.md` + `docs/specs/NATURAL-LOOP-V3-ADR.md` + `docs/specs/NATURAL-LOOP-V4-ADR.md`（旧 V1 ADR 已归档）
+- V4：地回付费运行走 `WalletLedger` 预付/捕获/退款，**禁止**复用 `settleDemand` / `WalletHold(demandId)`
 
 ### 5.3 其他高频路由
 

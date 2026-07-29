@@ -107,6 +107,45 @@ describe.runIf(hasDb)('自然回 V3 · 真库愿景联调', () => {
     expect(quote.platformFee).toBe(5)
     expect(quote.monitorFeeCap).toBe(1)
 
+    // V4：付费运行预付 → 通过捕获 / 失败退款（旁路 Order；整数点）
+    const priced = await quoteOfferingFee(textOffering!.id, 20)
+    expect(priced.totalPreview).toBe(22)
+    const beforePts = await prisma.user.findUnique({
+      where: { id: user!.id },
+      select: { points: true },
+    })
+    const paidOk = await runOffering(textOffering!.id, user!.id, {
+      input: { text: longText, claimedCompressionRatio: 0.15 },
+      billable: true,
+      serviceAmount: 20,
+    })
+    expect(paidOk.status).toBe('SUCCEEDED')
+    expect(paidOk.settlement?.action).toBe('captured')
+    const paidOkEvents = await prisma.loopEvent.findMany({ where: { loopRunId: paidOk.runId } })
+    expect(paidOkEvents.some((e) => e.type === 'SETTLEMENT_PREPAID')).toBe(true)
+    expect(paidOkEvents.some((e) => e.type === 'SETTLEMENT_CAPTURED')).toBe(true)
+    const afterOk = await prisma.user.findUnique({
+      where: { id: user!.id },
+      select: { points: true },
+    })
+    // SYSTEM 供给方不 payout：需求方净支出 = total（佣金+验证费+服务额留平台）
+    expect(Number(afterOk!.points)).toBe(Number(beforePts!.points) - priced.totalPreview)
+
+    const beforeFail = Number(afterOk!.points)
+    const paidFail = await runOffering(textOffering!.id, user!.id, {
+      input: { text: longText, claimedCompressionRatio: 0.95 },
+      billable: true,
+      serviceAmount: 20,
+    })
+    expect(paidFail.status).toBe('FAILED')
+    expect(paidFail.settlement?.action).toBe('refunded')
+    const afterFail = await prisma.user.findUnique({
+      where: { id: user!.id },
+      select: { points: true },
+    })
+    // 失败退回 service+platform，保留验证费
+    expect(Number(afterFail!.points)).toBe(beforeFail - priced.verificationFee)
+
     const mine = await createUserOffering(user!.id, {
       title: `联调地回${Date.now().toString(36)}`,
       summary: '愿景联调临时地回',

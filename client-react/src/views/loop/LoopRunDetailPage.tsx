@@ -139,20 +139,41 @@ export default function LoopRunDetailPage() {
             </section>
 
             {(() => {
-              const settlement = [...run.events].reverse().find(
+              const types = new Set(run.events.map((e) => e.type))
+              const prepaid = [...run.events].reverse().find((e) => e.type === 'SETTLEMENT_PREPAID')
+              const captured = [...run.events].reverse().find((e) => e.type === 'SETTLEMENT_CAPTURED')
+              const refunded = [...run.events].reverse().find((e) => e.type === 'SETTLEMENT_REFUNDED')
+              const gate = [...run.events].reverse().find(
                 (e) => e.type === 'SETTLEMENT_ELIGIBLE' || e.type === 'SETTLEMENT_BLOCKED',
               )
-              if (!settlement) return null
-              const ok = settlement.type === 'SETTLEMENT_ELIGIBLE'
+              if (!gate && !prepaid && !captured && !refunded) return null
+              const title = captured
+                ? '已结算（供给方已收款）'
+                : refunded
+                  ? '已退款（供给方未收款）'
+                  : gate?.type === 'SETTLEMENT_ELIGIBLE'
+                    ? '允许进入结算'
+                    : gate
+                      ? '禁止结算'
+                      : '已预付，等待核验'
+              const hint = captured
+                ? '天回已通过，服务款已按预付分账；平台佣金与验证费留在体系内。'
+                : refunded
+                  ? '天回未通过或运行失败：供给方不得收款；验证费政策见事件详情。'
+                  : gate?.type === 'SETTLEMENT_ELIGIBLE'
+                    ? '全部必要天回已通过，正在或已完成捕获。'
+                    : '天回核验未通过或无法判断，本轮不可付给供给方。'
               return (
-                <section className="loop-detail-section" aria-label="结算资格">
-                  <h2>{ok ? '允许进入结算' : '禁止结算'}</h2>
-                  <p>
-                    {ok
-                      ? '全部必要天回已通过。实际扣款由后续结算链路接管；地回不得自证成功。'
-                      : '天回核验未通过或无法判断，本轮不可结算。'}
-                  </p>
-                  <JsonBlock value={settlement.payload} />
+                <section className="loop-detail-section" aria-label="结算">
+                  <h2>{title}</h2>
+                  <p>{hint}</p>
+                  {prepaid && <JsonBlock value={{ type: 'SETTLEMENT_PREPAID', ...prepaid.payload }} />}
+                  {gate && <JsonBlock value={{ type: gate.type, ...gate.payload }} />}
+                  {captured && <JsonBlock value={{ type: 'SETTLEMENT_CAPTURED', ...captured.payload }} />}
+                  {refunded && <JsonBlock value={{ type: 'SETTLEMENT_REFUNDED', ...refunded.payload }} />}
+                  {!types.has('SETTLEMENT_PREPAID') && gate && (
+                    <p className="loop-muted">本次为免费试跑，未发生点数预付。</p>
+                  )}
                 </section>
               )
             })()}
