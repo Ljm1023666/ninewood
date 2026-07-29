@@ -1,25 +1,9 @@
-import { type ReactNode, type KeyboardEvent, isValidElement } from 'react'
+import { type ReactNode, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackButton } from '@/components/ui/back-button'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { cn } from '@/lib/utils'
-
-function childrenToLabel(children: ReactNode): string {
-  if (children == null || typeof children === 'boolean') return ''
-  if (typeof children === 'string' || typeof children === 'number') {
-    return String(children)
-  }
-  if (Array.isArray(children)) {
-    return children.map(childrenToLabel).join('')
-  }
-  if (isValidElement(children)) {
-    return childrenToLabel(
-      (children.props as { children?: ReactNode }).children,
-    )
-  }
-  return ''
-}
 
 /** Stitch 奢华桌面页壳层：深色固定暗金 palette，浅色跟随全局 theme 变量 */
 export function DesktopPageShell({
@@ -120,7 +104,7 @@ export function DlpBtnPrimary({
   disabled,
   active = false,
   className,
-  type: _type = 'button',
+  type = 'button',
 }: {
   children: ReactNode
   onClick?: () => void
@@ -130,19 +114,19 @@ export function DlpBtnPrimary({
   className?: string
   type?: 'button' | 'submit'
 }) {
-  void _type // LiquidMetal 固定 type=button；保留 prop 以免破坏调用方
-  const label = childrenToLabel(children).trim() || '确定'
   const fullWidth = /\bw-full\b|\bflex-1\b/.test(className ?? '')
   return (
     <LiquidMetalButton
-      label={label}
+      type={type}
+      variant="primary"
       onClick={onClick}
       disabled={disabled}
       active={active}
       fullWidth={fullWidth}
       className={className}
-      aria-label={label}
-    />
+    >
+      {children}
+    </LiquidMetalButton>
   )
 }
 
@@ -160,14 +144,15 @@ export function DlpBtnGhost({
   type?: 'button' | 'submit'
 }) {
   return (
-    <button
+    <LiquidMetalButton
       type={type}
+      variant="ghost"
       disabled={disabled}
       onClick={onClick}
-      className={cn('dlp-btn-ghost', className)}
+      className={className}
     >
       {children}
-    </button>
+    </LiquidMetalButton>
   )
 }
 
@@ -269,9 +254,9 @@ export function DlpSearchBar({
         autoFocus={autoFocus}
       />
       {value && onClear ? (
-        <button type="button" className="dlp-search-bar__clear" onClick={onClear} aria-label="清空">
+        <LiquidMetalButton type="button" className="dlp-search-bar__clear" onClick={onClear} aria-label="清空">
           <MsIcon name="close" size={16} />
-        </button>
+        </LiquidMetalButton>
       ) : null}
       {/* 有输入才金属描边；空闲普通玻璃细边 */}
       <LiquidMetalButton
@@ -359,7 +344,7 @@ export function DlpToggleRow({
         <p className="dlp-toggle-row__label">{label}</p>
         {description ? <p className="dlp-toggle-row__desc">{description}</p> : null}
       </div>
-      <button
+      <LiquidMetalButton
         type="button"
         role="switch"
         aria-checked={checked}
@@ -367,7 +352,7 @@ export function DlpToggleRow({
         onClick={() => onChange(!checked)}
       >
         <span className="dlp-switch__thumb" />
-      </button>
+      </LiquidMetalButton>
     </div>
   )
 }

@@ -17,6 +17,7 @@ import {
 } from '@/components/layout/desktop-page'
 import { cn } from '@/lib/utils'
 import { certLabel } from '@/constants/cert'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface ProviderItem {
   id: string
@@ -140,7 +141,7 @@ export default function CertifiedSearch() {
                       const on = selectedTags.includes(tag)
                       const disabled = !on && selectedTags.length >= MAX_TAGS
                       return (
-                        <button
+                        <LiquidMetalButton
                           key={tag}
                           type="button"
                           disabled={disabled}
@@ -148,7 +149,7 @@ export default function CertifiedSearch() {
                           onClick={() => toggleTag(tag)}
                         >
                           {tag}
-                        </button>
+                        </LiquidMetalButton>
                       )
                     })}
                   </div>
@@ -263,7 +264,7 @@ export default function CertifiedSearch() {
                       ? certLabel[provider.certificationLevel as keyof typeof certLabel]
                       : null
                   return (
-                    <button
+                    <LiquidMetalButton
                       key={provider.id}
                       type="button"
                       className="dlp-glass dlp-user-card"
@@ -291,7 +292,7 @@ export default function CertifiedSearch() {
                           {buildProviderMeta(provider)}
                         </p>
                       </div>
-                    </button>
+                    </LiquidMetalButton>
                   )
                 })}
               </div>

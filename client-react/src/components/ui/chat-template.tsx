@@ -17,7 +17,6 @@ import {
   useSidebar,
 } from '@/components/blocks/sidebar'
 import { useUserStore } from '@/stores/user'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -56,6 +55,7 @@ import {
 import { cn } from '@/lib/utils'
 import { BackButton } from '@/components/ui/back-button'
 import { formatChatTime } from '@/utils/time'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /** 与模板一致的联系人条目（应用侧可带 id 用于路由） */
 export type TemplateContact = {
@@ -234,7 +234,7 @@ export function TemplateChatRightShell({
 
   const nameBlock = showAvatar ? (
     onProfileClick ? (
-      <button
+      <LiquidMetalButton
         type="button"
         onClick={onProfileClick}
         className="msg-chat-header__profile min-w-0 flex-1 cursor-pointer overflow-hidden text-left hover:opacity-80"
@@ -257,7 +257,7 @@ export function TemplateChatRightShell({
         >
           查看主页
         </CardDescription>
-      </button>
+      </LiquidMetalButton>
     ) : (
       <div className="min-w-0 flex-1 overflow-hidden">
         <CardTitle
@@ -359,21 +359,21 @@ export function TemplateChatInputRow({
   return (
     <div className="msg-composer">
       <div className="msg-composer__bar">
-        <button
+        <LiquidMetalButton
           type="button"
           className="msg-composer__icon-btn"
           disabled={inactive}
           {...smileButtonProps}
         >
           <Smile className="size-5" />
-        </button>
+        </LiquidMetalButton>
         {attachMenu}
         <input
           placeholder="输入消息…"
           className="msg-composer__input"
           {...inputProps}
         />
-        <button
+        <LiquidMetalButton
           type="button"
           className={cn(
             'msg-composer__send',
@@ -383,7 +383,7 @@ export function TemplateChatInputRow({
           disabled={inactive}
         >
           <Send className="size-5" />
-        </button>
+        </LiquidMetalButton>
       </div>
     </div>
   )
@@ -443,7 +443,7 @@ function LeftChatListPanel({
             <h1 className="internal-display-title ml-4">消息</h1>
           </div>
           <div className="msg-list-header__actions">
-            <button
+            <LiquidMetalButton
               type="button"
               className="msg-list-header__action"
               onClick={onNavigateToSearch}
@@ -451,8 +451,8 @@ function LeftChatListPanel({
               title="新建群聊"
             >
               <Users className="size-4" />
-            </button>
-            <button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               className="msg-list-header__action"
               onClick={onNewChat}
@@ -460,7 +460,7 @@ function LeftChatListPanel({
               title="发起新会话"
             >
               <SquarePen className="size-4" />
-            </button>
+            </LiquidMetalButton>
           </div>
         </header>
         <div className="msg-list-search-wrap shrink-0 px-4 pb-3">
@@ -495,7 +495,7 @@ function LeftChatListPanel({
               const selected = !!contact.id && contact.id === selectedContactId
               const initial = contact.name?.charAt(0) ?? '?'
               return (
-                <button
+                <LiquidMetalButton
                   key={contact.id ?? `${contact.name}-${origIndex}`}
                   type="button"
                   onClick={() => onPick(contact, origIndex)}
@@ -549,7 +549,7 @@ function LeftChatListPanel({
                       {contact.message || '暂无消息'}
                     </p>
                   </div>
-                </button>
+                </LiquidMetalButton>
               )
             })}
             {!loading && filtered.length === 0 ? (
@@ -583,9 +583,9 @@ function LeftChatListPanel({
           <div className="flex justify-end w-full">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" type="button">
+                <LiquidMetalButton variant="ghost" size="icon" type="button">
                   <SquarePen />
-                </Button>
+                </LiquidMetalButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={onNewChat}>
@@ -599,9 +599,9 @@ function LeftChatListPanel({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" type="button">
+                <LiquidMetalButton variant="ghost" size="icon" type="button">
                   <ListFilter />
-                </Button>
+                </LiquidMetalButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>筛选会话</DropdownMenuLabel>
@@ -635,7 +635,7 @@ function LeftChatListPanel({
           {filtered.map(({ contact, origIndex }) => {
             const selected = !!contact.id && contact.id === selectedContactId
             return (
-              <button
+              <LiquidMetalButton
                 key={contact.id ?? `${contact.name}-${origIndex}`}
                 type="button"
                 onClick={() => onPick(contact, origIndex)}
@@ -670,7 +670,7 @@ function LeftChatListPanel({
                     </CardDescription>
                   </div>
                 </div>
-              </button>
+              </LiquidMetalButton>
             )
           })}
         </ScrollArea>

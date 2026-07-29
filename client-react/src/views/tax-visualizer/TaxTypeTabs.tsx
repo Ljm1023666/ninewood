@@ -8,6 +8,7 @@ import { useTaxVisualizerStore } from '@/stores/tax-visualizer'
 import { TAX_TYPE_LABEL, type TaxType } from '@/constants/tax-visualizer'
 import { PRESETS } from '@/data/tax-rules/presets'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const TAX_TYPES: TaxType[] = ['personal-income', 'vat', 'corporate-income']
 
@@ -34,7 +35,7 @@ export function TaxTypeTabs({ layout = 'card' }: TaxTypeTabsProps) {
         }}
       />
       {TAX_TYPES.map((t) => (
-        <button
+        <LiquidMetalButton
           key={t}
           type="button"
           onClick={() => setTaxType(t)}
@@ -44,7 +45,7 @@ export function TaxTypeTabs({ layout = 'card' }: TaxTypeTabsProps) {
           )}
         >
           {TAX_TYPE_LABEL[t]}
-        </button>
+        </LiquidMetalButton>
       ))}
     </div>
   )
@@ -63,7 +64,7 @@ export function TaxTypeTabs({ layout = 'card' }: TaxTypeTabsProps) {
         {presetsForCurrent.map((p) => {
           const isActive = p.id === activePreset
           return (
-            <button
+            <LiquidMetalButton
               key={p.id}
               type="button"
               onClick={() => loadPreset(p.id)}
@@ -88,7 +89,7 @@ export function TaxTypeTabs({ layout = 'card' }: TaxTypeTabsProps) {
                 />
               )}
               {p.name}
-            </button>
+            </LiquidMetalButton>
           )
         })}
       </div>

@@ -103,7 +103,7 @@ export function CertWorkspaceShell({
           </div>
           <div className="cert-workspace__actions">
             {onUpgrade ? (
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="cert-workspace__btn cert-workspace__btn--ghost"
                 onClick={onUpgrade}
@@ -111,7 +111,7 @@ export function CertWorkspaceShell({
                 title={upgradeHint}
               >
                 {upgrading ? '提交中…' : '提升等级'}
-              </button>
+              </LiquidMetalButton>
             ) : null}
             <LiquidMetalButton label="立即认证" onClick={handleCertify} />
           </div>
@@ -120,14 +120,14 @@ export function CertWorkspaceShell({
         {showIntroTopNav && panel === 'center' ? (
           <nav className="cert-workspace__section-nav" aria-label="介绍章节">
             {INTRO_TOP_NAV.map((item) => (
-              <button
+              <LiquidMetalButton
                 key={item.id}
                 type="button"
                 className={cn(activeSection === item.id && 'is-active')}
                 onClick={() => scrollToSection(item.id, scrollRef.current)}
               >
                 {item.label}
-              </button>
+              </LiquidMetalButton>
             ))}
           </nav>
         ) : null}
@@ -136,7 +136,7 @@ export function CertWorkspaceShell({
           <aside className={cn('cert-workspace__rail', asideTier)} aria-label="认证分区">
             <nav className="cert-workspace__rail-nav">
               {PANEL_NAV.map((item) => (
-                <button
+                <LiquidMetalButton
                   key={item.id}
                   type="button"
                   className={cn('cert-workspace__rail-link', panel === item.id && 'is-active')}
@@ -144,7 +144,7 @@ export function CertWorkspaceShell({
                 >
                   <MsIcon name={item.icon} size={18} filled={panel === item.id} />
                   {item.label}
-                </button>
+                </LiquidMetalButton>
               ))}
             </nav>
           </aside>

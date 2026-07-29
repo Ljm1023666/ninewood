@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>九木 · 路径检索仪表台视觉样机 V5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@24,400,0&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #352b22;
+      --muted: #756c63;
+      --cobalt: #1768ed;
+      --orange: #dd850c;
+      --metal-dark: #6f5844;
+      --metal-mid: #c7b29a;
+      --metal-light: #f3e7d8;
+      --glass: rgba(251, 250, 248, .78);
+      --hairline: rgba(86, 63, 42, .34);
+      --shadow: rgba(57, 39, 24, .32);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      color: var(--ink);
+      font-family: Inter, "Microsoft YaHei UI", "PingFang SC", sans-serif;
+      background: #d7c6b2;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .icon { font-family: "Material Symbols Rounded"; font-size: 26px; line-height: 1; }
+
+    .machine {
+      position: relative;
+      display: grid;
+      grid-template-rows: 39% 34% 27%;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(207,181,150,.18), rgba(168,137,106,.09)),
+        radial-gradient(ellipse at 50% 2%, rgba(255,255,255,.92), transparent 42%),
+        linear-gradient(90deg, rgba(90,63,38,.08), transparent 5%, transparent 95%, rgba(90,63,38,.1)),
+        repeating-linear-gradient(91deg, rgba(255,255,255,.06) 0 1px, rgba(93,65,42,.018) 1px 4px),
+        url("assets/champagne-panel-texture.png") center / cover,
+        linear-gradient(108deg, #b9a187, #eee0ce 18%, #d5c1a9 47%, #f0e3d2 72%, #b79d80);
+      background-blend-mode: multiply, screen, soft-light, soft-light, luminosity, normal;
+      box-shadow: inset 0 0 80px rgba(67,44,25,.2);
+    }
+    .machine::before {
+      position: absolute; inset: 7px; z-index: 20; pointer-events: none; content: "";
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: inset 0 0 0 2px rgba(78,53,33,.25), 0 0 0 1px rgba(255,255,255,.42);
+    }
+    .machine::after {
+      position: absolute; inset: 0; z-index: 30; pointer-events: none; content: "";
+      opacity: .18;
+      background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(62,42,25,.08) 3px 4px);
+      mix-blend-mode: soft-light;
+    }
+
+    .screw {
+      position: absolute; z-index: 24; width: 25px; height: 25px; border-radius: 50%;
+      border: 1px solid #725b46;
+      background: radial-gradient(circle at 34% 28%, #fff 0 6%, #dbc7af 18%, #8c745d 55%, #f4e7d8 74%, #604b39 100%);
+      box-shadow: inset 0 2px 2px #fff, inset 0 -3px 4px rgba(42,28,18,.38), 0 2px 4px rgba(50,32,19,.36);
+    }
+    .screw::after { position: absolute; inset: 11px 5px; content: ""; background: #69513e; transform: rotate(-38deg); }
+    .screw.tl { left: 7px; top: 32px; } .screw.tr { right: 7px; top: 32px; }
+    .screw.bl { left: 7px; bottom: 18px; } .screw.br { right: 7px; bottom: 18px; }
+    .micro-screw { width: 12px; height: 12px; }
+    .micro-screw::after { inset: 5px 2px; }
+    .micro-screw.l { left: 6.4%; top: 10%; } .micro-screw.r { right: 6.4%; top: 10%; }
+    .micro-screw.lb { left: 6.4%; top: 34%; } .micro-screw.rb { right: 6.4%; top: 34%; }
+
+    .top-deck {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      align-content: start;
+      padding-top: 5.8vh;
+      border-top: 5px ridge rgba(108,76,47,.5);
+      border-bottom: 7px double rgba(255,255,255,.82);
+      box-shadow: inset 0 -14px 20px rgba(86,60,37,.12), 0 7px 12px rgba(55,37,22,.22);
+    }
+    h1 { margin: 0; font-size: clamp(36px, 2.6vw, 52px); line-height: 1; letter-spacing: .08em; font-weight: 780; text-shadow: 0 2px 0 rgba(255,255,255,.8); }
+    .subtitle { margin-top: 14px; color: var(--muted); font-size: 16px; letter-spacing: .05em; }
+
+    .search-frame {
+      position: relative;
+      display: grid;
+      grid-template-columns: 172px minmax(0, 1fr) 140px 104px;
+      align-items: center;
+      width: min(64.2vw, 1189px);
+      height: 140px;
+      margin-top: 31px;
+      padding: 12px 15px;
+      border: 7px solid transparent;
+      border-radius: 72px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.88) 0 5%, rgba(255,255,255,.2) 24%, rgba(183,174,164,.18) 63%, rgba(95,80,67,.27) 100%) padding-box,
+        url("assets/glass-milk-texture.png") center / cover padding-box,
+        radial-gradient(circle at 88% 18%, rgba(104,161,255,.45), transparent 15%) border-box,
+        radial-gradient(circle at 9% 78%, rgba(225,168,100,.3), transparent 15%) border-box,
+        url("assets/chrome-rim-texture-v2.png") center / 100% 100% border-box;
+      background-blend-mode: normal, luminosity, screen, screen, normal;
+      box-shadow:
+        inset 0 4px 3px rgba(255,255,255,1),
+        inset 0 -15px 20px rgba(79,57,38,.2),
+        inset 0 0 0 7px rgba(255,255,255,.42),
+        0 0 0 2px rgba(95,73,52,.8),
+        0 0 0 6px rgba(255,255,255,.88),
+        0 0 0 9px #947a60,
+        0 18px 22px rgba(62,41,24,.3);
+      backdrop-filter: blur(20px) saturate(.7);
+    }
+    .search-frame::before {
+      position: absolute; left: 174px; right: 124px; top: 12px; height: 48%; content: ""; pointer-events: none;
+      border-radius: 999px 999px 48% 48%;
+      background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.08));
+    }
+    .search-frame::after {
+      position: absolute; inset: -14px -15px; z-index: 4; content: ""; pointer-events: none;
+      background: url("assets/search-rim-reference.png") center / 100% 100% no-repeat;
+      filter: drop-shadow(0 8px 9px rgba(62,41,24,.18));
+    }
+    .lens-lead { display: grid; place-items: center; width: 112px; height: 112px; justify-self: start; border-radius: 50%; color: #4c4641; background: radial-gradient(circle at 36% 28%, #fff, #e6dfd6 56%, #c1b29f); box-shadow: inset 0 2px 2px #fff, inset 0 -8px 12px rgba(69,48,30,.2), 0 0 0 2px rgba(95,73,52,.22); }
+    .lens-lead .icon { font-size: 37px; }
+    .search-input { position: relative; z-index: 2; width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #302d2a; font-size: 56px; font-weight: 760; letter-spacing: .04em; }
+    .clear { display: grid; place-items: center; width: 48px; height: 48px; justify-self: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.34); cursor: pointer; }
+    .go {
+      display: grid; place-items: center; width: 78px; height: 78px; padding: 0; border: 1px solid rgba(48,78,126,.46); border-radius: 50%; color: var(--cobalt); cursor: pointer;
+      background: radial-gradient(circle at 35% 28%, #fff 0 15%, #e9edf4 46%, #c7cdd4 75%, #fafafa);
+      box-shadow: inset 0 3px 3px #fff, inset 0 -7px 10px rgba(48,62,81,.24), 0 0 0 5px #a89379, 0 0 0 8px #fff, 0 0 0 11px #7f6953, 0 9px 13px rgba(54,38,23,.35);
+    }
+    .go .icon { font-size: 38px; }
+    .summary { margin-top: 25px; color: #6f675f; font-size: 15px; letter-spacing: .08em; }
+    .summary b { margin: 0 8px; color: var(--cobalt); font-size: 20px; }
+
+    .rail-deck {
+      position: relative;
+      overflow: hidden;
+      border-bottom: 5px double rgba(255,255,255,.72);
+      background:
+        linear-gradient(180deg, rgba(31,22,16,.28), transparent 18%, transparent 76%, rgba(30,20,13,.35)),
+        url("assets/track-bronze-texture.png") center / cover,
+        linear-gradient(90deg, #866f5b, #4a3b31 22%, #5b493b 50%, #493a30 78%, #8e755f);
+      background-blend-mode: multiply, luminosity, normal;
+      box-shadow: inset 0 17px 25px rgba(29,19,12,.34), inset 0 -18px 22px rgba(28,18,12,.42);
+    }
+    .rail-groove { position: absolute; left: 0; right: 0; top: 50%; height: 54px; transform: translateY(-50%); border-block: 2px solid #302219; background: linear-gradient(rgba(42,31,24,.66), rgba(170,142,112,.18) 15%, rgba(31,23,18,.72) 50%, rgba(157,128,101,.18) 72%, rgba(48,34,25,.75)), url("assets/chrome-rim-texture-v2.png") center / 100% 100%; background-blend-mode: multiply, luminosity; box-shadow: 0 -11px 0 rgba(239,220,196,.2), 0 12px 0 rgba(28,18,12,.28); }
+    .rail-nav { position: absolute; right: 28px; top: 17px; z-index: 10; display: flex; align-items: center; gap: 11px; color: rgba(255,255,255,.78); font-size: 13px; }
+    .rail-nav button { display: grid; place-items: center; width: 43px; height: 43px; border: 1px solid rgba(255,255,255,.68); border-radius: 50%; background: linear-gradient(#fff7ed, #b9a58d); box-shadow: inset 0 2px #fff, 0 4px 8px rgba(0,0,0,.35); cursor: pointer; }
+
+    .cartridge {
+      position: absolute; top: 50%; left: 50%; z-index: 4;
+      display: grid; grid-template-columns: 205px minmax(0, 1fr) 190px; align-items: center;
+      width: min(50.8vw, 940px); height: 250px; padding: 28px 52px;
+      border: 8px solid transparent; border-radius: 46px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.84), rgba(255,255,255,.16) 42%, rgba(159,144,130,.12) 62%, rgba(83,68,55,.25) 100%) padding-box,
+        url("assets/glass-milk-texture.png") center / cover padding-box,
+        radial-gradient(circle at 82% 12%, rgba(107,158,255,.36), transparent 16%) border-box,
+        radial-gradient(circle at 12% 86%, rgba(229,172,100,.3), transparent 17%) border-box,
+        url("assets/chrome-rim-texture-v2.png") center / 100% 100% border-box;
+      background-blend-mode: normal, luminosity, screen, screen, normal;
+      box-shadow: inset 0 4px 2px #fff, inset 0 -11px 18px rgba(82,59,39,.22), 0 0 0 3px #a99074, 0 0 0 7px rgba(255,255,255,.82), 0 0 0 10px #735b45, 0 17px 25px rgba(25,15,9,.5);
+      transform: translate(-50%, -50%);
+      transition: transform .32s ease, opacity .25s ease;
+    }
+    .cartridge::before { position: absolute; inset: 8px 13px 50% 13px; z-index: 3; content: ""; border-radius: 35px 35px 48% 48%; background: linear-gradient(rgba(255,255,255,.86), transparent); pointer-events: none; }
+    .cartridge::after { position: absolute; inset: -14px -11px; z-index: 3; content: ""; pointer-events: none; background: url("assets/cartridge-rim-reference.png") center / 100% 100% no-repeat; filter: drop-shadow(0 9px 11px rgba(42,27,16,.2)); }
+    .cartridge.side { z-index: 2; opacity: .76; filter: saturate(.72) brightness(.94); transform: translate(calc(-50% + var(--offset)), -50%) scale(.78); }
+    .portrait { position: relative; z-index: 2; width: 126px; height: 126px; margin-left: 18px; overflow: hidden; border: 7px solid #e8dac8; border-radius: 50%; background: #d6c5b1; box-shadow: 0 0 0 2px #725c47, 0 0 0 6px #fff7eb, 0 8px 13px rgba(57,38,22,.3); }
+    .portrait img { width: 100%; height: 100%; object-fit: cover; }
+    .match-badge { position: absolute; left: 92px; bottom: 21px; z-index: 5; padding: 5px 12px; border: 1px solid #b66907; border-radius: 999px; color: white; background: linear-gradient(#f0a42c, #c97108); box-shadow: inset 0 1px rgba(255,255,255,.55), 0 3px 5px rgba(72,39,3,.3); font-size: 12px; font-weight: 700; }
+    .result-copy { position: relative; z-index: 2; display: flex; min-width: 0; min-height: 150px; flex-direction: column; justify-content: center; }
+    .result-copy h2 { margin: 0; overflow: hidden; font-size: 22px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+    .result-meta { margin-top: 13px; color: #716960; font-size: 15px; }
+    .result-money { margin-top: 16px; color: var(--orange); font-size: 29px; font-weight: 760; }
+    .result-money small { margin-left: 18px; padding-left: 18px; border-left: 1px solid rgba(74,55,39,.26); color: #6d655e; font-size: 14px; font-weight: 500; }
+    .result-money b { color: var(--cobalt); }
+    .metrics { position: relative; z-index: 2; display: flex; justify-content: center; gap: 28px; padding-left: 23px; border-left: 1px solid rgba(74,55,39,.18); }
+    .metric { display: grid; justify-items: center; gap: 6px; color: #655d56; font-size: 11px; }
+    .ring { display: grid; place-items: center; width: 66px; height: 66px; border-radius: 50%; background: conic-gradient(var(--ring-color) calc(var(--value) * 1turn), rgba(80,68,57,.15) 0); box-shadow: inset 0 0 0 7px rgba(246,242,237,.92); font-size: 17px; font-weight: 720; }
+
+    .console-deck { position: relative; display: grid; grid-template-columns: 35% 65%; padding: 51px 52px 25px; background: linear-gradient(105deg, rgba(206,181,151,.25), rgba(187,157,125,.19) 45%, rgba(229,212,190,.22)), url("assets/champagne-panel-texture.png") center / cover; background-blend-mode: multiply, luminosity; box-shadow: inset 0 2px 0 rgba(255,255,255,.88), inset 0 -12px 18px rgba(85,58,35,.2); }
+    .console-deck::before { position: absolute; inset: 52px 40px 46px; content: ""; border: 1px solid rgba(255,255,255,.78); border-radius: 19px; box-shadow: inset 0 0 0 1px rgba(91,66,44,.27), inset 0 10px 14px rgba(255,255,255,.16), 0 9px 16px rgba(73,48,28,.17); pointer-events: none; }
+    .console-group { position: relative; z-index: 1; padding: 20px 42px; border-top: 1px solid rgba(255,255,255,.78); }
+    .console-group:first-child { border-right: 1px solid rgba(90,65,43,.28); }
+    .console-group h3 { position: absolute; top: -19px; left: 28px; margin: 0; padding: 0 17px; background: #d8c6b1; font-size: 21px; letter-spacing: .04em; }
+    .criteria-body { display: grid; grid-template-columns: 86px 380px; gap: 20px; align-items: center; }
+    .dial-small { position: relative; width: 72px; height: 72px; border: 1px solid #735c47; border-radius: 50%; background: repeating-conic-gradient(from 4deg, #92765d 0 2deg, #f3e4d2 2deg 8deg); box-shadow: inset 0 0 0 15px #d8c5ae, inset 0 0 0 17px #775e47, 0 5px 8px rgba(64,42,24,.25); }
+    .dial-small::after { position: absolute; inset: 19px; content: ""; border-radius: 50%; background: radial-gradient(circle at 36% 30%, #fff, #bba184); }
+    .criteria-stack { display: grid; gap: 11px; }
+    .control-pill { display: flex; align-items: center; gap: 10px; min-height: 43px; padding: 0 16px; border: 1px solid rgba(92,67,44,.34); border-radius: 15px; background: linear-gradient(rgba(255,255,255,.6), rgba(167,143,116,.2)), url("assets/champagne-panel-texture.png") center / 180% 180%; background-blend-mode: screen, luminosity; box-shadow: inset 0 2px 1px #fff, inset 0 -3px 5px rgba(87,61,39,.15), 0 4px 8px rgba(70,46,26,.18); }
+    .control-pill.muted { color: #887e74; background: rgba(255,255,255,.18); }
+    .control-pill .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 6px rgba(221,133,12,.7); }
+    .filter-row { display: flex; align-items: center; gap: 14px; margin-bottom: 17px; }
+    .filter-row button { min-height: 46px; padding: 0 19px; border: 1px solid rgba(92,67,44,.34); border-radius: 15px; background: linear-gradient(rgba(255,255,255,.58), rgba(157,132,105,.2)), url("assets/champagne-panel-texture.png") center / 220% 220%; background-blend-mode: screen, luminosity; box-shadow: inset 0 2px 1px #fff, inset 0 -3px 5px rgba(87,61,39,.16), 0 4px 8px rgba(70,46,26,.18); cursor: pointer; }
+    .filter-row button.selected { border-color: var(--cobalt); color: white; background: linear-gradient(#4d8cff, #1768ed); box-shadow: inset 0 1px rgba(255,255,255,.58), 0 0 0 2px rgba(23,104,237,.22), 0 4px 7px rgba(23,84,181,.24); }
+    .filter-row .region { min-width: 170px; }
+    .sort-dial { margin-left: auto; display: grid; grid-template-columns: 78px auto; align-items: center; gap: 12px; }
+    .sort-knob { width: 72px; height: 72px; border: 1px solid #6d543e; border-radius: 50%; background: conic-gradient(#bea486, #fff2df, #876b4f, #ead9c3, #bea486); box-shadow: inset 0 0 0 9px #d4bea3, inset 0 0 0 11px #6f563f, 0 6px 10px rgba(65,42,24,.28); }
+    .sort-label { font-size: 12px; font-weight: 650; }
+
+    button:focus-visible, input:focus-visible { outline: 4px solid rgba(23,104,237,.5); outline-offset: 4px; }
+    button:active { transform: translateY(1px); }
+    @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="machine">
+    <i class="screw tl"></i><i class="screw tr"></i><i class="screw bl"></i><i class="screw br"></i>
+    <i class="screw micro-screw l"></i><i class="screw micro-screw r"></i><i class="screw micro-screw lb"></i><i class="screw micro-screw rb"></i>
+
+    <section class="top-deck">
+      <h1>路径检索</h1>
+      <div class="subtitle">匹配真实路径，支持缩小结果与切换排序</div>
+      <div class="search-frame">
+        <span class="lens-lead"><span class="icon">search</span></span>
+        <input class="search-input" value="打野" aria-label="搜索需求" />
+        <button class="clear" aria-label="清空"><span class="icon">close</span></button>
+        <button class="go" aria-label="搜索"><span class="icon">search</span></button>
+      </div>
+      <div class="summary">解析出 <b>2</b> 条真实路径　·　筛选后 <b>7</b> 条需求　·　意图路径 打野　·　最少命中 <b>1</b> 条</div>
+    </section>
+
+    <section class="rail-deck" aria-label="结果轨道">
+      <div class="rail-groove"></div>
+      <div class="rail-nav"><button aria-label="上一条"><span class="icon">chevron_left</span></button><b id="counter">1 / 3</b><button aria-label="下一条"><span class="icon">chevron_right</span></button></div>
+
+      <article class="cartridge side" style="--offset:-82%">
+        <div class="portrait"><img src="assets/avatar-warrior.png" alt="服务者头像"></div>
+        <div class="result-copy"><h2>高分段稳定打野位</h2><div class="result-meta">5/7 · 电竞组队 · 佛山</div><div class="result-money">¥329</div></div>
+        <div class="metrics"><div class="metric"><span class="ring" style="--ring-color:#1768ed;--value:.5">1/2</span>命中率</div></div>
+      </article>
+
+      <article class="cartridge active">
+        <div class="portrait"><img src="assets/avatar-opera.png" alt="服务者头像"></div>
+        <span class="match-badge">最优匹配</span>
+        <div class="result-copy"><h2>王者荣耀陪玩双排娱乐 打野（佛山上门）</h2><div class="result-meta">7/7 · 游戏陪玩 · 佛山</div><div class="result-money">¥299 <small>信用 <b>90</b></small></div></div>
+        <div class="metrics"><div class="metric"><span class="ring" style="--ring-color:#1768ed;--value:.5">1/2</span>命中率</div><div class="metric"><span class="ring" style="--ring-color:#dd850c;--value:1">1/1</span>意图命中</div></div>
+      </article>
+
+      <article class="cartridge side" style="--offset:82%">
+        <div class="portrait"><img src="assets/avatar-warrior.png" alt="服务者头像"></div>
+        <div class="result-copy"><h2>王者荣耀双排打野陪练</h2><div class="result-meta">7/7 · 游戏陪玩 · 佛山</div><div class="result-money">¥255</div></div>
+        <div class="metrics"><div class="metric"><span class="ring" style="--ring-color:#1768ed;--value:.5">1/2</span>命中率</div></div>
+      </article>
+    </section>
+
+    <section class="console-deck">
+      <div class="console-group">
+        <h3>检索依据</h3>
+        <div class="criteria-body"><div class="dial-small"></div><div class="criteria-stack"><div class="control-pill"><span class="dot"></span><b>打野</b><span class="icon" style="margin-left:auto;font-size:20px">expand_more</span></div><div class="control-pill muted"><span class="icon" style="font-size:20px">add</span>补充依据，自动识别关键词</div></div></div>
+      </div>
+      <div class="console-group">
+        <h3>筛选与排序</h3>
+        <div class="filter-row"><button class="region"><span class="icon" style="font-size:20px">location_on</span> 全部区域</button><button>−　价格区间　＋</button><button>信用等级</button><button>服务方式</button><button>命中率</button><div class="sort-dial"><div class="sort-knob"></div><div class="sort-label"><span style="color:#1768ed">●</span><br>智能排序</div></div></div>
+        <div class="filter-row sort-options"><button class="selected">全部</button><button>高匹配优先</button><button>价格优先</button><button>信用优先</button><button>距离优先</button><button>最新发布</button></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const input = document.querySelector('.search-input');
+    document.querySelector('.clear').addEventListener('click', () => { input.value = ''; input.focus(); });
+    document.querySelector('.go').addEventListener('click', () => document.querySelector('.summary').animate([{opacity:.35},{opacity:1}], {duration:320}));
+    document.querySelectorAll('.sort-options button').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('.sort-options button').forEach(item => item.classList.remove('selected'));
+      button.classList.add('selected');
+    }));
+    let index = 1;
+    const navButtons = document.querySelectorAll('.rail-nav button');
+    const counter = document.querySelector('#counter');
+    navButtons[0].addEventListener('click', () => { index = index === 1 ? 3 : index - 1; counter.textContent = `${index} / 3`; });
+    navButtons[1].addEventListener('click', () => { index = index === 3 ? 1 : index + 1; counter.textContent = `${index} / 3`; });
+  </script>
+</body>
+</html>

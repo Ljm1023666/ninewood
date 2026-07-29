@@ -10,6 +10,7 @@ import {
 import { LoadingState } from '@/components/ui/loading-state'
 import api from '@/api'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const MODE_OPTIONS = [
   { value: 'normal' as const, label: '普通' },
@@ -82,7 +83,7 @@ export default function Providers() {
               </div>
               <div className="dlp-tabs !mb-4">
                 {MODE_OPTIONS.map((o) => (
-                  <button
+                  <LiquidMetalButton
                     key={o.value}
                     type="button"
                     className={cn('dlp-tab', mode === o.value && 'dlp-tab--active')}
@@ -92,7 +93,7 @@ export default function Providers() {
                     }}
                   >
                     {o.label}
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
               <p className="mb-4 text-sm text-text-muted">
@@ -103,7 +104,7 @@ export default function Providers() {
               <p className="dlp-label !normal-case !tracking-normal">热门标签</p>
               <div className="dlp-tag-grid mb-4">
                 {tagHistory.map((t) => (
-                  <button
+                  <LiquidMetalButton
                     key={t}
                     type="button"
                     className="dlp-tag"
@@ -113,7 +114,7 @@ export default function Providers() {
                     }}
                   >
                     {t}
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
               <DlpBtnPrimary

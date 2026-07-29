@@ -1,8 +1,8 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { circleApi } from '@/api/circle'
 import { useUserStore } from '@/stores/user'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { toast } from '@/components/ui/confirm-dialog'
@@ -101,14 +101,14 @@ export default function CircleDetail() {
       <div className="cdb-main-inner">
         <div className="flex flex-1 flex-col items-center justify-center py-24 text-center">
           <p className="cdb-text-body-sm cdb-text-muted">{error}</p>
-          <Button
+          <LiquidMetalButton
             type="button"
             variant="secondary"
             className="mt-4"
             onClick={() => void fetchAll()}
           >
             重试
-          </Button>
+          </LiquidMetalButton>
         </div>
       </div>
     )

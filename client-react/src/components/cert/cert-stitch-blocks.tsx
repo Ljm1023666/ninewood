@@ -8,6 +8,7 @@ import {
   TierCell,
 } from '@/components/cert/cert-marketing'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export function CertStitchTierTable() {
   return (
@@ -85,9 +86,9 @@ export function CertStitchHero({
             </li>
           ))}
         </ul>
-        <button type="button" className="cert-stitch-hero__cta" onClick={onPrimary}>
+        <LiquidMetalButton type="button" className="cert-stitch-hero__cta" onClick={onPrimary}>
           {primaryLabel}
-        </button>
+        </LiquidMetalButton>
       </div>
       <div id="cert-tiers" className="cert-stitch-hero__table-wrap">
         <CertStitchTierTable />
@@ -129,12 +130,12 @@ export function CertStitchBottomCta({
         认证过程通常需要 3-5 个工作日，我们的专家委员会将对您的技术背景、项目经验和代码质量进行深度评估。
       </p>
       <div className="cert-stitch-bottom-cta__actions">
-        <button type="button" className="cert-stitch-btn-solid" onClick={onPrimary}>
+        <LiquidMetalButton type="button" className="cert-stitch-btn-solid" onClick={onPrimary}>
           {primaryLabel}
-        </button>
-        <button type="button" className="cert-stitch-btn-outline" onClick={onSecondary}>
+        </LiquidMetalButton>
+        <LiquidMetalButton type="button" className="cert-stitch-btn-outline" onClick={onSecondary}>
           查看详细要求
-        </button>
+        </LiquidMetalButton>
       </div>
     </section>
   )

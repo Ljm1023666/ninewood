@@ -3,6 +3,7 @@ import { PathChip } from '@/components/path/PathChip'
 import { PATH_TYPE_LABEL } from '@/constants/path-search'
 import { parsePath, normalizeValue, PATH_LIMITS } from '@/utils/path-codec'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const PATH_TYPES = Object.keys(PATH_TYPE_LABEL)
 
@@ -93,13 +94,13 @@ export function PathEditorPanel({
             placeholder="如 react、it技术"
           />
         </label>
-        <button type="button" className="ws-tool-btn" onClick={addPath}>
+        <LiquidMetalButton type="button" className="ws-tool-btn" onClick={addPath}>
           添加
-        </button>
+        </LiquidMetalButton>
         {autoPaths && paths.join(',') !== autoPaths.join(',') ? (
-          <button type="button" className="ws-tool-btn" onClick={resetToAuto}>
+          <LiquidMetalButton type="button" className="ws-tool-btn" onClick={resetToAuto}>
             恢复自动
-          </button>
+          </LiquidMetalButton>
         ) : null}
       </div>
 

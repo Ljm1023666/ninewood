@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface Faq {
   q: string
@@ -35,7 +36,7 @@ export function CommonQuestions({ faqs, title = '常见疑问' }: CommonQuestion
                 isOpen && 'tax-viz-faq__item--open',
               )}
             >
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={() => setOpenIdx(isOpen ? null : i)}
                 aria-expanded={isOpen}
@@ -49,7 +50,7 @@ export function CommonQuestions({ faqs, title = '常见疑问' }: CommonQuestion
                   <ChevronDown className="size-4" />
                 </motion.span>
                 <span className="text-sm font-medium text-foreground">{f.q}</span>
-              </button>
+              </LiquidMetalButton>
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div

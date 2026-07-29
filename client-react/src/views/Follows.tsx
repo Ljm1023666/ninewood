@@ -16,6 +16,7 @@ import { useUserStore } from '@/stores/user'
 import { certLabel, certColor } from '@/constants/cert'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export default function Follows() {
   const { userId } = useParams<{ userId: string }>()
@@ -80,14 +81,14 @@ export default function Follows() {
     <DesktopPageShell title="合作联系人" subtitle="管理愿意协作的人与我保存的联系人">
       <div className="dlp-tabs">
         {(['followers', 'following'] as const).map((v) => (
-          <button
+          <LiquidMetalButton
             key={v}
             type="button"
             className={cn('dlp-tab', mode === v && 'dlp-tab--active')}
             onClick={() => navigate(`/follows/${userId}?mode=${v}`, { replace: true })}
           >
             {v === 'followers' ? '保存了我的人' : '我保存的人'}
-          </button>
+          </LiquidMetalButton>
         ))}
       </div>
 

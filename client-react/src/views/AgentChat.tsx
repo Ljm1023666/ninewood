@@ -41,6 +41,7 @@ import { AgentMarkdown } from '@/components/agent/agent-markdown'
 import { classifyIntent } from '@/services/intent-classifier'
 import { useThemeStore } from '@/stores/theme'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /** 预加载目标路由的页面组件，1 秒等待期间提前拉取 JS chunk */
 function preloadRoute(path: string) {
@@ -469,13 +470,14 @@ export default function AgentChat() {
       })
       stream.onEvent('think-end', () => setThinking(false))
       stream.onDone(() => {
-        if (ft)
+        const finalText = ft.trim()
+        if (finalText || tc.length) {
           setMessages((prev) => [
             ...prev,
             {
               id: `a-${Date.now().toString(36) + Math.random().toString(36).slice(2, 11)}`,
               role: 'assistant',
-              content: ft,
+              content: finalText,
               thinking: ct.length ? ct.join('\n') : undefined,
               toolCalls: tc.length
                 ? tc.map((t) => ({
@@ -492,6 +494,7 @@ export default function AgentChat() {
               createdAt: new Date().toISOString(),
             },
           ])
+        }
         setStreamText('')
         setThinkingLines([])
         setToolCalls([])
@@ -674,7 +677,10 @@ export default function AgentChat() {
 
         <div className="agent-codex-sidebar__block">
           <p className="agent-codex-sidebar__section">项目</p>
-          <button type="button" className="agent-codex-sidebar__nav-item agent-codex-sidebar__nav-item--active">
+          <button
+            type="button"
+            className="agent-codex-sidebar__nav-item agent-codex-sidebar__nav-item--active"
+          >
             <span className="agent-codex-sidebar__dot" aria-hidden />
             九木
           </button>
@@ -737,12 +743,13 @@ export default function AgentChat() {
               </div>
               <div className="agent-codex-thread-item__actions">
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation()
                     setEditingId(conv.id)
                     setEditTitle(conv.title)
                   }}
-                  className="cursor-pointer p-1 text-text-muted transition-colors hover:text-text-primary"
+                  className="cursor-pointer border-0 bg-transparent p-1 text-text-muted transition-colors hover:text-text-primary"
                 >
                   <MsIcon name="edit" size={12} />
                 </button>
@@ -752,7 +759,7 @@ export default function AgentChat() {
                     e.stopPropagation()
                     handleDelete(conv.id)
                   }}
-                  className="cursor-pointer p-1 text-text-muted transition-colors hover:text-red-500"
+                  className="cursor-pointer border-0 bg-transparent p-1 text-text-muted transition-colors hover:text-red-500"
                 >
                   <span className="text-xs">✕</span>
                 </button>
@@ -793,25 +800,25 @@ export default function AgentChat() {
             isSessionStart && 'agent-codex-main__bar--start',
           )}
         >
-          <button
+          <LiquidMetalButton
             type="button"
             className="agent-codex-icon-btn"
             onClick={() => navigate(-1)}
             aria-label="返回"
           >
             <MsIcon name="chevron_left" size={16} aria-hidden />
-          </button>
+          </LiquidMetalButton>
           {!isSessionStart ? (
             <>
               {!sidebarOpen ? (
-                <button
+                <LiquidMetalButton
                   type="button"
                   onClick={() => setSidebarOpen(true)}
                   className="agent-codex-icon-btn"
                   aria-label="展开侧栏"
                 >
                   <MsIcon name="dock_to_left" size={16} aria-hidden />
-                </button>
+                </LiquidMetalButton>
               ) : null}
               <h1 className="agent-codex-main__title">{activeTitle}</h1>
               {activeComposerModel ? (
@@ -835,14 +842,14 @@ export default function AgentChat() {
             </>
           ) : null}
           <div className="agent-codex-main__bar-spacer" />
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="agent-codex-icon-btn"
             aria-label={sidebarOpen ? '收起侧栏' : '展开侧栏'}
           >
             <MsIcon name="dock_to_right" size={16} aria-hidden />
-          </button>
+          </LiquidMetalButton>
         </header>
 
         {isSessionStart ? (
@@ -871,13 +878,13 @@ export default function AgentChat() {
                 return (
                   <>
                     {shouldFold && (
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => setHistoryExpanded(true)}
                         className="mb-4 w-full cursor-pointer py-2 text-center font-mono text-xs text-text-muted transition-colors hover:text-[var(--internal-accent)]"
                       >
                         —— 展开历史消息（{hiddenCount} 条）——
-                      </button>
+                      </LiquidMetalButton>
                     )}
                     {visible.map((msg) => (
                       <div
@@ -941,7 +948,7 @@ export default function AgentChat() {
               })()}
               {thinking && thinkingLines.length > 0 ? (
                 <div className="agent-codex-thinking">
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     onClick={() => setThinkingCollapsed(!thinkingCollapsed)}
                     className="agent-codex-thinking__label"
@@ -953,7 +960,7 @@ export default function AgentChat() {
                       className={`transition-transform ${thinkingCollapsed ? '' : 'rotate-180'}`}
                       aria-hidden
                     />
-                  </button>
+                  </LiquidMetalButton>
                   {!thinkingCollapsed ? (
                     <div className="agent-codex-thinking__body thin-scroll">
                       {thinkingLines.join('')}

@@ -17,6 +17,7 @@ import {
   createEmptyDemandSession,
   upsertDemandSession,
 } from '@/utils/demand-session-history'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 function formatDuration(value: number | null) {
   if (value == null) return '耗时待估算'
@@ -182,7 +183,7 @@ export default function Discover() {
 
             {result.humanFallback ? (
               <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 pb-10">
-                <button
+                <LiquidMetalButton
                   type="button"
                   onClick={continueAsHuman}
                   className={cn(
@@ -216,7 +217,7 @@ export default function Discover() {
                   >
                     已整理草稿，下一步由你确认，不会自动发布。
                   </p>
-                </button>
+                </LiquidMetalButton>
               </div>
             ) : null}
 

@@ -271,20 +271,6 @@
   -webkit-backdrop-filter: var(--liquid-glass-blur);
 }
 
-.publish-confirm-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 40%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 0;
-}
-
 .publish-confirm-panel > * {
   position: relative;
   z-index: 1;
@@ -609,10 +595,6 @@ html[data-appearance='dark'] .publish-confirm-panel {
   border-color: var(--liquid-glass-border);
   background: var(--liquid-glass-bg);
   box-shadow: var(--liquid-glass-shadow);
-}
-
-html[data-appearance='dark'] .publish-confirm-panel::before {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
 }
 
 html[data-appearance='dark'] .publish-step {

@@ -1,27 +1,25 @@
-import { Outlet, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { migrateLegacyLoopUrl } from '@/router/loop-route-migration'
 import LoopHubNav from './LoopHubNav'
+import LoopDiscoverPage from './LoopDiscoverPage'
+import MyLoopsPage from './MyLoopsPage'
+import LoopAcceptPage from './LoopAcceptPage'
+import LoopSupplyPage from './LoopSupplyPage'
+import LoopOfferingDetailPage from './LoopOfferingDetailPage'
+import LoopRunDetailPage from './LoopRunDetailPage'
 
-/** 预取三页 chunk，避免初次点 Tab 时 Suspense 整页闪一下 */
-function prefetchLoopHubPages() {
-  void import('./LoopDiscoverPage')
-  void import('./MyLoopsPage')
-  void import('./LoopAcceptPage')
-  void import('./LoopSupplyPage')
+function LegacyLoopRedirect() {
+  const location = useLocation()
+  return <Navigate to={migrateLegacyLoopUrl(location.pathname, location.search)} replace />
 }
 
 /**
- * 回中心持久壳：顶栏不重挂；子页经 Outlet 切换。
- * 根节点 class 保持稳定，避免切到「发现回」时整壳重排导致导航滑块错位。
- * 承接页的铺满滚动改由 outlet 包裹层承担。
+ * 回中心持久壳：顶栏不重挂；子页同 chunk 静态导入。
+ * 软跳转只换 Routes，不再经 Suspense/startTransition 假导航。
  */
 export default function LoopHubLayout() {
   const { pathname } = useLocation()
   const acceptMode = pathname.startsWith('/loops/accept')
-
-  useEffect(() => {
-    prefetchLoopHubPages()
-  }, [])
 
   return (
     <div className="loop-hub-page loop-hub-page--hub">
@@ -33,7 +31,16 @@ export default function LoopHubLayout() {
             : 'loop-hub-outlet'
         }
       >
-        <Outlet />
+        <Routes>
+          <Route index element={<LegacyLoopRedirect />} />
+          <Route path="discover" element={<LoopDiscoverPage />} />
+          <Route path="mine" element={<MyLoopsPage />} />
+          <Route path="accept" element={<LoopAcceptPage />} />
+          <Route path="supply" element={<LoopSupplyPage />} />
+          <Route path="offerings/:id" element={<LoopOfferingDetailPage />} />
+          <Route path="runs/:id" element={<LoopRunDetailPage />} />
+          <Route path="*" element={<LegacyLoopRedirect />} />
+        </Routes>
       </div>
     </div>
   )

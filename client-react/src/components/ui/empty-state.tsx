@@ -8,6 +8,7 @@ import {
   Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface EmptyStateProps {
   type?: string
@@ -60,12 +61,12 @@ export function EmptyState({
         ) : (
           onAction &&
           (actionLabel || d.action) && (
-            <button
+            <LiquidMetalButton
               onClick={onAction}
               className="mt-4 border border-[var(--internal-hairline)] px-4 py-2 font-mono text-xs uppercase tracking-wider text-text-secondary transition-colors hover:bg-white/[0.03]"
             >
               {actionLabel || d.action}
-            </button>
+            </LiquidMetalButton>
           )
         )}
       </div>
@@ -91,7 +92,7 @@ export function EmptyState({
       ) : (
         onAction &&
         (actionLabel || d.action) && (
-          <button
+          <LiquidMetalButton
             onClick={onAction}
             className={cn(
               'mt-4 px-5 py-2.5 rounded-xl text-sm font-semibold transition',
@@ -101,7 +102,7 @@ export function EmptyState({
             )}
           >
             {actionLabel || d.action}
-          </button>
+          </LiquidMetalButton>
         )
       )}
     </div>

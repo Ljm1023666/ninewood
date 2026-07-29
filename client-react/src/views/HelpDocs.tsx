@@ -11,6 +11,7 @@ import {
   type FaqEntry,
   type TipType,
 } from '@/views/help-faq-data'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const BLOCKQUOTE_LABELS: Record<TipType, string> = {
   tip: '提示',
@@ -130,7 +131,7 @@ function BackToTop() {
   if (!visible) return null
 
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={() =>
         containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -139,7 +140,7 @@ function BackToTop() {
       aria-label="返回顶部"
     >
       <MsIcon name="keyboard_arrow_up" size={16} />
-    </button>
+    </LiquidMetalButton>
   )
 }
 

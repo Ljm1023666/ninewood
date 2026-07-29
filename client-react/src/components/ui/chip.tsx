@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /** Material UI Chip 简化版：圆角胶囊、可选中态，用于快捷筛选/标签 */
 export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,7 +19,7 @@ const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
     },
     ref,
   ) => (
-    <button
+    <LiquidMetalButton
       ref={ref}
       type={type}
       className={cn(

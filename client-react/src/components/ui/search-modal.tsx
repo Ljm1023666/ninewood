@@ -1,3 +1,4 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import React from 'react'
 import {
   Modal,
@@ -5,7 +6,6 @@ import {
   ModalTitle,
   ModalTrigger,
 } from '@/components/ui/modal'
-import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -61,9 +61,9 @@ export function SearchModal({ children, data }: SearchModalProps) {
               <p className="text-muted-foreground mb-1 text-xs">
                 No results for &quot;{query}&quot;
               </p>
-              <Button onClick={() => setQuery('')} variant="ghost">
+              <LiquidMetalButton onClick={() => setQuery('')} variant="ghost">
                 Clear search
-              </Button>
+              </LiquidMetalButton>
             </CommandEmpty>
             <CommandGroup>
               {data.map((item, i) => (

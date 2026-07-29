@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 // --- TYPE DEFINITIONS FOR PROPS ---
 interface NavLink {
@@ -183,12 +184,12 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({
                 </a>
               ))}
             </div>
-            <button
+            <LiquidMetalButton
               onClick={resume.onClick}
               className="glass-button px-4 py-2 rounded-lg text-foreground text-sm font-medium inter-font"
             >
               {resume.label}
-            </button>
+            </LiquidMetalButton>
           </div>
         </nav>
         <div className="divider" />
@@ -209,18 +210,18 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-              <button
+              <LiquidMetalButton
                 onClick={ctaButtons.primary.onClick}
                 className="primary-button px-6 py-3 text-foreground rounded-lg font-medium text-sm min-w-[160px]"
               >
                 {ctaButtons.primary.label}
-              </button>
-              <button
+              </LiquidMetalButton>
+              <LiquidMetalButton
                 onClick={ctaButtons.secondary.onClick}
                 className="glass-button min-w-[160px] inter-font text-sm font-medium text-foreground rounded-lg px-6 py-3"
               >
                 {ctaButtons.secondary.label}
-              </button>
+              </LiquidMetalButton>
             </div>
             <div className="divider mb-16" />
             <div

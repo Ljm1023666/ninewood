@@ -20,8 +20,8 @@ import {
   HelpCircle,
   Orbit,
   Sparkles,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   MessagesSquare,
   type LucideIcon,
 } from 'lucide-react'
@@ -30,6 +30,8 @@ import { useThemeCurtain } from '@/components/ui/theme-toggle'
 import { presets } from '@/stores/theme'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { AnimatedThemeToggle } from '@/components/ui/animated-theme-toggle'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+import { LiquidMetalIcon } from '@/components/ui/liquid-metal-icon'
 
 type NavTone =
   | 'assistant'
@@ -38,7 +40,7 @@ type NavTone =
   | 'message'
   | 'default'
 
-/** 对齐 macOS MainShellView：助手置顶 → 主区 → 协作 → 账户；已登录 Logo 进卡池 */
+/** 对齐 macOS MainShellView：助手置顶 → 主区 → 协作 → 账户；已登录 Logo 进发现页 */
 const NAV_ASSISTANT: {
   path: string
   icon: LucideIcon
@@ -94,8 +96,10 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const [confirmLogout, setConfirmLogout] = useState(false)
+  const [logoutMetal, setLogoutMetal] = useState(false)
   const [hover, setHover] = useState(false)
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const logoutMetalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const sidebarPinned = useShellStore((s) => s.sidebarPinned)
   const immersiveStowed = useShellStore((s) => s.immersiveStowed)
@@ -109,24 +113,42 @@ export default function Sidebar() {
   const { triggerCurtain, curtainElement } = useThemeCurtain()
 
   const immersive = isImmersivePath(location.pathname)
+  /** 发现页 / 品牌星空：Logo 持续金标准金属态 */
+  const onLogoPage =
+    location.pathname === '/discover' || location.pathname === '/'
 
   useEffect(() => {
     if (immersive) setImmersiveStowed(true)
     else clearImmersiveStow()
   }, [immersive, setImmersiveStowed, clearImmersiveStow])
 
-  const expanded = hover || (sidebarPinned && !immersiveStowed)
+  useEffect(() => {
+    return () => {
+      if (logoutMetalTimer.current) clearTimeout(logoutMetalTimer.current)
+    }
+  }, [])
+
+  /** 固定且非沉浸收起：侧栏占位并挤压主区 */
+  const pinActive = sidebarPinned && !immersiveStowed
+  /** 视觉展开：悬停浮现，或已固定 */
+  const expanded = hover || pinActive
+  /** 文档流占位宽度：未固定始终窄轨，悬停不改 */
+  const layoutWidth = pinActive
+    ? SIDEBAR_WIDTH_EXPANDED
+    : SIDEBAR_WIDTH_COLLAPSED
+  const visualWidth = expanded
+    ? SIDEBAR_WIDTH_EXPANDED
+    : SIDEBAR_WIDTH_COLLAPSED
 
   useEffect(() => {
-    const w = expanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED
-    document.documentElement.style.setProperty('--sidebar-w', `${w}px`)
+    document.documentElement.style.setProperty('--sidebar-w', `${layoutWidth}px`)
     return () => {
       document.documentElement.style.setProperty(
         '--sidebar-w',
         `${SIDEBAR_WIDTH_COLLAPSED}px`,
       )
     }
-  }, [expanded])
+  }, [layoutWidth])
 
   function expandSidebar() {
     if (collapseTimer.current) {
@@ -137,7 +159,7 @@ export default function Sidebar() {
   }
 
   function scheduleCollapse() {
-    if (sidebarPinned && !immersiveStowed) return
+    if (pinActive) return
     if (collapseTimer.current) clearTimeout(collapseTimer.current)
     collapseTimer.current = setTimeout(() => setHover(false), 180)
   }
@@ -157,25 +179,34 @@ export default function Sidebar() {
     navigate('/login', { replace: true })
   }
 
-  const pinActive = sidebarPinned && !immersiveStowed
-
   return (
     <>
       {curtainElement}
+      {/* 占位：只有固定才变宽挤压主区；侧栏本身始终绝对定位，不叠第二份宽度 */}
+      <div
+        className="app-sidebar-slot"
+        style={{ width: layoutWidth }}
+        aria-hidden
+      />
       <aside
         className={cn(
-          'app-sidebar sidebar sidebar-ct-accent liquid-glass-surface relative z-10 flex shrink-0 flex-col items-stretch border-r-0 py-3',
+          'app-sidebar sidebar sidebar-ct-accent liquid-glass-surface flex flex-col items-stretch border-r-0 py-3',
           expanded && 'app-sidebar--expanded',
+          expanded && !pinActive && 'app-sidebar--overlay-expanded',
         )}
+        style={{ width: visualWidth }}
         onMouseEnter={expandSidebar}
         onMouseLeave={scheduleCollapse}
       >
-        {/* Logo：图标槽固定，品牌名只在右侧淡入 */}
-        <button
+        {/* Logo：发现页（Logo 页）持续金属激活，标示非凡页面 */}
+        <LiquidMetalButton
           type="button"
-          onClick={() => navigate(user ? '/card-pool' : '/')}
+          active={onLogoPage}
+          metalGlow={onLogoPage}
+          onClick={() => navigate(user ? '/discover' : '/')}
           className="app-sidebar__row mb-3 flex h-11 w-full shrink-0 items-center rounded-lg bg-[var(--accent-ghost)] transition-colors hover:bg-[var(--accent-muted)]"
-          aria-label={user ? '卡池工作台' : '九木首页'}
+          aria-label={user ? '发现页' : '九木首页'}
+          aria-current={onLogoPage ? 'page' : undefined}
         >
           <span className="app-sidebar__icon-slot flex shrink-0 items-center justify-center">
             <span className="text-[22px] font-black tracking-tight text-[var(--accent-color)]">
@@ -185,7 +216,7 @@ export default function Sidebar() {
           <span className="app-sidebar__side-label text-[13px] font-semibold text-[var(--text-primary)]">
             九木
           </span>
-        </button>
+        </LiquidMetalButton>
 
         <div className="flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden">
           <nav className="flex w-full flex-col gap-0.5" aria-label="助手">
@@ -226,12 +257,13 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-0.5 pt-1">
+        <div className="flex shrink-0 flex-col gap-2.5 pt-1">
           <button
             type="button"
             onClick={toggleSidebarPin}
             className={cn(
-              'app-sidebar__row group relative flex h-11 w-full items-center rounded-lg text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--accent-ghost)] hover:text-[var(--text-secondary)]',
+              'app-sidebar__row group relative flex h-11 w-full items-center rounded-lg border-0 bg-transparent text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--accent-ghost)] hover:text-[var(--text-secondary)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]',
               pinActive && 'bg-[var(--accent-ghost)] text-[var(--accent-color)]',
             )}
             title={pinActive ? '取消固定侧栏' : '固定侧栏'}
@@ -239,11 +271,12 @@ export default function Sidebar() {
             aria-pressed={pinActive}
           >
             <span className="app-sidebar__icon-slot relative flex shrink-0 flex-col items-center justify-center gap-0.5">
-              {pinActive ? (
-                <PanelLeftClose className="size-5" />
-              ) : (
-                <PanelLeftOpen className="size-5" />
-              )}
+              <LiquidMetalIcon
+                icon={pinActive ? ChevronLeft : ChevronRight}
+                size={26}
+                metal={pinActive}
+                emphasized={pinActive}
+              />
               <span
                 className="app-sidebar__stack-label text-[11px] font-medium leading-none"
                 aria-hidden={expanded}
@@ -259,36 +292,31 @@ export default function Sidebar() {
             </span>
           </button>
 
-          <div className="app-sidebar__row flex h-11 w-full items-center text-left">
-            <span className="app-sidebar__icon-slot flex shrink-0 flex-col items-center justify-center gap-0.5">
-              <AnimatedThemeToggle
-                isDark={isDark}
-                onToggle={handleThemeToggle}
-                className="size-5 shrink-0 p-0"
-              />
-              <span
-                className="app-sidebar__stack-label text-[11px] font-medium leading-none text-[var(--text-muted)]"
-                aria-hidden={expanded}
-              >
-                主题
-              </span>
-            </span>
-            <span
-              className="app-sidebar__side-label text-[12px] font-medium text-[var(--text-muted)]"
-              aria-hidden={!expanded}
-            >
-              主题
-            </span>
-          </div>
+          <AnimatedThemeToggle
+            isDark={isDark}
+            onToggle={handleThemeToggle}
+            label="主题"
+            expanded={expanded}
+          />
 
           <button
             type="button"
-            onClick={() => setConfirmLogout(true)}
-            className="app-sidebar__row flex h-11 w-full cursor-pointer items-center rounded-lg text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--error-color)]/10 hover:text-[var(--error-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
+            onClick={() => {
+              setLogoutMetal(true)
+              if (logoutMetalTimer.current) clearTimeout(logoutMetalTimer.current)
+              logoutMetalTimer.current = setTimeout(() => setLogoutMetal(false), 520)
+              setConfirmLogout(true)
+            }}
+            className="app-sidebar__row flex h-11 w-full cursor-pointer items-center rounded-lg border-0 bg-transparent text-left text-[var(--text-muted)] transition-colors duration-200 hover:bg-[var(--error-color)]/10 hover:text-[var(--error-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
             aria-label="注销"
           >
             <span className="app-sidebar__icon-slot flex shrink-0 flex-col items-center justify-center gap-0.5">
-              <LogOut className="size-5" />
+              <LiquidMetalIcon
+                icon={LogOut}
+                size={26}
+                metal={logoutMetal}
+                emphasized={logoutMetal}
+              />
               <span
                 className="app-sidebar__stack-label text-[11px] font-medium leading-none"
                 aria-hidden={expanded}

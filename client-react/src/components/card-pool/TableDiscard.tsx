@@ -3,6 +3,7 @@ import { Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { BlackScope } from '@/components/card-pool/types'
 import { scopeTitle } from '@/components/card-pool/scope'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface TableDiscardProps {
   discard: BlackScope[]
@@ -16,7 +17,7 @@ export function TableDiscard({ discard, onRestore }: TableDiscardProps) {
 
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-3">
-      <button
+      <LiquidMetalButton
         type="button"
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 text-sm text-text-muted hover:text-text-secondary transition-colors"
@@ -28,7 +29,7 @@ export function TableDiscard({ discard, onRestore }: TableDiscardProps) {
         ) : (
           <ChevronDown className="size-4" />
         )}
-      </button>
+      </LiquidMetalButton>
 
       {open ? (
         <div className="flex flex-wrap gap-2">
@@ -43,14 +44,14 @@ export function TableDiscard({ discard, onRestore }: TableDiscardProps) {
                 <span className={cn('text-sm line-through', 'text-text-muted')}>
                   {scopeTitle(card)}
                 </span>
-                <button
+                <LiquidMetalButton
                   type="button"
                   onClick={() => onRestore(card)}
                   className="rounded p-0.5 text-text-muted hover:text-accent transition-colors"
                   title="恢复到手牌"
                 >
                   <RotateCcw className="size-3.5" />
-                </button>
+                </LiquidMetalButton>
               </div>
             )
           })}

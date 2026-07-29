@@ -110,14 +110,14 @@ export function AgentTaskDraftCard({ draft, onConfirmed, onCancelled, className 
             onClick={handleConfirm}
             disabled={submitting}
           />
-          <button
+          <LiquidMetalButton
             type="button"
             className="agent-btn agent-btn--ghost"
             onClick={handleCancel}
             disabled={submitting}
           >
             取消
-          </button>
+          </LiquidMetalButton>
         </div>
       )}
 

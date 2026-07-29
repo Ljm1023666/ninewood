@@ -19,6 +19,7 @@ import AdminSystemTab from './admin/AdminSystemTab'
 import AdminOrdersTab from './admin/AdminOrdersTab'
 import AdminDisputesTab from './admin/AdminDisputesTab'
 import type { DashboardData } from './admin/use-admin-data'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const TAB_LABELS: Record<string, string> = Object.fromEntries(
   MAIN_NAV.map((t) => [t.id, t.label]),
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
               <span className="size-1.5 rounded-full bg-[var(--admin-accent-green)] shadow-[0_0_0_2px_rgba(34,197,94,0.2)]" />
               已同步 {syncLabel}
             </div>
-            <button
+            <LiquidMetalButton
               type="button"
               onClick={fetchData}
               disabled={loading}
@@ -174,7 +175,7 @@ export default function AdminDashboard() {
             >
               <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} />
               刷新数据
-            </button>
+            </LiquidMetalButton>
           </div>
         </header>
 

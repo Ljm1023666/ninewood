@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface MessageContextMenuProps {
   x: number
@@ -39,7 +40,7 @@ export function MessageContextMenu({
       style={{ top: y, left: x }}
       role="menu"
     >
-      <button
+      <LiquidMetalButton
         type="button"
         role="menuitem"
         className="msg-context-menu__item"
@@ -49,7 +50,7 @@ export function MessageContextMenu({
         }}
       >
         复制
-      </button>
+      </LiquidMetalButton>
     </div>,
     document.body,
   )
@@ -81,14 +82,14 @@ export function MessageImagePreview({ src, open, onClose }: ImagePreviewProps) {
       aria-label="图片预览"
       onClick={onClose}
     >
-      <button
+      <LiquidMetalButton
         type="button"
         className="msg-image-preview__close"
         onClick={onClose}
         aria-label="关闭"
       >
         ×
-      </button>
+      </LiquidMetalButton>
       <img
         src={src}
         alt=""
@@ -117,13 +118,13 @@ export function SendStatusIndicator({
     )
   }
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       className={cn('msg-send-status msg-send-status--failed', className)}
       onClick={onRetry}
       title="点击重试"
     >
       失败 · 重试
-    </button>
+    </LiquidMetalButton>
   )
 }

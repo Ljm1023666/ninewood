@@ -9,6 +9,7 @@ import {
 import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface RegionNode {
   id: number
@@ -92,13 +93,13 @@ export default function DeadPool() {
 
         {selectedTag ? (
           <section>
-            <button
+            <LiquidMetalButton
               type="button"
               onClick={() => setSelectedTag(null)}
               className="mb-3 text-sm text-text-muted transition-colors hover:text-text-primary"
             >
               ← 返回标签列表
-            </button>
+            </LiquidMetalButton>
             <DemandDiscoveryList
               key={`${provinceId}-${selectedTag}`}
               keyword=""
@@ -161,7 +162,7 @@ function RegionChip({
   onClick: () => void
 }) {
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={onClick}
       className={cn(
@@ -172,7 +173,7 @@ function RegionChip({
       )}
     >
       {name}
-    </button>
+    </LiquidMetalButton>
   )
 }
 
@@ -194,7 +195,7 @@ function TagPackCard({
   const hue = (name.length * 37 + name.charCodeAt(0) * 7) % 360
 
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={onClick}
       className="internal-list-card flex cursor-pointer flex-col p-4 text-left transition-colors"
@@ -225,6 +226,6 @@ function TagPackCard({
           </span>
         ) : null}
       </div>
-    </button>
+    </LiquidMetalButton>
   )
 }

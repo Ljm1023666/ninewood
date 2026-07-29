@@ -3,6 +3,7 @@ import { InternalPageShell, ProseDocument } from '@/components/layout/internal-u
 import { useUserStore } from '@/stores/user'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /**
  * 我的数据 — 用户查阅/更正/导出个人数据入口
@@ -81,7 +82,7 @@ export default function MyData() {
           点击下方按钮将以 JSON 格式下载您当前可见的账号信息快照。内测期内暂只覆盖基础信息；订单、需求、消息、收藏等详细数据将在公测前由后端"我的数据导出"接口统一打包提供。
         </p>
         <div className="not-prose flex items-center gap-3 my-3">
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={handleExport}
             disabled={exporting}
@@ -92,7 +93,7 @@ export default function MyData() {
           >
             <MsIcon name="download" size={14} aria-hidden />
             {exporting ? '导出中…' : '导出我的数据（JSON）'}
-          </button>
+          </LiquidMetalButton>
           {exportInfo ? (
             <span className="text-xs text-text-muted">
               已导出 {exportInfo.sizeKb} KB

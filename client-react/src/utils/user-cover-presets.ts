@@ -57,12 +57,13 @@ export const USER_COVER_PRESET_URLS = [
   '/uploads/card-covers/10021.jpg',
 ] as const
 
-/** 全站页面氛围：浅/深固定图（不跟个人主页变） */
+/** @deprecated 全站氛围已改为纯 CSS 柔光，不再使用固定背景图 */
 export const THEME_AMBIENT_BG = {
   light: '/bg/ambient-light.png',
   dark: '/bg/ambient-dark.png',
 } as const
 
+/** @deprecated 见 THEME_AMBIENT_BG */
 export function themeAmbientBgUrl(isDark: boolean): string {
   return isDark ? THEME_AMBIENT_BG.dark : THEME_AMBIENT_BG.light
 }

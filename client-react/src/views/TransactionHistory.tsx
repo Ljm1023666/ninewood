@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { MsIcon } from '@/components/ui/ms-icon'
 import api from '@/api'
 import { toast } from '@/components/ui/confirm-dialog'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface TransactionItem {
   id: string
@@ -173,7 +174,7 @@ export default function TransactionHistory() {
         {!loading && totalPages > 1 ? (
           <div className="flex justify-center gap-2">
             {Array.from({ length: totalPages }, (_, i) => (
-              <button
+              <LiquidMetalButton
                 key={i}
                 type="button"
                 onClick={() => goPage(i + 1)}
@@ -185,7 +186,7 @@ export default function TransactionHistory() {
                 )}
               >
                 {i + 1}
-              </button>
+              </LiquidMetalButton>
             ))}
           </div>
         ) : null}

@@ -229,6 +229,9 @@ model User {
   circleActivities    CircleActivity[]
   circleResources     CircleResource[]
   circleInvitesSent   CircleInvite[]            @relation("CircleInvitesSent")
+  circlePosts         CirclePost[]
+  circlePostLikes     CirclePostLike[]
+  circlePostReplies   CirclePostReply[]
   deposits            Deposit[]
   sentComplaints      Complaint[]               @relation("Complainant")
   receivedComplaints  Complaint[]               @relation("Respondent")
@@ -544,6 +547,7 @@ model Circle {
   activities    CircleActivity[]
   resources     CircleResource[]
   invites       CircleInvite[]
+  posts         CirclePost[]
 
   @@index([ownerId])
   @@index([cityCode])
@@ -1122,6 +1126,50 @@ model CircleInvite {
   @@unique([circleId, email, status])
   @@index([circleId, status])
   @@index([circleId, createdAt])
+}
+
+/** 兴趣圈子讨论帖（与 Hub 公告独立） */
+model CirclePost {
+  id         String   @id @default(uuid())
+  circleId   String
+  circle     Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String
+  likeCount  Int      @default(0)
+  replyCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  likes   CirclePostLike[]
+  replies CirclePostReply[]
+
+  @@index([circleId, createdAt])
+  @@index([userId])
+}
+
+model CirclePostLike {
+  postId    String
+  post      CirclePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@id([postId, userId])
+  @@index([userId])
+}
+
+model CirclePostReply {
+  id        String     @id @default(uuid())
+  postId    String
+  post      CirclePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime   @default(now())
+
+  @@index([postId, createdAt])
+  @@index([userId])
 }
 
 // ── Task 10 · Agent 自动化任务 ──

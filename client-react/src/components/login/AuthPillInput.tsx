@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { pillInputClass } from './login-styles'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type AuthPillInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -50,7 +51,7 @@ export function AuthPillInput({
         {...props}
       />
       {showPasswordToggle && (
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={onTogglePassword}
           className="absolute right-4 flex items-center justify-center text-white/50 transition-colors duration-200 hover:text-white"
@@ -60,7 +61,7 @@ export function AuthPillInput({
             name={passwordVisible ? 'visibility' : 'visibility_off'}
             size={20}
           />
-        </button>
+        </LiquidMetalButton>
       )}
     </div>
   )

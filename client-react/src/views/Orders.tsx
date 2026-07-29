@@ -251,23 +251,13 @@ export default function Orders() {
         </div>
 
         <div className="orders-plaza__filters">
-          <div className="orders-plaza__status-tabs" role="tablist" aria-label="订单状态">
-            {STATUS_TABS.map((t) => (
-              <button
-                key={t.value || 'all'}
-                type="button"
-                role="tab"
-                aria-selected={statusFilter === t.value}
-                className={cn(
-                  'orders-plaza__status-tab',
-                  statusFilter === t.value && 'orders-plaza__status-tab--active',
-                )}
-                onClick={() => setStatusFilter(t.value)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedFilter
+            size="large"
+            options={[...STATUS_TABS]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            className="orders-plaza__status-seg"
+          />
           <SegmentedFilter
             size="large"
             options={[...ROLE_TABS]}
@@ -324,7 +314,7 @@ export default function Orders() {
                 const isRequester = userId ? o.requesterId === userId : false
                 const counterpart = isRequester ? o.provider : o.requester
                 return (
-                  <button
+                  <LiquidMetalButton
                     key={o.id}
                     type="button"
                     className="orders-plaza__card"
@@ -388,7 +378,7 @@ export default function Orders() {
                       className="orders-plaza__chevron"
                       aria-hidden
                     />
-                  </button>
+                  </LiquidMetalButton>
                 )
               })}
             </div>

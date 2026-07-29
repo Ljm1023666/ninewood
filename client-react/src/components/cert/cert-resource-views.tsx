@@ -3,6 +3,7 @@ import { MsIcon } from '@/components/ui/ms-icon'
 import { CertStitchRightsTable, CertStitchTierTable } from '@/components/cert/cert-stitch-blocks'
 import { FAQ, type FaqEntry, type TipType } from '@/views/help-faq-data'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export type CertResourceId = 'materials' | 'standards' | 'rights' | 'compliance'
 
@@ -108,10 +109,10 @@ export function CertResourceDocShell({
   return (
     <div className="cert-stitch-panel-page cert-stitch-resource-doc">
       <header className="cert-stitch-resource-doc__head">
-        <button type="button" className="cert-stitch-resource-doc__back" onClick={onBack}>
+        <LiquidMetalButton type="button" className="cert-stitch-resource-doc__back" onClick={onBack}>
           <MsIcon name="arrow_back" size={18} />
           返回资源库
-        </button>
+        </LiquidMetalButton>
         <div className="cert-stitch-resource-doc__title">
           <MsIcon name={icon} size={26} className="text-[var(--cs-primary-fixed)]" />
           <h1>{title}</h1>

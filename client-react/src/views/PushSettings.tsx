@@ -16,6 +16,7 @@ import {
   type NotificationPolicy,
   type NotificationSubscription,
 } from '@/api/notification-policy'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /**
  * 推送设置（时间主权 Phase 1B）
@@ -290,14 +291,14 @@ export default function PushSettings() {
                         <option value="DIGEST">摘要</option>
                         <option value="OFF">关闭</option>
                       </select>
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         className="text-[var(--text-secondary)]"
                         aria-label="删除订阅"
                         onClick={() => removeSub(s.id)}
                       >
                         <MsIcon name="close" size={16} />
-                      </button>
+                      </LiquidMetalButton>
                     </div>
                   </li>
                 ))}

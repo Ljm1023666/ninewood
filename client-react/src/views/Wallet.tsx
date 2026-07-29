@@ -152,14 +152,14 @@ export default function Wallet() {
                 label="充值点数（开发）"
                 onClick={() => toast('开发期暂不支持充值', 'info')}
               />
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="wallet-btn-secondary"
                 onClick={() => navigate('/transactions')}
               >
                 <MsIcon name="receipt_long" size={20} aria-hidden />
                 查看交易记录
-              </button>
+              </LiquidMetalButton>
             </div>
           </section>
         ) : null}
@@ -286,7 +286,7 @@ export default function Wallet() {
           {!loadingLedger && totalPages > 1 ? (
             <div className="wallet-pagination">
               {Array.from({ length: totalPages }, (_, i) => (
-                <button
+                <LiquidMetalButton
                   key={i}
                   type="button"
                   onClick={() => void loadLedger(i + 1)}
@@ -296,7 +296,7 @@ export default function Wallet() {
                   )}
                 >
                   {i + 1}
-                </button>
+                </LiquidMetalButton>
               ))}
             </div>
           ) : null}

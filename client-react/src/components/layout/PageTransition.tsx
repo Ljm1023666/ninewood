@@ -9,10 +9,12 @@ export default function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation()
   // 消息页有自己的持久化左右分栏；切换会话时不能重挂整个壳层。
   // 回中心三 Tab 共用持久壳，key 稳住以免切页整容器闪一下。
+  // 回域整棵共用一个 key：发现↔详情↔运行详情只换 Outlet，不拆 PageTransition。
+  // 若按子路径换 key，会销毁 Outlet，懒加载期间出现「URL 已变、画面仍停在发现页」。
   const pageKey = location.pathname.startsWith('/messages/')
     ? '/messages'
-    : /^\/loops\/(discover|mine|accept)(\/|$)/.test(location.pathname)
-      ? '/loops-hub'
+    : location.pathname === '/loops' || location.pathname.startsWith('/loops/')
+      ? '/loops'
       : location.pathname
 
   return (

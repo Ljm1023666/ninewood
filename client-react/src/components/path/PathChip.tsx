@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatPathDisplay } from '@/constants/path-search'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export function PathChip({
   path,
@@ -32,14 +33,14 @@ export function PathChip({
         <span className="text-text-muted tabular-nums">({coverage})</span>
       ) : null}
       {onRemove ? (
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={onRemove}
           className="rounded-full p-0.5 text-text-muted hover:bg-white/10 hover:text-text-primary"
           aria-label={`移除 ${path}`}
         >
           <X className="size-3" />
-        </button>
+        </LiquidMetalButton>
       ) : null}
     </span>
   )

@@ -16,6 +16,7 @@ import {
 import { MsIcon } from '@/components/ui/ms-icon'
 import { useCircleHub } from './circle-hub-context'
 import { circleApi } from '@/api/circle'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const ENGAGEMENT_FALLBACK = [
   { name: '发布需求', value: 1, color: '#abc7ff' },
@@ -184,9 +185,9 @@ export default function CircleHubAnalytics() {
                   截止 {rangeEnd}
                 </p>
               </div>
-              <button type="button" className="cdb-hub-icon-btn" aria-label="更多">
+              <LiquidMetalButton type="button" className="cdb-hub-icon-btn" aria-label="更多">
                 <MsIcon name="more_horiz" size={18} aria-hidden />
-              </button>
+              </LiquidMetalButton>
             </div>
             <div className="cdb-hub-chart-area">
               <ResponsiveContainer width="100%" height="100%">
@@ -223,16 +224,16 @@ export default function CircleHubAnalytics() {
 
         <div className="cdb-hub-analytics-side">
           <div className="cdb-glass-card cdb-hub-date-picker">
-            <button type="button" className="cdb-hub-icon-btn" aria-label="上一段">
+            <LiquidMetalButton type="button" className="cdb-hub-icon-btn" aria-label="上一段">
               <MsIcon name="chevron_left" size={18} aria-hidden />
-            </button>
+            </LiquidMetalButton>
             <div className="cdb-hub-date-label">
               <MsIcon name="calendar_today" size={18} className="cdb-text-primary" aria-hidden />
               <span>{pickerCaption}</span>
             </div>
-            <button type="button" className="cdb-hub-icon-btn" aria-label="下一段">
+            <LiquidMetalButton type="button" className="cdb-hub-icon-btn" aria-label="下一段">
               <MsIcon name="chevron_right" size={18} aria-hidden />
-            </button>
+            </LiquidMetalButton>
           </div>
 
           <section className="cdb-glass-card cdb-hub-chart-card">

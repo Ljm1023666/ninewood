@@ -39,10 +39,12 @@ export default function PublishPage() {
             </h2>
 
             <div className="publish-choice-list" role="radiogroup" aria-label="发布方向">
-              <button
+              <LiquidMetalButton
                 type="button"
                 role="radio"
                 aria-checked={!isService}
+                metalGlow={!isService}
+                active={!isService}
                 onClick={() => changeMode('demand')}
                 className={`publish-choice-card${!isService ? ' is-selected' : ''}`}
               >
@@ -58,12 +60,14 @@ export default function PublishPage() {
                     说清楚你要解决的问题，让合适的服务者主动找到你。
                   </span>
                 </span>
-              </button>
+              </LiquidMetalButton>
 
-              <button
+              <LiquidMetalButton
                 type="button"
                 role="radio"
                 aria-checked={isService}
+                metalGlow={isService}
+                active={isService}
                 onClick={() => changeMode('service')}
                 className={`publish-choice-card${isService ? ' is-selected' : ''}`}
               >
@@ -79,7 +83,7 @@ export default function PublishPage() {
                     展示你能提供的服务，让有明确需求的人找到你。
                   </span>
                 </span>
-              </button>
+              </LiquidMetalButton>
             </div>
 
             <div className="publish-ai-points">

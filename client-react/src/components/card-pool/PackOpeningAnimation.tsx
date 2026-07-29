@@ -27,6 +27,7 @@ import {
   type CardData,
 } from '@/components/ui/morphing-card-stack'
 import { toast } from '@/components/ui/confirm-dialog'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type AnimationPhase = 'scatter' | 'line' | 'circle'
 type ViewMode = 'opening' | 'falling' | 'loading' | 'gallery'
@@ -241,7 +242,7 @@ const PackCardFace = memo(function PackCardFace({
         }}
       >
         {card.price ? (
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={(e) => {
               e.stopPropagation()
@@ -250,7 +251,7 @@ const PackCardFace = memo(function PackCardFace({
             className="flip-card-back-price relative z-10 text-sm font-extrabold leading-none cursor-pointer hover:scale-110 transition-transform"
           >
             {card.price}
-          </button>
+          </LiquidMetalButton>
         ) : null}
       </div>
     </>
@@ -474,7 +475,7 @@ const PackCardFaceMotion = memo(function PackCardFaceMotion({
         }}
       >
         {card.price ? (
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={(e) => {
               e.stopPropagation()
@@ -483,7 +484,7 @@ const PackCardFaceMotion = memo(function PackCardFaceMotion({
             className="flip-card-back-price relative z-10 text-sm font-extrabold leading-none cursor-pointer hover:scale-110 transition-transform"
           >
             {card.price}
-          </button>
+          </LiquidMetalButton>
         ) : null}
       </div>
     </>
@@ -1139,7 +1140,7 @@ export function PackOpeningAnimation({
           </>
         ) : null}
 
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={() => {
             if (viewMode === 'gallery') {
@@ -1164,7 +1165,7 @@ export function PackOpeningAnimation({
           }
         >
           <X className="size-5" />
-        </button>
+        </LiquidMetalButton>
 
         {/* 开包舞台始终挂载，避免进画廊卸载后 containerSize 归零导致回退时圆簇扭曲 */}
         <div
@@ -1329,26 +1330,26 @@ export function PackOpeningAnimation({
                         </div>
                       </div>
                       <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
-                        <button
+                        <LiquidMetalButton
                           type="button"
                           onClick={() => setQueueStart((p) => Math.max(0, p - 1))}
                           disabled={queueStart === 0}
                           className="pack-stage-control rounded-lg px-3 py-1.5 text-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           ← 上一张
-                        </button>
+                        </LiquidMetalButton>
                         <span className="min-w-[80px] text-center text-sm font-medium tabular-nums text-[var(--pack-stage-fg)]">
                           {queueStart + 1}–{queueStart + visibleCards.length} /{' '}
                           {allStackCards.length}
                         </span>
-                        <button
+                        <LiquidMetalButton
                           type="button"
                           onClick={() => setQueueStart((p) => p + 1)}
                           disabled={queueRemaining <= 0}
                           className="pack-stage-control rounded-lg px-3 py-1.5 text-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-30"
                         >
                           下一张 →
-                        </button>
+                        </LiquidMetalButton>
                       </div>
                     </motion.div>
                   )
@@ -1364,7 +1365,7 @@ export function PackOpeningAnimation({
                     { mode: 'list' as const, icon: LayoutList },
                   ] as const
                 ).map(({ mode, icon: Icon }) => (
-                  <button
+                  <LiquidMetalButton
                     key={mode}
                     type="button"
                     onClick={() => setStackLayout(mode)}
@@ -1377,13 +1378,13 @@ export function PackOpeningAnimation({
                     aria-label={`切换到 ${mode} 布局`}
                   >
                     <Icon className="size-4" />
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
             ) : null}
 
             {showCardStack ? (
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={() => {
                   setShowCardStack(false)
@@ -1392,7 +1393,7 @@ export function PackOpeningAnimation({
                 className="pack-stage-control absolute bottom-6 left-1/2 z-30 -translate-x-1/2 rounded-full px-4 py-2 text-sm transition-opacity hover:opacity-90"
               >
                 返回散落视图
-              </button>
+              </LiquidMetalButton>
             ) : null}
         </div>
       </motion.div>

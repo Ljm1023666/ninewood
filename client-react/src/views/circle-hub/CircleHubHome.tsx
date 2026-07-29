@@ -154,7 +154,7 @@ export default function CircleHubHome() {
           </p>
         </div>
         {canManage ? (
-          <button
+          <LiquidMetalButton
             type="button"
             className="cdb-hub-btn-outline"
             onClick={() => setShowAnnounceForm((v) => !v)}
@@ -162,7 +162,7 @@ export default function CircleHubHome() {
           >
             <MsIcon name="edit_square" size={18} aria-hidden />
             <span>{showAnnounceForm ? '取消' : '发布更新'}</span>
-          </button>
+          </LiquidMetalButton>
         ) : null}
       </header>
 
@@ -188,7 +188,7 @@ export default function CircleHubHome() {
               onChange={(e) => setAnnounceBody(e.target.value)}
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="cdb-hub-btn-outline"
                 disabled={publishBusy}
@@ -199,7 +199,7 @@ export default function CircleHubHome() {
                 }}
               >
                 取消
-              </button>
+              </LiquidMetalButton>
               <LiquidMetalButton
                 label={publishBusy ? '发布中…' : '发布公告'}
                 disabled={publishBusy}
@@ -278,9 +278,9 @@ export default function CircleHubHome() {
                     '欢迎加入本圈。这里将发布活动预告、合作机会与重要通知，请留意动态更新。'}
               </p>
               <div className="cdb-hub-announce-meta">
-                <button type="button" className="cdb-demands-link" onClick={() => go('community')}>
+                <LiquidMetalButton type="button" className="cdb-demands-link" onClick={() => go('community')}>
                   查看详情
-                </button>
+                </LiquidMetalButton>
                 {announcement ? (
                   <>
                     <span className="cdb-dot" />
@@ -305,22 +305,22 @@ export default function CircleHubHome() {
           <section className="cdb-glass-card cdb-hub-panel">
             <h3 className="cdb-label-caps cdb-hub-panel-label">快捷操作</h3>
             <div className="cdb-hub-shortcuts">
-              <button type="button" className="cdb-hub-shortcut" onClick={() => navigate(`/demands/create?circleId=${circleId}`)}>
+              <LiquidMetalButton type="button" className="cdb-hub-shortcut" onClick={() => navigate(`/demands/create?circleId=${circleId}`)}>
                 <MsIcon name="add_box" size={28} className="cdb-text-primary" aria-hidden />
                 <span>新建需求</span>
-              </button>
-              <button type="button" className="cdb-hub-shortcut" onClick={() => go('resources')}>
+              </LiquidMetalButton>
+              <LiquidMetalButton type="button" className="cdb-hub-shortcut" onClick={() => go('resources')}>
                 <MsIcon name="upload_file" size={28} className="cdb-hub-icon-tertiary" aria-hidden />
                 <span>上传资源</span>
-              </button>
-              <button type="button" className="cdb-hub-shortcut" onClick={() => go('teams')}>
+              </LiquidMetalButton>
+              <LiquidMetalButton type="button" className="cdb-hub-shortcut" onClick={() => go('teams')}>
                 <MsIcon name="person_add" size={28} className="cdb-hub-icon-success" aria-hidden />
                 <span>邀请成员</span>
-              </button>
-              <button type="button" className="cdb-hub-shortcut" onClick={() => go('community')}>
+              </LiquidMetalButton>
+              <LiquidMetalButton type="button" className="cdb-hub-shortcut" onClick={() => go('community')}>
                 <MsIcon name="chat_bubble" size={28} className="cdb-hub-icon-purple" aria-hidden />
                 <span>发起讨论</span>
-              </button>
+              </LiquidMetalButton>
             </div>
           </section>
 
@@ -328,9 +328,9 @@ export default function CircleHubHome() {
             <h3 className="cdb-label-caps cdb-hub-panel-label">热门标签</h3>
             <div className="cdb-hub-tags">
               {tagList.map((tag) => (
-                <button key={tag} type="button" className="cdb-hub-tag">
+                <LiquidMetalButton key={tag} type="button" className="cdb-hub-tag">
                   {tag}
-                </button>
+                </LiquidMetalButton>
               ))}
             </div>
           </section>
@@ -339,9 +339,9 @@ export default function CircleHubHome() {
         <section className="cdb-glass-card cdb-hub-timeline">
           <div className="cdb-hub-timeline-head">
             <h3 className="cdb-hub-card-title">最新动态</h3>
-            <button type="button" className="cdb-demands-link" onClick={() => go('community')}>
+            <LiquidMetalButton type="button" className="cdb-demands-link" onClick={() => go('community')}>
               查看全部
-            </button>
+            </LiquidMetalButton>
           </div>
           <div className="cdb-hub-timeline-list">
             {visibleActivities.length === 0 ? (
@@ -375,7 +375,7 @@ export default function CircleHubHome() {
             )}
           </div>
           <div className="cdb-hub-timeline-more">
-            <button
+            <LiquidMetalButton
               type="button"
               className="cdb-hub-btn-ghost-pill"
               onClick={async () => {
@@ -391,7 +391,7 @@ export default function CircleHubHome() {
               }}
             >
               加载更多
-            </button>
+            </LiquidMetalButton>
           </div>
         </section>
       </div>

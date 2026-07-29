@@ -10,6 +10,7 @@ import {
 } from './admin-ui'
 import { toast } from '@/components/ui/confirm-dialog'
 import api from '@/api'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface ServiceHealth {
   name: string
@@ -62,14 +63,14 @@ export default function AdminSystemTab() {
         <p className="font-[family-name:var(--admin-mono)] text-[10px] uppercase tracking-[0.12em] text-[var(--admin-text-muted)]">
           系统状态
         </p>
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={load}
           className="inline-flex items-center gap-1 rounded-[var(--admin-radius-xs)] border border-[var(--admin-border)] bg-white px-2 py-1 text-xs font-medium text-[var(--admin-text-secondary)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-black/[0.02] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0"
         >
           <RefreshCw className="size-3" />
           刷新
-        </button>
+        </LiquidMetalButton>
       </div>
 
       <div id="admin-section-service-status">

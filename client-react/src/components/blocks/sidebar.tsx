@@ -6,7 +6,6 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { PanelLeft } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -217,13 +217,13 @@ const Sidebar = React.forwardRef<
 Sidebar.displayName = 'Sidebar'
 
 const SidebarTrigger = React.forwardRef<
-  React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button>
+  React.ElementRef<typeof LiquidMetalButton>,
+  React.ComponentProps<typeof LiquidMetalButton>
 >(({ className, onClick, ...props }, ref) => {
   const { toggleSidebar } = useSidebar()
 
   return (
-    <Button
+    <LiquidMetalButton
       ref={ref}
       data-sidebar="trigger"
       variant="ghost"
@@ -237,7 +237,7 @@ const SidebarTrigger = React.forwardRef<
     >
       <PanelLeft />
       <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+    </LiquidMetalButton>
   )
 })
 SidebarTrigger.displayName = 'SidebarTrigger'
@@ -249,7 +249,7 @@ const SidebarRail = React.forwardRef<
   const { toggleSidebar } = useSidebar()
 
   return (
-    <button
+    <LiquidMetalButton
       ref={ref}
       data-sidebar="rail"
       aria-label="Toggle Sidebar"
@@ -410,7 +410,7 @@ const SidebarGroupAction = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<'button'> & { asChild?: boolean }
 >(({ className, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : 'button'
+  const Comp = asChild ? Slot : LiquidMetalButton
 
   return (
     <Comp
@@ -509,7 +509,7 @@ const SidebarMenuButton = React.forwardRef<
     },
     ref,
   ) => {
-    const Comp = asChild ? Slot : 'button'
+    const Comp = asChild ? Slot : LiquidMetalButton
     const { state } = useSidebar()
 
     const button = (
@@ -552,7 +552,7 @@ const SidebarMenuAction = React.forwardRef<
     showOnHover?: boolean
   }
 >(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : 'button'
+  const Comp = asChild ? Slot : LiquidMetalButton
 
   return (
     <Comp

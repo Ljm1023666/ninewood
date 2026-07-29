@@ -5,7 +5,6 @@ import { demandApi } from '@/api/demand'
 import { usePagination } from '@/hooks/usePagination'
 import { ListItemCard } from '@/components/ui/list-item-card'
 import { Timeline } from '@/components/ui/modern-timeline'
-import { Button } from '@/components/ui/button'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { cn } from '@/lib/utils'
@@ -320,14 +319,14 @@ export function DemandDiscoveryList({
       {error ? (
         <div className="w-full rounded-xl border border-border bg-card p-6 text-center">
           <p className="text-sm text-text-muted">{error}</p>
-          <Button
+          <LiquidMetalButton
             type="button"
             variant="outline"
             className="mt-4 border-border"
             onClick={() => loadMore(true)}
           >
             重试
-          </Button>
+          </LiquidMetalButton>
         </div>
       ) : null}
 
@@ -413,7 +412,7 @@ export function DemandDiscoveryList({
             第 {page}/{totalPages} 页 · 共 {totalCount} 条
           </span>
           <div className="flex items-center gap-2">
-            <Button
+            <LiquidMetalButton
               type="button"
               size="sm"
               variant="outline"
@@ -423,8 +422,8 @@ export function DemandDiscoveryList({
               }}
             >
               上一页
-            </Button>
-            <Button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               size="sm"
               variant="outline"
@@ -434,7 +433,7 @@ export function DemandDiscoveryList({
               }}
             >
               下一页
-            </Button>
+            </LiquidMetalButton>
           </div>
         </div>
       ) : null}

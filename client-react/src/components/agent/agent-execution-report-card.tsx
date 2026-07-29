@@ -1,4 +1,5 @@
 import { MsIcon } from "@/components/ui/ms-icon"
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface AgentReportData {
   toolCallId?: string
@@ -44,14 +45,14 @@ export function AgentExecutionReportCard({
       {data.verification?.path && onNavigate ? (
         <div className="agent-codex-report__section">
           <p className="agent-codex-report__label">验收</p>
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => onNavigate(data.verification!.path)}
             className="agent-codex-report__btn"
           >
             {data.verification.label ?? "查看详情"}
             <MsIcon name="chevron_right" size={12} />
-          </button>
+          </LiquidMetalButton>
         </div>
       ) : null}
 

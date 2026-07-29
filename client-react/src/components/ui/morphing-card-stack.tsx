@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react"
 import { motion, AnimatePresence, LayoutGroup, type PanInfo } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Grid3X3, Layers, LayoutList } from "lucide-react"
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export type LayoutMode = "stack" | "grid" | "list"
 
@@ -217,7 +218,7 @@ export function MorphingCardStack({
       {layout === "stack" && cards.length > 1 && (
         <div className="flex justify-center gap-1.5">
           {cards.map((_, index) => (
-            <button
+            <LiquidMetalButton
               key={index}
               onClick={() => setActiveIndex(index)}
               className={cn(

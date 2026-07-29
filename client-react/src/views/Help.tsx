@@ -9,6 +9,7 @@ import { InternalPageShell } from '@/components/layout/internal-ui'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 // ===================================================================
 //  意图理解引擎 — 从自然语言提取「用户想做什么」
@@ -666,7 +667,7 @@ function JumpBrandCard({
   const brand = PAGE_BRANDS[entry.id] || PAGE_BRANDS['help-docs']
 
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={() => onNavigate(entry.path, null)}
       className="group relative flex flex-col items-center justify-center gap-2 text-center transition-all duration-300 bg-transparent hover:bg-accent/[0.04] w-full aspect-[16/10] overflow-hidden border-r border-b border-border/30"
@@ -692,7 +693,7 @@ function JumpBrandCard({
       >
         {entry.title}
       </span>
-    </button>
+    </LiquidMetalButton>
   )
 }
 
@@ -710,7 +711,7 @@ export function JumpCard({
   }
 
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={() => onNavigate(match.page.path, match.params)}
       className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all duration-200 hover:border-accent/30 hover:bg-accent/[0.04] hover:shadow-[0_0_20px_rgba(var(--accent-color-rgb),0.06)] w-full"
@@ -745,7 +746,7 @@ export function JumpCard({
           </div>
         )}
       </div>
-    </button>
+    </LiquidMetalButton>
   )
 }
 

@@ -156,24 +156,3 @@ export const GlassDock: React.FC<{ icons: DockIcon[]; href?: string }> = ({
   </GlassEffect>
 )
 
-// ---- Glass Button ----
-
-export const GlassButton: React.FC<{
-  children: React.ReactNode
-  href?: string
-  className?: string
-}> = ({ children, href, className = '' }) => (
-  <GlassEffect
-    href={href}
-    className={`rounded-3xl px-10 py-6 hover:px-11 hover:py-7 hover:rounded-4xl overflow-hidden ${className}`}
-  >
-    <div
-      className="transition-transform duration-700 hover:scale-95"
-      style={{
-        transitionTimingFunction: 'var(--ease-out-expo)',
-      }}
-    >
-      {children}
-    </div>
-  </GlassEffect>
-)

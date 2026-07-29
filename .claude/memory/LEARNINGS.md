@@ -2,6 +2,16 @@
 
 Append-only operational lessons to reduce repeated mistakes.
 
+## 2026-07-29（圈子详情默认壳 vs Hub）
+
+- `/circles/:id` 默认应是兴趣详情（讨论区/信息），不要 `index → community`；Hub 只挂 `resources|analytics|teams|home|community` 等子路径。
+- 讨论流用 `CirclePost`，不要把 `CircleAnnouncement` 硬扮成帖子；发帖/点赞/回复仅成员。
+
+## 2026-07-29（回中心软跳转假导航）
+
+- 回域子页不要再拆成与 hub 平级的 `lazy` 路由：`startTransition` + Suspense 会先改 URL、仍显示旧 Outlet。
+- 正确做法：`path: 'loops/*'` + `LoopHubLayout` 内静态 `Routes` 同 chunk；详情页不要再自带 `LoopHubNav`。
+
 ## 2026-07-29（回域结算与整数点）
 
 - `User.points` 是 Int：回域报价/预付必须 `Math.round` 成整数点，否则 Prisma decrement 会静默截断半点，资金断言会漂。

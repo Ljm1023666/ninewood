@@ -9,6 +9,7 @@ import {
 import { toast } from '@/components/ui/confirm-dialog'
 import api from '@/api'
 import { STATUS_LABELS } from './use-admin-data'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface Dispute {
   id: string
@@ -107,7 +108,7 @@ export default function AdminDisputesTab() {
                   />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     disabled={busyId === d.id}
                     onClick={() => resolve(d.id, 'refund')}
@@ -115,8 +116,8 @@ export default function AdminDisputesTab() {
                   >
                     <XCircle className="size-3" />
                     退款关闭
-                  </button>
-                  <button
+                  </LiquidMetalButton>
+                  <LiquidMetalButton
                     type="button"
                     disabled={busyId === d.id}
                     onClick={() => resolve(d.id, 'complete')}
@@ -124,7 +125,7 @@ export default function AdminDisputesTab() {
                   >
                     <CheckCircle2 className="size-3" />
                     完成放款
-                  </button>
+                  </LiquidMetalButton>
                 </div>
               </div>
             ))}

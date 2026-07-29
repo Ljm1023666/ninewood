@@ -164,14 +164,11 @@ html[data-layout-ambient='on']
     .wallet-btn-primary,
     .cdb-btn-primary,
     .publish-primary-action,
-    .settings-action-btn--primary,
     .ws-btn--primary,
     .cert-workspace__btn--primary,
     .agent-btn--primary,
     .legal-dialog__primary
-  ):not(.bg-destructive):not(.bg-error):not([class*='destructive']):not([class*='danger']):not(
-    .settings-action-btn--danger
-  ) {
+  ):not(.liquid-metal-button):not(.bg-destructive):not(.bg-error):not([class*='destructive']):not([class*='danger']) {
   background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1)) !important;
   color: var(--text-primary, #e8e8e8) !important;
   border: 1px solid var(--liquid-glass-border, rgba(255, 255, 255, 0.16)) !important;
@@ -182,7 +179,7 @@ html[data-layout-ambient='on']
 
 /* Tailwind 实心主色工具类挂在按钮上时，同样收口为玻璃选择态 */
 html[data-layout-ambient='on']
-  :is(button, [role='button'], a):is(.bg-accent, .bg-primary):not(.bg-destructive):not(
+  :is(button, [role='button'], a):is(.bg-accent, .bg-primary):not(.liquid-metal-button):not(.bg-destructive):not(
     .bg-error
   ):not([class*='destructive']):not([class*='danger']) {
   background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1)) !important;
@@ -198,8 +195,7 @@ html[data-layout-ambient='on']
     .bg-destructive,
     .bg-error,
     [class*='destructive'],
-    [class*='danger'],
-    .settings-action-btn--danger
+    [class*='danger']
   ):is(button, [role='button'], a) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -292,6 +288,12 @@ html[data-layout-ambient='on'] .internal-list-card:hover {
   background: var(--liquid-glass-chip-bg-hover) !important;
 }
 
+/* 玻璃面板内部的列表项只使用半透明 chip，禁止回退为纯黑或纯白卡片。 */
+html[data-layout-ambient='on'] .demand-detail-action-panel__list-item {
+  border-color: var(--liquid-glass-border) !important;
+  background: var(--liquid-glass-chip-bg) !important;
+}
+
 html[data-layout-ambient='on'] .msg-empty-thread,
 html[data-layout-ambient='on'] .msg-pane-stage,
 html[data-layout-ambient='on'] .msg-chat-depth-pane,
@@ -371,4 +373,3 @@ html[data-layout-ambient='on'] .circle-detail-bento .cdb-demand-item {
   -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
   box-shadow: var(--liquid-glass-shadow) !important;
 }
-

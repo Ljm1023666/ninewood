@@ -11,7 +11,6 @@ import {
 import { MsIcon } from '@/components/ui/ms-icon'
 import { STITCH_PAGE_ICONS } from '@/constants/stitch-icons'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { useTableState } from '@/components/card-pool/useTableState'
@@ -59,6 +58,7 @@ import {
   useHandTotals,
   useChildTotals,
 } from '@/components/card-pool/useCardPoolShared'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const PAGE = 24
 const PackOpeningExperience = lazy(
@@ -322,13 +322,13 @@ export default function CardPool() {
       if (rootScopeInHand) {
         return (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 py-8 text-center">
-            <Button
+            <LiquidMetalButton
               type="button"
               variant="secondary"
               onClick={() => setRootBrowseExpanded(true)}
             >
               展开子分类
-            </Button>
+            </LiquidMetalButton>
           </div>
         )
       }
@@ -362,7 +362,7 @@ export default function CardPool() {
               {totalPages} 页
             </span>
             <div className="flex gap-2">
-              <Button
+              <LiquidMetalButton
                 type="button"
                 variant="outline"
                 size="sm"
@@ -370,8 +370,8 @@ export default function CardPool() {
                 onClick={() => setChildPage((p) => Math.max(0, p - 1))}
               >
                 上一页
-              </Button>
-              <Button
+              </LiquidMetalButton>
+              <LiquidMetalButton
                 type="button"
                 variant="outline"
                 size="sm"
@@ -381,7 +381,7 @@ export default function CardPool() {
                 }
               >
                 下一页
-              </Button>
+              </LiquidMetalButton>
             </div>
           </div>
         ) : null}
@@ -422,22 +422,22 @@ export default function CardPool() {
             </span>
           </span>
           <div className="flex flex-wrap gap-2">
-            <Button
+            <LiquidMetalButton
               type="button"
               variant="outline"
               size="sm"
               onClick={closeDesktop}
             >
               关闭桌面
-            </Button>
-            <Button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               variant="outline"
               size="sm"
               onClick={runDesktopRecurse}
             >
               递归（回手牌）
-            </Button>
+            </LiquidMetalButton>
           </div>
         </div>
         <div
@@ -516,13 +516,13 @@ export default function CardPool() {
             <p className="card-pool-stitch__meta">
               监控 · {rangeLabel} · 资源管理
             </p>
-            <button
+            <LiquidMetalButton
               type="button"
               className="card-pool-stitch__meta transition-colors hover:text-text-secondary"
               onClick={() => navigate('/card-pool/explorer')}
             >
               资源管理器
-            </button>
+            </LiquidMetalButton>
           </div>
         </div>
         <div className="card-pool-stitch__stats shrink-0 text-right">
@@ -581,14 +581,14 @@ export default function CardPool() {
                   {scopeTotal ?? '…'} 条需求
                 </span>
                 {!desktopOpen && scopeTotal != null && scopeTotal > 0 ? (
-                  <Button
+                  <LiquidMetalButton
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => enterDesktop(focus)}
                   >
                     打开需求列表
-                  </Button>
+                  </LiquidMetalButton>
                 ) : null}
               </div>
               {renderDesktopSection(true)}

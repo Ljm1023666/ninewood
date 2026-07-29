@@ -19,6 +19,7 @@ import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { toast } from '@/components/ui/confirm-dialog'
 import api from '@/api'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type TabType = 'overview' | 'analytics' | 'tags'
 
@@ -250,7 +251,7 @@ export default function TagStatsDashboard() {
         </div>
 
         <div className="mb-8">
-          <button
+          <LiquidMetalButton
             onClick={() => setActiveTab('tags')}
             className={`flex w-full items-center justify-center gap-3 border py-3 text-sm font-mono font-medium uppercase tracking-wider transition-colors duration-150 ${
               isDark
@@ -260,11 +261,11 @@ export default function TagStatsDashboard() {
           >
             <MsIcon name="add" size={16} />
             创建新标签
-          </button>
+          </LiquidMetalButton>
         </div>
 
         <div className="flex flex-1 flex-col gap-2">
-          <button
+          <LiquidMetalButton
             onClick={() => setActiveTab('overview')}
             className={`flex items-center gap-4 px-4 py-3.5 transition-colors duration-150 text-left ${
               activeTab === 'overview'
@@ -278,8 +279,8 @@ export default function TagStatsDashboard() {
           >
             <MsIcon name="dashboard" size={22} className={activeTab === 'overview' ? 'text-[#3388FF]' : 'opacity-80'} />
             <span className="font-mono text-sm uppercase tracking-wider">系统总览</span>
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             onClick={() => setActiveTab('analytics')}
             className={`flex items-center gap-4 px-4 py-3.5 transition-colors duration-150 text-left ${
               activeTab === 'analytics'
@@ -293,8 +294,8 @@ export default function TagStatsDashboard() {
           >
             <MsIcon name="analytics" size={22} className={activeTab === 'analytics' ? 'text-[#3388FF]' : 'opacity-80'} />
             <span className="font-mono text-sm uppercase tracking-wider">数据分析</span>
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             onClick={() => setActiveTab('tags')}
             className={`flex items-center gap-4 px-4 py-3.5 transition-colors duration-150 text-left ${
               activeTab === 'tags'
@@ -308,12 +309,12 @@ export default function TagStatsDashboard() {
           >
             <MsIcon name="label" size={22} className={activeTab === 'tags' ? 'text-[#3388FF]' : 'opacity-80'} />
             <span className="font-mono text-sm uppercase tracking-wider">标签管理</span>
-          </button>
+          </LiquidMetalButton>
           {/* Task 6.1: 移除假的“系统日志 / 系统设置”选项，仅保留有真实数据的三个 Tab */}
         </div>
 
         <div className={`mt-auto flex flex-col gap-2 border-t pt-6 ${isDark ? 'border-white/5' : 'border-black/10'}`}>
-          <button
+          <LiquidMetalButton
             onClick={() => navigate('/help')}
             className={`flex items-center gap-4 px-4 py-3 rounded-none transition-colors duration-150 text-left ${
               isDark ? 'text-white/60 hover:bg-white/5' : 'text-black/60 hover:bg-black/5'
@@ -321,8 +322,8 @@ export default function TagStatsDashboard() {
           >
             <MsIcon name="help" size={22} className="opacity-80" />
             <span className="font-mono text-sm font-medium uppercase tracking-wider">技术支持</span>
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             onClick={handleLogout}
             className={`flex items-center gap-4 px-4 py-3 rounded-none transition-colors duration-150 text-left ${
               isDark ? 'text-white/60 hover:bg-white/5' : 'text-black/60 hover:bg-black/5'
@@ -330,7 +331,7 @@ export default function TagStatsDashboard() {
           >
             <MsIcon name="logout" size={22} className="opacity-80" />
             <span className="font-mono text-sm font-medium uppercase tracking-wider">退出登录</span>
-          </button>
+          </LiquidMetalButton>
         </div>
       </nav>
 
@@ -379,7 +380,7 @@ export default function TagStatsDashboard() {
                   }`}
                 />
                 {tagFilter && (
-                  <button
+                  <LiquidMetalButton
                     onClick={() => {
                       setTagFilter('')
                       setTimeout(loadStats, 0)
@@ -387,13 +388,13 @@ export default function TagStatsDashboard() {
                     className={`absolute right-3 ${isDark ? 'text-white/40' : 'text-black/40'}`}
                   >
                     <MsIcon name="close" size={14} />
-                  </button>
+                  </LiquidMetalButton>
                 )}
               </div>
             )}
 
             {activeTab === 'analytics' && (
-              <button
+              <LiquidMetalButton
                 onClick={handleRefreshStats}
                 disabled={refreshing}
                 className={`flex items-center gap-2 border px-4 py-1.5 text-xs font-mono uppercase tracking-wider transition-colors disabled:opacity-50 ${
@@ -408,7 +409,7 @@ export default function TagStatsDashboard() {
                   className={refreshing ? 'animate-spin' : ''}
                 />
                 重新计算
-              </button>
+              </LiquidMetalButton>
             )}
 
             <span className={`h-6 w-px ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
@@ -563,13 +564,13 @@ export default function TagStatsDashboard() {
               >
                 <header className={`h-[60px] border-b px-8 flex items-center justify-between shrink-0 ${isDark ? 'border-white/5' : 'border-black/10'}`}>
                   <span className={`font-mono text-sm font-semibold uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-black/40'}`}>热门标签排行</span>
-                  <button
+                  <LiquidMetalButton
                     onClick={handleExport}
                     disabled={sortedStats.length === 0}
                     className="font-mono text-xs font-semibold text-[#3388FF] hover:opacity-80 uppercase tracking-widest transition-opacity disabled:opacity-50"
                   >
                     导出 CSV
-                  </button>
+                  </LiquidMetalButton>
                 </header>
                 <div className="w-full overflow-x-auto">
                   <div className="min-w-[600px]">

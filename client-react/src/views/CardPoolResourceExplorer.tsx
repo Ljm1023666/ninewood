@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MsIcon } from '@/components/ui/ms-icon'
-import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/ui/back-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
@@ -33,6 +32,7 @@ import {
   useHandTotals,
   useChildTotals,
 } from '@/components/card-pool/useCardPoolShared'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /** 右侧：Windows 资源管理器「详细信息」式列表（无卡包大图） */
 function ExplorerDetailsScopeRow({
@@ -151,14 +151,14 @@ function ExplorerDetailsShell({
           >
             {i > 0 ? <span className="shrink-0 text-text-muted">›</span> : null}
             {i < pathSegments.length - 1 ? (
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="min-w-0 truncate rounded px-1 py-0.5 hover:bg-accent/10"
                 onClick={() => onJumpToPath(focus.path.slice(0, i + 1))}
                 title={`跳转到 ${label}`}
               >
                 {label}
-              </button>
+              </LiquidMetalButton>
             ) : (
               <span className="min-w-0 truncate font-semibold text-text-primary">
                 {label}
@@ -217,7 +217,7 @@ function ExplorerDetailsShell({
             aria-hidden
           />
           <div className="fixed left-1/2 top-1/2 z-[var(--z-modal)] min-w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-bg-secondary py-1 text-sm text-foreground shadow-lg ring-1 ring-black/20 backdrop-blur-none">
-            <button
+            <LiquidMetalButton
               type="button"
               className="flex w-full px-3 py-2 text-left hover:bg-bg-tertiary"
               onClick={() => {
@@ -226,8 +226,8 @@ function ExplorerDetailsShell({
               }}
             >
               打开
-            </button>
-            <button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               className="flex w-full px-3 py-2 text-left hover:bg-bg-tertiary"
               onClick={() => {
@@ -236,7 +236,7 @@ function ExplorerDetailsShell({
               }}
             >
               加入手牌
-            </button>
+            </LiquidMetalButton>
           </div>
         </>
       ) : null}
@@ -369,7 +369,7 @@ export default function CardPoolResourceExplorer() {
                   ? selectedTab === 'hand'
                   : focus.path.includes(item.id)
                 return (
-                  <button
+                  <LiquidMetalButton
                     key={item.id}
                     type="button"
                     className={cn(
@@ -396,7 +396,7 @@ export default function CardPoolResourceExplorer() {
                     }}
                   >
                     {item.label}
-                  </button>
+                  </LiquidMetalButton>
                 )
               })}
             </div>
@@ -415,14 +415,14 @@ export default function CardPoolResourceExplorer() {
                       {scopeTitle(desktopOpen.blackScope)}
                     </span>
                   </span>
-                  <Button
+                  <LiquidMetalButton
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={closeDesktop}
                   >
                     关闭桌面
-                  </Button>
+                  </LiquidMetalButton>
                 </div>
                 <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                   <DemandDiscoveryList

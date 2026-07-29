@@ -56,6 +56,25 @@ export const circleService = {
     return { success: true };
   },
 
+  async leave(userId: string, circleId: string) {
+    const membership = await prisma.circleMember.findUnique({
+      where: { circleId_userId: { circleId, userId } },
+    });
+    if (!membership) throw { status: 404, message: '你不在该圈子中' };
+    if (membership.role === 'OWNER') {
+      throw { status: 400, message: '圈主不能退出，请先转让或解散圈子' };
+    }
+
+    await prisma.circleMember.delete({
+      where: { circleId_userId: { circleId, userId } },
+    });
+    await prisma.circle.update({
+      where: { id: circleId },
+      data: { memberCount: { decrement: 1 } },
+    });
+    return { success: true };
+  },
+
   async joinByCode(userId: string, code: string) {
     const circle = await prisma.circle.findUnique({
       where: { inviteCode: code.toUpperCase() },

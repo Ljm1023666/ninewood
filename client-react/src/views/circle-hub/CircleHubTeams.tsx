@@ -180,9 +180,9 @@ export default function CircleHubTeams() {
                         <span className="cdb-stat-label">上次活动</span>
                         <span>{m.lastActiveLabel}</span>
                       </div>
-                      <button type="button" className="cdb-hub-icon-btn cdb-hub-member-menu" aria-label="更多操作">
+                      <LiquidMetalButton type="button" className="cdb-hub-icon-btn cdb-hub-member-menu" aria-label="更多操作">
                         <MsIcon name="more_vert" size={20} aria-hidden />
-                      </button>
+                      </LiquidMetalButton>
                     </div>
                   </div>
                 )
@@ -260,16 +260,16 @@ export default function CircleHubTeams() {
                   </div>
                 </div>
                 <div className="cdb-hub-pending-actions">
-                  <button type="button" className="cdb-hub-pending-btn" onClick={() => void resend(invite.id)}>
+                  <LiquidMetalButton type="button" className="cdb-hub-pending-btn" onClick={() => void resend(invite.id)}>
                     重新发送
-                  </button>
-                  <button
+                  </LiquidMetalButton>
+                  <LiquidMetalButton
                     type="button"
                     className="cdb-hub-pending-btn cdb-hub-pending-btn--danger"
                     onClick={() => void revoke(invite.id)}
                   >
                     撤销
-                  </button>
+                  </LiquidMetalButton>
                 </div>
               </div>
             ))

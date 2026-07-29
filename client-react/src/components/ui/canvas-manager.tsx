@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { X } from 'lucide-react'
 import { useCanvasStore } from '@/stores/canvas'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface CanvasManagerProps {
   /** 根据 canvas tab 的 type 渲染对应内容 */
@@ -25,7 +26,7 @@ export function CanvasManager({ renderContent }: CanvasManagerProps) {
         {canvases.map((canvas) => {
           const isActive = canvas.id === activeId
           return (
-            <button
+            <LiquidMetalButton
               key={canvas.id}
               onClick={() => setActive(canvas.id)}
               className={`group flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 text-sm transition-colors ${
@@ -44,7 +45,7 @@ export function CanvasManager({ renderContent }: CanvasManagerProps) {
               >
                 <X className="size-3" />
               </span>
-            </button>
+            </LiquidMetalButton>
           )
         })}
       </div>

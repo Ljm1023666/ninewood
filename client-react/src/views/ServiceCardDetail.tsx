@@ -49,7 +49,7 @@ export default function ServiceCardDetail() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
         <p className="text-sm text-red-300">{error || '服务卡不存在'}</p>
-        <button type="button" className="text-sm text-[var(--accent-color)]" onClick={() => navigate('/search')}>返回检索</button>
+        <LiquidMetalButton type="button" className="text-sm text-[var(--accent-color)]" onClick={() => navigate('/search')}>返回检索</LiquidMetalButton>
       </div>
     )
   }
@@ -57,9 +57,9 @@ export default function ServiceCardDetail() {
   const isOwner = card.isOwner === true
   return (
     <div className="mx-auto h-full w-full max-w-5xl overflow-y-auto px-10 py-10">
-      <button type="button" className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary" onClick={() => navigate(-1)}>
+      <LiquidMetalButton type="button" className="inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary" onClick={() => navigate(-1)}>
         <ArrowLeft size={16} /> 返回
-      </button>
+      </LiquidMetalButton>
       <div className="mt-8 grid grid-cols-[1fr_280px] gap-8">
         <main>
           <div className="flex items-start justify-between gap-5">
@@ -114,12 +114,12 @@ export default function ServiceCardDetail() {
           {card.publisher && <p className="mt-5 text-sm text-text-secondary">由 {card.publisher.nickname} 提供</p>}
           {isOwner ? (
             <>
-              <button type="button" onClick={() => navigate(`/service-cards/${card.id}/edit`)} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-sm text-text-primary hover:border-[var(--accent-color)]">
+              <LiquidMetalButton type="button" onClick={() => navigate(`/service-cards/${card.id}/edit`)} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-sm text-text-primary hover:border-[var(--accent-color)]">
                 编辑服务卡
-              </button>
-              <button type="button" disabled={busy} onClick={() => void togglePublish()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-sm text-text-primary hover:border-[var(--accent-color)]">
+              </LiquidMetalButton>
+              <LiquidMetalButton type="button" disabled={busy} onClick={() => void togglePublish()} className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 text-sm text-text-primary hover:border-[var(--accent-color)]">
                 {card.status === 'PUBLISHED' ? <><Pause size={15} /> 下架</> : <><Play size={15} /> 发布</>}
-              </button>
+              </LiquidMetalButton>
             </>
           ) : (
             <div className="mt-6">

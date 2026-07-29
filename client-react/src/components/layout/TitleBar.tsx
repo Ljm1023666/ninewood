@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /**
  * P3-07: Electron 窗口控制接入
@@ -28,7 +29,7 @@ export function ElectronTitleBar() {
 
   return (
     <div className="flex h-7 shrink-0 items-center justify-end gap-1 border-b border-[var(--internal-hairline)] bg-[var(--admin-card-bg)] px-2">
-      <button
+      <LiquidMetalButton
         type="button"
         onClick={() => window.electronAPI?.minimizeWindow()}
         className="flex h-5 w-8 items-center justify-center text-xs text-[var(--admin-text-secondary)] hover:bg-black/[0.05]"
@@ -36,8 +37,8 @@ export function ElectronTitleBar() {
         aria-label="最小化"
       >
         —
-      </button>
-      <button
+      </LiquidMetalButton>
+      <LiquidMetalButton
         type="button"
         onClick={() => window.electronAPI?.maximizeWindow()}
         className="flex h-5 w-8 items-center justify-center text-xs text-[var(--admin-text-secondary)] hover:bg-black/[0.05]"
@@ -45,8 +46,8 @@ export function ElectronTitleBar() {
         aria-label="最大化"
       >
         □
-      </button>
-      <button
+      </LiquidMetalButton>
+      <LiquidMetalButton
         type="button"
         onClick={() => window.electronAPI?.quitApp()}
         className="flex h-5 w-8 items-center justify-center text-xs text-red-500 hover:bg-red-500/10"
@@ -54,7 +55,7 @@ export function ElectronTitleBar() {
         aria-label="关闭"
       >
         ×
-      </button>
+      </LiquidMetalButton>
     </div>
   )
 }

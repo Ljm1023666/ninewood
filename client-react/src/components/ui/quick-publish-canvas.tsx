@@ -9,6 +9,7 @@ import {
   publisherUserCoverPreset,
   resolveProfileBackCoverUrl,
 } from '@/utils/user-cover-presets'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface ParsedFields {
   title: string
@@ -218,12 +219,12 @@ export function QuickPublishCanvas({
         {/* 头部 */}
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-5">
           <div className="flex items-center gap-3 min-w-0">
-            <button
+            <LiquidMetalButton
               onClick={onClose}
               className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
             >
               <X className="size-5" />
-            </button>
+            </LiquidMetalButton>
             <h2 className="text-lg font-semibold text-text-primary truncate flex items-center gap-2">
               {speedMode ? (
                 <>
@@ -238,7 +239,7 @@ export function QuickPublishCanvas({
               )}
             </h2>
           </div>
-          <button
+          <LiquidMetalButton
             onClick={handlePublish}
             disabled={!canPublish || isPublishing}
             className={cn(
@@ -260,7 +261,7 @@ export function QuickPublishCanvas({
                 发布到未分类
               </>
             )}
-          </button>
+          </LiquidMetalButton>
         </div>
 
         {/* 主体 */}
@@ -315,7 +316,7 @@ export function QuickPublishCanvas({
                 <FieldGroup label="服务类型">
                   <div className="flex gap-2">
                     {(['ONLINE', 'OFFLINE'] as const).map((t) => (
-                      <button
+                      <LiquidMetalButton
                         key={t}
                         onClick={() =>
                           setForm((p) => ({ ...p, serviceType: t }))
@@ -329,7 +330,7 @@ export function QuickPublishCanvas({
                         )}
                       >
                         {t === 'ONLINE' ? '线上' : '线下'}
-                      </button>
+                      </LiquidMetalButton>
                     ))}
                   </div>
                 </FieldGroup>

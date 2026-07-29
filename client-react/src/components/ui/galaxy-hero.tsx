@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react'
 import { Suspense, lazy } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 const Spline = lazy(() => import('@splinetool/react-spline'))
 
 function HeroSplineBackground() {
@@ -62,19 +63,19 @@ function HeroContent() {
         语义分类器自动解析需求，卡池拖拽筛选匹配服务者，圈子内定向协作——从创意到交付，一站式闭环。
       </p>
       <div className="flex pointer-events-auto flex-col sm:flex-row items-start space-y-3 sm:space-y-0 sm:space-x-4">
-        <button
+        <LiquidMetalButton
           onClick={() => navigate('/')}
           className="bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-8 rounded-full transition duration-300 border border-white/10"
           style={{ backdropFilter: 'blur(8px)' }}
         >
           进入平台
-        </button>
-        <button
+        </LiquidMetalButton>
+        <LiquidMetalButton
           onClick={() => navigate('/help')}
           className="pointer-events-auto bg-transparent border border-white/20 hover:border-white/40 text-white/70 hover:text-white font-medium py-3 px-8 rounded-full transition duration-300"
         >
           了解更多
-        </button>
+        </LiquidMetalButton>
       </div>
     </div>
   )

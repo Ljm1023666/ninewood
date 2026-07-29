@@ -22,6 +22,7 @@ import {
 } from '@/components/card-pool/scope'
 import { CardPoolHandStackCard } from '@/components/card-pool/CardPoolTile'
 import { stitchTileFaceGradient } from '@/constants/card-pool-stitch'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const PEEK_LEAVE_MS = 420
 
@@ -512,7 +513,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                     </div>
                     {entries.length >= 2 && (
                       <div className="relative z-10 flex w-full items-center justify-center py-3 sm:w-[30rem]">
-                        <button
+                        <LiquidMetalButton
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
@@ -536,7 +537,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                           <span className="text-muted-foreground/60">
                             ({currentPos} / {entries.length})
                           </span>
-                        </button>
+                        </LiquidMetalButton>
                       </div>
                     )}
                   </div>
@@ -593,7 +594,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
 
             <div className="card-pool-hand-dock__actions">
               {onClearHand && entries.length > 0 ? (
-                <button
+                <LiquidMetalButton
                   type="button"
                   className="card-pool-hand-dock__clear"
                   onClick={(e) => {
@@ -602,7 +603,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                   }}
                 >
                   清空手牌
-                </button>
+                </LiquidMetalButton>
               ) : null}
               <ChevronUp
                 className={cn(
@@ -623,7 +624,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                 className="fixed z-[var(--z-modal)] min-w-[160px] rounded-lg border border-border bg-bg-secondary p-1 text-foreground shadow-xl ring-1 ring-black/20 backdrop-blur-none"
                 style={{ left: ctx.x, top: ctx.y }}
               >
-                <button
+                <LiquidMetalButton
                   type="button"
                   className="flex w-full rounded px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-tertiary"
                   onClick={() => {
@@ -632,8 +633,8 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                   }}
                 >
                   从手牌移除
-                </button>
-                <button
+                </LiquidMetalButton>
+                <LiquidMetalButton
                   type="button"
                   className="flex w-full rounded px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-tertiary"
                   onClick={() => {
@@ -642,8 +643,8 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                   }}
                 >
                   置顶（首位）
-                </button>
-                <button
+                </LiquidMetalButton>
+                <LiquidMetalButton
                   type="button"
                   className="flex w-full rounded px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-tertiary"
                   onClick={() => {
@@ -652,8 +653,8 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                   }}
                 >
                   查看详情
-                </button>
-                <button
+                </LiquidMetalButton>
+                <LiquidMetalButton
                   type="button"
                   className="flex w-full rounded px-3 py-2 text-left text-sm text-text-primary hover:bg-bg-tertiary"
                   onClick={() => {
@@ -662,7 +663,7 @@ export const HandPile = forwardRef<HTMLDivElement, HandPileProps>(
                   }}
                 >
                   弃牌区
-                </button>
+                </LiquidMetalButton>
               </div>
             </>
           ) : null}

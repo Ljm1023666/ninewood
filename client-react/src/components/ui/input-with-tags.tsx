@@ -1,6 +1,6 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -33,12 +33,12 @@ const Tag = ({ text, onRemove, variant }: Tag) => {
     >
       {text}
       <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-        <Button
+        <LiquidMetalButton
           onClick={onRemove}
           className="bg-transparent text-xs h-fit flex items-center rounded-full justify-center text-white p-1 hover:bg-white/10"
         >
           <X className="w-4 h-4" />
-        </Button>
+        </LiquidMetalButton>
       </motion.div>
     </motion.span>
   )

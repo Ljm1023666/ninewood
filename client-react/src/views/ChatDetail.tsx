@@ -438,21 +438,21 @@ export default function ChatDetail() {
       headerTrailing={
         !isMergeChat && peerId ? (
           <>
-            <button
+            <LiquidMetalButton
               type="button"
               className="msg-chat-header__action msg-chat-header__action--muted"
               onClick={() => setShowReport(true)}
             >
               举报
-            </button>
-            <button
+            </LiquidMetalButton>
+            <LiquidMetalButton
               type="button"
               disabled={blocking}
               className="msg-chat-header__action msg-chat-header__action--danger"
               onClick={() => void handleBlockPeer()}
             >
               拉黑
-            </button>
+            </LiquidMetalButton>
           </>
         ) : undefined
       }
@@ -496,13 +496,13 @@ export default function ChatDetail() {
                 </div>
                 <h2>消息没有加载成功</h2>
                 <p>{loadError}</p>
-                <button
+                <LiquidMetalButton
                   type="button"
                   className="msg-thread-state__action"
                   onClick={() => void loadCurrentMessages()}
                 >
                   重新加载
-                </button>
+                </LiquidMetalButton>
               </div>
             ) : threadContentState === 'mismatch' ||
               threadContentState === 'empty' ? (
@@ -528,13 +528,13 @@ export default function ChatDetail() {
                     : '发送第一条消息，开始这段对话。'}
                 </p>
                 {threadContentState === 'mismatch' ? (
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     className="msg-thread-state__action"
                     onClick={() => void loadCurrentMessages()}
                   >
                     重新加载
-                  </button>
+                  </LiquidMetalButton>
                 ) : null}
               </div>
             ) : (
@@ -663,7 +663,7 @@ export default function ChatDetail() {
             <div className="msg-composer__emoji">
               <div className="msg-composer__emoji-grid">
                 {emojis.map((e) => (
-                  <button
+                  <LiquidMetalButton
                     key={e}
                     type="button"
                     onClick={() => {
@@ -673,7 +673,7 @@ export default function ChatDetail() {
                     className="msg-composer__emoji-btn"
                   >
                     {e}
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
             </div>
@@ -681,14 +681,14 @@ export default function ChatDetail() {
 
           <MsgComposerRebound playKey={paneKey || 'chat'}>
             <div className="msg-composer__bar">
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="msg-composer__icon-btn"
                 onClick={() => setShowEmoji(!showEmoji)}
                 title="表情"
               >
                 <MsIcon name="mood" size={20} />
-              </button>
+              </LiquidMetalButton>
 
               <textarea
                 ref={textareaRef}
@@ -726,7 +726,7 @@ export default function ChatDetail() {
           onClick={() => setShowReport(false)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-border bg-bg-primary p-4 shadow-lg"
+            className="liquid-glass-surface w-full max-w-md rounded-xl p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="mb-3 text-base font-semibold text-text-primary">举报用户</h3>
@@ -753,13 +753,13 @@ export default function ChatDetail() {
               placeholder="请描述违规情况…"
             />
             <div className="flex justify-end gap-2">
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="rounded-lg px-3 py-1.5 text-sm text-text-muted hover:bg-bg-secondary"
                 onClick={() => setShowReport(false)}
               >
                 取消
-              </button>
+              </LiquidMetalButton>
               <LiquidMetalButton
                 label="提交举报"
                 disabled={!reportReason.trim()}

@@ -14,6 +14,7 @@ import {
   DlpBtnPrimary,
   DlpBtnGhost,
 } from '@/components/layout/desktop-page'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface Contact {
   id: string
@@ -121,7 +122,7 @@ export default function NewGroupChat() {
                 {filtered.map((c) => {
                   const isSel = !!selected.find((x) => x.id === c.id)
                   return (
-                    <button
+                    <LiquidMetalButton
                       key={c.id}
                       type="button"
                       onClick={() => toggle(c)}
@@ -148,7 +149,7 @@ export default function NewGroupChat() {
                       >
                         {isSel && <MsIcon name="check" size={12} className="text-[var(--wallet-on-accent)]" />}
                       </div>
-                    </button>
+                    </LiquidMetalButton>
                   )
                 })}
               </div>
@@ -165,7 +166,7 @@ export default function NewGroupChat() {
               ) : (
                 <div className="dlp-tag-grid">
                   {selected.map((c) => (
-                    <button
+                    <LiquidMetalButton
                       key={c.id}
                       type="button"
                       onClick={() => toggle(c)}
@@ -173,7 +174,7 @@ export default function NewGroupChat() {
                     >
                       {c.nickname}
                       <MsIcon name="close" size={14} />
-                    </button>
+                    </LiquidMetalButton>
                   ))}
                 </div>
               )}

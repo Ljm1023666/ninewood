@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /* ── 工具函数 ── */
 
@@ -237,14 +238,14 @@ export function AdminSubNav({
       {items.map((item) => {
         const active = activeId === item.id
         return (
-          <button
+          <LiquidMetalButton
             key={item.id}
             type="button"
             onClick={() => onSelect(item.id)}
             className={cn('admin-subnav__btn', active && 'is-active')}
           >
             {item.label}
-          </button>
+          </LiquidMetalButton>
         )
       })}
     </nav>
@@ -389,13 +390,13 @@ export function AdminErrorState({
         <p className="mb-4 text-sm text-[var(--admin-text-secondary)]">
           {message}
         </p>
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={onRetry}
           className="rounded-[var(--admin-radius-xs)] border border-[var(--admin-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--admin-text)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-black/[0.02] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0"
         >
           重试
-        </button>
+        </LiquidMetalButton>
       </div>
     </div>
   )

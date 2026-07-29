@@ -89,13 +89,13 @@ export function AgentTaskCreateForm({ onCreated, onCancel, disabled, className }
           </p>
         </div>
         {onCancel && (
-          <button
+          <LiquidMetalButton
             type="button"
             className="agent-btn agent-btn--ghost agent-btn--xs"
             onClick={onCancel}
           >
             收起
-          </button>
+          </LiquidMetalButton>
         )}
       </div>
 
@@ -153,14 +153,14 @@ export function AgentTaskCreateForm({ onCreated, onCancel, disabled, className }
         )}
 
         {onCancel && (
-          <button
+          <LiquidMetalButton
             type="button"
             className="agent-btn agent-btn--ghost"
             onClick={onCancel}
             disabled={building || saving}
           >
             取消
-          </button>
+          </LiquidMetalButton>
         )}
       </div>
 

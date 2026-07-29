@@ -15,6 +15,8 @@ const MessagesIndexPlaceholder = lazy(
   () => import('@/views/MessagesIndexPlaceholder'),
 )
 const Circles = lazy(() => import('@/views/Circles'))
+const CirclesMine = lazy(() => import('@/views/CirclesMine'))
+const CircleInterestDetail = lazy(() => import('@/views/CircleInterestDetail'))
 const Discussions = lazy(() => import('@/views/Discussions'))
 const CircleHubLayout = lazy(() => import('@/views/circle-hub/CircleHubLayout'))
 const CircleHubHome = lazy(() => import('@/views/circle-hub/CircleHubHome'))
@@ -69,12 +71,6 @@ const DemandPathsPage = lazy(() => import('@/views/demand-paths/DemandPathsPage'
 const NotFound = lazy(() => import('@/views/NotFound'))
 const Follows = lazy(() => import('@/views/Follows'))
 const Dashboard = lazy(() => import('@/views/Dashboard'))
-const LoopOfferingDetailPage = lazy(() => import('@/views/loop/LoopOfferingRoutePage'))
-const MyLoopsPage = lazy(() => import('@/views/loop/MyLoopsPage'))
-const LoopDiscoverPage = lazy(() => import('@/views/loop/LoopDiscoverPage'))
-const LoopAcceptPage = lazy(() => import('@/views/loop/LoopAcceptPage'))
-const LoopSupplyPage = lazy(() => import('@/views/loop/LoopSupplyPage'))
-const LoopRunDetailPage = lazy(() => import('@/views/loop/LoopRunDetailPage'))
 const LoopHubLayout = lazy(() => import('@/views/loop/LoopHubLayout'))
 
 function LegacyLoopRedirect() {
@@ -104,11 +100,6 @@ function LazyLoad({
   )
 }
 
-/** 回中心 Tab 切换：无整页 loader，避免初次点 Tab 白屏闪烁 */
-function HubLazy({ children }: { children: ReactNode }) {
-  return <Suspense fallback={null}>{children}</Suspense>
-}
-
 function AuthGuard() {
   const ready = useUserStore((s) => s.ready)
   const user = useUserStore((s) => s.user)
@@ -123,8 +114,8 @@ function AuthGuard() {
   return <Outlet />
 }
 
-/** 已登录工作首页；品牌星空 `/` 仅留给访客 */
-const AUTH_HOME = '/card-pool'
+/** 已登录首页进发现页；品牌星空 `/` 仅留给访客 */
+const AUTH_HOME = '/discover'
 
 function GuestGuard() {
   const ready = useUserStore((s) => s.ready)
@@ -193,7 +184,6 @@ export const router = createBrowserRouter([
               </LazyLoad>
             ),
             children: [
-              { index: true, element: <Navigate to="community" replace /> },
               {
                 path: 'home',
                 element: (
@@ -267,7 +257,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'discover',
-            element: <Navigate to={AUTH_HOME} replace />,
+            element: (
+              <LazyLoad>
+                <Discover />
+              </LazyLoad>
+            ),
           },
           {
             path: 'card-pool/explorer',
@@ -314,6 +308,22 @@ export const router = createBrowserRouter([
             element: (
               <LazyLoad>
                 <Circles />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'circles/mine',
+            element: (
+              <LazyLoad>
+                <CirclesMine />
+              </LazyLoad>
+            ),
+          },
+          {
+            path: 'circles/:id',
+            element: (
+              <LazyLoad>
+                <CircleInterestDetail />
               </LazyLoad>
             ),
           },
@@ -581,58 +591,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'loops/runs/:id',
-            element: (
-              <LazyLoad>
-                <LoopRunDetailPage />
-              </LazyLoad>
-            ),
-          },
-          {
-            path: 'loops',
+            // 回中心整棵打进同一 lazy chunk（LoopHubLayout 内静态 Routes），
+            // 发现↔详情软跳转不再经 Suspense/startTransition 假导航。
+            path: 'loops/*',
             element: (
               <LazyLoad>
                 <LoopHubLayout />
               </LazyLoad>
             ),
-            children: [
-              {
-                index: true,
-                element: <LegacyLoopRedirect />,
-              },
-              {
-                path: 'discover',
-                element: (
-                  <HubLazy>
-                    <LoopDiscoverPage />
-                  </HubLazy>
-                ),
-              },
-              {
-                path: 'mine',
-                element: (
-                  <HubLazy>
-                    <MyLoopsPage />
-                  </HubLazy>
-                ),
-              },
-              {
-                path: 'accept',
-                element: (
-                  <HubLazy>
-                    <LoopAcceptPage />
-                  </HubLazy>
-                ),
-              },
-              {
-                path: 'supply',
-                element: (
-                  <HubLazy>
-                    <LoopSupplyPage />
-                  </HubLazy>
-                ),
-              },
-            ],
           },
           {
             path: 'my-service-cards',
@@ -697,14 +663,6 @@ export const router = createBrowserRouter([
       {
         path: '/services/:id',
         element: <LegacyLoopRedirect />,
-      },
-      {
-        path: '/loops',
-        element: <Navigate to="/loops/discover" replace />,
-      },
-      {
-        path: '/loops/offerings/:id',
-        element: <LazyLoad><LoopOfferingDetailPage /></LazyLoad>,
       },
     ],
   },

@@ -170,7 +170,7 @@ export function CircleDetailBentoView({
               </div>
             </div>
           </div>
-          <button
+          <LiquidMetalButton
             type="button"
             className="cdb-btn-ghost"
             onClick={() => void handleShare()}
@@ -178,7 +178,7 @@ export function CircleDetailBentoView({
           >
             <MsIcon name="share" size={18} aria-hidden />
             <span>分享此圈子</span>
-          </button>
+          </LiquidMetalButton>
         </section>
 
         <section
@@ -223,21 +223,21 @@ export function CircleDetailBentoView({
               <span className="cdb-badge">NEW</span>
             </div>
             {showViewAll ? (
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="cdb-demands-link"
                 onClick={handleViewAll}
                 data-testid="circle-view-all-btn"
               >
                 查看全部
-              </button>
+              </LiquidMetalButton>
             ) : null}
           </div>
           <div className="cdb-demands-body">
             {demands.length > 0 ? (
               <div className="flex flex-col gap-3 overflow-y-auto">
                 {demands.map((d) => (
-                  <button
+                  <LiquidMetalButton
                     key={d.id}
                     type="button"
                     onClick={() => onDemandClick(d.id)}
@@ -250,7 +250,7 @@ export function CircleDetailBentoView({
                       {d.tagName || d.category}
                       {d.createdAgo ? ` · ${d.createdAgo}` : ''}
                     </p>
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
             ) : (

@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { router } from '@/router/index.tsx'
 import { useUserStore } from '@/stores/user'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
@@ -14,13 +15,13 @@ function ErrorFallback({ error }: { error: Error }) {
       <p className="max-w-md text-center text-sm text-white/50">
         {error.message || '发生了意外错误，请刷新页面重试'}
       </p>
-      <button
+      <LiquidMetalButton
         type="button"
         onClick={() => window.location.reload()}
         className="mt-2 rounded-xl bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
       >
         刷新页面
-      </button>
+      </LiquidMetalButton>
     </div>
   )
 }

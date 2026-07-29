@@ -5,6 +5,7 @@ import {
   DlpBtnGhost,
 } from '@/components/layout/desktop-page'
 import { MsIcon } from '@/components/ui/ms-icon'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const shortcuts = [
   { label: '去发现', path: '/', icon: 'explore' },
@@ -33,7 +34,7 @@ export default function NotFound() {
 
           <div className="dlp-shortcut-grid">
             {shortcuts.map((s) => (
-              <button
+              <LiquidMetalButton
                 key={s.path}
                 type="button"
                 onClick={() => navigate(s.path)}
@@ -41,7 +42,7 @@ export default function NotFound() {
               >
                 <MsIcon name={s.icon} size={20} className="text-[var(--price-foreground)]" />
                 <span className="text-sm font-medium text-text-primary">{s.label}</span>
-              </button>
+              </LiquidMetalButton>
             ))}
           </div>
         </div>

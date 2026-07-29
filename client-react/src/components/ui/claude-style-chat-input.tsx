@@ -9,6 +9,7 @@ import {
   Check,
   Archive,
 } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const Icons = {
   Plus,
@@ -69,7 +70,7 @@ function ModelSelector({
   }, [])
   return (
     <div className="relative" ref={ref}>
-      <button
+      <LiquidMetalButton
         onClick={() => setOpen(!open)}
         className={`inline-flex items-center justify-center shrink-0 transition h-8 rounded-xl px-3 min-w-[4rem] active:scale-[0.98] whitespace-nowrap !text-xs gap-1 ${open ? 'bg-bg-200 text-text-100' : 'text-text-300 hover:text-text-200 hover:bg-bg-200'}`}
       >
@@ -77,11 +78,11 @@ function ModelSelector({
         <Icons.SelectArrow
           className={`shrink-0 opacity-75 transition-transform ${open ? 'rotate-180' : ''}`}
         />
-      </button>
+      </LiquidMetalButton>
       {open && (
         <div className="absolute bottom-full right-0 mb-2 w-[260px] bg-white dark:bg-[#212121] border border-[#DDDDDD] dark:border-[#30302E] rounded-2xl shadow-2xl z-50 p-1.5 animate-fade-in origin-bottom-right">
           {models.map((m) => (
-            <button
+            <LiquidMetalButton
               key={m.id}
               onClick={() => {
                 onSelect(m.id)
@@ -95,7 +96,7 @@ function ModelSelector({
               <span className="text-[11px] text-text-300 dark:text-[#999999] block">
                 {m.description}
               </span>
-            </button>
+            </LiquidMetalButton>
           ))}
         </div>
       )}
@@ -226,14 +227,14 @@ export default function ClaudeChatInput({
                       <p className="text-xs truncate">{f.file.name}</p>
                     </div>
                   )}
-                  <button
+                  <LiquidMetalButton
                     onClick={() =>
                       setFiles((p) => p.filter((x) => x.id !== f.id))
                     }
                     className="absolute top-1 right-1 p-1 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100"
                   >
                     <Icons.X className="w-3 h-3" />
-                  </button>
+                  </LiquidMetalButton>
                   {f.uploadStatus === 'pending' && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <Icons.Loader2 className="w-5 h-5 text-white animate-spin" />
@@ -265,26 +266,26 @@ export default function ClaudeChatInput({
           </div>
           <div className="flex gap-2 w-full items-center">
             <div className="flex-1 flex items-center gap-1">
-              <button
+              <LiquidMetalButton
                 onClick={() => fi.current?.click()}
                 className="h-8 w-8 rounded-lg active:scale-95 text-text-400 hover:text-text-200 hover:bg-bg-200 cursor-pointer"
               >
                 <Icons.Plus className="w-5 h-5" />
-              </button>
-              <button
+              </LiquidMetalButton>
+              <LiquidMetalButton
                 onClick={() => onThinkModeChange(!thinkMode)}
                 className={`h-8 w-8 rounded-lg active:scale-95 cursor-pointer ${thinkMode ? 'text-accent bg-accent/10' : 'text-text-400 hover:text-text-200 hover:bg-bg-200'}`}
                 aria-pressed={thinkMode}
               >
                 <Icons.Thinking className="w-5 h-5" />
-              </button>
-              <button
+              </LiquidMetalButton>
+              <LiquidMetalButton
                 onClick={() => onWebSearchChange(!webSearch)}
                 className={`h-7 w-7 rounded-lg active:scale-95 cursor-pointer text-xs font-bold ${webSearch ? 'text-blue-400 bg-blue-500/10' : 'text-text-400 hover:text-text-200 hover:bg-bg-200'}`}
                 aria-pressed={webSearch}
               >
                 @
-              </button>
+              </LiquidMetalButton>
             </div>
             <div className="flex items-center gap-1">
               <ModelSelector
@@ -293,20 +294,20 @@ export default function ClaudeChatInput({
                 onSelect={setModel}
               />
               {loading ? (
-                <button
+                <LiquidMetalButton
                   onClick={onStop}
                   className="h-8 w-8 rounded-xl active:scale-95 bg-red-500/20 text-red-400 hover:bg-red-500/30 cursor-pointer"
                 >
                   <div className="size-3 bg-red-400 rounded-sm mx-auto" />
-                </button>
+                </LiquidMetalButton>
               ) : (
-                <button
+                <LiquidMetalButton
                   onClick={go}
                   disabled={!has}
                   className={`h-8 w-8 rounded-xl active:scale-95 cursor-pointer ${has ? 'border border-[var(--liquid-glass-border,rgba(255,255,255,0.2))] bg-[var(--liquid-glass-bg,rgba(255,255,255,0.14))] text-text-primary shadow-sm backdrop-blur-md' : 'bg-accent/30 text-bg-0/60 cursor-default'}`}
                 >
                   <Icons.ArrowUp className="w-4 h-4" />
-                </button>
+                </LiquidMetalButton>
               )}
             </div>
           </div>

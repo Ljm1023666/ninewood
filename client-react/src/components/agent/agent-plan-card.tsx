@@ -55,13 +55,13 @@ export function AgentPlanCard({
       {onConfirm || onCancel ? (
         <div className="agent-codex-plan__actions">
           {onCancel ? (
-            <button
+            <LiquidMetalButton
               type="button"
               onClick={onCancel}
               className="agent-codex-plan__btn agent-codex-plan__btn--cancel"
             >
               取消
-            </button>
+            </LiquidMetalButton>
           ) : null}
           {onConfirm ? (
             <div className="agent-codex-plan__btn--confirm-slot">

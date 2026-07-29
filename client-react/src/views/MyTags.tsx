@@ -11,6 +11,7 @@ import {
   DlpToggleRow,
 } from '@/components/layout/desktop-page'
 import { userApi } from '@/api/user'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 export default function MyTags() {
   const { tags: allTags, loading: allTagsLoading, error: allTagsError } = useTagLoader()
   const [myTags, setMyTags] = useState<string[]>([])
@@ -117,14 +118,14 @@ export default function MyTags() {
                   {myTags.map((tag) => (
                     <span key={tag} className="dlp-tag dlp-tag--on">
                       {tag}
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => removeTag(tag)}
                         className="text-text-muted hover:text-error"
                         aria-label={`移除标签 ${tag}`}
                       >
                         <MsIcon name="close" size={14} />
-                      </button>
+                      </LiquidMetalButton>
                     </span>
                   ))}
                 </div>
@@ -160,9 +161,9 @@ export default function MyTags() {
             ) : (
               <div className="dlp-tag-grid">
                 {availableTags.map((tag) => (
-                  <button key={tag} type="button" className="dlp-tag" onClick={() => addTag(tag)}>
+                  <LiquidMetalButton key={tag} type="button" className="dlp-tag" onClick={() => addTag(tag)}>
                     {tag}
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
             )}

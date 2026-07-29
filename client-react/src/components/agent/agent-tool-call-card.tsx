@@ -6,6 +6,7 @@ import {
   isPendingToolCall,
   type AgentToolCall,
 } from '@/types/agent-tool-call'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type AgentToolCallCardProps = {
   tool: AgentToolCall
@@ -98,46 +99,46 @@ export function AgentToolCallCard({
 
       {pending && onApprove && onReject ? (
         <div className="agent-codex-tool-approval">
-          <button
+          <LiquidMetalButton
             type="button"
             className="agent-codex-tool-approval__btn agent-codex-tool-approval__btn--approve"
             onClick={onApprove}
           >
             批准
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             type="button"
             className="agent-codex-tool-approval__btn agent-codex-tool-approval__btn--reject"
             onClick={onReject}
           >
             拒绝
-          </button>
+          </LiquidMetalButton>
         </div>
       ) : null}
 
       {navigatePath && onNavigate && !pending ? (
         <div className="border-t border-[var(--internal-hairline)] px-3 py-2">
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => onNavigate(navigatePath)}
             className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[var(--internal-accent)] transition-colors hover:opacity-80"
           >
             前往页面
             <MsIcon name="chevron_right" size={12} />
-          </button>
+          </LiquidMetalButton>
         </div>
       ) : null}
 
       {demandId && onNavigate && !pending ? (
         <div className="border-t border-[var(--internal-hairline)] px-3 py-2">
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => onNavigate(`/demands/${demandId}`)}
             className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-[var(--internal-accent)] transition-colors hover:opacity-80"
           >
             查看需求卡片
             <MsIcon name="chevron_right" size={12} />
-          </button>
+          </LiquidMetalButton>
         </div>
       ) : null}
     </div>

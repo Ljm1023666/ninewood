@@ -15,6 +15,8 @@ import {
   DlpBenefitItem,
 } from '@/components/layout/desktop-page'
 import { LoadingState } from '@/components/ui/loading-state'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+import { SegmentedFilter } from '@/components/layout/internal-ui'
 
 interface SearchUser {
   id: string
@@ -113,31 +115,17 @@ export default function Search() {
 
       <div className="mb-6 flex flex-col items-center gap-3">
         <p className="text-[15px] font-medium text-text-secondary">当前优先找</p>
-        <div
-          className="inline-flex gap-1 rounded-xl bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)] p-1"
-          role="group"
-          aria-label="搜索身份"
-        >
-          {(['DEMANDER', 'PROVIDER'] as const).map((value) => {
-            const active = identity === value
-            return (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={active}
-                disabled={cardRefreshing}
-                className={`min-w-[7.5rem] rounded-lg px-5 py-2.5 text-[15px] font-semibold transition-colors ${
-                  active
-                    ? 'bg-[var(--bg-secondary)] text-[var(--accent-color)] shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-color)_28%,transparent)]'
-                    : 'text-text-muted hover:text-text-secondary'
-                }`}
-                onClick={() => void changeIdentity(value)}
-              >
-                {value === 'DEMANDER' ? '我是需求者' : '我是服务者'}
-              </button>
-            )
-          })}
-        </div>
+        <SegmentedFilter
+          fit
+          options={[
+            { value: 'DEMANDER', label: '我是需求者' },
+            { value: 'PROVIDER', label: '我是服务者' },
+          ]}
+          value={identity}
+          onChange={(next) => {
+            if (!cardRefreshing) void changeIdentity(next)
+          }}
+        />
       </div>
 
       <div className="dlp-split dlp-split--aside-rail">
@@ -166,7 +154,7 @@ export default function Search() {
                       ? certLabel[u.certificationLevel as keyof typeof certLabel]
                       : null
                   return (
-                    <button
+                    <LiquidMetalButton
                       key={u.id}
                       type="button"
                       className="dlp-glass dlp-user-card"
@@ -194,7 +182,7 @@ export default function Search() {
                           <p className="mt-2 line-clamp-2 text-sm text-text-muted">{u.bio}</p>
                         ) : null}
                       </div>
-                    </button>
+                    </LiquidMetalButton>
                   )
                 })}
               </div>
@@ -218,7 +206,7 @@ export default function Search() {
               <div className="space-y-3">
                 {cardResults.map((card) => (
                   card.resultType === 'SERVICE_CARD' ? (
-                    <button
+                    <LiquidMetalButton
                       key={`service-${card.id}`}
                       type="button"
                       className="flex w-full items-start gap-4 rounded-xl border border-border bg-bg-card p-4 text-left transition-colors hover:border-[var(--accent-color)]"
@@ -238,9 +226,9 @@ export default function Search() {
                           ))}
                         </div>
                       </div>
-                    </button>
+                    </LiquidMetalButton>
                   ) : (
-                    <button
+                    <LiquidMetalButton
                       key={`demand-${card.id}`}
                       type="button"
                       className="flex w-full items-start gap-4 rounded-xl border border-border bg-bg-card p-4 text-left transition-colors hover:border-[var(--accent-color)]"
@@ -255,7 +243,7 @@ export default function Search() {
                         <p className="mt-1 text-sm text-text-secondary">{card.category} · 预算 {card.price}</p>
                         <p className="mt-2 text-xs text-text-muted">{card.applicants} 人已申请</p>
                       </div>
-                    </button>
+                    </LiquidMetalButton>
                   )
                 ))}
               </div>

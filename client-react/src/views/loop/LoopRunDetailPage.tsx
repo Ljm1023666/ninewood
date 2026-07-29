@@ -8,7 +8,6 @@ import {
 } from '@/api/notification-policy'
 import { CompletionSummaryView } from '@/components/outcome/CompletionSummary'
 import { useTaskActiveTime } from '@/utils/task-active-time'
-import LoopHubNav from './LoopHubNav'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const STATUS: Record<string, string> = {
@@ -81,8 +80,6 @@ export default function LoopRunDetailPage() {
   }
 
   return (
-    <div className="loop-hub-page">
-      <LoopHubNav />
       <main className="loop-run-detail">
         <LiquidMetalButton type="button" className="loop-back" onClick={() => navigate('/loops/mine')}><ArrowLeft size={16} /> 返回我的回</LiquidMetalButton>
         {loading && <div className="loop-notice">正在读取运行详情…</div>}
@@ -199,6 +196,5 @@ export default function LoopRunDetailPage() {
           </>
         )}
       </main>
-    </div>
   )
 }

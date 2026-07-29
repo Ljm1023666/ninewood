@@ -110,7 +110,7 @@ export default function CircleHubHelp() {
           </div>
           <div className="cdb-hub-quick-grid">
             {QUICK_LINKS.map((link) => (
-              <button
+              <LiquidMetalButton
                 key={link.label}
                 type="button"
                 className="cdb-hub-quick-item"
@@ -118,7 +118,7 @@ export default function CircleHubHelp() {
               >
                 <MsIcon name={link.icon} size={24} className="cdb-text-muted" aria-hidden />
                 <span>{link.label}</span>
-              </button>
+              </LiquidMetalButton>
             ))}
           </div>
         </section>
@@ -136,9 +136,9 @@ export default function CircleHubHelp() {
               </li>
             ))}
           </ul>
-          <button type="button" className="cdb-demands-link cdb-hub-rules-more" onClick={() => stubLink('完整规范')}>
+          <LiquidMetalButton type="button" className="cdb-demands-link cdb-hub-rules-more" onClick={() => stubLink('完整规范')}>
             查看完整规范 →
-          </button>
+          </LiquidMetalButton>
         </section>
 
         <section className="cdb-glass-card cdb-hub-contact">
@@ -159,10 +159,10 @@ export default function CircleHubHelp() {
             </div>
           </div>
           <div className="cdb-hub-contact-actions">
-            <button type="button" className="cdb-hub-btn-outline" onClick={() => stubLink('发送私信')}>
+            <LiquidMetalButton type="button" className="cdb-hub-btn-outline" onClick={() => stubLink('发送私信')}>
               <MsIcon name="mail" size={20} aria-hidden />
               发送私信
-            </button>
+            </LiquidMetalButton>
             <LiquidMetalButton label="在线咨询" onClick={() => stubLink('在线咨询')} />
           </div>
         </section>

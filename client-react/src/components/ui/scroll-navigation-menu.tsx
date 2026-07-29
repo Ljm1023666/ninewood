@@ -19,6 +19,9 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/stores/user'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+
+const MotionLiquidMetalButton = motion.create(LiquidMetalButton)
 
 interface MenuItem {
   id: number
@@ -222,14 +225,14 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                         <span>{item.title}</span>
                       </Link>
                     ) : (
-                      <button
+                      <LiquidMetalButton
                         onClick={item.onClick}
                         className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                           isLight ? 'text-[#1d1d1f]/80 hover:text-[#1d1d1f]' : 'text-white'
                         }`}
                       >
                         <span>{item.title}</span>
-                      </button>
+                      </LiquidMetalButton>
                     )}
                   </motion.div>
                 ))}
@@ -253,7 +256,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                 </Link>
               </motion.div>
 
-              <motion.button
+              <MotionLiquidMetalButton
                 onClick={toggleMenu}
                 className={`p-2 rounded-md focus:outline-none ${
                   isLight ? 'text-[#1d1d1f]' : 'text-white'
@@ -262,7 +265,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                 whileTap={{ scale: 0.9 }}
               >
                 <Menu className="size-6" />
-              </motion.button>
+              </MotionLiquidMetalButton>
             </div>
           </div>
         </div>
@@ -278,7 +281,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="fixed top-6 right-6 z-50"
       >
-        <motion.button
+        <MotionLiquidMetalButton
           onClick={toggleMenu}
           className="w-14 h-14 bg-foreground text-background rounded-full shadow-lg flex items-center justify-center"
           variants={hamburgerVariants}
@@ -287,7 +290,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
           whileTap={{ scale: 0.9 }}
         >
           <Menu className="size-6" />
-        </motion.button>
+        </MotionLiquidMetalButton>
       </motion.div>
 
       {/* 弹出菜单 */}
@@ -316,7 +319,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                     : 'bg-neutral-900 border border-white/10 shadow-black/50 ring-1 ring-white/5'
                 }`}
               >
-                <motion.button
+                <MotionLiquidMetalButton
                   onClick={toggleMenu}
                   className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
                     isLight
@@ -327,7 +330,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                   whileTap={{ scale: 0.9 }}
                 >
                   <X className="size-5" />
-                </motion.button>
+                </MotionLiquidMetalButton>
 
                 <div className="space-y-4 mt-8">
                   {allItems.map((item) => (
@@ -361,7 +364,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                           </span>
                         </Link>
                       ) : (
-                        <button
+                        <LiquidMetalButton
                           onClick={() => {
                             item.onClick?.()
                             setIsMenuOpen(false)
@@ -384,7 +387,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                           >
                             {item.title}
                           </span>
-                        </button>
+                        </LiquidMetalButton>
                       )}
                     </motion.div>
                   ))}

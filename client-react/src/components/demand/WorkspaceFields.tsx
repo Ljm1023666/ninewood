@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
 import { MaterialSwitch } from '@/components/ui/material-switch'
 import { REGION_FACET_OPTIONS, REGION_ID_LABEL } from '@/constants/path-search'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 function LockToggle({ fieldKey }: { fieldKey: string }) {
   const locked = useDemandWorkspaceStore((s) => s.fieldOverrides.has(fieldKey))
@@ -37,7 +38,7 @@ export function WorkspaceFields({ mode = 'demand' }: { mode?: 'demand' | 'servic
 
       <div className="ws-field-row" style={{ marginBottom: 12 }}>
         <div className="ws-seg">
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => updateField('serviceType', 'ONLINE')}
             className={cn(
@@ -47,8 +48,8 @@ export function WorkspaceFields({ mode = 'demand' }: { mode?: 'demand' | 'servic
           >
             <Monitor className="size-4" />
             线上
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             type="button"
             onClick={() => updateField('serviceType', 'OFFLINE')}
             className={cn(
@@ -58,7 +59,7 @@ export function WorkspaceFields({ mode = 'demand' }: { mode?: 'demand' | 'servic
           >
             <MapPin className="size-4" />
             线下
-          </button>
+          </LiquidMetalButton>
         </div>
         <LockToggleSlot fieldKey="serviceType" />
       </div>
@@ -235,7 +236,7 @@ function KeywordTags() {
         {keywords.map((kw) => {
           const locked = lockedKeywords.has(kw)
           return (
-            <button
+            <LiquidMetalButton
               key={kw}
               type="button"
               onClick={() => toggleKeywordLock(kw)}
@@ -243,7 +244,7 @@ function KeywordTags() {
               style={{ cursor: 'pointer', border: 'none' }}
             >
               {kw}
-            </button>
+            </LiquidMetalButton>
           )
         })}
       </div>

@@ -40,7 +40,7 @@ export default function ServiceCardsPage() {
       {error && (
         <div className="mt-10 flex items-center justify-between rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
-          <button type="button" onClick={() => void load()}><RefreshCw size={16} /></button>
+          <LiquidMetalButton type="button" onClick={() => void load()}><RefreshCw size={16} /></LiquidMetalButton>
         </div>
       )}
       {loading && <div className="py-24 text-center text-sm text-text-muted">正在读取服务卡…</div>}

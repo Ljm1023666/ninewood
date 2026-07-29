@@ -20,6 +20,7 @@ import {
   Square,
   Hand,
 } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const REASONING_LEVELS = [
   { id: 'low', label: '低' },
@@ -298,12 +299,12 @@ export function CodexComposer({
           {files.map((f, i) => (
             <span key={i} className="codex-composer__file-chip">
               {f.name}
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={() => setFiles((p) => p.filter((_, j) => j !== i))}
               >
                 ×
-              </button>
+              </LiquidMetalButton>
             </span>
           ))}
         </div>
@@ -321,16 +322,16 @@ export function CodexComposer({
             rows={1}
           />
           {loading ? (
-            <button
+            <LiquidMetalButton
               type="button"
               className="codex-composer__submit codex-composer__submit--inline"
               onClick={onStop}
               aria-label="停止"
             >
               <Square className="size-3 fill-current" />
-            </button>
+            </LiquidMetalButton>
           ) : (
-            <button
+            <LiquidMetalButton
               type="button"
               className="codex-composer__submit codex-composer__submit--inline"
               onClick={handleSubmit}
@@ -338,14 +339,14 @@ export function CodexComposer({
               aria-label="发送"
             >
               <ArrowUp className="size-4" strokeWidth={2.5} />
-            </button>
+            </LiquidMetalButton>
           )}
         </div>
 
         <div className="codex-composer__toolbar">
           <div className="codex-composer__toolbar-left">
             <div className="codex-composer__dropdown-anchor">
-              <button
+              <LiquidMetalButton
                 type="button"
                 className="codex-composer__icon-btn"
                 onClick={() => {
@@ -358,7 +359,7 @@ export function CodexComposer({
                 <Plus
                   className={cn('size-4', attachOpen && 'rotate-45 transition-transform')}
                 />
-              </button>
+              </LiquidMetalButton>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -373,7 +374,7 @@ export function CodexComposer({
                     { icon: <Image className="size-4" />, label: '添加图片' },
                     { icon: <FileCode className="size-4" />, label: '导入代码' },
                   ].map((item) => (
-                    <button
+                    <LiquidMetalButton
                       key={item.label}
                       type="button"
                       className="codex-composer__menu-item"
@@ -381,14 +382,14 @@ export function CodexComposer({
                     >
                       {item.icon}
                       <span>{item.label}</span>
-                    </button>
+                    </LiquidMetalButton>
                   ))}
                 </div>
               ) : null}
             </div>
 
             <div className="codex-composer__dropdown-anchor">
-              <button
+              <LiquidMetalButton
                 type="button"
                 className={cn(
                   'codex-composer__pill-btn',
@@ -407,23 +408,28 @@ export function CodexComposer({
                 <ChevronDown
                   className={cn('size-3.5 opacity-60', accessOpen && 'rotate-180')}
                 />
-              </button>
+              </LiquidMetalButton>
               {accessOpen ? (
                 <div className="codex-composer__menu-panel codex-composer__menu-panel--up">
-                  {ACCESS_MODES.map((mode) => (
-                    <button
+                  {ACCESS_MODES.map((mode) => {
+                    const selected = accessMode === mode.id
+                    return (
+                    <LiquidMetalButton
                       key={mode.id}
                       type="button"
                       title={mode.hint}
                       className="codex-composer__menu-item codex-composer__menu-item--check"
+                      metalGlow={selected}
+                      active={selected}
                       onClick={() => handleAccessChange(mode.id)}
                     >
                       <span>{mode.label}</span>
-                      {accessMode === mode.id ? (
+                      {selected ? (
                         <Check className="size-4 shrink-0" />
                       ) : null}
-                    </button>
-                  ))}
+                    </LiquidMetalButton>
+                    )
+                  })}
                 </div>
               ) : null}
             </div>
@@ -431,7 +437,7 @@ export function CodexComposer({
 
           <div className="codex-composer__toolbar-right">
             <div className="codex-composer__dropdown-anchor codex-composer__dropdown-anchor--tier">
-              <button
+              <LiquidMetalButton
                 ref={tierBtnRef}
                 type="button"
                 className={cn(
@@ -453,7 +459,7 @@ export function CodexComposer({
                 <ChevronDown
                   className={cn('size-3.5 opacity-60', tierOpen && 'rotate-180')}
                 />
-              </button>
+              </LiquidMetalButton>
 
               {tierOpen
                 ? createPortal(
@@ -472,19 +478,24 @@ export function CodexComposer({
                     >
                       <div className="codex-composer__tier-section">
                         <p className="codex-composer__tier-label">推理</p>
-                        {REASONING_LEVELS.map((level) => (
-                          <button
+                        {REASONING_LEVELS.map((level) => {
+                          const selected = reasoning === level.id
+                          return (
+                          <LiquidMetalButton
                             key={level.id}
                             type="button"
                             className="codex-composer__menu-item codex-composer__menu-item--check"
+                            metalGlow={selected}
+                            active={selected}
                             onClick={() => handleReasoningChange(level.id)}
                           >
                             <span>{level.label}</span>
-                            {reasoning === level.id ? (
+                            {selected ? (
                               <Check className="size-4 shrink-0" />
                             ) : null}
-                          </button>
-                        ))}
+                          </LiquidMetalButton>
+                          )
+                        })}
                       </div>
                       <div
                         className="codex-composer__tier-divider"
@@ -492,22 +503,27 @@ export function CodexComposer({
                       />
                       <div className="codex-composer__tier-section">
                         <p className="codex-composer__tier-label">模型</p>
-                        {models.map((model) => (
-                          <button
+                        {models.map((model) => {
+                          const selected = selectedModelId === model.id
+                          return (
+                          <LiquidMetalButton
                             key={model.id}
                             type="button"
                             className="codex-composer__menu-item codex-composer__menu-item--check"
+                            metalGlow={selected}
+                            active={selected}
                             onClick={() => {
                               setSelectedModelId(model.id)
                               setTierOpen(false)
                             }}
                           >
                             <span>{model.name}</span>
-                            {selectedModelId === model.id ? (
+                            {selected ? (
                               <Check className="size-4 shrink-0" />
                             ) : null}
-                          </button>
-                        ))}
+                          </LiquidMetalButton>
+                          )
+                        })}
                       </div>
                     </div>,
                     document.body,

@@ -246,7 +246,7 @@ export default function Discussions() {
 
             {totalPages > 1 ? (
               <div className="discussions-plaza__pager">
-                <button
+                <LiquidMetalButton
                   type="button"
                   className="discussions-plaza__page-btn"
                   disabled={page <= 1}
@@ -254,11 +254,11 @@ export default function Discussions() {
                 >
                   <MsIcon name="chevron_left" size={16} aria-hidden />
                   上一页
-                </button>
+                </LiquidMetalButton>
                 <span className="discussions-plaza__page-num">
                   {page} / {totalPages}
                 </span>
-                <button
+                <LiquidMetalButton
                   type="button"
                   className="discussions-plaza__page-btn"
                   disabled={page >= totalPages}
@@ -266,7 +266,7 @@ export default function Discussions() {
                 >
                   下一页
                   <MsIcon name="chevron_right" size={16} aria-hidden />
-                </button>
+                </LiquidMetalButton>
               </div>
             ) : null}
           </>

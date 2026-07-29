@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user'
 import { authApi } from '@/api/auth'
 import { LegalDialog } from '@/components/ui/terms-conditions'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+import { SegmentedFilter } from '@/components/layout/internal-ui'
 import { captchaApi } from '@/api/captcha'
 import {
   SignInFlowBackground,
@@ -13,6 +14,8 @@ import {
 } from '@/components/ui/sign-in-flow-1'
 import '@/components/ui/sign-in-flow.css'
 import '@/components/ui/sign-in-flow-macos.css'
+
+const MotionLiquidMetalButton = motion.create(LiquidMetalButton)
 
 const SMS_LENGTH = 6
 
@@ -745,36 +748,19 @@ export default function LoginPage() {
                         </div>
 
                         <div className="sign-in-flow-register-stack">
-                          <div
-                            className={cn(
-                              'sign-in-flow-login-methods',
-                              `is-${loginChannel}`,
-                            )}
-                            role="group"
-                            aria-label="登录方式"
-                          >
-                            {[
-                              ['id', '账号 ID'],
-                              ['phone', '手机号'],
-                              ['email', 'QQ 邮箱'],
-                            ].map(([channel, label]) => (
-                              <button
-                                key={channel}
-                                type="button"
-                                onClick={() => {
-                                  setLoginChannel(channel as typeof loginChannel)
-                                  setError('')
-                                }}
-                                className={cn(
-                                  'sign-in-flow-method-button',
-                                  loginChannel === channel && 'is-active',
-                                )}
-                                aria-pressed={loginChannel === channel}
-                              >
-                                {label}
-                              </button>
-                            ))}
-                          </div>
+                          <SegmentedFilter
+                            className="sign-in-flow-login-methods"
+                            options={[
+                              { value: 'id', label: '账号 ID' },
+                              { value: 'phone', label: '手机号' },
+                              { value: 'email', label: 'QQ 邮箱' },
+                            ]}
+                            value={loginChannel}
+                            onChange={(channel) => {
+                              setLoginChannel(channel)
+                              setError('')
+                            }}
+                          />
 
                           {loginChannel === 'id' && (
                             <form
@@ -814,13 +800,13 @@ export default function LoginPage() {
                                     required
                                   />
                                 </div>
-                                <button
+                                <LiquidMetalButton
                                   type="button"
                                   onClick={() => setShowPassword(!showPassword)}
                                   className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center transition-colors"
                                 >
                                   {showPassword ? '隐藏' : '显示'}
-                                </button>
+                                </LiquidMetalButton>
                               </div>
                               {error ? (
                                 <p
@@ -842,7 +828,7 @@ export default function LoginPage() {
                                 }
                               />
                               {/* 隐藏兜底 submit，保留输入框回车提交行为 */}
-                              <button
+                              <LiquidMetalButton
                                 type="submit"
                                 className="sr-only"
                                 tabIndex={-1}
@@ -895,13 +881,13 @@ export default function LoginPage() {
                                     required
                                   />
                                 </div>
-                                <button
+                                <LiquidMetalButton
                                   type="button"
                                   onClick={() => setShowPassword(!showPassword)}
                                   className="sign-in-flow-icon-btn flex cursor-pointer items-center justify-center transition-colors"
                                 >
                                   {showPassword ? '隐藏' : '显示'}
-                                </button>
+                                </LiquidMetalButton>
                               </div>
                               {error ? (
                                 <p
@@ -925,7 +911,7 @@ export default function LoginPage() {
                                   passwordLoginFormRef.current?.requestSubmit()
                                 }
                               />
-                              <button
+                              <LiquidMetalButton
                                 type="submit"
                                 className="sr-only"
                                 tabIndex={-1}
@@ -973,7 +959,7 @@ export default function LoginPage() {
                                   emailLoginFormRef.current?.requestSubmit()
                                 }
                               />
-                              <button
+                              <LiquidMetalButton
                                 type="submit"
                                 className="sr-only"
                                 tabIndex={-1}
@@ -987,7 +973,7 @@ export default function LoginPage() {
 
                           <p className="sign-in-flow-register-footer">
                             没有账号？
-                            <button
+                            <LiquidMetalButton
                               type="button"
                               onClick={() => {
                                 setIsLogin(false)
@@ -996,7 +982,7 @@ export default function LoginPage() {
                               }}
                             >
                               手机号注册
-                            </button>
+                            </LiquidMetalButton>
                           </p>
                         </div>
                       </div>
@@ -1092,12 +1078,12 @@ export default function LoginPage() {
 
                             <LegalDialog
                               trigger={
-                                <button
+                                <LiquidMetalButton
                                   type="button"
                                   className="sign-in-flow-register-info-link"
                                 >
                                   个人信息收集说明 &gt;
-                                </button>
+                                </LiquidMetalButton>
                               }
                               title="个人信息收集说明"
                               sections={personalInfoCollectSections}
@@ -1177,7 +1163,7 @@ export default function LoginPage() {
                                 registerPhoneFormRef.current?.requestSubmit()
                               }
                             />
-                            <button
+                            <LiquidMetalButton
                               type="submit"
                               className="sr-only"
                               tabIndex={-1}
@@ -1187,7 +1173,7 @@ export default function LoginPage() {
 
                           <p className="sign-in-flow-register-footer">
                             已有账号？
-                            <button
+                            <LiquidMetalButton
                               type="button"
                               onClick={() => {
                                 setIsLogin(true)
@@ -1195,7 +1181,7 @@ export default function LoginPage() {
                               }}
                             >
                               密码登录
-                            </button>
+                            </LiquidMetalButton>
                           </p>
                         </div>
                     )}
@@ -1247,13 +1233,13 @@ export default function LoginPage() {
                     )}
 
                     <div className="flex justify-center">
-                      <motion.button
+                      <MotionLiquidMetalButton
                         onClick={handleBackToPhone}
                         className="sign-in-flow-secondary-button font-medium px-8 py-3 transition-colors cursor-pointer"
                         transition={{ duration: 0.2 }}
                       >
                         返回
-                      </motion.button>
+                      </MotionLiquidMetalButton>
                     </div>
                   </motion.div>
                 )}
@@ -1344,7 +1330,7 @@ export default function LoginPage() {
                     )}
 
                     <div>
-                      <motion.button
+                      <MotionLiquidMetalButton
                         type="button"
                         className="text-[#007AFF] hover:text-[#0A84FF] transition-colors cursor-pointer text-base"
                         transition={{ duration: 0.2 }}
@@ -1356,17 +1342,17 @@ export default function LoginPage() {
                           : codeDelivery === 'email-login'
                             ? '重新发送邮件'
                             : '重新发送'}
-                      </motion.button>
+                      </MotionLiquidMetalButton>
                     </div>
 
                     <div className="flex w-full gap-3">
-                      <motion.button
+                      <MotionLiquidMetalButton
                         onClick={handleBackToPhone}
                         className="sign-in-flow-secondary-button font-medium px-8 py-3 transition-colors w-[30%] cursor-pointer"
                         transition={{ duration: 0.2 }}
                       >
                         返回
-                      </motion.button>
+                      </MotionLiquidMetalButton>
                       <div className="flex-1" />
                     </div>
 
@@ -1437,7 +1423,7 @@ export default function LoginPage() {
                         </svg>
                       </div>
                     </motion.div>
-                    <motion.button
+                    <MotionLiquidMetalButton
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
@@ -1445,7 +1431,7 @@ export default function LoginPage() {
                       className="sign-in-flow-primary-button w-full font-medium py-3 transition-colors cursor-pointer"
                     >
                       进入首页
-                    </motion.button>
+                    </MotionLiquidMetalButton>
                   </motion.div>
                 )}
               </AnimatePresence>

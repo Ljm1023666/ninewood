@@ -173,7 +173,7 @@ function DemandActionPanelWrap({
       )}
     >
       <div className="demand-detail-action-dock__inner">
-        <button
+        <LiquidMetalButton
           type="button"
           className="demand-detail-action-dock__toggle"
           onClick={() => setCollapsed((v) => !v)}
@@ -189,7 +189,7 @@ function DemandActionPanelWrap({
               collapsed && 'demand-detail-action-dock__toggle-icon--collapsed',
             )}
           />
-        </button>
+        </LiquidMetalButton>
 
         <motion.div
           className="demand-detail-action-dock__body"
@@ -542,7 +542,7 @@ export default function DemandDetail() {
             className="flex w-full min-w-0 flex-col items-center px-3"
           >
             <div className="relative">
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={handleToggleFavorite}
                 disabled={!isLoggedIn || favoriteLoading}
@@ -555,7 +555,7 @@ export default function DemandDetail() {
                   filled={favorited}
                   className={favorited ? 'text-red-500' : undefined}
                 />
-              </button>
+              </LiquidMetalButton>
               <CometCard
                 className="w-fit max-w-full shrink-0"
                 rotateDepth={12}
@@ -721,13 +721,13 @@ function ApplicantListPanel({ demandId }: { demandId: string }) {
                 height={30}
                 onClick={() => accept(a.id)}
               />
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={() => reject(a.id)}
                 className="demand-detail-action-panel__reject"
               >
                 拒绝
-              </button>
+              </LiquidMetalButton>
             </div>
           </div>
         ))}
@@ -783,20 +783,20 @@ function InProgressPanel({ demand, userId }: { demand: any; userId?: string }) {
               onClick={() => navigate(`/payment/${order.id}`)}
             />
           )}
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => navigate(`/orders/${order.id}`)}
             className="demand-detail-action-panel__secondary"
           >
             查看订单
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             type="button"
             onClick={() => navigate(`/messages/${isOwner ? order.providerId : order.requesterId}`)}
             className="demand-detail-action-panel__secondary"
           >
             联系对方
-          </button>
+          </LiquidMetalButton>
         </div>
       ) : (
         <p className="demand-detail-action-panel__hint">订单未生成，请稍后刷新</p>

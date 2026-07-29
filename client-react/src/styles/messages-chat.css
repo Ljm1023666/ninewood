@@ -862,12 +862,16 @@ input.msg-composer__input {
   transform: scale(0.985);
 }
 
-/* 只改背景，不给整行设 color，避免头像层被样式失效重绘 */
+/* 只改背景与贴合描边，禁止套 LiquidMetalButton（会高度错位） */
 .internal-messages-layout .internal-message-row--active {
-  background: var(--internal-accent);
+  background: var(--liquid-glass-bg, var(--internal-accent));
   color: var(--text-primary);
-  box-shadow: 0 1px 2px
-    color-mix(in srgb, var(--internal-accent) 20%, transparent);
+  box-shadow:
+    inset 0 0 0 1.5px
+      color-mix(in srgb, var(--color-primary, #2fbbe0) 55%, transparent),
+    0 1px 2px color-mix(in srgb, var(--color-primary, #2fbbe0) 18%, transparent);
+  backdrop-filter: var(--liquid-glass-blur, blur(12px));
+  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(12px));
 }
 
 .msg-list-avatar {
@@ -933,12 +937,12 @@ input.msg-composer__input {
 .internal-messages-layout .internal-message-row--active .msg-list-name,
 .internal-messages-layout .internal-message-row--active .msg-list-preview,
 .internal-messages-layout .internal-message-row--active .msg-list-time {
-  color: #fdfdff;
+  color: var(--text-primary);
 }
 
 .internal-messages-layout .internal-message-row--active .msg-list-unread-badge {
-  color: var(--internal-accent);
-  background: #fdfdff;
+  color: #fff;
+  background: var(--color-primary, var(--internal-accent));
 }
 
 /* 仅字母/群组头像改色；照片头像绝不因选中改样式 */

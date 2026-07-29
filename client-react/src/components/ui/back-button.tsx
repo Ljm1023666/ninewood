@@ -1,6 +1,6 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { navigateSubpageExit } from '@/utils/subpage-nav'
-import { Button } from '@/components/ui/button'
 import { MsIcon } from '@/components/ui/ms-icon'
 import { cn } from '@/lib/utils'
 
@@ -26,7 +26,7 @@ export function BackButton({
 
   if (compact) {
     return (
-      <Button
+      <LiquidMetalButton
         type="button"
         variant="ghost"
         size="icon"
@@ -38,14 +38,14 @@ export function BackButton({
         )}
       >
         <MsIcon name="chevron_left" size={24} className="opacity-80" />
-      </Button>
+      </LiquidMetalButton>
     )
   }
 
   return (
-    <Button variant="link" onClick={handleClick} aria-label={label}>
+    <LiquidMetalButton variant="link" onClick={handleClick} aria-label={label}>
       <MsIcon name="chevron_left" size={16} className="me-1 opacity-60" />
       {label}
-    </Button>
+    </LiquidMetalButton>
   )
 }

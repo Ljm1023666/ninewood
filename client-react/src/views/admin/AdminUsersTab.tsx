@@ -23,6 +23,7 @@ import {
   ADMIN_CHART_COLORS,
   adminChartTooltipStyle,
 } from './admin-ui'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface AdminUsersTabProps {
   data: DashboardData | null
@@ -115,14 +116,14 @@ export default function AdminUsersTab({ data, loading }: AdminUsersTabProps) {
           <option value="USER">普通用户</option>
           <option value="ADMIN">管理员</option>
         </select>
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={loadUsers}
           disabled={usersLoading}
           className="rounded-[var(--admin-radius-xs)] border border-[var(--admin-border)] bg-white px-3 py-2.5 text-sm font-medium text-[var(--admin-text)] shadow-[var(--admin-shadow-sm)] transition-all duration-[var(--admin-duration)] hover:bg-black/[0.02] hover:shadow-[var(--admin-shadow-md)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:translate-y-0 disabled:hover:shadow-[var(--admin-shadow-sm)]"
         >
           {usersLoading ? '加载中' : '查询'}
-        </button>
+        </LiquidMetalButton>
       </div>
 
       <AdminMetricGrid cols={3}>

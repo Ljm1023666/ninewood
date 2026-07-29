@@ -118,4 +118,54 @@ export const circleApi = {
   join(circleId: string) {
     return api.post(`/circles/${circleId}/join`)
   },
+  leave(circleId: string) {
+    return api.post(`/circles/${circleId}/leave`)
+  },
+
+  listPosts(circleId: string, params?: { page?: number; pageSize?: number }) {
+    return api.get(`/circles/${circleId}/posts`, { params })
+  },
+  createPost(circleId: string, content: string) {
+    return api.post(`/circles/${circleId}/posts`, { content })
+  },
+  deletePost(circleId: string, postId: string) {
+    return api.delete(`/circles/${circleId}/posts/${postId}`)
+  },
+  likePost(circleId: string, postId: string) {
+    return api.post(`/circles/${circleId}/posts/${postId}/like`)
+  },
+  unlikePost(circleId: string, postId: string) {
+    return api.delete(`/circles/${circleId}/posts/${postId}/like`)
+  },
+  listPostReplies(circleId: string, postId: string) {
+    return api.get(`/circles/${circleId}/posts/${postId}/replies`)
+  },
+  createPostReply(circleId: string, postId: string, content: string) {
+    return api.post(`/circles/${circleId}/posts/${postId}/replies`, { content })
+  },
+}
+
+export type CirclePostItem = {
+  id: string
+  circleId: string
+  userId: string
+  content: string
+  likeCount: number
+  replyCount: number
+  createdAt: string
+  updatedAt: string
+  userNickname: string
+  userAvatar: string | null
+  liked: boolean
+  replies?: CirclePostReplyItem[]
+}
+
+export type CirclePostReplyItem = {
+  id: string
+  postId: string
+  userId: string
+  content: string
+  createdAt: string
+  userNickname: string
+  userAvatar: string | null
 }

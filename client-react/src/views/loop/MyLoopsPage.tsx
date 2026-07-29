@@ -6,6 +6,8 @@ import {
   ArrowDownUp,
   Bot,
   Check,
+  ChevronDown,
+  ChevronUp,
   Columns3,
   GitBranch,
   List,
@@ -18,6 +20,45 @@ import { LiquidMetalButton, type LiquidMetalButtonProps } from '@/components/ui/
 /** 运行中心统一硬朗直角，不用默认胶囊圆角 */
 function LoopRectButton(props: LiquidMetalButtonProps) {
   return <LiquidMetalButton shape="rect" radius={0} {...props} />
+}
+
+const COLLAPSE_STORAGE_KEY = 'my-loops-section-collapsed'
+
+type SectionKey = 'top' | 'heaven' | 'ratio' | LoopKind
+
+function readCollapsedMap(): Partial<Record<SectionKey, boolean>> {
+  try {
+    const raw = localStorage.getItem(COLLAPSE_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as Partial<Record<SectionKey, boolean>>
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function SectionCollapseButton({
+  collapsed,
+  onToggle,
+  label,
+}: {
+  collapsed: boolean
+  onToggle: () => void
+  label: string
+}) {
+  return (
+    <LoopRectButton
+      type="button"
+      className="my-loops-collapse"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      aria-label={collapsed ? `展开${label}` : `收纳${label}`}
+      title={collapsed ? '展开' : '收纳'}
+    >
+      {collapsed ? <ChevronDown size={16} aria-hidden /> : <ChevronUp size={16} aria-hidden />}
+      <span>{collapsed ? '展开' : '收纳'}</span>
+    </LoopRectButton>
+  )
 }
 
 type DisplayMode = 'single' | 'split'
@@ -116,6 +157,24 @@ export default function MyLoopsPage() {
   const [heavenLoading, setHeavenLoading] = useState(true)
   const [heavenError, setHeavenError] = useState<string | null>(null)
   const [heavenSort, setHeavenSort] = useState<'recent' | 'success' | 'status'>('recent')
+  const [collapsed, setCollapsed] = useState<Partial<Record<SectionKey, boolean>>>(readCollapsedMap)
+
+  const isCollapsed = useCallback(
+    (key: SectionKey) => Boolean(collapsed[key]),
+    [collapsed],
+  )
+
+  const toggleCollapsed = useCallback((key: SectionKey) => {
+    setCollapsed((prev) => {
+      const next = { ...prev, [key]: !prev[key] }
+      try {
+        localStorage.setItem(COLLAPSE_STORAGE_KEY, JSON.stringify(next))
+      } catch {
+        /* ignore quota */
+      }
+      return next
+    })
+  }, [])
 
   // 将当前视图状态写回 URL（replace，不新增历史）。
   useEffect(() => {
@@ -312,24 +371,33 @@ export default function MyLoopsPage() {
   return (
     <div className="my-loops-page">
       <div className="my-loops-shell">
-      <div className="my-loops-top">
+      <div className={`my-loops-top${isCollapsed('top') ? ' is-collapsed' : ''}`}>
       <header className="my-loops-head">
         <div>
           <p className="my-loops-kicker">运行中心</p>
           <h1>回</h1>
           <p className="my-loops-subtitle">人回 · 地回 · 天回</p>
         </div>
-        <LoopRectButton
-          type="button"
-          className="my-loops-refresh"
-          onClick={() => void load(true)}
-          disabled={refreshing}
-        >
-          <RefreshCw size={16} className={refreshing ? 'my-loops-spin' : undefined} />
-          {refreshing ? '刷新中' : '刷新状态'}
-        </LoopRectButton>
+        <div className="my-loops-head__actions">
+          <SectionCollapseButton
+            collapsed={isCollapsed('top')}
+            onToggle={() => toggleCollapsed('top')}
+            label="运行中心"
+          />
+          <LoopRectButton
+            type="button"
+            className="my-loops-refresh"
+            onClick={() => void load(true)}
+            disabled={refreshing}
+          >
+            <RefreshCw size={16} className={refreshing ? 'my-loops-spin' : undefined} />
+            {refreshing ? '刷新中' : '刷新状态'}
+          </LoopRectButton>
+        </div>
       </header>
 
+      {!isCollapsed('top') && (
+        <>
       <section className="my-loops-summary" aria-label="我的回运行统计">
         <div className="my-loops-summary__all">
           <span>我的运行</span>
@@ -464,6 +532,8 @@ export default function MyLoopsPage() {
           </div>
         </details>
       </section>
+        </>
+      )}
       </div>
 
       {error && (
@@ -485,54 +555,70 @@ export default function MyLoopsPage() {
 
       {/* 平台天回能力：全站口径，勿与「我的运行」混读 */}
       {showHeaven && (
-        <section className="my-loops-heaven" aria-label="平台自动能力">
+        <section
+          className={`my-loops-heaven${isCollapsed('heaven') ? ' is-collapsed' : ''}`}
+          aria-label="平台自动能力"
+        >
           <div className="my-loops-heaven__head">
             <div>
               <h2>平台自动能力</h2>
               <p className="my-loops-subtitle">全站内置任务 · 点击查看详情</p>
             </div>
-            <label className="my-loops-sort">
-              <ArrowDownUp size={15} />
-              <select
-                value={heavenSort}
-                onChange={(event) =>
-                  setHeavenSort(event.target.value as 'recent' | 'success' | 'status')
-                }
-                aria-label="排序"
-              >
-                <option value="recent">最近运行</option>
-                <option value="success">成功率优先</option>
-                <option value="status">异常优先</option>
-              </select>
-            </label>
+            <div className="my-loops-section-actions">
+              {!isCollapsed('heaven') && (
+                <label className="my-loops-sort">
+                  <ArrowDownUp size={15} />
+                  <select
+                    value={heavenSort}
+                    onChange={(event) =>
+                      setHeavenSort(event.target.value as 'recent' | 'success' | 'status')
+                    }
+                    aria-label="排序"
+                  >
+                    <option value="recent">最近运行</option>
+                    <option value="success">成功率优先</option>
+                    <option value="status">异常优先</option>
+                  </select>
+                </label>
+              )}
+              <SectionCollapseButton
+                collapsed={isCollapsed('heaven')}
+                onToggle={() => toggleCollapsed('heaven')}
+                label="平台自动能力"
+              />
+            </div>
           </div>
 
-          {heavenError && (
-            <div className="my-loops-state my-loops-state--error">
-              <p>{heavenError}</p>
-              <LoopRectButton type="button" onClick={() => void loadHeaven()}>
-                重新加载
-              </LoopRectButton>
-            </div>
-          )}
-          {heavenLoading && !heavenError && <div className="my-loops-state">正在读取…</div>}
-          {!heavenLoading && !heavenError && heavenCaps.length === 0 && (
-            <div className="my-loops-state my-loops-state--empty">
-              <Bot size={28} />
-              <h2>暂无自动能力</h2>
-              <p>种子写入后会出现在这里。</p>
-            </div>
-          )}
-          {!heavenLoading && !heavenError && heavenCaps.length > 0 && (
-            <div className="my-loops-heaven__grid">
-              {sortedHeavenCaps.map((cap) => (
-                <HeavenCapabilityCard
-                  key={cap.id}
-                  cap={cap}
-                  onClick={() => navigate(`/loops/offerings/${cap.id}`)}
-                />
-              ))}
-            </div>
+          {!isCollapsed('heaven') && (
+            <>
+              {heavenError && (
+                <div className="my-loops-state my-loops-state--error">
+                  <p>{heavenError}</p>
+                  <LoopRectButton type="button" onClick={() => void loadHeaven()}>
+                    重新加载
+                  </LoopRectButton>
+                </div>
+              )}
+              {heavenLoading && !heavenError && <div className="my-loops-state">正在读取…</div>}
+              {!heavenLoading && !heavenError && heavenCaps.length === 0 && (
+                <div className="my-loops-state my-loops-state--empty">
+                  <Bot size={28} />
+                  <h2>暂无自动能力</h2>
+                  <p>种子写入后会出现在这里。</p>
+                </div>
+              )}
+              {!heavenLoading && !heavenError && heavenCaps.length > 0 && (
+                <div className="my-loops-heaven__grid">
+                  {sortedHeavenCaps.map((cap) => (
+                    <HeavenCapabilityCard
+                      key={cap.id}
+                      cap={cap}
+                      onClick={() => navigate(`/loops/offerings/${cap.id}`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
@@ -551,25 +637,39 @@ export default function MyLoopsPage() {
       {selectedKinds.length > 0 && !loading && !error && summary.total > 0 && (
         <div className={`my-loops-board my-loops-board--${boardLayout}`}>
           {displayMode === 'split' && visibleKinds.length > 1 && (
-            <div className={`my-loops-ratio-rail my-loops-ratio-rail--${direction}`} aria-label="显示比例">
-              {visibleKinds.map((kind) => (
-                <div
-                  key={kind}
-                  className={`my-loops-ratio-rail__item my-loops-ratio-rail__item--${kind.toLowerCase()}`}
-                >
-                  <span className="my-loops-ratio-rail__label">{KIND_META[kind].label}</span>
-                  <input
-                    type="range"
-                    className="my-loops-ratio-input"
-                    min={20}
-                    max={100 - 20 * (visibleKinds.length - 1)}
-                    value={ratios[kind]}
-                    onChange={(event) => updateRatio(kind, Number(event.target.value))}
-                    aria-label={`${KIND_META[kind].label}显示比例`}
-                  />
-                  <span className="my-loops-ratio-rail__pct">{Math.round(ratios[kind])}%</span>
-                </div>
-              ))}
+            <div
+              className={`my-loops-ratio-rail my-loops-ratio-rail--${direction}${
+                isCollapsed('ratio') ? ' is-collapsed' : ''
+              }`}
+              aria-label="显示比例"
+            >
+              <div className="my-loops-ratio-rail__head">
+                <span className="my-loops-ratio-rail__title">显示比例</span>
+                <SectionCollapseButton
+                  collapsed={isCollapsed('ratio')}
+                  onToggle={() => toggleCollapsed('ratio')}
+                  label="显示比例"
+                />
+              </div>
+              {!isCollapsed('ratio') &&
+                visibleKinds.map((kind) => (
+                  <div
+                    key={kind}
+                    className={`my-loops-ratio-rail__item my-loops-ratio-rail__item--${kind.toLowerCase()}`}
+                  >
+                    <span className="my-loops-ratio-rail__label">{KIND_META[kind].label}</span>
+                    <input
+                      type="range"
+                      className="my-loops-ratio-input"
+                      min={20}
+                      max={100 - 20 * (visibleKinds.length - 1)}
+                      value={ratios[kind]}
+                      onChange={(event) => updateRatio(kind, Number(event.target.value))}
+                      aria-label={`${KIND_META[kind].label}显示比例`}
+                    />
+                    <span className="my-loops-ratio-rail__pct">{Math.round(ratios[kind])}%</span>
+                  </div>
+                ))}
             </div>
           )}
           <div
@@ -582,12 +682,16 @@ export default function MyLoopsPage() {
                 : undefined
             }
           >
-            {visibleKinds.map((kind) => (
+            {visibleKinds.map((kind) => {
+              const paneCollapsed = isCollapsed(kind)
+              return (
               <section
                 key={kind}
-                className={`my-loops-pane my-loops-pane--${kind.toLowerCase()}`}
+                className={`my-loops-pane my-loops-pane--${kind.toLowerCase()}${
+                  paneCollapsed ? ' is-collapsed' : ''
+                }`}
                 style={
-                  displayMode === 'split' && visibleKinds.length > 1
+                  displayMode === 'split' && visibleKinds.length > 1 && !paneCollapsed
                     ? {
                         flexGrow: 0,
                         flexShrink: 0,
@@ -595,6 +699,14 @@ export default function MyLoopsPage() {
                         minWidth: 0,
                         minHeight: 0,
                       }
+                    : displayMode === 'split' && visibleKinds.length > 1 && paneCollapsed
+                      ? {
+                          flexGrow: 0,
+                          flexShrink: 0,
+                          flexBasis: 'auto',
+                          minWidth: 0,
+                          minHeight: 0,
+                        }
                     : undefined
                 }
               >
@@ -603,8 +715,16 @@ export default function MyLoopsPage() {
                     <span className="my-loops-pane__eyebrow">{KIND_META[kind].short}</span>
                     <h2>{KIND_META[kind].label}</h2>
                   </div>
-                  <span className="my-loops-pane__count">{visibleItems.get(kind)?.length ?? 0}</span>
+                  <div className="my-loops-section-actions">
+                    <span className="my-loops-pane__count">{visibleItems.get(kind)?.length ?? 0}</span>
+                    <SectionCollapseButton
+                      collapsed={paneCollapsed}
+                      onToggle={() => toggleCollapsed(kind)}
+                      label={KIND_META[kind].label}
+                    />
+                  </div>
                 </div>
+                {!paneCollapsed && (
                 <div className="my-loops-list">
                   {(visibleItems.get(kind) ?? []).map((item) => (
                     <LoopRunCard key={item.id} item={item} onClick={() => navigate(`/loops/runs/${item.id}`)} />
@@ -613,8 +733,10 @@ export default function MyLoopsPage() {
                     <div className="my-loops-pane__empty">这个分区暂时没有运行记录。</div>
                   )}
                 </div>
+                )}
               </section>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useCallback } from 'react'
+﻿import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { orderApi, type FeeQuote, type FeeQuoteAction } from '@/api/order'
 import { reviewApi } from '@/api/review'
@@ -12,7 +13,6 @@ import { FeeBreakdownDialog } from '@/components/fees/FeeBreakdown'
 import { useTaskActiveTime } from '@/utils/task-active-time'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
-import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
   InternalPageShell,
@@ -177,13 +177,13 @@ export default function OrderDetail() {
         <PageHeader title="订单详情" onBack="back" />
         <div className="py-16 text-center">
           <p className="text-sm text-text-muted">{error}</p>
-          <Button
+          <LiquidMetalButton
             variant="ghost"
             onClick={fetchOrder}
             className="mx-auto mt-3 block"
           >
             重试
-          </Button>
+          </LiquidMetalButton>
         </div>
       </InternalPageShell>
     )

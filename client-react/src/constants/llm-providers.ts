@@ -88,8 +88,23 @@ export function resolveDefaultComposerModelId(
   return models[0]!.id
 }
 
+/** 提供商 + 型号；型号名已含品牌前缀时不重复（如 DeepSeek · DeepSeek V4 Flash） */
+function formatProviderModelPair(provider: LlmProviderId, name: string): string {
+  const brand = LLM_PROVIDER_LABELS[provider]
+  const trimmed = name.trim()
+  if (
+    !trimmed ||
+    trimmed === brand ||
+    trimmed.startsWith(`${brand} `) ||
+    trimmed.startsWith(brand)
+  ) {
+    return trimmed || brand
+  }
+  return `${brand} · ${trimmed}`
+}
+
 export function formatComposerModelLabel(model: ComposerModelOption): string {
-  return `${LLM_PROVIDER_LABELS[model.provider]} · ${model.name}`
+  return formatProviderModelPair(model.provider, model.name)
 }
 
 export function buildComposerModels(info: AgentProvider): ComposerModelOption[] {
@@ -133,8 +148,8 @@ export function formatActiveLlmLabel(
   if (fromList) return formatComposerModelLabel(fromList)
   const meta = MODEL_META[id]
   if (meta) {
-    return `${LLM_PROVIDER_LABELS[meta.provider]} · ${meta.name}`
+    return formatProviderModelPair(meta.provider, meta.name)
   }
   const provider = inferProviderFromModelId(id)
-  return `${LLM_PROVIDER_LABELS[provider]} · ${id}`
+  return formatProviderModelPair(provider, id)
 }

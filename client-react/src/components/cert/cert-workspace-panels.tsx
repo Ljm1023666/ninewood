@@ -7,6 +7,7 @@ import {
   CertResourceDetailView,
   type CertResourceId,
 } from '@/components/cert/cert-resource-views'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 function CertWorkspaceStub({
   icon,
@@ -136,7 +137,7 @@ export function CertWorkspaceResourcesPanel({
       </header>
       <div className="cert-stitch-resource-grid">
         {CERT_RESOURCE_ITEMS.map((item) => (
-          <button
+          <LiquidMetalButton
             key={item.id}
             type="button"
             className="cert-stitch-glass cert-stitch-resource-card"
@@ -152,7 +153,7 @@ export function CertWorkspaceResourcesPanel({
               查看
               <MsIcon name="arrow_forward" size={14} />
             </span>
-          </button>
+          </LiquidMetalButton>
         ))}
       </div>
     </div>

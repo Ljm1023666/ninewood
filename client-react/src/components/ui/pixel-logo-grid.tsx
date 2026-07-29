@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { useCallback, useEffect, useRef } from 'react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /* -----------------------------------------------------------------------------
  * Pixel canvas
@@ -1058,7 +1059,7 @@ export type ComponentProps = {
 function PageGridCard({ item }: { item: PageGridItem }) {
   const { title, icon, pixelColors, onClick } = item
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={onClick}
       className="nav-matrix__tile"
@@ -1069,7 +1070,7 @@ function PageGridCard({ item }: { item: PageGridItem }) {
         <span className="nav-matrix__tile-icon">{icon}</span>
         <span className="nav-matrix__tile-label">{title}</span>
       </div>
-    </button>
+    </LiquidMetalButton>
   )
 }
 

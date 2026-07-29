@@ -323,46 +323,21 @@
 }
 
 .sign-in-flow-login-methods {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+}
+
+/* 旧白底滑块已弃用：统一走 SegmentedFilter 金属滑块 */
+.sign-in-flow-login-methods::before,
+.sign-in-flow-auth-panel .sign-in-flow-login-methods::before {
+  content: none !important;
+  display: none !important;
+}
+
+.sign-in-flow-auth-panel .sign-in-flow-login-methods {
   gap: 4px;
-  padding: 4px;
-  border-radius: 10px;
-  background: #e5e5ea;
-}
-
-.sign-in-flow-login-methods::before {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc((100% - 16px) / 3);
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(29, 29, 31, 0.08);
-  content: '';
-  pointer-events: none;
-  transition: left 180ms ease-out;
-}
-
-.sign-in-flow-login-methods.is-phone::before {
-  left: calc(33.3333% + 2.6667px);
-}
-
-.sign-in-flow-login-methods.is-email::before {
-  left: calc(66.6667% + 1.3333px);
-}
-
-.sign-in-flow-auth-panel .sign-in-flow-method-button {
-  position: relative;
-  z-index: 1;
-  border-color: transparent;
-}
-
-.sign-in-flow-auth-panel .sign-in-flow-method-button.is-active {
-  background: transparent;
-  box-shadow: none;
+  padding: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-divider {
@@ -434,30 +409,8 @@
 .sign-in-flow-auth-panel .sign-in-flow-login-methods {
   gap: 4px;
   padding: 6px;
-  border-radius: 12px;
-  background: rgba(0, 122, 255, 0.14);
-}
-
-.sign-in-flow-auth-panel .sign-in-flow-login-methods::before {
-  top: 6px;
-  bottom: 6px;
-  left: 6px;
-  width: calc((100% - 20px) / 3);
-  border-radius: 10px;
-}
-
-.sign-in-flow-auth-panel .sign-in-flow-login-methods.is-phone::before {
-  left: calc(33.3333% + 3.3333px);
-}
-
-.sign-in-flow-auth-panel .sign-in-flow-login-methods.is-email::before {
-  left: calc(66.6667% + 0.6667px);
-}
-
-.sign-in-flow-auth-panel .sign-in-flow-method-button {
-  height: 56px;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
 }
 
 .sign-in-flow-auth-panel .sign-in-flow-phone-input,

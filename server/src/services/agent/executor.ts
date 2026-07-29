@@ -392,7 +392,6 @@ export async function executeAgent(
     if (summarizable.length > 0 && !lastRoundText.trim()) {
       const summaryText = await continueWithToolResults(
         messages,
-        conversationId,
         model,
         thinking,
         send,
@@ -407,24 +406,23 @@ export async function executeAgent(
       const fallback = synthesizeAnswerFromTools(allExecuted);
       if (fallback) {
         send('text', { delta: fallback });
-        await addMessage({
-          conversationId,
-          role: 'assistant',
-          content: fallback,
-        });
         lastRoundText = fallback;
       }
     }
 
     // 非思考模式下冲洗残留缓冲
     const flushed = thinkStripper?.flush()
-    if (flushed) send('text', { delta: flushed })
+    if (flushed) {
+      send('text', { delta: flushed })
+      lastRoundText += flushed
+    }
 
-    // 保存 assistant 消息（含工具步骤与 pending 状态）
+    // 落库助手正文（此前 content:'' 导致刷新后回复消失）
+    const finalContent = lastRoundText.trim()
     await addMessage({
       conversationId,
       role: 'assistant',
-      content: '',  // 多轮循环下 content 已实时流式推送，不重复落库
+      content: finalContent,
       thinking: undefined,
       toolCalls:
         allStoredCalls.length > 0
@@ -527,12 +525,17 @@ async function runAgentRound(opts: {
     { id: string; name: string; arguments: string }
   >()
 
+  let visibleContent = ''
   const { fullContent, thinkLinesSent } = await readSSEStream(reader, {
     onTextDelta: (delta) => {
       if (thinkStripper) {
         const cleaned = thinkStripper.feed(delta)
-        if (cleaned) send('text', { delta: cleaned })
+        if (cleaned) {
+          visibleContent += cleaned
+          send('text', { delta: cleaned })
+        }
       } else {
+        visibleContent += delta
         send('text', { delta })
       }
     },
@@ -555,13 +558,13 @@ async function runAgentRound(opts: {
   if (thinkLinesSent > 0) send('think-end', 'ok')
 
   const toolCalls = Array.from(toolCallsMap.values()).filter((tc) => tc.name)
-  return { content: fullContent, toolCalls }
+  // 落库/回传用可见正文；思考标签剥离后优先 cleaned
+  return { content: visibleContent || fullContent, toolCalls }
 }
 
 /** 工具执行后：基于已有 tool 消息，补一轮无 tools 的自然语言回答 */
 async function continueWithToolResults(
   messages: { role: string; content: string }[],
-  conversationId: string,
   model?: string,
   thinking?: boolean,
   send?: EventSender,
@@ -628,13 +631,10 @@ async function continueWithToolResults(
     });
 
     if (summaryContent.trim()) {
-      await addMessage({
-        conversationId,
-        role: 'assistant',
-        content: summaryContent,
-      });
+      // 正文由外层统一落库，此处只流式推送，避免重复一条空/双份消息
+      return summaryContent;
     }
-    return summaryContent;
+    return '';
   } catch (e: any) {
     console.error('[Agent] continueWithToolResults error:', e.message);
     send?.('error', { message: '工具结果总结失败' });

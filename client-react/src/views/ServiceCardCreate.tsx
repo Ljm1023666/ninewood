@@ -77,9 +77,9 @@ export default function ServiceCardCreate() {
 
   return (
     <div className="mx-auto h-full w-full max-w-4xl overflow-y-auto px-10 py-10">
-      <button type="button" className="mb-8 inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary" onClick={() => navigate('/publish')}>
+      <LiquidMetalButton type="button" className="mb-8 inline-flex items-center gap-2 text-sm text-text-muted hover:text-text-primary" onClick={() => navigate('/publish')}>
         <ArrowLeft size={16} /> 返回发布
-      </button>
+      </LiquidMetalButton>
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">SERVICE CARD / 服务卡</p>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight text-text-primary">{id ? '编辑服务卡' : '介绍你能提供的服务'}</h1>
       <p className="mt-3 text-sm leading-6 text-text-secondary">
@@ -121,13 +121,13 @@ export default function ServiceCardCreate() {
         <Field label="业务范围关键词">
           <div className="flex gap-2">
             <input className="publish-input" value={claim} onChange={(e) => setClaim(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addClaim() } }} placeholder="例如：小程序前端设计" />
-            <button type="button" className="publish-add" onClick={addClaim}><Plus size={16} /> 添加</button>
+            <LiquidMetalButton type="button" className="publish-add" onClick={addClaim}><Plus size={16} /> 添加</LiquidMetalButton>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {(form.claims ?? []).map((item, index) => (
               <span key={`${item.label}-${index}`} className="publish-tag">
                 {item.label}
-                <button type="button" onClick={() => removeClaim(index)} aria-label={`删除${item.label}`}><X size={13} /></button>
+                <LiquidMetalButton type="button" onClick={() => removeClaim(index)} aria-label={`删除${item.label}`}><X size={13} /></LiquidMetalButton>
               </span>
             ))}
           </div>

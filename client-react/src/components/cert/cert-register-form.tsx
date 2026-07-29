@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { certificationApi } from '@/api/certification'
 import { toast } from '@/components/ui/confirm-dialog'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export function CertRegisterForm({
   onRegistered,
@@ -60,14 +61,14 @@ export function CertRegisterForm({
           placeholder="区域 ID"
         />
       </div>
-      <button
+      <LiquidMetalButton
         type="button"
         className="cert-stitch-btn-solid w-full"
         onClick={submit}
         disabled={submitting}
       >
         {submitting ? '提交中…' : '提交认证申请'}
-      </button>
+      </LiquidMetalButton>
     </section>
   )
 }

@@ -23,6 +23,7 @@ import {
   type PersonalIncomeMode,
 } from '@/constants/tax-visualizer'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface PersonalIncomeTaxProps {
   surface?: 'controls' | 'analysis' | 'all'
@@ -200,7 +201,7 @@ export default function PersonalIncomeTax({ surface = 'all' }: PersonalIncomeTax
       <div className="tax-viz-param-card__body">
         <div className="tax-viz-param-tabs">
           {(['comprehensive', 'salary', 'business'] as PersonalIncomeMode[]).map((m) => (
-            <button
+            <LiquidMetalButton
               key={m}
               type="button"
               onClick={() => setMode(m)}
@@ -210,7 +211,7 @@ export default function PersonalIncomeTax({ surface = 'all' }: PersonalIncomeTax
               )}
             >
               {PERSONAL_INCOME_MODE_LABEL[m]}
-            </button>
+            </LiquidMetalButton>
           ))}
         </div>
 

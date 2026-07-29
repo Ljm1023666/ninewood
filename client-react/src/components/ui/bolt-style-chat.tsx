@@ -15,6 +15,7 @@ import {
   SendHorizontal,
   Square,
 } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /* ── Model 选择器 ── */
 interface Model {
@@ -74,7 +75,7 @@ function ModelSelector({
 
   return (
     <div className="relative">
-      <button
+      <LiquidMetalButton
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all duration-200 active:scale-95',
@@ -88,7 +89,7 @@ function ModelSelector({
         <ChevronDown
           className={`size-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
-      </button>
+      </LiquidMetalButton>
       {isOpen && (
         <>
           <div
@@ -113,7 +114,7 @@ function ModelSelector({
                 选择模型
               </div>
               {models.map((model) => (
-                <button
+                <LiquidMetalButton
                   key={model.id}
                   onClick={() => handleSelect(model)}
                   className={cn(
@@ -150,7 +151,7 @@ function ModelSelector({
                   {selected.id === model.id && (
                     <Check className="size-4 text-blue-400 flex-shrink-0" />
                   )}
-                </button>
+                </LiquidMetalButton>
               ))}
             </div>
           </div>
@@ -276,12 +277,12 @@ export function BoltChatInput({
               )}
             >
               {f.name}
-              <button
+              <LiquidMetalButton
                 onClick={() => removeFile(i)}
                 className="hover:text-red-400 transition-colors"
               >
                 ×
-              </button>
+              </LiquidMetalButton>
             </span>
           ))}
         </div>
@@ -324,7 +325,7 @@ export function BoltChatInput({
           <div className="flex items-center gap-1">
             {/* 附件 */}
             <div className="relative">
-              <button
+              <LiquidMetalButton
                 onClick={() => setShowAttachMenu(!showAttachMenu)}
                 className={cn(
                   'flex size-8 items-center justify-center rounded-full transition-all duration-200 active:scale-95',
@@ -336,7 +337,7 @@ export function BoltChatInput({
                 <Plus
                   className={`size-4 transition-transform duration-200 ${showAttachMenu ? 'rotate-45' : ''}`}
                 />
-              </button>
+              </LiquidMetalButton>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -376,7 +377,7 @@ export function BoltChatInput({
                           action: handleFilePick,
                         },
                       ].map((item, i) => (
-                        <button
+                        <LiquidMetalButton
                           key={i}
                           onClick={item.action}
                           className={cn(
@@ -388,7 +389,7 @@ export function BoltChatInput({
                         >
                           {item.icon}
                           <span className="text-sm">{item.label}</span>
-                        </button>
+                        </LiquidMetalButton>
                       ))}
                     </div>
                   </div>
@@ -407,7 +408,7 @@ export function BoltChatInput({
 
           {/* 右侧：思考 + 搜索 + 发送/停止 */}
           <div className="flex items-center gap-1.5">
-            <button
+            <LiquidMetalButton
               onClick={() => onThinkModeChange(!thinkMode)}
               className={cn(
                 'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all duration-200',
@@ -422,9 +423,9 @@ export function BoltChatInput({
             >
               <Lightbulb className="size-3.5" />
               <span>思考</span>
-            </button>
+            </LiquidMetalButton>
 
-            <button
+            <LiquidMetalButton
               onClick={() => onWebSearchChange(!webSearch)}
               className={cn(
                 'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all duration-200',
@@ -439,10 +440,10 @@ export function BoltChatInput({
             >
               <Bolt className="size-3.5" />
               <span>搜索</span>
-            </button>
+            </LiquidMetalButton>
 
             {loading ? (
-              <button
+              <LiquidMetalButton
                 onClick={onStop}
                 className={cn(
                   'flex items-center justify-center transition-all duration-200 active:scale-95',
@@ -454,9 +455,9 @@ export function BoltChatInput({
               >
                 <Square className={cn('fill-current', isCodex ? 'size-3.5' : 'size-3')} />
                 {!isCodex ? <span>停止</span> : null}
-              </button>
+              </LiquidMetalButton>
             ) : (
-              <button
+              <LiquidMetalButton
                 onClick={handleSubmit}
                 disabled={!message.trim()}
                 className={cn(
@@ -476,7 +477,7 @@ export function BoltChatInput({
                     <SendHorizontal className="size-3.5" />
                   </>
                 )}
-              </button>
+              </LiquidMetalButton>
             )}
           </div>
         </div>

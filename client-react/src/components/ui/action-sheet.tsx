@@ -1,4 +1,5 @@
 import { Image, Video } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface ActionSheetProps {
   visible: boolean
@@ -24,14 +25,14 @@ export function ActionSheet({ visible, onClose, onSelect }: ActionSheetProps) {
       >
         <div className="grid grid-cols-2 gap-4">
           {actions.map(({ key, label, icon: Icon }) => (
-            <button
+            <LiquidMetalButton
               key={key}
               onClick={() => onSelect(key)}
               className="flex flex-col items-center gap-2 bg-transparent border-none text-text-primary cursor-pointer py-3 px-2 rounded-xl hover:bg-bg-tertiary"
             >
               <Icon className="size-5" />
               <span className="text-sm text-text-secondary">{label}</span>
-            </button>
+            </LiquidMetalButton>
           ))}
         </div>
       </div>

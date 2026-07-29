@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDemandWorkspaceStore } from '@/stores/demand-workspace'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type PolishAction = 'shorten' | 'expand' | 'formal' | 'casual'
 
@@ -70,7 +71,7 @@ export function WorkspaceTools() {
               ['casual', '口语版', MessageSquare],
             ] as const
           ).map(([action, label, Icon]) => (
-            <button
+            <LiquidMetalButton
               key={action}
               type="button"
               disabled={!description.trim() || polishing !== null}
@@ -83,7 +84,7 @@ export function WorkspaceTools() {
                 <Icon className="size-3.5" />
               )}
               {label}
-            </button>
+            </LiquidMetalButton>
           ))}
         </div>
       </div>
@@ -109,7 +110,7 @@ export function WorkspaceTools() {
             const isResolved = resolvedQueue.includes(info)
 
             return (
-              <button
+              <LiquidMetalButton
                 key={info}
                 type="button"
                 disabled={isAnswered || isResolved}
@@ -133,7 +134,7 @@ export function WorkspaceTools() {
                 {isQueued && <span style={{ fontSize: 12, opacity: 0.7 }}>待回答</span>}
                 {isAnswered && <span style={{ fontSize: 12, opacity: 0.7 }}>已收集</span>}
                 {isResolved && <span style={{ fontSize: 12, opacity: 0.7 }}>已解决</span>}
-              </button>
+              </LiquidMetalButton>
             )
           })}
         </div>

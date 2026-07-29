@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const NAV_LINKS = [
   { label: '首页', to: '/' },
@@ -31,7 +32,7 @@ export function LoginMiniNavbar({
       </div>
 
       <div className="flex items-center gap-1">
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={() => onToggleMode(true)}
           className={cn(
@@ -42,8 +43,8 @@ export function LoginMiniNavbar({
           )}
         >
           登录
-        </button>
-        <button
+        </LiquidMetalButton>
+        <LiquidMetalButton
           type="button"
           onClick={() => onToggleMode(false)}
           className={cn(
@@ -54,7 +55,7 @@ export function LoginMiniNavbar({
           )}
         >
           注册
-        </button>
+        </LiquidMetalButton>
       </div>
     </nav>
   )

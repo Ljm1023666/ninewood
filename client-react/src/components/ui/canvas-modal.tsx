@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { X } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface CanvasModalProps {
   open: boolean
@@ -44,12 +45,12 @@ export function CanvasModal({
             {header !== null && (
               <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-5">
                 <div className="flex items-center gap-3 min-w-0">
-                  <button
+                  <LiquidMetalButton
                     onClick={onClose}
                     className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
                   >
                     <X className="size-5" />
-                  </button>
+                  </LiquidMetalButton>
                   {title && (
                     <h2 className="text-lg font-semibold text-text-primary truncate">
                       {title}

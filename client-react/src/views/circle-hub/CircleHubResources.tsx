@@ -121,14 +121,14 @@ export default function CircleHubResources() {
 
       <div className="cdb-hub-filters">
         {FILTERS.map((f) => (
-          <button
+          <LiquidMetalButton
             key={f.key}
             type="button"
             className={filter === f.key ? 'cdb-hub-filter cdb-hub-filter--active' : 'cdb-hub-filter'}
             onClick={() => setFilter(f.key)}
           >
             {f.label}
-          </button>
+          </LiquidMetalButton>
         ))}
       </div>
 
@@ -215,7 +215,7 @@ export default function CircleHubResources() {
                         </td>
                         {userId ? (
                           <td>
-                            <button
+                            <LiquidMetalButton
                               type="button"
                               className="cdb-hub-icon-btn"
                               aria-label="删除"
@@ -232,7 +232,7 @@ export default function CircleHubResources() {
                               }}
                             >
                               <MsIcon name="delete" size={18} aria-hidden />
-                            </button>
+                            </LiquidMetalButton>
                           </td>
                         ) : null}
                       </tr>

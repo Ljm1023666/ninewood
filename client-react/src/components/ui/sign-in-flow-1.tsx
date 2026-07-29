@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import './sign-in-flow.css'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+
+const MotionLiquidMetalButton = motion.create(LiquidMetalButton)
 
 interface SignInPageProps {
   className?: string
@@ -24,22 +27,22 @@ export function SignInFlowNavbar({
         <span>九木</span>
       </Link>
       <div className="sign-in-flow-mode-switch" role="group" aria-label="认证方式">
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={() => onToggleMode(true)}
           className={cn(isLogin && 'is-active')}
           aria-pressed={isLogin}
         >
           登录
-        </button>
-        <button
+        </LiquidMetalButton>
+        <LiquidMetalButton
           type="button"
           onClick={() => onToggleMode(false)}
           className={cn(!isLogin && 'is-active')}
           aria-pressed={!isLogin}
         >
           注册
-        </button>
+        </LiquidMetalButton>
       </div>
     </header>
   )
@@ -160,13 +163,13 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                     </div>
 
                     <div className="sign-in-flow-stack-sm">
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-white backdrop-blur-[2px] transition-colors hover:bg-white/10"
                       >
                         <span className="text-lg font-mono">#</span>
                         <span>Sign in with ID</span>
-                      </button>
+                      </LiquidMetalButton>
 
                       <div className="flex items-center gap-4">
                         <div className="h-px flex-1 bg-white/10" />
@@ -184,7 +187,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                             className="w-full rounded-full border border-white/10 bg-transparent py-3 pr-12 pl-4 text-center text-white backdrop-blur-[1px] focus:border-white/30 focus:outline-none"
                             required
                           />
-                          <button
+                          <LiquidMetalButton
                             type="submit"
                             className="group absolute top-1.5 right-1.5 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
                           >
@@ -196,7 +199,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                                 →
                               </span>
                             </span>
-                          </button>
+                          </LiquidMetalButton>
                         </div>
                       </form>
                     </div>
@@ -306,7 +309,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                     </div>
 
                     <div className="flex w-full gap-3">
-                      <motion.button
+                      <MotionLiquidMetalButton
                         type="button"
                         onClick={handleBackClick}
                         className="w-[30%] rounded-full bg-white px-8 py-3 font-medium text-black transition-colors hover:bg-white/90"
@@ -315,8 +318,8 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                         transition={{ duration: 0.2 }}
                       >
                         Back
-                      </motion.button>
-                      <motion.button
+                      </MotionLiquidMetalButton>
+                      <MotionLiquidMetalButton
                         type="button"
                         className={`flex-1 rounded-full border py-3 font-medium transition-all duration-300 ${
                           code.every((d) => d !== '')
@@ -326,7 +329,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                         disabled={!code.every((d) => d !== '')}
                       >
                         Continue
-                      </motion.button>
+                      </MotionLiquidMetalButton>
                     </div>
 
                     <div className="pt-16">
@@ -409,7 +412,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                       </div>
                     </motion.div>
 
-                    <motion.button
+                    <MotionLiquidMetalButton
                       type="button"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -417,7 +420,7 @@ export const SignInPage = ({ className }: SignInPageProps) => {
                       className="w-full rounded-full bg-white py-3 font-medium text-black transition-colors hover:bg-white/90"
                     >
                       Continue to Dashboard
-                    </motion.button>
+                    </MotionLiquidMetalButton>
                   </motion.div>
                 )}
               </AnimatePresence>

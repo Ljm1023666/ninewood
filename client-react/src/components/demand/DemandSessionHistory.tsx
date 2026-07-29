@@ -14,6 +14,7 @@ import {
   type DemandSessionSnapshot,
   type SessionDateGroup,
 } from '@/utils/demand-session-history'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface DemandSessionHistoryProps {
   activeId: string | null
@@ -84,14 +85,14 @@ export function DemandSessionHistory({
       }}
     >
       <PopoverTrigger asChild>
-        <button
+        <LiquidMetalButton
           type="button"
           className="ws-btn ws-btn--icon"
           aria-label="历史会话"
           title="历史会话"
         >
           <Clock className="size-3.5" />
-        </button>
+        </LiquidMetalButton>
       </PopoverTrigger>
       <PopoverContent
         align="end"
@@ -133,7 +134,7 @@ export function DemandSessionHistory({
                                 isActive && 'ws-history-item--active',
                               )}
                             >
-                              <button
+                              <LiquidMetalButton
                                 type="button"
                                 className="ws-history-item-main"
                                 onClick={() => {
@@ -153,8 +154,8 @@ export function DemandSessionHistory({
                                 <span className="ws-history-item-time">
                                   {formatRelativeTime(session.updatedAt)}
                                 </span>
-                              </button>
-                              <button
+                              </LiquidMetalButton>
+                              <LiquidMetalButton
                                 type="button"
                                 className="ws-history-item-delete"
                                 aria-label="删除会话"
@@ -172,7 +173,7 @@ export function DemandSessionHistory({
                                 }}
                               >
                                 <Trash2 className="size-3.5" />
-                              </button>
+                              </LiquidMetalButton>
                             </div>
                           </li>
                         )

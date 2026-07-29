@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface ErrorStateProps {
   /** 具体错误消息，格式: "失败操作 — 原因" */
@@ -30,13 +30,13 @@ export function ErrorState({
           {message || '请检查网络连接后重试'}
         </p>
         {onRetry ? (
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={onRetry}
             className="mt-4 border border-[var(--internal-hairline)] px-4 py-2 font-mono text-xs uppercase tracking-wider text-text-secondary transition-colors hover:bg-white/[0.03]"
           >
             重试
-          </button>
+          </LiquidMetalButton>
         ) : null}
       </div>
     )
@@ -56,14 +56,14 @@ export function ErrorState({
         {message || '加载失败 — 请检查网络连接后重试'}
       </p>
       {onRetry && (
-        <Button
+        <LiquidMetalButton
           variant="ghost"
           size="sm"
           onClick={onRetry}
           className="text-accent-color hover:text-accent-hover"
         >
           重试
-        </Button>
+        </LiquidMetalButton>
       )}
     </div>
   )

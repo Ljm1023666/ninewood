@@ -22,13 +22,13 @@ export function QuietConfirmation({
       {/* 主 CTA：全局选择按钮标准 */}
       <LiquidMetalButton label={primaryLabel} onClick={onPrimary} />
       {secondaryLabel && onSecondary ? (
-        <button
+        <LiquidMetalButton
           type="button"
           className="rounded-lg border border-[var(--border-subtle)] px-4 py-2 text-sm text-text-secondary"
           onClick={onSecondary}
         >
           {secondaryLabel}
-        </button>
+        </LiquidMetalButton>
       ) : null}
     </div>
   )

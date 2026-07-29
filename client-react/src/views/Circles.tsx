@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { circleApi } from '@/api/circle'
+import { discussionsApi, type DiscussionTopic } from '@/api/discussions'
 import { cn } from '@/lib/utils'
 import { MsIcon } from '@/components/ui/ms-icon'
-import { SegmentedFilter } from '@/components/layout/internal-ui'
 import {
   DesktopPageShell,
   DlpGlass,
@@ -14,12 +14,6 @@ import { LoadingState } from '@/components/ui/loading-state'
 import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { toast } from '@/components/ui/confirm-dialog'
 import '@/styles/circles-plaza.css'
-
-const roleLabel: Record<string, string> = {
-  OWNER: '圈主',
-  ADMIN: '管理员',
-  MEMBER: '成员',
-}
 
 type PreviewMember = {
   userId: string
@@ -43,6 +37,7 @@ type CircleBrief = {
   owner?: { id?: string; nickname?: string | null; avatarUrl?: string | null }
   previewMembers?: PreviewMember[]
   _count?: CircleCounts
+  joined?: boolean
 }
 
 type MyCircleRow = {
@@ -51,7 +46,6 @@ type MyCircleRow = {
   circle?: CircleBrief
 }
 
-type TypeFilter = '' | 'PUBLIC' | 'PRIVATE'
 type SortBy = 'hot' | 'new'
 
 function circleIcon(c: Pick<CircleBrief, 'name' | 'description' | 'type'>): string {
@@ -65,7 +59,6 @@ function circleIcon(c: Pick<CircleBrief, 'name' | 'description' | 'type'>): stri
   return 'groups'
 }
 
-/** 无后端分类字段时，用名称/简介启发式打标签，便于筛选对齐广场体验 */
 function inferTheme(c: Pick<CircleBrief, 'name' | 'description'>): string {
   const text = `${c.name || ''} ${c.description || ''}`
   if (/设计|UI|视觉/i.test(text)) return 'UI设计'
@@ -82,206 +75,39 @@ function memberTotal(c: CircleBrief): number {
   return c._count?.members ?? c.memberCount ?? c.previewMembers?.length ?? 0
 }
 
-function MemberStack({
-  members,
-  total,
-}: {
-  members?: PreviewMember[]
-  total: number
-}) {
-  const shown = (members || []).slice(0, 3)
-  const extra = Math.max(0, total - shown.length)
-  if (shown.length === 0) {
-    return (
-      <span className="circles-plaza__meta">
-        <MsIcon name="group" size={16} aria-hidden />
-        {total} 人
-      </span>
-    )
+function memberBadge(total: number): string {
+  if (total <= 3) return String(total)
+  if (total >= 1000) return `${Math.floor(total / 1000)}k+`
+  return `+${total - 3}`
+}
+
+function coverFallback(theme: string): string {
+  const hues: Record<string, string> = {
+    UI设计: '280',
+    技术开发: '200',
+    产品需求: '160',
+    数据分析: '220',
+    测试服务: '30',
+    综合: '340',
   }
-  return (
-    <div className="circles-plaza__avatars" aria-label={`${total} 位成员`}>
-      {shown.map((m) => (
-        <span key={m.userId} className="circles-plaza__avatar" title={m.nickname}>
-          {m.avatarUrl ? (
-            <img src={m.avatarUrl} alt="" loading="lazy" />
-          ) : (
-            (m.nickname || '?').slice(0, 1)
-          )}
-        </span>
-      ))}
-      {extra > 0 ? (
-        <span className="circles-plaza__avatar circles-plaza__avatar--more">
-          +{extra > 99 ? '99' : extra}
-        </span>
-      ) : null}
-    </div>
-  )
-}
-
-function DiscoverCard({
-  circle,
-  featured,
-  busy,
-  onOpen,
-  onJoin,
-}: {
-  circle: CircleBrief
-  featured?: boolean
-  busy: boolean
-  onOpen: () => void
-  onJoin: () => void
-}) {
-  const theme = inferTheme(circle)
-  const total = memberTotal(circle)
-
-  return (
-    <article
-      className={cn(
-        'circles-plaza__card',
-        featured && 'circles-plaza__card--featured',
-      )}
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onOpen()
-        }
-      }}
-    >
-      {featured ? (
-        <span className="circles-plaza__featured-badge">
-          <span className="circles-plaza__featured-badge-dot" aria-hidden />
-          推荐
-        </span>
-      ) : null}
-
-      <div className="circles-plaza__cover">
-        {circle.coverUrl ? (
-          <img src={circle.coverUrl} alt="" loading="lazy" />
-        ) : null}
-        <div className="circles-plaza__cover-veil" aria-hidden />
-        {!featured ? (
-          <span className="circles-plaza__cover-badge">{theme}</span>
-        ) : null}
-        <div className="circles-plaza__icon-chip" aria-hidden>
-          <MsIcon name={circleIcon(circle)} size={featured ? 22 : 24} filled />
-        </div>
-      </div>
-
-      <div className="circles-plaza__body">
-        <h3 className="circles-plaza__title">{circle.name}</h3>
-        <p className={cn('circles-plaza__desc', !featured && 'line-clamp-3')}>
-          {circle.description?.trim() || '暂无简介'}
-        </p>
-        {featured ? (
-          <div className="circles-plaza__tags">
-            <span className="circles-plaza__tag"># {theme}</span>
-            <span className="circles-plaza__tag">
-              圈主 {circle.owner?.nickname || '未知'}
-            </span>
-            {circle.cityCode ? (
-              <span className="circles-plaza__tag">{circle.cityCode}</span>
-            ) : null}
-          </div>
-        ) : null}
-        <div className="circles-plaza__footer">
-          <MemberStack members={circle.previewMembers} total={total} />
-          {/* 卡片主操作：与分段选中同款 LiquidMetal，禁止实心 teal */}
-          <span
-            className="circles-plaza__join"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            role="presentation"
-          >
-            <LiquidMetalButton
-              label={busy ? '…' : '加入'}
-              disabled={busy}
-              height={36}
-              onClick={onJoin}
-            />
-          </span>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-function MineCard({
-  row,
-  onOpen,
-}: {
-  row: MyCircleRow
-  onOpen: () => void
-}) {
-  const c = row.circle
-  const name = c?.name?.trim() || '未命名圈子'
-  const total = c ? memberTotal(c) : 1
-  const typeLabel = c?.type === 'PUBLIC' ? '公开' : '私密'
-  const theme = c ? inferTheme(c) : '综合'
-
-  return (
-    <article className="circles-plaza__mine-card">
-      <div className="circles-plaza__mine-top">
-        <div className="circles-plaza__mine-icon" aria-hidden>
-          <MsIcon name={c ? circleIcon(c) : 'groups'} size={26} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="circles-plaza__mine-title-row">
-            <h3 className="circles-plaza__mine-title" onClick={onOpen}>
-              {name}
-            </h3>
-            <span
-              className={cn(
-                'circles-plaza__role',
-                row.role === 'OWNER' && 'circles-plaza__role--owner',
-              )}
-            >
-              {roleLabel[row.role] ?? row.role}
-            </span>
-          </div>
-          <p className="mt-1.5 line-clamp-2 text-[13px] leading-5 text-text-secondary">
-            {c?.description?.trim() || '暂无简介'}
-          </p>
-        </div>
-      </div>
-      <div className="circles-plaza__mine-foot">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="inline-flex items-center gap-1">
-            <MsIcon name="group" size={14} aria-hidden />
-            {total} 人
-          </span>
-          <span aria-hidden>·</span>
-          <span>{theme}</span>
-          <span aria-hidden>·</span>
-          <span>{typeLabel}</span>
-        </div>
-        <button type="button" className="circles-plaza__enter" onClick={onOpen}>
-          进入
-          <MsIcon name="chevron_right" size={16} aria-hidden />
-        </button>
-      </div>
-    </article>
-  )
+  const h = hues[theme] || '200'
+  return `linear-gradient(135deg, hsl(${h} 55% 42% / 0.55), rgba(28,28,30,0.9) 60%)`
 }
 
 export default function Circles() {
   const navigate = useNavigate()
   const [circles, setCircles] = useState<CircleBrief[]>([])
   const [myCircles, setMyCircles] = useState<MyCircleRow[]>([])
+  const [topics, setTopics] = useState<DiscussionTopic[]>([])
   const [loading, setLoading] = useState(true)
+  const [topicsLoading, setTopicsLoading] = useState(true)
   const [error, setError] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [createBusy, setCreateBusy] = useState(false)
   const [createForm, setCreateForm] = useState({ name: '', description: '' })
-  const [tab, setTab] = useState<'mine' | 'discover'>('mine')
   const [sortBy, setSortBy] = useState<SortBy>('hot')
   const [themeFilter, setThemeFilter] = useState('')
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('')
   const [themeOpen, setThemeOpen] = useState(false)
-  const [typeOpen, setTypeOpen] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
@@ -300,6 +126,19 @@ export default function Circles() {
     }
   }
 
+  async function fetchTopics() {
+    setTopicsLoading(true)
+    try {
+      const res = await discussionsApi.list({ page: 1, pageSize: 5 })
+      const data = res.data.data as { items?: DiscussionTopic[]; list?: DiscussionTopic[] }
+      setTopics(data?.items || data?.list || [])
+    } catch {
+      setTopics([])
+    } finally {
+      setTopicsLoading(false)
+    }
+  }
+
   async function createCircle() {
     if (!createForm.name.trim()) {
       toast('请输入圈子名称', 'info')
@@ -314,7 +153,6 @@ export default function Circles() {
       setShowCreate(false)
       setCreateForm({ name: '', description: '' })
       toast('创建成功', 'success')
-      setTab('mine')
       void fetchCircles()
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } }
@@ -340,74 +178,116 @@ export default function Circles() {
 
   useEffect(() => {
     void fetchCircles()
+    void fetchTopics()
   }, [])
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
       if (!filterRef.current?.contains(e.target as Node)) {
         setThemeOpen(false)
-        setTypeOpen(false)
       }
     }
     document.addEventListener('mousedown', onDocClick)
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [])
 
-  const discoverList = useMemo(() => {
-    let list = [...circles]
+  const plazaList = useMemo(() => {
+    const map = new Map<string, CircleBrief>()
+    for (const row of myCircles) {
+      const c = row.circle
+      if (!c?.id) continue
+      map.set(c.id, { ...c, joined: true })
+    }
+    for (const c of circles) {
+      if (!map.has(c.id)) map.set(c.id, { ...c, joined: false })
+    }
+    let list = [...map.values()]
     if (themeFilter) {
       list = list.filter((c) => inferTheme(c) === themeFilter)
     }
     list.sort((a, b) => {
       if (sortBy === 'new') {
-        return (
-          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-        )
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
       }
       const scoreA = (a.activeScore || 0) * 10 + memberTotal(a)
       const scoreB = (b.activeScore || 0) * 10 + memberTotal(b)
       return scoreB - scoreA
     })
     return list
-  }, [circles, themeFilter, sortBy])
+  }, [circles, myCircles, themeFilter, sortBy])
 
-  const mineList = useMemo(() => {
-    let list = [...myCircles]
-    if (typeFilter) {
-      list = list.filter((m) => (m.circle?.type || 'PRIVATE') === typeFilter)
-    }
-    if (themeFilter) {
-      list = list.filter((m) => m.circle && inferTheme(m.circle) === themeFilter)
-    }
-    list.sort((a, b) => {
-      const ca = a.circle
-      const cb = b.circle
-      if (sortBy === 'new') {
-        return (
-          new Date(cb?.createdAt || 0).getTime() -
-          new Date(ca?.createdAt || 0).getTime()
-        )
-      }
-      const scoreA = (ca?.activeScore || 0) * 10 + (ca ? memberTotal(ca) : 0)
-      const scoreB = (cb?.activeScore || 0) * 10 + (cb ? memberTotal(cb) : 0)
-      return scoreB - scoreA
-    })
-    return list
-  }, [myCircles, typeFilter, themeFilter, sortBy])
-
-  const featured =
-    tab === 'discover' && sortBy === 'hot' && !themeFilter
-      ? discoverList[0]
-      : null
-  const gridCircles =
-    featured != null ? discoverList.slice(1) : discoverList
+  const featured = plazaList[0] ?? null
+  const gridCircles = featured ? plazaList.slice(1) : plazaList
 
   return (
     <DesktopPageShell
-      title="圈子"
-      subtitle="找到同频的人，一起对接需求与协作"
+      title="兴趣圈子"
+      subtitle="找到同频的人，一起对接需求"
       actions={
-        <div className="flex items-center gap-3">
+        <div className="circles-plaza__toolbar" ref={filterRef}>
+          <div className="circles-plaza__filter-wrap">
+            <LiquidMetalButton
+              type="button"
+              className="circles-plaza__tool-btn"
+              aria-expanded={themeOpen}
+              onClick={() => setThemeOpen((v) => !v)}
+            >
+              <MsIcon name="filter_list" size={16} aria-hidden />
+              <span>{themeFilter || '全部分类'}</span>
+              <MsIcon name="expand_more" size={16} aria-hidden />
+            </LiquidMetalButton>
+            {themeOpen ? (
+              <div className="circles-plaza__filter-menu" role="listbox">
+                <LiquidMetalButton
+                  type="button"
+                  className={cn(
+                    'circles-plaza__filter-item',
+                    !themeFilter && 'circles-plaza__filter-item--active',
+                  )}
+                  onClick={() => {
+                    setThemeFilter('')
+                    setThemeOpen(false)
+                  }}
+                >
+                  全部分类
+                </LiquidMetalButton>
+                {THEME_OPTIONS.map((cat) => (
+                  <LiquidMetalButton
+                    key={cat}
+                    type="button"
+                    className={cn(
+                      'circles-plaza__filter-item',
+                      themeFilter === cat && 'circles-plaza__filter-item--active',
+                    )}
+                    onClick={() => {
+                      setThemeFilter(cat)
+                      setThemeOpen(false)
+                    }}
+                  >
+                    {cat}
+                  </LiquidMetalButton>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <LiquidMetalButton
+            type="button"
+            className="circles-plaza__tool-btn"
+            onClick={() => setSortBy((s) => (s === 'hot' ? 'new' : 'hot'))}
+          >
+            <MsIcon name="sort" size={16} aria-hidden />
+            <span>{sortBy === 'hot' ? '最热门' : '最新'}</span>
+          </LiquidMetalButton>
+
+          <LiquidMetalButton
+            type="button"
+            className="circles-plaza__tool-btn"
+            onClick={() => navigate('/circles/mine')}
+          >
+            我的圈子
+          </LiquidMetalButton>
+
           <LiquidMetalButton
             viewMode="icon"
             icon={
@@ -422,139 +302,10 @@ export default function Circles() {
             disabled={loading}
             onClick={() => void fetchCircles()}
           />
-          <LiquidMetalButton label="创建圈子" onClick={() => setShowCreate(true)} />
         </div>
       }
     >
       <div className="circles-plaza">
-        <SegmentedFilter
-          size="large"
-          options={[
-            { value: 'mine', label: `我的圈子 (${myCircles.length})` },
-            { value: 'discover', label: `发现圈子 (${circles.length})` },
-          ]}
-          value={tab}
-          onChange={setTab}
-        />
-
-        <div className="circles-plaza__toolbar" ref={filterRef}>
-          <button
-            type="button"
-            className="circles-plaza__tool-btn"
-            onClick={() => navigate('/discussions')}
-          >
-            <MsIcon name="forum" size={16} aria-hidden />
-            <span>热门讨论</span>
-          </button>
-          <div className="circles-plaza__filter-wrap">
-            <button
-              type="button"
-              className="circles-plaza__tool-btn"
-              aria-expanded={themeOpen}
-              onClick={() => {
-                setThemeOpen((v) => !v)
-                setTypeOpen(false)
-              }}
-            >
-              <MsIcon name="filter_list" size={16} aria-hidden />
-              <span>{themeFilter || '全部分类'}</span>
-              <MsIcon name="expand_more" size={16} aria-hidden />
-            </button>
-            {themeOpen ? (
-              <div className="circles-plaza__filter-menu" role="listbox">
-                <button
-                  type="button"
-                  className={cn(
-                    'circles-plaza__filter-item',
-                    !themeFilter && 'circles-plaza__filter-item--active',
-                  )}
-                  onClick={() => {
-                    setThemeFilter('')
-                    setThemeOpen(false)
-                  }}
-                >
-                  全部分类
-                </button>
-                {THEME_OPTIONS.map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={cn(
-                      'circles-plaza__filter-item',
-                      themeFilter === cat && 'circles-plaza__filter-item--active',
-                    )}
-                    onClick={() => {
-                      setThemeFilter(cat)
-                      setThemeOpen(false)
-                    }}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          {tab === 'mine' ? (
-            <div className="circles-plaza__filter-wrap">
-              <button
-                type="button"
-                className="circles-plaza__tool-btn"
-                aria-expanded={typeOpen}
-                onClick={() => {
-                  setTypeOpen((v) => !v)
-                  setThemeOpen(false)
-                }}
-              >
-                <MsIcon name="tune" size={16} aria-hidden />
-                <span>
-                  {typeFilter === 'PUBLIC'
-                    ? '公开'
-                    : typeFilter === 'PRIVATE'
-                      ? '私密'
-                      : '全部类型'}
-                </span>
-                <MsIcon name="expand_more" size={16} aria-hidden />
-              </button>
-              {typeOpen ? (
-                <div className="circles-plaza__filter-menu" role="listbox">
-                  {(
-                    [
-                      ['', '全部类型'],
-                      ['PUBLIC', '公开'],
-                      ['PRIVATE', '私密'],
-                    ] as const
-                  ).map(([value, label]) => (
-                    <button
-                      key={label}
-                      type="button"
-                      className={cn(
-                        'circles-plaza__filter-item',
-                        typeFilter === value && 'circles-plaza__filter-item--active',
-                      )}
-                      onClick={() => {
-                        setTypeFilter(value)
-                        setTypeOpen(false)
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-
-          <button
-            type="button"
-            className="circles-plaza__tool-btn"
-            onClick={() => setSortBy((s) => (s === 'hot' ? 'new' : 'hot'))}
-          >
-            <MsIcon name="sort" size={16} aria-hidden />
-            <span>{sortBy === 'hot' ? '最热门' : '最新'}</span>
-          </button>
-        </div>
-
         {error ? (
           <DlpGlass>
             <DlpEmpty
@@ -570,98 +321,235 @@ export default function Circles() {
 
         {loading && !error ? <LoadingState variant="internal" lines={4} /> : null}
 
-        {!loading && !error && tab === 'discover' ? (
-          discoverList.length > 0 ? (
+        {!loading && !error ? (
+          <>
             <div className="circles-plaza__grid">
               {featured ? (
-                <DiscoverCard
-                  circle={featured}
-                  featured
-                  busy={busyId === featured.id}
-                  onOpen={() => navigate(`/circles/${featured.id}`)}
-                  onJoin={() => void joinCircle(featured.id)}
-                />
+                <article
+                  className="circles-plaza__card circles-plaza__card--featured"
+                  onClick={() => navigate(`/circles/${featured.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      navigate(`/circles/${featured.id}`)
+                    }
+                  }}
+                  role="link"
+                  tabIndex={0}
+                >
+                  <div className="circles-plaza__featured-badge">
+                    <span className="circles-plaza__featured-badge-dot" />
+                    推荐
+                  </div>
+                  <div
+                    className="circles-plaza__cover"
+                    style={
+                      featured.coverUrl
+                        ? undefined
+                        : { background: coverFallback(inferTheme(featured)) }
+                    }
+                  >
+                    {featured.coverUrl ? (
+                      <img src={featured.coverUrl} alt="" loading="lazy" />
+                    ) : null}
+                    <div className="circles-plaza__cover-veil" />
+                    <div className="circles-plaza__icon-chip">
+                      <MsIcon name={circleIcon(featured)} size={22} aria-hidden />
+                    </div>
+                  </div>
+                  <div className="circles-plaza__body">
+                    <h3 className="circles-plaza__title">{featured.name}</h3>
+                    <p className="circles-plaza__desc line-clamp-4">
+                      {featured.description?.trim() || '暂无简介'}
+                    </p>
+                    <div className="circles-plaza__tags">
+                      <span className="circles-plaza__tag"># {inferTheme(featured)}</span>
+                      <span className="circles-plaza__tag">
+                        圈主 {featured.owner?.nickname || '未知'}
+                      </span>
+                    </div>
+                    <div className="circles-plaza__footer">
+                      <div className="circles-plaza__avatars">
+                        {(featured.previewMembers || []).slice(0, 3).map((m) => (
+                          <span key={m.userId} className="circles-plaza__avatar">
+                            {m.avatarUrl ? (
+                              <img src={m.avatarUrl} alt="" />
+                            ) : (
+                              (m.nickname || '?').slice(0, 1)
+                            )}
+                          </span>
+                        ))}
+                        <span className="circles-plaza__avatar circles-plaza__avatar--more">
+                          {memberBadge(memberTotal(featured))}
+                        </span>
+                      </div>
+                      {featured.joined ? (
+                        <span className="circles-plaza__join circles-plaza__join--ghost">
+                          <LiquidMetalButton type="button" label="已加入" disabled />
+                        </span>
+                      ) : (
+                        <span
+                          className="circles-plaza__join"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          <LiquidMetalButton
+                            type="button"
+                            label={busyId === featured.id ? '…' : '立即加入'}
+                            disabled={busyId === featured.id}
+                            onClick={() => void joinCircle(featured.id)}
+                          />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </article>
               ) : null}
-              {gridCircles.map((c) => (
-                <DiscoverCard
-                  key={c.id}
-                  circle={c}
-                  busy={busyId === c.id}
-                  onOpen={() => navigate(`/circles/${c.id}`)}
-                  onJoin={() => void joinCircle(c.id)}
-                />
-              ))}
-            </div>
-          ) : (
-            <DlpGlass>
-              <DlpEmpty
-                icon={<MsIcon name="groups" size={48} />}
-                title="暂无公开圈子"
-                description={
-                  themeFilter
-                    ? '当前分类下没有圈子，换个筛选试试。'
-                    : '还没有可发现的公开圈子，或你已全部加入。'
-                }
-                action={
-                  themeFilter ? (
-                    <LiquidMetalButton
-                      label="清除筛选"
-                      onClick={() => setThemeFilter('')}
-                    />
-                  ) : (
-                    <LiquidMetalButton
-                      label="创建圈子"
-                      onClick={() => setShowCreate(true)}
-                    />
-                  )
-                }
-              />
-            </DlpGlass>
-          )
-        ) : null}
 
-        {!loading && !error && tab === 'mine' ? (
-          mineList.length > 0 ? (
-            <div className="circles-plaza__mine-grid">
-              {mineList.map((row) => (
-                <MineCard
-                  key={row.circleId}
-                  row={row}
-                  onOpen={() =>
-                    navigate(`/circles/${row.circle?.id ?? row.circleId}`)
-                  }
-                />
-              ))}
+              {gridCircles.map((c) => {
+                const theme = inferTheme(c)
+                const total = memberTotal(c)
+                return (
+                  <article
+                    key={c.id}
+                    className="circles-plaza__card"
+                    onClick={() => navigate(`/circles/${c.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        navigate(`/circles/${c.id}`)
+                      }
+                    }}
+                    role="link"
+                    tabIndex={0}
+                  >
+                    <div className="relative mb-2">
+                      <div
+                        className="circles-plaza__cover"
+                        style={
+                          c.coverUrl ? undefined : { background: coverFallback(theme) }
+                        }
+                      >
+                        {c.coverUrl ? (
+                          <img src={c.coverUrl} alt="" loading="lazy" />
+                        ) : null}
+                        <div className="circles-plaza__cover-veil" />
+                        <span className="circles-plaza__cover-badge">{theme}</span>
+                      </div>
+                      <div className="circles-plaza__icon-chip">
+                        <MsIcon name={circleIcon(c)} size={24} aria-hidden />
+                      </div>
+                    </div>
+                    <div className="circles-plaza__body">
+                      <h3 className="circles-plaza__title">{c.name}</h3>
+                      <p className="circles-plaza__desc line-clamp-3">
+                        {c.description?.trim() || '暂无简介'}
+                      </p>
+                      <div className="circles-plaza__footer">
+                        <span className="circles-plaza__meta">
+                          <MsIcon name="group" size={16} aria-hidden />
+                          {total} 人
+                        </span>
+                        {c.joined ? (
+                          <span className="circles-plaza__join circles-plaza__join--ghost">
+                            <LiquidMetalButton type="button" label="已加入" disabled />
+                          </span>
+                        ) : (
+                          <span
+                            className="circles-plaza__join"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <LiquidMetalButton
+                              type="button"
+                              label={busyId === c.id ? '…' : '加入'}
+                              disabled={busyId === c.id}
+                              onClick={() => void joinCircle(c.id)}
+                            />
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+
+              {plazaList.length === 0 ? (
+                <div className="circles-plaza__empty col-span-full">
+                  <DlpGlass>
+                    <DlpEmpty
+                      icon={<MsIcon name="groups" size={48} />}
+                      title="暂无圈子数据"
+                      description={
+                        themeFilter
+                          ? '当前分类下没有圈子，换个筛选试试。'
+                          : '还没有匹配的圈子，创建一个吧。'
+                      }
+                      action={
+                        themeFilter ? (
+                          <LiquidMetalButton
+                            label="清除筛选"
+                            onClick={() => setThemeFilter('')}
+                          />
+                        ) : (
+                          <LiquidMetalButton
+                            label="创建圈子"
+                            onClick={() => setShowCreate(true)}
+                          />
+                        )
+                      }
+                    />
+                  </DlpGlass>
+                </div>
+              ) : null}
             </div>
-          ) : (
-            <DlpGlass>
-              <DlpEmpty
-                icon={<MsIcon name="groups" size={48} />}
-                title="未加入圈子"
-                description={
-                  themeFilter || typeFilter
-                    ? '当前筛选下没有圈子。'
-                    : '还没有加入圈子。去发现页面浏览公开圈子吧。'
-                }
-                action={
-                  themeFilter || typeFilter ? (
-                    <LiquidMetalButton
-                      label="清除筛选"
-                      onClick={() => {
-                        setThemeFilter('')
-                        setTypeFilter('')
-                      }}
-                    />
-                  ) : (
-                    <LiquidMetalButton
-                      label="发现圈子"
-                      onClick={() => setTab('discover')}
-                    />
-                  )
-                }
-              />
-            </DlpGlass>
-          )
+
+            <div className="circles-plaza__bottom">
+              <section className="circles-plaza__hot" aria-label="热门讨论">
+                <div className="circles-plaza__hot-head">
+                  <h4>热门讨论</h4>
+                  <button
+                    type="button"
+                    className="circles-plaza__hot-link"
+                    onClick={() => navigate('/discussions')}
+                  >
+                    查看全部
+                  </button>
+                </div>
+                {topicsLoading ? (
+                  <p className="text-sm text-text-secondary">加载中…</p>
+                ) : topics.length === 0 ? (
+                  <p className="text-sm text-text-secondary">暂无讨论</p>
+                ) : (
+                  <ul className="circles-plaza__hot-list">
+                    {topics.map((t) => (
+                      <li key={t.id}>
+                        <button
+                          type="button"
+                          className="circles-plaza__hot-item"
+                          onClick={() => navigate(`/circles/${t.circleId}`)}
+                        >
+                          <span className="circles-plaza__hot-title">{t.title}</span>
+                          <span className="circles-plaza__hot-meta">{t.circleName}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <section className="circles-plaza__cta" aria-label="创建圈子">
+                <div className="circles-plaza__cta-icon">
+                  <MsIcon name="add_circle" size={28} aria-hidden />
+                </div>
+                <h4>申请 / 创建圈子</h4>
+                <p>拉起同频伙伴，一起对接需求与协作</p>
+                <LiquidMetalButton
+                  label="创建圈子"
+                  onClick={() => setShowCreate(true)}
+                />
+              </section>
+            </div>
+          </>
         ) : null}
       </div>
 

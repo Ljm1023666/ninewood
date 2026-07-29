@@ -18,6 +18,7 @@ import {
   SMALL_MONTHLY_EXEMPTION,
 } from '@/data/tax-rules/vat'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface VatTaxProps {
   surface?: 'controls' | 'analysis' | 'all'
@@ -119,7 +120,7 @@ export default function VatTax({ surface = 'all' }: VatTaxProps) {
       <div className="tax-viz-param-card__body">
         <div className="tax-viz-param-tabs">
           {(['small', 'general'] as const).map((t) => (
-            <button
+            <LiquidMetalButton
               key={t}
               type="button"
               onClick={() => setInput('vatTaxpayer', t)}
@@ -129,7 +130,7 @@ export default function VatTax({ surface = 'all' }: VatTaxProps) {
               )}
             >
               {t === 'small' ? '小规模' : '一般纳税人'}
-            </button>
+            </LiquidMetalButton>
           ))}
         </div>
 
@@ -172,7 +173,7 @@ export default function VatTax({ surface = 'all' }: VatTaxProps) {
           </div>
           <div className="tax-viz-param-tabs">
             {rates.map((r) => (
-              <button
+              <LiquidMetalButton
                 key={r.id}
                 type="button"
                 onClick={() => setInput('vatRateId', r.id)}
@@ -182,7 +183,7 @@ export default function VatTax({ surface = 'all' }: VatTaxProps) {
                 )}
               >
                 {r.label}
-              </button>
+              </LiquidMetalButton>
             ))}
           </div>
           <div className="mt-2 text-xs leading-relaxed text-muted-foreground">

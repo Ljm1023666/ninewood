@@ -242,30 +242,30 @@ export default function AgentTasksPage() {
                       <strong>{t.name}</strong>
                     </div>
                     <div className="agent-task-item__actions">
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         className="agent-btn agent-btn--ghost"
                         onClick={() => handleToggle(t)}
                         disabled={pendingId === t.id}
                       >
                         {t.enabled ? '暂停' : '启用'}
-                      </button>
-                      <button
+                      </LiquidMetalButton>
+                      <LiquidMetalButton
                         type="button"
                         className="agent-btn agent-btn--ghost"
                         onClick={() => handleRunNow(t)}
                         disabled={pendingId === t.id}
                       >
                         立即运行
-                      </button>
-                      <button
+                      </LiquidMetalButton>
+                      <LiquidMetalButton
                         type="button"
                         className="agent-btn agent-btn--danger"
                         onClick={() => handleDelete(t)}
                         disabled={pendingId === t.id}
                       >
                         删除
-                      </button>
+                      </LiquidMetalButton>
                     </div>
                   </div>
                   <div className="agent-task-item__meta">
@@ -308,13 +308,13 @@ export default function AgentTasksPage() {
                       {formatDate(r.runAt)}
                     </span>
                     {!r.readAt && (
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         className="agent-btn agent-btn--ghost agent-btn--xs"
                         onClick={() => handleMarkRead(r.id)}
                       >
                         标记已读
-                      </button>
+                      </LiquidMetalButton>
                     )}
                   </div>
                   <div className="agent-inbox-item__body">

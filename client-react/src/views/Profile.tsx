@@ -28,6 +28,7 @@ import {
   toPreferOriginalProfileCoverUrl,
   toDisplayCoverSources,
 } from '@/utils/user-cover-presets'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /** 开屏：主页单张封面 → covers 原图（高清，不压缩） */
 const INTRO_HOLD_MS = 2400
@@ -456,7 +457,7 @@ export default function Profile() {
                   <div className="internal-profile-hero__content">
                     <div className="internal-profile-hero__head">
                       {isMe ? (
-                        <button
+                        <LiquidMetalButton
                           type="button"
                           onClick={() => avatarInputRef.current?.click()}
                           disabled={uploadingKind !== null}
@@ -473,7 +474,7 @@ export default function Profile() {
                           ) : (
                             (displayUser?.nickname || '?')[0]
                           )}
-                        </button>
+                        </LiquidMetalButton>
                       ) : (
                         <div className="internal-profile-hero__avatar">
                           {displayUser?.avatarUrl ? (
@@ -606,7 +607,7 @@ export default function Profile() {
                       className="internal-profile-overview liquid-glass-surface"
                       aria-label="个人概览"
                     >
-                      <button
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => gotoFollowList('following')}
                         className="internal-profile-overview__item"
@@ -618,8 +619,8 @@ export default function Profile() {
                           <small>我保存的人</small>
                           <strong>{followCounts.following}</strong>
                         </span>
-                      </button>
-                      <button
+                      </LiquidMetalButton>
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => gotoFollowList('followers')}
                         className="internal-profile-overview__item"
@@ -631,8 +632,8 @@ export default function Profile() {
                           <small>愿意协作的人</small>
                           <strong>{followCounts.followers > 0 ? '有' : '无'}</strong>
                         </span>
-                      </button>
-                      <button
+                      </LiquidMetalButton>
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => navigate('/cert-center')}
                         className="internal-profile-overview__item"
@@ -644,8 +645,8 @@ export default function Profile() {
                           <small>信誉</small>
                           <strong>{creditScore}</strong>
                         </span>
-                      </button>
-                      <button
+                      </LiquidMetalButton>
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => navigate('/orders')}
                         className="internal-profile-overview__item"
@@ -657,8 +658,8 @@ export default function Profile() {
                           <small>已完成</small>
                           <strong>{completedOrders}</strong>
                         </span>
-                      </button>
-                      <button
+                      </LiquidMetalButton>
+                      <LiquidMetalButton
                         type="button"
                         onClick={() => navigate('/my-bids')}
                         className="internal-profile-overview__item internal-profile-overview__item--capacity"
@@ -677,7 +678,7 @@ export default function Profile() {
                             />
                           </span>
                         </span>
-                      </button>
+                      </LiquidMetalButton>
                     </section>
 
                     <section className="internal-profile-dashboard">
@@ -690,30 +691,30 @@ export default function Profile() {
                             <h3>服务档案</h3>
                           </header>
                           <div className="internal-profile-records">
-                            <button type="button" onClick={() => isMe && setEditDialogOpen(true)}>
+                            <LiquidMetalButton type="button" onClick={() => isMe && setEditDialogOpen(true)}>
                               <MsIcon name="link" size={17} />
                               <span>个人简介</span>
                               <strong>{displayUser?.bio || '暂未填写'}</strong>
                               {isMe ? <MsIcon name="chevron_right" size={18} /> : null}
-                            </button>
-                            <button type="button" onClick={() => isMe && setEditDialogOpen(true)}>
+                            </LiquidMetalButton>
+                            <LiquidMetalButton type="button" onClick={() => isMe && setEditDialogOpen(true)}>
                               <MsIcon name="location_on" size={17} />
                               <span>服务区域</span>
                               <strong>{profileRegion}</strong>
                               {isMe ? <MsIcon name="chevron_right" size={18} /> : null}
-                            </button>
-                            <button type="button" onClick={() => navigate('/orders')}>
+                            </LiquidMetalButton>
+                            <LiquidMetalButton type="button" onClick={() => navigate('/orders')}>
                               <MsIcon name="history" size={17} />
                               <span>服务经验</span>
                               <strong>已完成 {completedOrders} 次协作</strong>
                               <MsIcon name="chevron_right" size={18} />
-                            </button>
-                            <button type="button" onClick={() => navigate('/cert-center')}>
+                            </LiquidMetalButton>
+                            <LiquidMetalButton type="button" onClick={() => navigate('/cert-center')}>
                               <MsIcon name="verified_user" size={17} />
                               <span>服务特色</span>
                               <strong>{certLabel[level]} · 信誉 {creditScore}</strong>
                               <MsIcon name="chevron_right" size={18} />
-                            </button>
+                            </LiquidMetalButton>
                           </div>
                         </article>
 
@@ -724,7 +725,7 @@ export default function Profile() {
                             </span>
                             <h3>能力与认证</h3>
                           </header>
-                          <button
+                          <LiquidMetalButton
                             type="button"
                             className="internal-profile-certificate"
                             onClick={() => navigate('/cert-center')}
@@ -744,7 +745,7 @@ export default function Profile() {
                             </span>
                             <b>{level === 'NONE' ? '去认证' : '已认证'}</b>
                             <MsIcon name="chevron_right" size={19} />
-                          </button>
+                          </LiquidMetalButton>
                         </article>
                       </div>
 
@@ -788,24 +789,24 @@ export default function Profile() {
                               <h3>服务管理</h3>
                             </header>
                             <div className="internal-profile-links">
-                              <button type="button" onClick={() => navigate('/my-service-cards')}>
+                              <LiquidMetalButton type="button" onClick={() => navigate('/my-service-cards')}>
                                 <span><MsIcon name="assignment" size={19} /></span>
                                 <b>服务项目管理</b>
                                 <small>管理服务项目、价格与说明</small>
                                 <MsIcon name="chevron_right" size={18} />
-                              </button>
-                              <button type="button" onClick={() => navigate('/orders')}>
+                              </LiquidMetalButton>
+                              <LiquidMetalButton type="button" onClick={() => navigate('/orders')}>
                                 <span><MsIcon name="receipt_long" size={19} /></span>
                                 <b>订单管理</b>
                                 <small>查看与管理我的服务订单</small>
                                 <MsIcon name="chevron_right" size={18} />
-                              </button>
-                              <button type="button" onClick={() => navigate('/settings')}>
+                              </LiquidMetalButton>
+                              <LiquidMetalButton type="button" onClick={() => navigate('/settings')}>
                                 <span><MsIcon name="schedule" size={19} /></span>
                                 <b>可服务时间设置</b>
                                 <small>设置服务时间与休息安排</small>
                                 <MsIcon name="chevron_right" size={18} />
-                              </button>
+                              </LiquidMetalButton>
                             </div>
                           </article>
 
@@ -817,24 +818,24 @@ export default function Profile() {
                               <h3>评价与信誉</h3>
                             </header>
                             <div className="internal-profile-links internal-profile-links--orange">
-                              <button type="button" onClick={() => navigate('/orders')}>
+                              <LiquidMetalButton type="button" onClick={() => navigate('/orders')}>
                                 <span><MsIcon name="star_outline" size={19} /></span>
                                 <b>客户评价</b>
                                 <small>从已完成订单查看评价</small>
                                 <MsIcon name="chevron_right" size={18} />
-                              </button>
-                              <button type="button" onClick={() => navigate('/cert-center')}>
+                              </LiquidMetalButton>
+                              <LiquidMetalButton type="button" onClick={() => navigate('/cert-center')}>
                                 <span><MsIcon name="verified_user" size={19} /></span>
                                 <b>信誉记录</b>
                                 <small>信誉 {creditScore}，查看规则说明</small>
                                 <MsIcon name="chevron_right" size={18} />
-                              </button>
-                              <button type="button" onClick={() => navigate('/help')}>
+                              </LiquidMetalButton>
+                              <LiquidMetalButton type="button" onClick={() => navigate('/help')}>
                                 <span><MsIcon name="history" size={19} /></span>
                                 <b>平台规则</b>
                                 <small>查看服务与申诉规则</small>
                                 <MsIcon name="chevron_right" size={18} />
-                              </button>
+                              </LiquidMetalButton>
                             </div>
                           </article>
                         </div>
@@ -871,7 +872,7 @@ export default function Profile() {
                               key={demand.id}
                               className="internal-profile-favorites__row"
                             >
-                              <button
+                              <LiquidMetalButton
                                 type="button"
                                 onClick={() =>
                                   navigate(`/demands/${demand.id}`)
@@ -884,8 +885,8 @@ export default function Profile() {
                                 <p className="internal-profile-favorites__meta">
                                   ¥{demand.minPrice} · {demand.category}
                                 </p>
-                              </button>
-                              <button
+                              </LiquidMetalButton>
+                              <LiquidMetalButton
                                 type="button"
                                 onClick={() => toggleFavorite(demand.id)}
                                 className="internal-profile-favorites__unfav"
@@ -896,7 +897,7 @@ export default function Profile() {
                                   size={16}
                                   filled
                                 />
-                              </button>
+                              </LiquidMetalButton>
                             </div>
                           ))}
                         </div>
@@ -906,7 +907,7 @@ export default function Profile() {
                               { length: Math.min(5, favoriteTotalPages) },
                               (_, i) => i + 1,
                             ).map((page) => (
-                              <button
+                              <LiquidMetalButton
                                 key={page}
                                 type="button"
                                 onClick={() => loadFavPage(page)}
@@ -917,7 +918,7 @@ export default function Profile() {
                                 )}
                               >
                                 {page}
-                              </button>
+                              </LiquidMetalButton>
                             ))}
                           </div>
                         ) : null}
@@ -1009,7 +1010,7 @@ function ProfileSideRail({
                 : item.path
             const active = item.tab ? contentTab === item.tab : false
             return (
-              <button
+              <LiquidMetalButton
                 key={item.tab || path}
                 type="button"
                 onClick={() => {
@@ -1024,13 +1025,13 @@ function ProfileSideRail({
               >
                 <MsIcon name={item.icon} size={22} aria-hidden />
                 <span>{item.label}</span>
-              </button>
+              </LiquidMetalButton>
             )
           })}
         </div>
       </div>
 
-      <button
+      <LiquidMetalButton
         type="button"
         className="internal-profile-rail__toggle liquid-glass-surface"
         onClick={() => setOpen((v) => !v)}
@@ -1043,7 +1044,7 @@ function ProfileSideRail({
           aria-hidden
         />
         <span>{open ? '收纳' : '菜单'}</span>
-      </button>
+      </LiquidMetalButton>
     </nav>
   )
 }

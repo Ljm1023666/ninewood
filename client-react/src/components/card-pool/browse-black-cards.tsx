@@ -17,20 +17,20 @@ import { BrowseBlackScopeDragGhost } from '@/components/card-pool/card-pool-drag
 export { BrowseBlackScopeDragGhost } from '@/components/card-pool/card-pool-drag-ghost'
 export { CardPoolCategoryGrid, CardPoolCategoryTile, CardPoolTileSpine } from '@/components/card-pool/CardPoolTile'
 
-/** 左侧叠层卡包厚度：半透玻璃片，不用实心黑 */
+/** 左侧叠层卡包厚度 */
 export function BlackPackSpine({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'relative h-[100px] w-[72px] shrink-0 self-center sm:h-[108px] sm:w-[76px]',
+        'card-pool-pack-spine relative h-[100px] w-[72px] shrink-0 self-center sm:h-[108px] sm:w-[76px]',
         className,
       )}
       aria-hidden
     >
-      <div className="absolute left-0 top-3 z-0 h-[82px] w-9 rounded-lg border border-[var(--liquid-glass-border)] bg-[var(--liquid-glass-chip-bg)] shadow-md backdrop-blur-sm sm:h-[88px]" />
-      <div className="absolute left-1.5 top-2 z-[1] h-[86px] w-10 rounded-lg border border-[var(--liquid-glass-border)] bg-[var(--liquid-glass-chip-bg)] shadow-md backdrop-blur-sm sm:h-[92px] sm:w-11" />
-      <div className="absolute left-3 top-1 z-[2] h-[90px] w-11 rounded-lg border border-[var(--liquid-glass-border)] bg-[var(--liquid-glass-bg)] shadow-lg backdrop-blur-md sm:h-[96px] sm:w-12" />
-      <div className="absolute left-[18px] top-0 z-[3] h-[94px] w-[52px] rounded-lg border border-[var(--liquid-glass-border)] bg-[var(--liquid-glass-bg)] shadow-xl ring-1 ring-white/10 backdrop-blur-md sm:left-5 sm:h-[100px] sm:w-[54px]" />
+      <div className="card-pool-pack-spine__layer card-pool-pack-spine__layer--0" />
+      <div className="card-pool-pack-spine__layer card-pool-pack-spine__layer--1" />
+      <div className="card-pool-pack-spine__layer card-pool-pack-spine__layer--2" />
+      <div className="card-pool-pack-spine__layer card-pool-pack-spine__layer--face" />
     </div>
   )
 }
@@ -75,7 +75,7 @@ export function PackStrip({ label, spectrum }: PackStripProps) {
           intensity={0.65}
         />
       )}
-      <span className="relative z-10 line-clamp-1 text-center text-sm font-bold uppercase tracking-wider text-[var(--internal-text,var(--text-primary))] drop-shadow-sm">
+      <span className="relative z-10 line-clamp-1 text-center text-sm font-bold tracking-wider text-[var(--internal-text,var(--text-primary))]">
         {label}
       </span>
     </div>

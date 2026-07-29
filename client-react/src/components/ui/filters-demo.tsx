@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import {
   Command,
   CommandEmpty,
@@ -43,14 +43,14 @@ export function ComboboxDemo({ disabled }: { disabled?: boolean }) {
     <div className={cn("flex gap-2 flex-wrap", disabled && "pointer-events-none opacity-50")}>
       <Filters filters={filters} setFilters={setFilters} />
       {filters.filter((filter) => filter.value?.length > 0).length > 0 && (
-        <Button
+        <LiquidMetalButton
           variant="outline"
           size="sm"
           className="transition group h-6 text-xs items-center rounded-sm"
           onClick={() => setFilters([])}
         >
           清除
-        </Button>
+        </LiquidMetalButton>
       )}
       <Popover
         open={disabled ? false : open}
@@ -66,7 +66,7 @@ export function ComboboxDemo({ disabled }: { disabled?: boolean }) {
         }}
       >
         <PopoverTrigger asChild>
-          <Button
+          <LiquidMetalButton
             variant="ghost"
             role="combobox"
             aria-expanded={open}
@@ -79,7 +79,7 @@ export function ComboboxDemo({ disabled }: { disabled?: boolean }) {
           >
             <ListFilter className="size-3 shrink-0 transition-all text-muted-foreground group-hover:text-primary" />
             {!filters.length && "筛选"}
-          </Button>
+          </LiquidMetalButton>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <AnimateChangeInHeight>

@@ -10,11 +10,13 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]['key']
 
-function resolveTab(pathname: string): TabKey {
+function resolveTab(pathname: string): TabKey | '' {
   if (pathname.startsWith('/loops/accept')) return 'accept'
   if (pathname.startsWith('/loops/supply')) return 'supply'
   if (pathname.startsWith('/loops/mine') || pathname.startsWith('/loops/runs')) return 'mine'
-  return 'discover'
+  if (pathname.startsWith('/loops/discover')) return 'discover'
+  // offerings 详情等：不要伪选中「发现回」，否则再点 Tab 像没反应
+  return ''
 }
 
 export default function LoopHubNav() {
@@ -26,14 +28,10 @@ export default function LoopHubNav() {
     <nav className="loop-hub-nav" aria-label="回中心">
       <SegmentedFilter
         options={TABS.map((t) => ({ value: t.key, label: t.label }))}
-        value={active}
+        value={(active || ('__none__' as TabKey))}
         onChange={(key) => {
           const tab = TABS.find((t) => t.key === key)
           if (!tab) return
-          if (key === 'discover') void import('./LoopDiscoverPage')
-          if (key === 'mine') void import('./MyLoopsPage')
-          if (key === 'accept') void import('./LoopAcceptPage')
-          if (key === 'supply') void import('./LoopSupplyPage')
           navigate(tab.to)
         }}
       />

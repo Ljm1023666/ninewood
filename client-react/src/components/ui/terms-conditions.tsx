@@ -8,7 +8,6 @@ import {
   UserRoundCheck,
   type LucideIcon,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -20,6 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import './legal-dialog.css'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface LegalDialogProps {
   trigger: ReactNode
@@ -85,20 +85,20 @@ export function LegalDialog({ trigger, title, sections }: LegalDialogProps) {
 
         <DialogFooter className="!flex-col gap-3 px-8 pb-8">
           <DialogClose asChild>
-            <Button
+            <LiquidMetalButton
               type="button"
               className="legal-dialog__primary h-11 w-full rounded-full cursor-pointer"
             >
               我知道了
-            </Button>
+            </LiquidMetalButton>
           </DialogClose>
           <DialogClose asChild>
-            <button
+            <LiquidMetalButton
               type="button"
               className="legal-dialog__secondary h-11 w-full rounded-full text-sm font-medium cursor-pointer"
             >
               关闭
-            </button>
+            </LiquidMetalButton>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

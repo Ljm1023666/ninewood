@@ -15,6 +15,7 @@ import { welfareApi } from '@/api/welfare'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/components/ui/confirm-dialog'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 /**
  * 激励中心（原"公益中心"内测占位页）
@@ -361,7 +362,7 @@ export default function WelfareCenter() {
               <label className="dlp-label">奖励模式（仅内测演示）</label>
               <div className="flex gap-2">
                 {(['random', 'choice'] as const).map((mode) => (
-                  <button
+                  <LiquidMetalButton
                     key={mode}
                     type="button"
                     onClick={() => setCompleteForm({ ...completeForm, rewardMode: mode })}
@@ -371,7 +372,7 @@ export default function WelfareCenter() {
                     )}
                   >
                     {mode === 'random' ? '随机' : '选奖'}
-                  </button>
+                  </LiquidMetalButton>
                 ))}
               </div>
             </div>

@@ -6,6 +6,9 @@ import { AnimatePresence, motion } from 'motion/react'
 
 import { cn } from '@/lib/utils'
 import { BrainCog, Zap } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
+
+const MotionLiquidMetalButton = motion.create(LiquidMetalButton)
 
 interface OrbProps {
   dimension?: string
@@ -347,7 +350,7 @@ export function MorphPanel({
                   </p>
                   <div className="flex items-center gap-1">
                     {onThinkToggle && (
-                      <motion.button
+                      <MotionLiquidMetalButton
                         type="button"
                         onClick={onThinkToggle}
                         className={cx(
@@ -397,10 +400,10 @@ export function MorphPanel({
                           <BrainCog className="size-3 shrink-0" />
                         </motion.span>
                         <span className="relative z-10">Think</span>
-                      </motion.button>
+                      </MotionLiquidMetalButton>
                     )}
                     {onSpeedToggle && (
-                      <motion.button
+                      <MotionLiquidMetalButton
                         type="button"
                         onClick={onSpeedToggle}
                         className={cx(
@@ -441,7 +444,7 @@ export function MorphPanel({
                         )}
                         <Zap className="size-3 shrink-0" />
                         <span className="relative z-10">Speed</span>
-                      </motion.button>
+                      </MotionLiquidMetalButton>
                     )}
                   </div>
                 </div>
@@ -503,14 +506,14 @@ function DockBar() {
           )}
         </AnimatePresence>
 
-        <button
+        <LiquidMetalButton
           type="button"
           tabIndex={-1}
           className="flex h-fit flex-1 justify-end rounded-full px-2 py-0.5 text-sm text-foreground/60 hover:text-foreground transition-colors cursor-text"
           onClick={triggerOpen}
         >
           <span className="truncate">Ask AI</span>
-        </button>
+        </LiquidMetalButton>
       </div>
     </footer>
   )

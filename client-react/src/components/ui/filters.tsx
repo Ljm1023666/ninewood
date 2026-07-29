@@ -1,3 +1,4 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
@@ -41,7 +42,6 @@ import {
 } from "lucide-react";
 import { useRef, useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "motion/react";
 
 interface AnimateChangeInHeightProps {
@@ -647,7 +647,7 @@ export default function Filters({
                 }}
               />
             )}
-            <Button
+            <LiquidMetalButton
               variant="ghost"
               size="icon"
               onClick={() => {
@@ -656,7 +656,7 @@ export default function Filters({
               className="bg-muted rounded-l-none rounded-r-sm h-6 w-6 text-muted-foreground hover:text-primary hover:bg-muted/50 transition shrink-0"
             >
               <X className="size-3" />
-            </Button>
+            </LiquidMetalButton>
           </div>
         ))}
     </div>

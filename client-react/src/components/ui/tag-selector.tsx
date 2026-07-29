@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Chip } from './chip'
 import { LoadingState } from './loading-state'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface TagSelectorProps {
   /** 所有可选标签 */
@@ -84,7 +85,7 @@ function TagSelectorInner({
 
         if (shape === 'rect') {
           return (
-            <button
+            <LiquidMetalButton
               key={tag}
               type="button"
               disabled={isDisabled}
@@ -97,7 +98,7 @@ function TagSelectorInner({
               )}
             >
               {tag}
-            </button>
+            </LiquidMetalButton>
           )
         }
 

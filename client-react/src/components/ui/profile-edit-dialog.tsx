@@ -127,7 +127,7 @@ export function ProfileEditDialog({
                   {avatarInitial}
                 </AvatarFallback>
               </Avatar>
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={isUploading}
@@ -135,7 +135,7 @@ export function ProfileEditDialog({
                 aria-label="更换头像"
               >
                 <Camera className="size-3.5" />
-              </button>
+              </LiquidMetalButton>
             </div>
             <input
               ref={avatarInputRef}
@@ -207,13 +207,13 @@ export function ProfileEditDialog({
                     maxYear={new Date().getFullYear()}
                   />
                   <div className="mt-2 flex justify-end">
-                    <button
+                    <LiquidMetalButton
                       type="button"
                       className="profile-edit-dialog__action"
                       onClick={() => setBirthdayEditing(false)}
                     >
                       完成
-                    </button>
+                    </LiquidMetalButton>
                   </div>
                 </div>
               ) : (
@@ -230,13 +230,13 @@ export function ProfileEditDialog({
                         : '未设置'}
                     </span>
                   </div>
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     className="profile-edit-dialog__action"
                     onClick={() => setBirthdayEditing(true)}
                   >
                     {birthday ? '修改' : '设置'}
-                  </button>
+                  </LiquidMetalButton>
                 </div>
               )}
             </div>

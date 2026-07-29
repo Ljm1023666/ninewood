@@ -16,6 +16,7 @@ import {
   STANDARD_RATE,
 } from '@/data/tax-rules/corporate-income'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 interface CorporateIncomeTaxProps {
   surface?: 'controls' | 'analysis' | 'all'
@@ -90,7 +91,7 @@ export default function CorporateIncomeTax({
       <div className="tax-viz-param-card__body">
         <div className="tax-viz-param-tabs">
           {(['standard', 'smallMicro', 'highTech'] as const).map((r) => (
-            <button
+            <LiquidMetalButton
               key={r}
               type="button"
               onClick={() => setInput('corporateRegime', r)}
@@ -100,7 +101,7 @@ export default function CorporateIncomeTax({
               )}
             >
               {regimeLabel[r]}
-            </button>
+            </LiquidMetalButton>
           ))}
         </div>
 

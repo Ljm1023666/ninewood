@@ -14,6 +14,7 @@ import {
   certTierClass,
 } from '@/components/cert/cert-utils'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const steps = [
   { level: 'NONE', label: '未认证', desc: '基础账户创建' },
@@ -91,7 +92,7 @@ export function CertCenterDashboardView({
           <h1>等级与进度</h1>
           <p>管理你的认证等级，解锁更高阶的交易与运营能力。</p>
         </div>
-        <button
+        <LiquidMetalButton
           type="button"
           className="cert-stitch-btn-upgrade"
           onClick={onUpgrade}
@@ -100,7 +101,7 @@ export function CertCenterDashboardView({
         >
           <MsIcon name="upgrade" size={16} />
           {upgrading ? '提交中…' : isMaxLevel ? '已满级' : '申请升级'}
-        </button>
+        </LiquidMetalButton>
       </header>
 
       <div className="cert-stitch-dashboard">
@@ -252,9 +253,9 @@ export function CertCenterDashboardView({
       </div>
 
       <div className="cert-stitch-center-footer-link">
-        <button type="button" onClick={onShowIntro}>
+        <LiquidMetalButton type="button" onClick={onShowIntro}>
           查看认证介绍
-        </button>
+        </LiquidMetalButton>
       </div>
     </>
   )

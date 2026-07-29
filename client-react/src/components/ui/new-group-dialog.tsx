@@ -98,16 +98,16 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
     <div className="fixed inset-0 z-[300] flex flex-col bg-card text-text-primary">
       {/* 顶栏 */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={onClose}
           className="flex items-center gap-1 text-sm text-text-secondary"
         >
           <X className="size-5" />
           取消
-        </button>
+        </LiquidMetalButton>
         <span className="text-base font-bold">发起群聊</span>
-        <button
+        <LiquidMetalButton
           type="button"
           disabled={selected.length === 0 || creating}
           onClick={() => {
@@ -125,7 +125,7 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
           className="text-sm font-semibold text-[var(--primary-start)] disabled:opacity-30"
         >
           {selected.length <= 1 ? '完成' : `下一步(${selected.length})`}
-        </button>
+        </LiquidMetalButton>
       </div>
 
       {/* 搜索 + 已选 */}
@@ -161,7 +161,7 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
         {filtered.map((c) => {
           const isSel = !!selected.find((x) => x.id === c.id)
           return (
-            <button
+            <LiquidMetalButton
               key={c.id}
               type="button"
               onClick={() => toggle(c)}
@@ -204,7 +204,7 @@ export function NewGroupDialog({ open, onClose }: NewGroupDialogProps) {
                   </svg>
                 )}
               </div>
-            </button>
+            </LiquidMetalButton>
           )
         })}
       </div>

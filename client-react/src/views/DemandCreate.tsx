@@ -50,6 +50,7 @@ import {
   Plus,
   ChevronDown,
 } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 let _msgId = 0
 const newMsgId = () => `dc${++_msgId}`
@@ -78,7 +79,7 @@ function ThinkingPanel({
 
   return (
     <div className="ws-thinking">
-      <button
+      <LiquidMetalButton
         type="button"
         onClick={onToggleCollapse}
         className="ws-thinking-head"
@@ -89,7 +90,7 @@ function ThinkingPanel({
           className={cn('size-3.5 ml-auto transition-transform', !collapsed && 'rotate-180')}
         />
         {isLoading && <span className="ws-spinner" style={{ width: 6, height: 6, borderWidth: 1.5 }} />}
-      </button>
+      </LiquidMetalButton>
       {!collapsed && (
         <div ref={scrollRef} className="ws-thinking-body whitespace-pre-wrap">
           {text}
@@ -1048,7 +1049,7 @@ export default function DemandCreate() {
             onSelect={loadSessionById}
             onDelete={handleDeleteSession}
           />
-          <button
+          <LiquidMetalButton
             type="button"
             className="ws-btn"
             onClick={() => {
@@ -1061,7 +1062,7 @@ export default function DemandCreate() {
           >
             <Plus className="size-3.5" />
             新建
-          </button>
+          </LiquidMetalButton>
           {workspaceFields.title && (
             <span
               className={cn(
@@ -1077,14 +1078,14 @@ export default function DemandCreate() {
                   : '低置信度'}
             </span>
           )}
-          <button
+          <LiquidMetalButton
             type="button"
             className="ws-btn ws-btn--primary"
             onClick={() => doPublish()}
           >
             <Send className="size-3.5" />
             发布
-          </button>
+          </LiquidMetalButton>
         </div>
       </header>
 
@@ -1163,7 +1164,7 @@ export default function DemandCreate() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <button
+                        <LiquidMetalButton
                           type="button"
                           onClick={() =>
                             setExpandedIds((prev) => new Set([...prev, msg.id]))
@@ -1172,7 +1173,7 @@ export default function DemandCreate() {
                         >
                           {msg.content.slice(0, 80)}
                           {msg.content.length > 80 ? '…' : ''}
-                        </button>
+                        </LiquidMetalButton>
                       </motion.div>
                     )
                   }
@@ -1187,7 +1188,7 @@ export default function DemandCreate() {
                       transition={{ duration: 0.15 }}
                     >
                       {!isLastMsg && !msg.isStreaming && (
-                        <button
+                        <LiquidMetalButton
                           type="button"
                           onClick={() =>
                             setExpandedIds((prev) => {
@@ -1199,7 +1200,7 @@ export default function DemandCreate() {
                           className="ws-collapse-toggle"
                         >
                           收起 ↑
-                        </button>
+                        </LiquidMetalButton>
                       )}
                       {msg.isStreaming && !msg.content ? (
                         <span className="ws-bubble-ai" style={{ fontStyle: 'italic', color: 'var(--ws-text-muted)' }}>
@@ -1271,14 +1272,14 @@ export default function DemandCreate() {
                               <p>{msg.toolCall.arguments.description}</p>
                             </div>
                           )}
-                          <button
+                          <LiquidMetalButton
                             type="button"
                             onClick={() => handlePublishFromChat(msg.toolCall!)}
                             className="ws-btn ws-btn--primary"
                           >
                             <Send className="size-3.5" />
                             确认发布
-                          </button>
+                          </LiquidMetalButton>
                         </div>
                       )}
                     </motion.div>

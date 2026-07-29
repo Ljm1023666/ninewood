@@ -12,6 +12,7 @@ import {
   DlpEmpty,
 } from '@/components/layout/desktop-page'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const BID_TABS = [
   { value: 'all' as const, label: '全部' },
@@ -74,14 +75,14 @@ export default function MyBids() {
     <DesktopPageShell title="我的应标" subtitle="管理竞标状态与出价记录" density="compact">
       <div className="dlp-tabs">
         {BID_TABS.map((tab) => (
-          <button
+          <LiquidMetalButton
             key={tab.value}
             type="button"
             className={cn('dlp-tab', filter === tab.value && 'dlp-tab--active')}
             onClick={() => setFilter(tab.value)}
           >
             {tab.label}
-          </button>
+          </LiquidMetalButton>
         ))}
       </div>
 
@@ -94,7 +95,7 @@ export default function MyBids() {
             title="还没有应标记录"
             description="去发现页寻找合适的需求吧"
             action={
-              <DlpBtnPrimary onClick={() => navigate('/card-pool')}>去发现</DlpBtnPrimary>
+              <DlpBtnPrimary onClick={() => navigate('/discover')}>去发现</DlpBtnPrimary>
             }
           />
         </DlpGlass>

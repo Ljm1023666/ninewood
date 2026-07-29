@@ -32,12 +32,12 @@ export function ConfirmDialog({
           {message}
         </p>
         <div className="flex gap-3">
-          <button
+          <LiquidMetalButton
             onClick={onCancel}
             className="flex-1 py-3 rounded-lg border border-border bg-transparent text-text-secondary text-sm font-semibold hover:bg-bg-tertiary"
           >
             取消
-          </button>
+          </LiquidMetalButton>
           {/* 确认：全局选择按钮标准（非 destructive） */}
           <div className="flex-1">
             <LiquidMetalButton

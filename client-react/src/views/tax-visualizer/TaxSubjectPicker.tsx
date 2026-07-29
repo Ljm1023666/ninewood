@@ -19,6 +19,7 @@ import {
   type SubjectId,
 } from '@/data/tax-rules/subjects'
 import { SUBJECT_VISUAL } from '@/constants/tax-visualizer'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const SUBJECT_ICON: Record<SubjectId, typeof User> = {
   'individual-salary': User,
@@ -67,7 +68,7 @@ export function TaxSubjectPicker({ layout = 'card' }: TaxSubjectPickerProps) {
           const Icon = SUBJECT_ICON[s.id]
           const meta = SUBJECT_SPLIT_META[s.id]
           return (
-            <button
+            <LiquidMetalButton
               key={s.id}
               type="button"
               role="radio"
@@ -93,7 +94,7 @@ export function TaxSubjectPicker({ layout = 'card' }: TaxSubjectPickerProps) {
               </div>
               <div className="tax-viz-subject-b__name">{meta.shortName}</div>
               <div className="tax-viz-subject-b__desc">{meta.shortDesc}</div>
-            </button>
+            </LiquidMetalButton>
           )
         })}
       </div>
@@ -113,13 +114,13 @@ export function TaxSubjectPicker({ layout = 'card' }: TaxSubjectPickerProps) {
             </div>
           </div>
           {compareSubject && (
-            <button
+            <LiquidMetalButton
               type="button"
               onClick={() => setCompareSubject(null)}
               className="shrink-0 rounded-full border border-white/10 px-2.5 py-1 text-xs text-amber-300/90 transition-colors hover:bg-white/5"
             >
               退出对比
-            </button>
+            </LiquidMetalButton>
           )}
         </div>
 

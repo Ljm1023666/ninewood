@@ -9,6 +9,7 @@ import {
   isBentoActive,
   type BentoNavItem,
 } from '@/constants/bento-nav'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type AppBentoSidebarProps = {
   onLogout: () => void
@@ -24,7 +25,7 @@ function NavButton({
   onActivate: () => void
 }) {
   return (
-    <button
+    <LiquidMetalButton
       type="button"
       onClick={onActivate}
       data-bento-nav={item.key}
@@ -43,7 +44,7 @@ function NavButton({
         aria-hidden
       />
       <span>{item.label}</span>
-    </button>
+    </LiquidMetalButton>
   )
 }
 
@@ -67,7 +68,7 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
 
   return (
     <aside className="cdb-sidebar" aria-label="主导航">
-      <button
+      <LiquidMetalButton
         type="button"
         className="cdb-sidebar-brand"
         onClick={() => navigate(getCommunityPath(circleId), HUB_SUBPAGE_NAV)}
@@ -81,7 +82,7 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
           <h3 className="cdb-sidebar-brand-title">Ninewood</h3>
           <p className="cdb-sidebar-brand-sub">Productivity Hub</p>
         </div>
-      </button>
+      </LiquidMetalButton>
 
       <nav className="cdb-sidebar-nav" aria-label="主导航-主区">
         {mainNav.map((item) => (
@@ -96,7 +97,7 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
 
       <div className="cdb-sidebar-footer" aria-label="主导航-页脚">
         {footerNav.map((item) => (
-          <button
+          <LiquidMetalButton
             key={item.key}
             type="button"
             onClick={() => go(item)}
@@ -110,9 +111,9 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
           >
             <MsIcon name={item.icon} size={24} aria-hidden />
             <span>{item.label}</span>
-          </button>
+          </LiquidMetalButton>
         ))}
-        <button
+        <LiquidMetalButton
           type="button"
           onClick={onLogout}
           data-bento-nav={BENTO_LOGOUT_NAV.key}
@@ -120,7 +121,7 @@ export function AppBentoSidebar({ onLogout }: AppBentoSidebarProps) {
         >
           <MsIcon name={BENTO_LOGOUT_NAV.icon} size={24} aria-hidden />
           <span>{BENTO_LOGOUT_NAV.label}</span>
-        </button>
+        </LiquidMetalButton>
       </div>
     </aside>
   )

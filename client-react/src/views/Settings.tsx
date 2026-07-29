@@ -22,6 +22,7 @@ import {
 import { MsIcon } from '@/components/ui/ms-icon'
 import { userApi } from '@/api/user'
 import { userTagApi } from '@/api/user-tag'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 const themeNames: Record<string, string> = {
   'morning-mist': '薄雾晨光',
@@ -172,7 +173,7 @@ export default function Settings() {
                   const cfg = themePresets[name]
                   const active = current.name === name
                   return (
-                    <button
+                    <LiquidMetalButton
                       key={name}
                       type="button"
                       aria-pressed={active}
@@ -201,7 +202,7 @@ export default function Settings() {
                           aria-hidden
                         />
                       ) : null}
-                    </button>
+                    </LiquidMetalButton>
                   )
                 })}
               </div>
@@ -238,14 +239,14 @@ export default function Settings() {
                 {keywords.map((kw) => (
                   <span key={kw} className="settings-tag">
                     {kw}
-                    <button
+                    <LiquidMetalButton
                       type="button"
                       className="settings-tag__remove"
                       onClick={() => removeKeyword(kw)}
                       aria-label={`删除 ${kw}`}
                     >
                       <MsIcon name="close" size={12} />
-                    </button>
+                    </LiquidMetalButton>
                   </span>
                 ))}
               </div>

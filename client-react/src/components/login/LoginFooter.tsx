@@ -1,4 +1,5 @@
 import { LegalDialog } from '@/components/ui/terms-conditions'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type LegalSection = { title: string; content: string | string[] }
 
@@ -14,12 +15,12 @@ export function LoginFooter({
       <div className="flex items-center gap-4">
         <LegalDialog
           trigger={
-            <button
+            <LiquidMetalButton
               type="button"
               className="text-xs text-white/40 transition-colors duration-200 hover:text-[#3388FF]"
             >
               服务条款
-            </button>
+            </LiquidMetalButton>
           }
           title="服务条款"
           sections={termsSections}
@@ -27,12 +28,12 @@ export function LoginFooter({
         <span className="select-none text-xs text-white/20">·</span>
         <LegalDialog
           trigger={
-            <button
+            <LiquidMetalButton
               type="button"
               className="text-xs text-white/40 transition-colors duration-200 hover:text-[#3388FF]"
             >
               隐私政策
-            </button>
+            </LiquidMetalButton>
           }
           title="隐私政策"
           sections={privacySections}

@@ -20,7 +20,7 @@ export default function Layout() {
   const connectChat = useChatStore((s) => s.connect)
   const disconnectChat = useChatStore((s) => s.disconnect)
 
-  /** 氛围开/关只看路由；图源固定为浅/深主题，不跟用户封面 */
+  /** 氛围开/关只看路由；默认纯色底，无背景图/渐变 */
   const layoutAmbientOn = useMemo(() => {
     const p = location.pathname
     if (suppressLayoutAmbient(p)) return false
@@ -75,7 +75,7 @@ export default function Layout() {
           : 'relative flex h-screen w-full min-w-0 overflow-hidden bg-bg-primary'
       }
     >
-      {/* 氛围：浅/深固定图，铺在整页（含侧栏后方） */}
+      {/* 氛围：纯色底（无背景图、无渐变），铺在整页供液态玻璃透色 */}
       {layoutAmbientOn ? <UserCoverAmbientBg /> : null}
       <ToastContainer />
       <Sidebar />

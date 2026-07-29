@@ -1,7 +1,8 @@
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 import React from 'react'
 import { Grid2x2PlusIcon, MenuIcon, SearchIcon } from 'lucide-react'
 import { Sheet, SheetContent, SheetFooter } from '@/components/ui/sheet'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SearchModal } from '@/components/ui/search-modal'
 
@@ -42,25 +43,25 @@ export function Header({ children }: { children?: React.ReactNode }) {
             children
           ) : (
             <SearchModal data={blogs}>
-              <Button
+              <LiquidMetalButton
                 variant="outline"
                 className="relative size-9 cursor-pointer p-0 md:border xl:h-9 xl:w-60 xl:justify-between xl:px-3 xl:py-2"
               >
                 <span className="hidden xl:inline-flex">搜索...</span>
                 <span className="sr-only">Search</span>
                 <SearchIcon className="size-4" />
-              </Button>
+              </LiquidMetalButton>
             </SearchModal>
           )}
           <Sheet open={open} onOpenChange={setOpen}>
-            <Button
+            <LiquidMetalButton
               size="icon"
               variant="outline"
               onClick={() => setOpen(!open)}
               className="lg:hidden"
             >
               <MenuIcon className="size-4" />
-            </Button>
+            </LiquidMetalButton>
             <SheetContent
               className="bg-background/95 supports-[backdrop-filter]:bg-background/80 gap-0 backdrop-blur-lg"
               showClose={false}
@@ -81,8 +82,8 @@ export function Header({ children }: { children?: React.ReactNode }) {
                 ))}
               </div>
               <SheetFooter>
-                <Button variant="outline">登录</Button>
-                <Button>注册</Button>
+                <LiquidMetalButton variant="outline">登录</LiquidMetalButton>
+                <LiquidMetalButton>注册</LiquidMetalButton>
               </SheetFooter>
             </SheetContent>
           </Sheet>

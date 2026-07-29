@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, type ReactNode } from 'react'
 import { motion, AnimatePresence, type Transition } from 'motion/react'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type HeadingData = {
   id: string
@@ -270,7 +271,7 @@ export function DynamicIslandTOC({
               <span className="text-[11px] font-semibold tracking-[0.08em] text-text-muted">
                 文档目录
               </span>
-              <button
+              <LiquidMetalButton
                 onClick={(e) => {
                   e.stopPropagation()
                   setIsExpanded(false)
@@ -278,7 +279,7 @@ export function DynamicIslandTOC({
                 className="text-text-muted hover:text-text-primary transition-colors"
               >
                 <X className="size-5" />
-              </button>
+              </LiquidMetalButton>
             </div>
             <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
               <div className="flex flex-col gap-0.5">
@@ -289,7 +290,7 @@ export function DynamicIslandTOC({
                   const paddingLeft = indentLevel * 14 + 12
 
                   return (
-                    <button
+                    <LiquidMetalButton
                       key={entry.id}
                       onMouseEnter={() => setHoveredId(entry.id)}
                       onMouseLeave={() => setHoveredId(null)}
@@ -337,7 +338,7 @@ export function DynamicIslandTOC({
                         transition={{ duration: 0.3, ease: 'easeOut' }}
                         className="ml-3 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"
                       />
-                    </button>
+                    </LiquidMetalButton>
                   )
                 })}
               </div>

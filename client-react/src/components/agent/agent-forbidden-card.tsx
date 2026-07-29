@@ -1,4 +1,5 @@
 import { MsIcon } from "@/components/ui/ms-icon"
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface AgentForbiddenCardData {
   id?: string
@@ -43,14 +44,14 @@ export function AgentForbiddenCard({
       <p className="agent-codex-forbidden__body">{data.message}</p>
       {targetPath && onNavigate && buttonText ? (
         <div className="agent-codex-forbidden__action">
-          <button
+          <LiquidMetalButton
             type="button"
             onClick={() => onNavigate(targetPath)}
             className="agent-codex-forbidden__btn"
           >
             {buttonText}
             <MsIcon name="chevron_right" size={12} />
-          </button>
+          </LiquidMetalButton>
         </div>
       ) : null}
     </div>

@@ -5,6 +5,7 @@ import { BackButton } from '@/components/ui/back-button'
 import type { TemplateContact } from '@/components/ui/chat-template'
 import { cn } from '@/lib/utils'
 import { formatChatTime } from '@/utils/time'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 type Props = {
   contacts: TemplateContact[]
@@ -78,7 +79,7 @@ function MessagesConversationSidebarImpl({
           <h1 className="internal-display-title ml-4">消息</h1>
         </div>
         <div className="msg-list-header__actions">
-          <button
+          <LiquidMetalButton
             type="button"
             className="msg-list-header__action"
             onClick={() => navigate('/messages/new-group')}
@@ -86,8 +87,8 @@ function MessagesConversationSidebarImpl({
             title="新建群聊"
           >
             <Users className="size-4" />
-          </button>
-          <button
+          </LiquidMetalButton>
+          <LiquidMetalButton
             type="button"
             className="msg-list-header__action"
             onClick={() => navigate('/search')}
@@ -95,7 +96,7 @@ function MessagesConversationSidebarImpl({
             title="发起新会话"
           >
             <SquarePen className="size-4" />
-          </button>
+          </LiquidMetalButton>
         </div>
       </header>
 
@@ -143,6 +144,7 @@ function MessagesConversationSidebarImpl({
                 key={id}
                 type="button"
                 onClick={() => onSelectContact(contact)}
+                aria-selected={selected}
                 className={cn(
                   'internal-message-row w-full text-left',
                   selected && 'internal-message-row--active',

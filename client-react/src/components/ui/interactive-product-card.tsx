@@ -23,6 +23,7 @@ import {
   getImageAvgLuminance,
   LIGHT_IMAGE_LUMINANCE_THRESHOLD,
 } from '@/utils/image-analyzer'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface InteractiveProductCardProps extends HTMLAttributes<HTMLDivElement> {
   imageUrl: string
@@ -475,7 +476,7 @@ export function InteractiveProductCard({
                 )}
 
                 <div className="absolute bottom-5 left-4 z-20 max-w-[calc(100%-2rem)] text-left">
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation()
@@ -484,7 +485,7 @@ export function InteractiveProductCard({
                     className="flip-card-back-price text-3xl font-extrabold leading-none [text-shadow:none] cursor-pointer hover:scale-105 transition-transform"
                   >
                     {price}
-                  </button>
+                  </LiquidMetalButton>
                 </div>
               </div>
             </div>
@@ -589,7 +590,7 @@ export function InteractiveProductCard({
                   ) : null}
                 </div>
                 {avatarTo ? (
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     className={cn(
                       'shrink-0 cursor-pointer rounded-full outline-none ring-2 transition',
@@ -608,7 +609,7 @@ export function InteractiveProductCard({
                       alt=""
                       className="h-12 w-12 rounded-full object-cover"
                     />
-                  </button>
+                  </LiquidMetalButton>
                 ) : (
                   <img
                     src={logoUrl}

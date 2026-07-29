@@ -15,6 +15,7 @@ import { useTaxVisualizerStore } from '@/stores/tax-visualizer'
 import { TAX_TYPE_LABEL } from '@/constants/tax-visualizer'
 import { Layers, Square } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export default function TaxVisualizerPage() {
   const compareSubject = useTaxVisualizerStore((s) => s.compareSubject)
@@ -48,7 +49,7 @@ export default function TaxVisualizerPage() {
                 'tax-viz-mode-switch--b',
               )}
             >
-              <button
+              <LiquidMetalButton
                 type="button"
                 onClick={() => setMode('single')}
                 aria-pressed={mode === 'single'}
@@ -63,8 +64,8 @@ export default function TaxVisualizerPage() {
               >
                 <Square className="size-3" />
                 单主体
-              </button>
-              <button
+              </LiquidMetalButton>
+              <LiquidMetalButton
                 type="button"
                 onClick={() => compareSubject && setMode('compare')}
                 disabled={!compareSubject}
@@ -86,7 +87,7 @@ export default function TaxVisualizerPage() {
               >
                 <Layers className="size-3" />
                 对比
-              </button>
+              </LiquidMetalButton>
             </div>
           }
         />

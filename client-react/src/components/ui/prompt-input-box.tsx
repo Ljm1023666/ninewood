@@ -138,40 +138,6 @@ const DialogTitle = React.forwardRef<
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
-// Button Component
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost'
-  size?: 'default' | 'sm' | 'lg' | 'icon'
-}
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
-    const variantClasses = {
-      default: 'bg-white hover:bg-white/80 text-black',
-      outline: 'border border-border bg-transparent hover:bg-bg-tertiary',
-      ghost: 'bg-transparent hover:bg-bg-tertiary',
-    }
-    const sizeClasses = {
-      default: 'h-10 px-4 py-2',
-      sm: 'h-8 px-3 text-sm',
-      lg: 'h-12 px-6',
-      icon: 'h-8 w-8 rounded-full aspect-[1/1]',
-    }
-    return (
-      <button
-        className={cn(
-          'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
-          variantClasses[variant],
-          sizeClasses[size],
-          className,
-        )}
-        ref={ref}
-        {...props}
-      />
-    )
-  },
-)
-Button.displayName = 'Button'
-
 // VoiceRecorder Component
 interface VoiceRecorderProps {
   isRecording: boolean
@@ -254,7 +220,7 @@ const ImageViewDialog: React.FC<ImageViewDialogProps> = ({
   if (!imageUrl) return null
   return (
     <Dialog open={!!imageUrl} onOpenChange={onClose}>
-      <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-[90vw] md:max-w-[800px]">
+      <DialogContent glass={false} className="p-0 border-none bg-transparent shadow-none max-w-[90vw] md:max-w-[800px]">
         <DialogTitle className="sr-only">Image Preview</DialogTitle>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -696,7 +662,7 @@ export const PromptInputBox = React.forwardRef(
                           alt={file.name}
                           className="h-full w-full object-cover"
                         />
-                        <button
+                        <LiquidMetalButton
                           onClick={(e) => {
                             e.stopPropagation()
                             handleRemoveFile(index)
@@ -704,7 +670,7 @@ export const PromptInputBox = React.forwardRef(
                           className="absolute top-1 right-1 rounded-full bg-black/70 p-0.5 opacity-100 transition-opacity"
                         >
                           <X className="size-3 text-text-primary" />
-                        </button>
+                        </LiquidMetalButton>
                       </div>
                     )}
                 </div>
@@ -815,7 +781,7 @@ export const PromptInputBox = React.forwardRef(
             {isCodex ? (
               <div className="ws-composer-bar">
                 <div className="ws-composer-tools">
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     className="ws-icon-btn"
                     title="上传图片"
@@ -834,33 +800,33 @@ export const PromptInputBox = React.forwardRef(
                       }}
                       accept="image/*"
                     />
-                  </button>
+                  </LiquidMetalButton>
                   {enableSpeed && (
-                    <button
+                    <LiquidMetalButton
                       type="button"
                       className={cn('ws-icon-btn', speedMode && 'ws-icon-btn--on')}
                       title="极速模式"
                       onClick={() => handleToggleChange('aggressive')}
                     >
                       <Zap className="size-4" />
-                    </button>
+                    </LiquidMetalButton>
                   )}
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     className={cn('ws-icon-btn', showThink && 'ws-icon-btn--on')}
                     title="思考模式"
                     onClick={() => handleToggleChange('think')}
                   >
                     <BrainCog className="size-4" />
-                  </button>
-                  <button
+                  </LiquidMetalButton>
+                  <LiquidMetalButton
                     type="button"
                     className={cn('ws-icon-btn', showCanvas && 'ws-icon-btn--on')}
                     title="Canvas"
                     onClick={handleCanvasToggle}
                   >
                     <FolderCode className="size-4" />
-                  </button>
+                  </LiquidMetalButton>
                 </div>
                 <LiquidMetalButton
                   viewMode="icon"
@@ -892,7 +858,7 @@ export const PromptInputBox = React.forwardRef(
                 )}
               >
                 <PromptInputAction tooltip="上传图片">
-                  <button
+                  <LiquidMetalButton
                     onClick={() => uploadInputRef.current?.click()}
                     className="flex h-8 w-8 text-text-muted cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-600/30 hover:text-text-secondary"
                     disabled={isRecording}
@@ -909,12 +875,12 @@ export const PromptInputBox = React.forwardRef(
                       }}
                       accept="image/*"
                     />
-                  </button>
+                  </LiquidMetalButton>
                 </PromptInputAction>
 
                 <div className="flex items-center">
                   {enableSpeed && (
-                    <button
+                    <LiquidMetalButton
                       type="button"
                       onClick={() => handleToggleChange('aggressive')}
                       className={cn(
@@ -967,9 +933,9 @@ export const PromptInputBox = React.forwardRef(
                           </motion.span>
                         )}
                       </AnimatePresence>
-                    </button>
+                    </LiquidMetalButton>
                   )}
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     onClick={() => handleToggleChange('think')}
                     className={cn(
@@ -1022,11 +988,11 @@ export const PromptInputBox = React.forwardRef(
                         </motion.span>
                       )}
                     </AnimatePresence>
-                  </button>
+                  </LiquidMetalButton>
 
                   <CustomDivider />
 
-                  <button
+                  <LiquidMetalButton
                     type="button"
                     onClick={handleCanvasToggle}
                     className={cn(
@@ -1079,7 +1045,7 @@ export const PromptInputBox = React.forwardRef(
                         </motion.span>
                       )}
                     </AnimatePresence>
-                  </button>
+                  </LiquidMetalButton>
                 </div>
               </div>
 
@@ -1194,7 +1160,7 @@ function CanvasSpeedFields({ onPublish }: { onPublish?: () => Promise<void> }) {
       </div>
 
       {/* 发布按钮 */}
-      <button
+      <LiquidMetalButton
         type="button"
         onClick={doPublish}
         disabled={!allValid || publishing}
@@ -1202,7 +1168,7 @@ function CanvasSpeedFields({ onPublish }: { onPublish?: () => Promise<void> }) {
         aria-disabled={!allValid || publishing}
       >
         {publishing ? '发布中…' : allValid ? '发布需求' : '请完善所有字段'}
-      </button>
+      </LiquidMetalButton>
     </div>
   )
 }

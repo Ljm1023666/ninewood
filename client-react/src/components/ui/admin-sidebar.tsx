@@ -16,6 +16,7 @@ import {
   Server,
   Calculator,
 } from 'lucide-react'
+import { LiquidMetalButton } from '@/components/ui/liquid-metal-button'
 
 export interface NavSection {
   label: string
@@ -123,7 +124,7 @@ export function AdminSidebar({
         {MAIN_NAV.map((item) => {
           const active = activeTab === item.id
           return (
-            <button
+            <LiquidMetalButton
               key={item.id}
               type="button"
               onClick={() => onNavigate(item.id, getDefaultSectionId(item.id))}
@@ -134,17 +135,17 @@ export function AdminSidebar({
             >
               <item.icon strokeWidth={1.75} />
               <span>{item.label}</span>
-            </button>
+            </LiquidMetalButton>
           )
         })}
       </nav>
 
       <div className="admin-sidebar__foot">
         {onBack && (
-          <button type="button" onClick={onBack} className="admin-sidebar__back">
+          <LiquidMetalButton type="button" onClick={onBack} className="admin-sidebar__back">
             <span aria-hidden>←</span>
             返回应用
-          </button>
+          </LiquidMetalButton>
         )}
         <div className="admin-sidebar__user">
           {user?.avatarUrl ? (

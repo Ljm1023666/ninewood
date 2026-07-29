@@ -366,14 +366,8 @@ html, body {
    浅色填充必须足够透，否则在 pastel 氛围上会像实心白卡片 */
 html {
   --liquid-glass-border: rgba(255, 255, 255, 0.55);
-  --liquid-glass-bg:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.34) 0%,
-      rgba(255, 255, 255, 0.08) 40%,
-      rgba(255, 255, 255, 0.02) 72%
-    ),
-    rgba(255, 255, 255, 0.1);
+  /* 纯色填充，不做渐变；玻璃感靠 blur + 描边 + inset 高光 */
+  --liquid-glass-bg: rgba(255, 255, 255, 0.12);
   --liquid-glass-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
     0 8px 28px rgba(28, 28, 30, 0.08);
@@ -384,14 +378,7 @@ html {
 
 html[data-appearance='dark'] {
   --liquid-glass-border: rgba(255, 255, 255, 0.18);
-  --liquid-glass-bg:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.14) 0%,
-      rgba(255, 255, 255, 0.04) 45%,
-      transparent 72%
-    ),
-    rgba(28, 28, 30, 0.28);
+  --liquid-glass-bg: rgba(28, 28, 30, 0.32);
   --liquid-glass-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 12px 40px rgba(0, 0, 0, 0.4);
@@ -799,13 +786,39 @@ html[data-appearance="dark"] {
   --primary-color-hover: #c94a78;
 }
 
-/* 侧栏展开：仅宽度向右过渡；图标槽固定，侧标绝对定位淡入，避免 flex 重排抖动 */
+/* 侧栏视觉层：始终脱离文档流，占位只靠 .app-sidebar-slot */
 .app-sidebar {
-  width: var(--sidebar-w);
-  transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: width;
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 40;
   overflow-x: hidden;
   isolation: isolate;
+  transition:
+    width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+  will-change: width;
+}
+
+/* 文档流占位：仅固定时变宽挤压主区；悬停浮现不改此宽度 */
+.app-sidebar-slot {
+  flex-shrink: 0;
+  height: 100%;
+  transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+/* 未固定且展开：浮在主内容上，带投影提示可穿透/不占位 */
+.app-sidebar--overlay-expanded {
+  box-shadow:
+    8px 0 28px rgba(0, 0, 0, 0.18),
+    1px 0 0 color-mix(in srgb, var(--liquid-glass-border, rgba(255, 255, 255, 0.16)) 80%, transparent);
+}
+
+html[data-appearance='light'] .app-sidebar--overlay-expanded {
+  box-shadow:
+    8px 0 28px rgba(15, 23, 42, 0.1),
+    1px 0 0 rgba(0, 0, 0, 0.06);
 }
 
 .app-sidebar__row {
@@ -1124,15 +1137,16 @@ html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
   --bg-card: color-mix(in srgb, #ffffff 16%, transparent);
 }
 
-/* Portal 弹窗：始终深色 OLED，与 Stitch 稿一致（不随全局浅色切换） */
+/* 资料编辑弹窗：复用全局液态玻璃，跟随页面明暗与氛围。 */
 .profile-edit-dialog {
   --internal-accent: #3388ff;
-  --internal-text: #f0f0f0;
-  --internal-text-secondary: #d8dce6;
-  --internal-text-muted: #b8b8b8;
-  --internal-hairline: rgba(255, 255, 255, 0.06);
-  --internal-card: #0f0f0f;
-  --internal-surface-hover: #282a2b;
+  --internal-text: var(--text-primary);
+  --internal-text-secondary: var(--text-secondary);
+  --internal-text-muted: var(--text-muted);
+  --internal-hairline: var(--liquid-glass-border);
+  --internal-card: var(--liquid-glass-bg);
+  --internal-surface-hover: var(--liquid-glass-chip-bg);
+  --background: transparent;
 
   display: flex !important;
   flex-direction: column;
@@ -1141,11 +1155,13 @@ html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
   overflow: hidden !important;
   width: 480px;
   max-width: calc(100% - 2rem);
-  background-color: var(--internal-card) !important;
+  background: var(--liquid-glass-bg) !important;
   border-color: var(--internal-hairline) !important;
   color: var(--internal-text);
   border-radius: 12px;
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.45);
+  box-shadow: var(--liquid-glass-shadow) !important;
+  backdrop-filter: var(--liquid-glass-blur) !important;
+  -webkit-backdrop-filter: var(--liquid-glass-blur) !important;
 }
 
 .profile-edit-dialog > button.group {
@@ -1502,6 +1518,17 @@ html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
   isolation: isolate;
 }
 
+/* 短文案：按内容收窄，避免两项被拉成过宽条 */
+.internal-segmented--fit {
+  width: max-content;
+  max-width: 100%;
+  grid-template-columns: repeat(var(--seg-count, 2), auto);
+}
+
+.internal-segmented--fit .internal-segmented__label {
+  padding-inline: 18px;
+}
+
 /* 单一金属框滑块：实例不销毁，只做 translateX */
 .internal-segmented__slider {
   position: absolute;
@@ -1527,13 +1554,21 @@ html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
 .internal-segmented__metal-thumb {
   width: 100% !important;
   height: 100% !important;
+  min-height: 100% !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .internal-segmented__metal-thumb.liquid-metal-button {
-  display: block;
+  display: block !important;
 }
 
-/* 文字层在金属框之上，透明点击热区 */
+/* 装饰滑块：隐藏空文案，避免撑高/错位 */
+.internal-segmented__metal-thumb .liquid-metal-button__content {
+  display: none !important;
+}
+
+/* 文字层在金属框之上，透明点击热区（禁止再用 LiquidMetalButton 当 label） */
 .internal-segmented__label {
   position: relative;
   z-index: 1;
@@ -1546,7 +1581,8 @@ html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
   padding: 0 10px;
   border: none;
   border-radius: 999px;
-  background: transparent;
+  background: transparent !important;
+  box-shadow: none !important;
   color: var(--internal-text-secondary, var(--text-secondary, #888));
   font-size: 14px;
   font-weight: 500;
@@ -1574,6 +1610,24 @@ html[data-layout-ambient='on'][data-appearance='light'] .internal-shell {
   --lm-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   --lm-icon-drop: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   --lm-ripple: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.liquid-metal-button--secondary {
+  --lm-inner-bg: color-mix(in srgb, var(--liquid-glass-bg) 72%, transparent);
+  --lm-inner-bg-active: var(--liquid-glass-chip-bg-hover);
+  --lm-inner-border: color-mix(in srgb, var(--liquid-glass-border) 52%, transparent);
+}
+
+.liquid-metal-button--ghost {
+  --lm-inner-bg: color-mix(in srgb, var(--liquid-glass-bg) 36%, transparent);
+  --lm-inner-bg-active: color-mix(in srgb, var(--liquid-glass-chip-bg-hover) 68%, transparent);
+  --lm-inner-border: transparent;
+}
+
+.liquid-metal-button--danger {
+  --lm-inner-bg: color-mix(in srgb, var(--error-color, #ef4444) 10%, var(--liquid-glass-bg));
+  --lm-inner-bg-active: color-mix(in srgb, var(--error-color, #ef4444) 18%, var(--liquid-glass-chip-bg-hover));
+  --lm-inner-border: color-mix(in srgb, var(--error-color, #ef4444) 32%, transparent);
 }
 
 html[data-appearance='light'] .liquid-metal-button {
@@ -1814,53 +1868,6 @@ html[data-appearance='light'] .liquid-metal-button {
 .settings-input:focus {
   border-color: var(--internal-accent);
   background: var(--internal-hover-md);
-}
-
-.settings-action-btn {
-  border: 1px solid var(--internal-hairline);
-  background: transparent;
-  padding: 10px 18px;
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  white-space: nowrap;
-  color: var(--internal-text);
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.settings-action-btn:hover:not(:disabled) {
-  background: var(--internal-hover-md);
-}
-
-.settings-action-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.settings-action-btn--danger {
-  color: #ff3333;
-  border-color: rgba(255, 51, 51, 0.3);
-}
-
-.settings-action-btn--danger:hover:not(:disabled) {
-  background: rgba(255, 51, 51, 0.1);
-}
-
-.settings-action-btn--primary {
-  color: var(--text-primary);
-  background: var(--liquid-glass-bg, rgba(255, 255, 255, 0.1));
-  border-color: var(--liquid-glass-border, rgba(255, 255, 255, 0.16));
-  backdrop-filter: var(--liquid-glass-blur, blur(18px));
-  -webkit-backdrop-filter: var(--liquid-glass-blur, blur(18px));
-}
-
-.settings-action-btn--primary:hover:not(:disabled) {
-  opacity: 1;
-  background: color-mix(in srgb, var(--liquid-glass-bg, rgba(255, 255, 255, 0.12)) 70%, #fff 16%);
 }
 
 .settings-select {
@@ -2452,37 +2459,6 @@ html[data-appearance='dark'] .internal-profile-shell {
   gap: 12px;
 }
 
-.internal-profile-shell .internal-profile-hero .settings-action-btn {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 20px;
-  border: 1px solid oklch(0.97 0.006 260 / 0.66);
-  border-radius: 13px;
-  background: oklch(0.25 0.025 270 / 0.22);
-  color: oklch(0.98 0.004 260);
-  box-shadow: 0 8px 22px oklch(0.12 0.02 270 / 0.18);
-  backdrop-filter: blur(12px);
-  font-size: 15px;
-  font-weight: 650;
-}
-
-.internal-profile-shell .internal-profile-hero .settings-action-btn:hover {
-  background: oklch(0.34 0.025 270 / 0.42);
-  transform: translateY(-1px);
-}
-
-.internal-profile-shell .internal-profile-hero .settings-action-btn--primary {
-  border-color: color-mix(in oklch, var(--profile-blue) 70%, white);
-  background: var(--profile-blue);
-  color: oklch(0.99 0.002 260);
-}
-
-.internal-profile-shell .internal-profile-hero .settings-action-btn--primary:hover {
-  background: oklch(0.67 0.2 258);
-}
-
 .internal-profile-hero__cover-switch {
   display: inline-flex;
   align-items: center;
@@ -2892,7 +2868,6 @@ html[data-appearance='dark'] .internal-profile-shell {
   .internal-profile-rail__body,
   .internal-profile-rail__toggle,
   .internal-profile-rail__btn,
-  .internal-profile-shell .settings-action-btn,
   .internal-profile-overview__progress > div,
   .internal-profile-monthly__track i {
     transition: none;
@@ -3905,13 +3880,13 @@ html[data-appearance='dark'] .demand-detail-action-panel__done {
   gap: 12px;
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: #f9fafb;
+  border: 1px solid var(--liquid-glass-border);
+  background: var(--liquid-glass-chip-bg);
 }
 
 html[data-appearance='dark'] .demand-detail-action-panel__list-item {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: #0f0f0f;
+  border-color: var(--liquid-glass-border);
+  background: var(--liquid-glass-chip-bg);
 }
 
 .demand-detail-action-panel__list-name {
